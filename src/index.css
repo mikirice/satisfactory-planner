@@ -1,111 +1,207 @@
+/**
+ * 基礎スタイル（ダークテーマ1本）。
+ * 生産計画の数字を読む道具なので、装飾は最小限・数値の可読性を最優先にする。
+ */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --bg: #101318;
+  --bg-panel: #171b22;
+  --bg-raised: #1e232c;
+  --bg-head: #202631;
+  --border: #2b323d;
+  --border-strong: #3a434f;
+  --text: #dde3ec;
+  --text-muted: #93a1b3;
+  --text-strong: #ffffff;
+  --accent: #f0a13c;
+  --accent-weak: rgba(240, 161, 60, 0.14);
+  --surplus: #6fb7f2;
+  --surplus-weak: rgba(111, 183, 242, 0.14);
+  --shortage: #f0757f;
+  --shortage-weak: rgba(240, 117, 127, 0.14);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --space: 8px;
+  --radius: 6px;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  --sans:
+    system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+
+  color-scheme: dark;
+  font: 15px/1.6 var(--sans);
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+* {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  min-height: 100svh;
+  background: var(--bg);
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3,
+h4 {
+  color: var(--text-strong);
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.35;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* --- 入力要素 ------------------------------------------------------------ */
+
+.input,
+.button {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+}
+
+.input {
+  width: 100%;
+}
+
+.input:focus-visible,
+.button:focus-visible,
+.tab:focus-visible,
+.panel__toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.input--num {
+  width: 7em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.button {
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--accent);
+}
+
+.button--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+  padding: 6px;
+}
+
+.button--quiet:hover {
+  color: var(--text-strong);
+  border-color: var(--border-strong);
+}
+
+/* --- 表 ------------------------------------------------------------------ */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-head);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.table tbody th {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.table tfoot th,
+.table tfoot td {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: none;
+  color: var(--text-muted);
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.unit,
+.unit-cell {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* --- 状態（色＋ラベルの併記。色だけに依存しない） ------------------------ */
+
+.tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.tag.is-surplus,
+.num.is-surplus {
+  color: var(--surplus);
+}
+
+.tag.is-surplus {
+  background: var(--surplus-weak);
+  border-color: var(--surplus);
+}
+
+.tag.is-shortage,
+.num.is-shortage {
+  color: var(--shortage);
+}
+
+.tag.is-shortage {
+  background: var(--shortage-weak);
+  border-color: var(--shortage);
 }

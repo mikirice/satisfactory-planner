@@ -34,6 +34,25 @@ export type { ClockGroup, ClockPlan, ClockPlanOptions } from './overclock.ts'
 export { linesRequired, linesRequiredByTier, transportKind } from './logistics.ts'
 export type { TransportRequirement } from './logistics.ts'
 
+export {
+  DEFAULT_MINER_ID,
+  MINER_IDS,
+  OIL_EXTRACTOR_ID,
+  WATER_EXTRACTOR_ID,
+  WELL_EXTRACTOR_ID,
+  WELL_PRESSURIZER_ID,
+  assignPurityNodes,
+  planExtraction,
+} from './extraction.ts'
+export type {
+  ExtractionInput,
+  ExtractionOptions,
+  ExtractionPlan,
+  ExtractorGroup,
+  NodeAssignment,
+  ResourceExtraction,
+} from './extraction.ts'
+
 export { disposeGlpk, glpkBackend, loadGlpk, solveWithGlpk } from './glpk-backend.ts'
 export { writeLpFormat } from './lp.ts'
 export type { LpBackend, LpConstraint, LpModel, LpResult, LpStatus, LpVariable } from './lp.ts'
