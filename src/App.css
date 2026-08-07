@@ -428,6 +428,235 @@
   color: var(--text);
 }
 
+/* --- フローチャート（閲覧専用） ------------------------------------------ */
+
+.flowchart {
+  height: calc(100svh - 160px);
+  min-height: 480px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+  /* レイアウト確定後に一度だけ薄く出す（常時動くものは置かない） */
+  animation: fade-in 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flowchart {
+    animation: none;
+  }
+}
+
+/* React Flow のテーマをアプリのダークテーマに合わせる */
+.flowchart .react-flow__controls-button {
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+  fill: var(--text);
+}
+
+.flowchart .react-flow__controls-button:hover {
+  background: var(--bg-head);
+}
+
+.flowchart .react-flow__minimap {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.flowchart .react-flow__attribution {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+/* ノード共通 */
+.flow-node {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.flow-node__kind {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.flow-node__title {
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
+  max-height: 2.6em;
+  overflow: hidden;
+}
+
+.flow-node__meta {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-node__rate {
+  color: var(--text-strong);
+  font-size: 15px;
+}
+
+.flow-node__unit {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.flow-node__io {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 3px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.flow-node__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.flow-node__col li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 17px;
+  white-space: nowrap;
+}
+
+.flow-node__col--out li {
+  justify-content: flex-end;
+}
+
+.flow-node__colhead {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.flow-node__item {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-node__num {
+  color: var(--text);
+}
+
+.flow-node--source {
+  border-color: var(--surplus);
+  background: linear-gradient(180deg, var(--surplus-weak), transparent 60%), var(--bg-raised);
+}
+
+.flow-node--output {
+  border-color: var(--border-strong);
+}
+
+.flow-node--target {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, var(--accent-weak), transparent 60%), var(--bg-raised);
+}
+
+/* 接続点は閲覧専用なので目立たせない */
+.flowchart .react-flow__handle {
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
+  min-height: 6px;
+  border: none;
+  background: var(--border-strong);
+  cursor: default;
+}
+
+/* 凡例・統計パネル */
+.flow-legend,
+.flow-stats {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(23, 27, 34, 0.92);
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.flow-legend__title {
+  color: var(--text-strong);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.flow-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.8;
+}
+
+.flow-legend__line {
+  display: inline-block;
+  width: 24px;
+  border-top-width: 2px;
+  border-top-style: solid;
+}
+
+.flow-legend__line--solid {
+  border-top-color: #93a1b3;
+}
+
+.flow-legend__line--liquid {
+  border-top-color: #6fb7f2;
+  border-top-style: dashed;
+}
+
+.flow-legend__line--gas {
+  border-top-color: #c79bf2;
+  border-top-style: dotted;
+  border-top-width: 3px;
+}
+
+.flow-legend__line--bottleneck {
+  border-top-color: var(--shortage);
+  border-top-width: 3px;
+}
+
+.flow-stats {
+  text-align: right;
+  max-width: 24em;
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-stats__warn {
+  color: var(--shortage);
+}
+
+.flow-stats__note {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 /* --- 実行不能 ------------------------------------------------------------ */
 
 .callout {

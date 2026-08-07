@@ -18,6 +18,7 @@ import { usePlanner } from '../src/store/planner.ts'
 import { BalanceTable } from '../src/ui/BalanceTable.tsx'
 import { InfeasiblePanel } from '../src/ui/InfeasiblePanel.tsx'
 import { ResourcesTable } from '../src/ui/ResourcesTable.tsx'
+import { ResultView } from '../src/ui/ResultView.tsx'
 import { StepsTable } from '../src/ui/StepsTable.tsx'
 import { SummaryPanel } from '../src/ui/SummaryPanel.tsx'
 
@@ -247,6 +248,28 @@ describe('結果テーブル', () => {
     expect(text).toContain('均衡')
     expect(container.querySelector('.is-shortage')).not.toBeNull()
     expect(container.querySelector('.is-surplus')).not.toBeNull()
+  })
+
+  it('結果タブに「フローチャート」がある（中身は遅延読み込み）', async () => {
+    const previous = usePlanner.getState()
+    usePlanner.setState({ status: 'done', result: solution, extraction: planExtraction(solution) })
+    try {
+      const container = await render(<ResultView />)
+      const tabs = [...container.querySelectorAll('[role="tab"]')].map((b) => b.textContent)
+      expect(tabs).toEqual([
+        'サマリー',
+        '生産ステップ',
+        '原料',
+        'アイテム収支',
+        'フローチャート',
+      ])
+    } finally {
+      usePlanner.setState({
+        status: previous.status,
+        result: previous.result,
+        extraction: previous.extraction,
+      })
+    }
   })
 
   it('実行不能のときは原因と対処が日本語で出る', async () => {

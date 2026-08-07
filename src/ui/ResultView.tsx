@@ -1,5 +1,5 @@
 /** 結果表示（タブ切り替え）。 */
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 
 import { usePlanner } from '../store/planner.ts'
 import { BalanceTable } from './BalanceTable.tsx'
@@ -9,13 +9,17 @@ import { StepsTable } from './StepsTable.tsx'
 import { SummaryPanel } from './SummaryPanel.tsx'
 import { T } from './text.ts'
 
-type TabId = 'summary' | 'steps' | 'resources' | 'balance'
+// React Flow + elkjs は重いので、フローチャートを開いたときだけ読み込む
+const FlowChart = lazy(() => import('./FlowChart.tsx'))
+
+type TabId = 'summary' | 'steps' | 'resources' | 'balance' | 'flow'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'summary', label: T.tabs.summary },
   { id: 'steps', label: T.tabs.steps },
   { id: 'resources', label: T.tabs.resources },
   { id: 'balance', label: T.tabs.balance },
+  { id: 'flow', label: T.tabs.flow },
 ]
 
 export function ResultView() {
@@ -23,6 +27,8 @@ export function ResultView() {
   const result = usePlanner((s) => s.result)
   const extraction = usePlanner((s) => s.extraction)
   const error = usePlanner((s) => s.error)
+  const beltId = usePlanner((s) => s.beltId)
+  const pipeId = usePlanner((s) => s.pipeId)
   const [tab, setTab] = useState<TabId>('summary')
 
   if (status === 'error') {
@@ -72,6 +78,11 @@ export function ResultView() {
         {tab === 'steps' && <StepsTable solution={result} />}
         {tab === 'resources' && <ResourcesTable solution={result} extraction={extraction} />}
         {tab === 'balance' && <BalanceTable solution={result} />}
+        {tab === 'flow' && (
+          <Suspense fallback={<p className="hint">{T.flow.loading}</p>}>
+            <FlowChart solution={result} beltId={beltId} pipeId={pipeId} />
+          </Suspense>
+        )}
       </div>
     </>
   )

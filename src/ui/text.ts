@@ -62,6 +62,33 @@ export const T = {
     steps: '生産ステップ',
     resources: '原料',
     balance: 'アイテム収支',
+    flow: 'フローチャート',
+  },
+
+  flow: {
+    heading: 'フローチャート',
+    loading: 'レイアウトを計算しています…',
+    empty: '表示できる生産フローがありません',
+    failed: 'フローチャートを描画できませんでした',
+    /** ノードの種類 */
+    source: '原料供給',
+    external: '持ち込み',
+    target: '目標産出',
+    byproduct: '副産物',
+    inputs: '投入',
+    outputs: '産出',
+    requested: (rate: string): string => `要求 ${rate}`,
+    machines: (built: number, clock: string): string => `${built} 台 @ ${clock}`,
+    legend: '凡例',
+    legendSolid: '固体（ベルト）',
+    legendLiquid: '液体（パイプ）',
+    legendGas: '気体（パイプ）',
+    legendBottleneck: '1本で運べない（赤・太線）',
+    stats: (nodes: number, edges: number): string => `${nodes} ノード / ${edges} フロー`,
+    bottleneckCount: (n: number): string => `ボトルネック ${n} 本`,
+    transportNote: (belt: string, pipe: string): string =>
+      `${belt} / ${pipe} で換算（サイドバーの物流で変更できます）`,
+    readOnly: 'ドラッグでの編集はできません（閲覧専用）。パン・ズーム・ミニマップが使えます',
   },
 
   summary: {

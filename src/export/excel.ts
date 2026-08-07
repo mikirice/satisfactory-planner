@@ -23,10 +23,10 @@
 import ExcelJS from 'exceljs'
 import type { Row, Workbook, Worksheet } from 'exceljs'
 
-import { belts, itemsById, meta, pipes, recipesById, buildingsById } from '../data/index.ts'
+import { itemsById, meta, recipesById, buildingsById } from '../data/index.ts'
 import { builtCount, groupByBuilding, mergeBuildCost } from '../plan/aggregate.ts'
-import { linesRequired, transportKind } from '../solver/index.ts'
-import type { ExtractionPlan, ItemRate, Solution, SolutionStep } from '../solver/index.ts'
+import { enumeratePlanFlows, flowTransport, resolveTransportChoice } from '../plan/flows.ts'
+import type { ExtractionPlan, ItemRate, Solution } from '../solver/index.ts'
 
 // ---------------------------------------------------------------------------
 // 公開型
@@ -532,24 +532,16 @@ function writeLogisticsSheet(workbook: Workbook, input: ExcelExportInput): void 
   ]
   addHeaderRow(ws, headers)
 
-  const beltId = belts.some((b) => b.id === input.beltId) ? input.beltId : belts.at(-1)?.id
-  const pipeId = pipes.some((p) => p.id === input.pipeId) ? input.pipeId : pipes.at(-1)?.id
+  // 搬送手段の解決とフローの列挙はフローチャートと共有する（src/plan/flows.ts）。
+  // ここで独自に列挙すると、グラフのエッジと物流シートの行がズレる。
+  const resolved = resolveTransportChoice({ beltId: input.beltId, pipeId: input.pipeId })
 
-  const addFlow = (
-    kind: '原料供給' | '投入' | '産出',
-    step: SolutionStep | null,
-    flow: ItemRate,
-  ): void => {
-    const transport = transportKind(flow.item)
-    const requirement = linesRequired(
-      flow.ratePerMin,
-      flow.item,
-      transport === 'belt' ? beltId : pipeId,
-    )
+  for (const flow of enumeratePlanFlows(input.solution)) {
+    const { kind: transport, requirement } = flowTransport(flow.item, flow.ratePerMin, resolved)
     const row = ws.addRow([
-      kind,
-      step?.recipeName.ja ?? PLACEHOLDER,
-      step?.buildingName.ja ?? PLACEHOLDER,
+      flow.kind,
+      flow.step?.recipeName.ja ?? PLACEHOLDER,
+      flow.step?.buildingName.ja ?? PLACEHOLDER,
       itemNameJa(flow.item),
       itemFormJa(flow.item),
       flow.ratePerMin,
@@ -564,14 +556,6 @@ function writeLogisticsSheet(workbook: Workbook, input: ExcelExportInput): void 
     row.getCell(10).numFmt = NUM_FMT.rate
     row.getCell(11).numFmt = NUM_FMT.int
     row.getCell(12).numFmt = NUM_FMT.percent
-  }
-
-  for (const raw of input.solution.rawResources) {
-    addFlow('原料供給', null, { item: raw.item, ratePerMin: raw.ratePerMin })
-  }
-  for (const step of input.solution.steps) {
-    for (const flow of step.inputs) addFlow('投入', step, flow)
-    for (const flow of step.outputs) addFlow('産出', step, flow)
   }
 
   finishTable(ws, 1, ws.rowCount, headers.length)
