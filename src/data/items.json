@@ -1,0 +1,1982 @@
+[
+  {
+    "id": "BP_EqDescZipLine_C",
+    "name": {
+      "ja": "ジップライン",
+      "en": "Zipline"
+    },
+    "form": "solid",
+    "sinkPoints": 5284,
+    "icon": "IconDesc_Zipline_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorCandyCane_C",
+    "name": {
+      "ja": "キャンディケイン・バッシャー",
+      "en": "Candy Cane Basher"
+    },
+    "form": "solid",
+    "sinkPoints": 7850,
+    "icon": "IconDesc_CaneEquipment_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorGasmask_C",
+    "name": {
+      "ja": "ガスマスク",
+      "en": "Gas Mask"
+    },
+    "form": "solid",
+    "sinkPoints": 14960,
+    "icon": "GasMask_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorHazmatSuit_C",
+    "name": {
+      "ja": "化学防護服",
+      "en": "Hazmat Suit"
+    },
+    "form": "solid",
+    "sinkPoints": 54100,
+    "icon": "IconDesc_HazmatSuit_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorHoverPack_C",
+    "name": {
+      "ja": "ホバーパック",
+      "en": "Hoverpack"
+    },
+    "form": "solid",
+    "sinkPoints": 265632,
+    "icon": "IconDesc_Hoverpack_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorJetPack_C",
+    "name": {
+      "ja": "ジェットパック",
+      "en": "Jetpack"
+    },
+    "form": "solid",
+    "sinkPoints": 16580,
+    "icon": "Jetpack_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorJumpingStilts_C",
+    "name": {
+      "ja": "ブレード・ランナーズ",
+      "en": "Blade Runners"
+    },
+    "form": "solid",
+    "sinkPoints": 4088,
+    "icon": "IconDesc_SprintingStilts_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorNobeliskDetonator_C",
+    "name": {
+      "ja": "ノーベリスク起爆装置",
+      "en": "Nobelisk Detonator"
+    },
+    "form": "solid",
+    "sinkPoints": 6480,
+    "icon": "Detonator_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorObjectScanner_C",
+    "name": {
+      "ja": "オブジェクト・スキャナー",
+      "en": "Object Scanner"
+    },
+    "form": "solid",
+    "sinkPoints": 1400,
+    "icon": "ObjectScanner_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorRifle_C",
+    "name": {
+      "ja": "ライフル",
+      "en": "Rifle"
+    },
+    "form": "solid",
+    "sinkPoints": 9480,
+    "icon": "RifleMk1_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorShockShank_C",
+    "name": {
+      "ja": "ゼノ・ザッパー",
+      "en": "Xeno-Zapper"
+    },
+    "form": "solid",
+    "sinkPoints": 1880,
+    "icon": "IconDesc_XenoZapper_256"
+  },
+  {
+    "id": "BP_EquipmentDescriptorStunSpear_C",
+    "name": {
+      "ja": "ゼノ・バッシャー",
+      "en": "Xeno-Basher"
+    },
+    "form": "solid",
+    "sinkPoints": 17800,
+    "icon": "IconDesc_XenoBasher_256"
+  },
+  {
+    "id": "BP_ItemDescriptorPortableMiner_C",
+    "name": {
+      "ja": "携帯式採鉱機",
+      "en": "Portable Miner"
+    },
+    "form": "solid",
+    "sinkPoints": 56,
+    "icon": "IconDesc_PortableMiner_256"
+  },
+  {
+    "id": "Desc_AlienDNACapsule_C",
+    "name": {
+      "ja": "エイリアンのDNAカプセル",
+      "en": "Alien DNA Capsule"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_AlienDNA_256"
+  },
+  {
+    "id": "Desc_AlienPowerFuel_C",
+    "name": {
+      "ja": "異星のパワーマトリックス",
+      "en": "Alien Power Matrix"
+    },
+    "form": "solid",
+    "sinkPoints": 210,
+    "icon": "IconDesc_AlienPowerMatrix_256"
+  },
+  {
+    "id": "Desc_AlienProtein_C",
+    "name": {
+      "ja": "エイリアンのタンパク質",
+      "en": "Alien Protein"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_AlienProtein_256"
+  },
+  {
+    "id": "Desc_AluminaSolution_C",
+    "name": {
+      "ja": "アルミナ溶液",
+      "en": "Alumina Solution"
+    },
+    "form": "liquid",
+    "sinkPoints": 20,
+    "icon": "LiquidAlumina_Pipe_256"
+  },
+  {
+    "id": "Desc_AluminumCasing_C",
+    "name": {
+      "ja": "アルミ筐体",
+      "en": "Aluminum Casing"
+    },
+    "form": "solid",
+    "sinkPoints": 393,
+    "icon": "IconDesc_AluminiumCasing_256"
+  },
+  {
+    "id": "Desc_AluminumIngot_C",
+    "name": {
+      "ja": "アルミのインゴット",
+      "en": "Aluminum Ingot"
+    },
+    "form": "solid",
+    "sinkPoints": 131,
+    "icon": "IconDesc_AluminiumIngot_256"
+  },
+  {
+    "id": "Desc_AluminumPlate_C",
+    "name": {
+      "ja": "アルクラッド・アルミシート",
+      "en": "Alclad Aluminum Sheet"
+    },
+    "form": "solid",
+    "sinkPoints": 266,
+    "icon": "IconDesc_AluminiumSheet_256"
+  },
+  {
+    "id": "Desc_AluminumPlateReinforced_C",
+    "name": {
+      "ja": "ヒートシンク",
+      "en": "Heat Sink"
+    },
+    "form": "solid",
+    "sinkPoints": 2804,
+    "icon": "IconDesc_Heatsink_256"
+  },
+  {
+    "id": "Desc_AluminumScrap_C",
+    "name": {
+      "ja": "アルミのスクラップ",
+      "en": "Aluminum Scrap"
+    },
+    "form": "solid",
+    "sinkPoints": 27,
+    "icon": "IconDesc_AluminiumScrap_256"
+  },
+  {
+    "id": "Desc_Battery_C",
+    "name": {
+      "ja": "バッテリー",
+      "en": "Battery"
+    },
+    "form": "solid",
+    "sinkPoints": 465,
+    "icon": "IconDesc_Battery_256"
+  },
+  {
+    "id": "Desc_Berry_C",
+    "name": {
+      "ja": "パレベリー",
+      "en": "Paleberry"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_Berry_256"
+  },
+  {
+    "id": "Desc_Biofuel_C",
+    "name": {
+      "ja": "固体バイオ燃料",
+      "en": "Solid Biofuel"
+    },
+    "form": "solid",
+    "sinkPoints": 48,
+    "icon": "IconDesc_SolidBiofuel_256"
+  },
+  {
+    "id": "Desc_Cable_C",
+    "name": {
+      "ja": "ケーブル",
+      "en": "Cable"
+    },
+    "form": "solid",
+    "sinkPoints": 24,
+    "icon": "IconDesc_Cables_256"
+  },
+  {
+    "id": "Desc_CandyCane_C",
+    "name": {
+      "ja": "キャンディケイン",
+      "en": "Candy Cane"
+    },
+    "form": "solid",
+    "sinkPoints": 6,
+    "icon": "IconDesc_CanePart_256"
+  },
+  {
+    "id": "Desc_CartridgeChaos_C",
+    "name": {
+      "ja": "ターボライフル弾",
+      "en": "Turbo Rifle Ammo"
+    },
+    "form": "solid",
+    "sinkPoints": 120,
+    "icon": "IconDesc_TurboRifle_256"
+  },
+  {
+    "id": "Desc_CartridgeSmartProjectile_C",
+    "name": {
+      "ja": "ホーミングライフル弾",
+      "en": "Homing Rifle Ammo"
+    },
+    "form": "solid",
+    "sinkPoints": 855,
+    "icon": "IconDesc_HomingRifle_256"
+  },
+  {
+    "id": "Desc_CartridgeStandard_C",
+    "name": {
+      "ja": "ライフル弾",
+      "en": "Rifle Ammo"
+    },
+    "form": "solid",
+    "sinkPoints": 25,
+    "icon": "IconDesc_Rifle_256"
+  },
+  {
+    "id": "Desc_Cement_C",
+    "name": {
+      "ja": "コンクリート",
+      "en": "Concrete"
+    },
+    "form": "solid",
+    "sinkPoints": 12,
+    "icon": "IconDesc_Concrete_256"
+  },
+  {
+    "id": "Desc_Chainsaw_C",
+    "name": {
+      "ja": "チェーンソー",
+      "en": "Chainsaw"
+    },
+    "form": "solid",
+    "sinkPoints": 2760,
+    "icon": "IconDesc_Chainsaw_256"
+  },
+  {
+    "id": "Desc_CircuitBoard_C",
+    "name": {
+      "ja": "回路基板",
+      "en": "Circuit Board"
+    },
+    "form": "solid",
+    "sinkPoints": 696,
+    "icon": "IconDesc_CircuitBoard_256"
+  },
+  {
+    "id": "Desc_CircuitBoardHighSpeed_C",
+    "name": {
+      "ja": "AIリミッター",
+      "en": "AI Limiter"
+    },
+    "form": "solid",
+    "sinkPoints": 920,
+    "icon": "IconDesc_AILimiter_256"
+  },
+  {
+    "id": "Desc_Coal_C",
+    "name": {
+      "ja": "石炭",
+      "en": "Coal"
+    },
+    "form": "solid",
+    "sinkPoints": 3,
+    "icon": "IconDesc_CoalOre_256"
+  },
+  {
+    "id": "Desc_CompactedCoal_C",
+    "name": {
+      "ja": "圧縮石炭",
+      "en": "Compacted Coal"
+    },
+    "form": "solid",
+    "sinkPoints": 28,
+    "icon": "IconDesc_CompactedCoal_256"
+  },
+  {
+    "id": "Desc_Computer_C",
+    "name": {
+      "ja": "コンピューター",
+      "en": "Computer"
+    },
+    "form": "solid",
+    "sinkPoints": 8352,
+    "icon": "IconDesc_Computer_256"
+  },
+  {
+    "id": "Desc_ComputerSuper_C",
+    "name": {
+      "ja": "スーパーコンピューター",
+      "en": "Supercomputer"
+    },
+    "form": "solid",
+    "sinkPoints": 97352,
+    "icon": "IconDesc_QuantumComputer_256"
+  },
+  {
+    "id": "Desc_CoolingSystem_C",
+    "name": {
+      "ja": "冷却システム",
+      "en": "Cooling System"
+    },
+    "form": "solid",
+    "sinkPoints": 12006,
+    "icon": "IconDesc_CoolingSystem_256"
+  },
+  {
+    "id": "Desc_CopperDust_C",
+    "name": {
+      "ja": "銅粉",
+      "en": "Copper Powder"
+    },
+    "form": "solid",
+    "sinkPoints": 72,
+    "icon": "IconDesc_CopperDust_256"
+  },
+  {
+    "id": "Desc_CopperIngot_C",
+    "name": {
+      "ja": "銅のインゴット",
+      "en": "Copper Ingot"
+    },
+    "form": "solid",
+    "sinkPoints": 6,
+    "icon": "IconDesc_CopperIngot_256"
+  },
+  {
+    "id": "Desc_CopperSheet_C",
+    "name": {
+      "ja": "銅板",
+      "en": "Copper Sheet"
+    },
+    "form": "solid",
+    "sinkPoints": 24,
+    "icon": "IconDesc_CopperSheet_256"
+  },
+  {
+    "id": "Desc_Crystal_C",
+    "name": {
+      "ja": "青のパワー・スラッグ",
+      "en": "Blue Power Slug"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "PowerSlugGreen_256"
+  },
+  {
+    "id": "Desc_Crystal_mk2_C",
+    "name": {
+      "ja": "黄のパワー・スラッグ",
+      "en": "Yellow Power Slug"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "PowerSlugYellow_256"
+  },
+  {
+    "id": "Desc_Crystal_mk3_C",
+    "name": {
+      "ja": "紫のパワー・スラッグ",
+      "en": "Purple Power Slug"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "PowerSlugPurple_256"
+  },
+  {
+    "id": "Desc_CrystalOscillator_C",
+    "name": {
+      "ja": "水晶発振器",
+      "en": "Crystal Oscillator"
+    },
+    "form": "solid",
+    "sinkPoints": 3072,
+    "icon": "IconDesc_CrystalOscillator_256"
+  },
+  {
+    "id": "Desc_CrystalShard_C",
+    "name": {
+      "ja": "パワー・シャード",
+      "en": "Power Shard"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "PowerShard_256"
+  },
+  {
+    "id": "Desc_CyberWagon_C",
+    "name": {
+      "ja": "サイバーワゴン",
+      "en": "Cyber Wagon"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "Cyberwagon_512"
+  },
+  {
+    "id": "Desc_DarkEnergy_C",
+    "name": {
+      "ja": "ダークマターの残留物",
+      "en": "Dark Matter Residue"
+    },
+    "form": "gas",
+    "sinkPoints": 130,
+    "icon": "IconDesc_DarkEnergy_256"
+  },
+  {
+    "id": "Desc_DarkMatter_C",
+    "name": {
+      "ja": "ダークマターの結晶",
+      "en": "Dark Matter Crystal"
+    },
+    "form": "solid",
+    "sinkPoints": 1780,
+    "icon": "IconDesc_TimeCrystal_256"
+  },
+  {
+    "id": "Desc_Diamond_C",
+    "name": {
+      "ja": "ダイヤモンド",
+      "en": "Diamonds"
+    },
+    "form": "solid",
+    "sinkPoints": 240,
+    "icon": "IconDesc_Diamonds_256"
+  },
+  {
+    "id": "Desc_DissolvedSilica_C",
+    "name": {
+      "ja": "溶解シリカ",
+      "en": "Dissolved Silica"
+    },
+    "form": "liquid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_DissolvedSilica_256"
+  },
+  {
+    "id": "Desc_DroneTransport_C",
+    "name": {
+      "ja": "ドローン",
+      "en": "Drone"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_Drone_512"
+  },
+  {
+    "id": "Desc_ElectromagneticControlRod_C",
+    "name": {
+      "ja": "電磁制御棒",
+      "en": "Electromagnetic Control Rod"
+    },
+    "form": "solid",
+    "sinkPoints": 2560,
+    "icon": "IconDesc_ElectromagneticControlRod_256"
+  },
+  {
+    "id": "Desc_Explorer_C",
+    "name": {
+      "ja": "エクスプ ローラー",
+      "en": "Explorer"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_Explorer_512"
+  },
+  {
+    "id": "Desc_Fabric_C",
+    "name": {
+      "ja": "布地",
+      "en": "Fabric"
+    },
+    "form": "solid",
+    "sinkPoints": 140,
+    "icon": "IconDesc_Fabric_256"
+  },
+  {
+    "id": "Desc_FicsiteIngot_C",
+    "name": {
+      "ja": "FICSITEのインゴット",
+      "en": "Ficsite Ingot"
+    },
+    "form": "solid",
+    "sinkPoints": 1936,
+    "icon": "IconDesc_FicsiteIngot_256"
+  },
+  {
+    "id": "Desc_FicsiteMesh_C",
+    "name": {
+      "ja": "FICSITEの三角板",
+      "en": "Ficsite Trigon"
+    },
+    "form": "solid",
+    "sinkPoints": 1291,
+    "icon": "IconDesc_FicsiteMesh_256"
+  },
+  {
+    "id": "Desc_Ficsonium_C",
+    "name": {
+      "ja": "FICSONIUM",
+      "en": "Ficsonium"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_FicsoniumCell_256"
+  },
+  {
+    "id": "Desc_FicsoniumFuelRod_C",
+    "name": {
+      "ja": "FICSONIUM燃料棒",
+      "en": "Ficsonium Fuel Rod"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_FicsoniumFuelRod_256"
+  },
+  {
+    "id": "Desc_Filter_C",
+    "name": {
+      "ja": "ガスフィルター",
+      "en": "Gas Filter"
+    },
+    "form": "solid",
+    "sinkPoints": 608,
+    "icon": "IconDesc_GasMaskFilter_256"
+  },
+  {
+    "id": "Desc_Fireworks_Projectile_01_C",
+    "name": {
+      "ja": "きれいな花火",
+      "en": "Sweet Fireworks"
+    },
+    "form": "solid",
+    "sinkPoints": 60,
+    "icon": "IconDesc_Fireworks_01_512"
+  },
+  {
+    "id": "Desc_Fireworks_Projectile_02_C",
+    "name": {
+      "ja": "派手な花火",
+      "en": "Fancy Fireworks"
+    },
+    "form": "solid",
+    "sinkPoints": 40,
+    "icon": "IconDesc_Fireworks_02_512"
+  },
+  {
+    "id": "Desc_Fireworks_Projectile_03_C",
+    "name": {
+      "ja": "きらめく花火",
+      "en": "Sparkly Fireworks"
+    },
+    "form": "solid",
+    "sinkPoints": 32,
+    "icon": "IconDesc_Fireworks_03_512"
+  },
+  {
+    "id": "Desc_FluidCanister_C",
+    "name": {
+      "ja": "空の容器",
+      "en": "Empty Canister"
+    },
+    "form": "solid",
+    "sinkPoints": 60,
+    "icon": "IconDesc_EmptyCannister_256"
+  },
+  {
+    "id": "Desc_FreightWagon_C",
+    "name": {
+      "ja": "貨物車",
+      "en": "Freight Car"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "FreightCar_512"
+  },
+  {
+    "id": "Desc_Fuel_C",
+    "name": {
+      "ja": "包装済み燃料",
+      "en": "Packaged Fuel"
+    },
+    "form": "solid",
+    "sinkPoints": 270,
+    "icon": "IconDesc_Fuel_256"
+  },
+  {
+    "id": "Desc_GasTank_C",
+    "name": {
+      "ja": "空の液体タンク",
+      "en": "Empty Fluid Tank"
+    },
+    "form": "solid",
+    "sinkPoints": 170,
+    "icon": "IconDesc_PressureTank_256"
+  },
+  {
+    "id": "Desc_GenericBiomass_C",
+    "name": {
+      "ja": "バイオマス",
+      "en": "Biomass"
+    },
+    "form": "solid",
+    "sinkPoints": 12,
+    "icon": "IconDesc_Biomass_Final_256"
+  },
+  {
+    "id": "Desc_Gift_C",
+    "name": {
+      "ja": "FICSMAS ギフト",
+      "en": "FICSMAS Gift"
+    },
+    "form": "solid",
+    "sinkPoints": 1,
+    "icon": "IconDesc_Gift_256"
+  },
+  {
+    "id": "Desc_GoldIngot_C",
+    "name": {
+      "ja": "カテリウムのインゴット",
+      "en": "Caterium Ingot"
+    },
+    "form": "solid",
+    "sinkPoints": 42,
+    "icon": "IconDesc_CateriumIngot_256"
+  },
+  {
+    "id": "Desc_GolfCart_C",
+    "name": {
+      "ja": "ファクトリーカート™",
+      "en": "Factory Cart™"
+    },
+    "form": "solid",
+    "sinkPoints": 1552,
+    "icon": "IconDesc_GolfCart_256"
+  },
+  {
+    "id": "Desc_GolfCartGold_C",
+    "name": {
+      "ja": "ゴールデンファクトリーカート™",
+      "en": "Golden Factory Cart™"
+    },
+    "form": "solid",
+    "sinkPoints": 1852,
+    "icon": "IconDesc_GolfCartGold_256"
+  },
+  {
+    "id": "Desc_Gunpowder_C",
+    "name": {
+      "ja": "黒色火薬",
+      "en": "Black Powder"
+    },
+    "form": "solid",
+    "sinkPoints": 14,
+    "icon": "IconDesc_Gunpowder_256"
+  },
+  {
+    "id": "Desc_GunpowderMK2_C",
+    "name": {
+      "ja": "無煙火薬",
+      "en": "Smokeless Powder"
+    },
+    "form": "solid",
+    "sinkPoints": 58,
+    "icon": "IconDesc_GunpowderMk2_256"
+  },
+  {
+    "id": "Desc_HatcherParts_C",
+    "name": {
+      "ja": "ハッチャーの遺骸",
+      "en": "Hatcher Remains"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_HatcherPart_256"
+  },
+  {
+    "id": "Desc_HazmatFilter_C",
+    "name": {
+      "ja": "ヨウ素充填フィルター",
+      "en": "Iodine-Infused Filter"
+    },
+    "form": "solid",
+    "sinkPoints": 2274,
+    "icon": "IconDesc_HazmatFilter_256"
+  },
+  {
+    "id": "Desc_HeavyOilResidue_C",
+    "name": {
+      "ja": "廃重油",
+      "en": "Heavy Oil Residue"
+    },
+    "form": "liquid",
+    "sinkPoints": 30,
+    "icon": "IconDesc_LiquidHeavyOilResidue_Pipe_256"
+  },
+  {
+    "id": "Desc_HighSpeedConnector_C",
+    "name": {
+      "ja": "高速コネクター",
+      "en": "High-Speed Connector"
+    },
+    "form": "solid",
+    "sinkPoints": 3776,
+    "icon": "IconDesc_HighSpeedConnector_256"
+  },
+  {
+    "id": "Desc_HighSpeedWire_C",
+    "name": {
+      "ja": "クイックワイヤー",
+      "en": "Quickwire"
+    },
+    "form": "solid",
+    "sinkPoints": 17,
+    "icon": "IconDesc_Quickwire_256"
+  },
+  {
+    "id": "Desc_HogParts_C",
+    "name": {
+      "ja": "ホッグの遺骸",
+      "en": "Hog Remains"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_HogPart_256"
+  },
+  {
+    "id": "Desc_IonizedFuel_C",
+    "name": {
+      "ja": "イオン燃料",
+      "en": "Ionized Fuel"
+    },
+    "form": "gas",
+    "sinkPoints": 2398,
+    "icon": "IconDesc_IonizedFuel_256"
+  },
+  {
+    "id": "Desc_IronIngot_C",
+    "name": {
+      "ja": "鉄のインゴット",
+      "en": "Iron Ingot"
+    },
+    "form": "solid",
+    "sinkPoints": 2,
+    "icon": "IconDesc_IronIngot_256"
+  },
+  {
+    "id": "Desc_IronPlate_C",
+    "name": {
+      "ja": "鉄板",
+      "en": "Iron Plate"
+    },
+    "form": "solid",
+    "sinkPoints": 6,
+    "icon": "IconDesc_IronPlates_256"
+  },
+  {
+    "id": "Desc_IronPlateReinforced_C",
+    "name": {
+      "ja": "強化鉄板",
+      "en": "Reinforced Iron Plate"
+    },
+    "form": "solid",
+    "sinkPoints": 120,
+    "icon": "IconDesc_ReinforcedIronPlates_256"
+  },
+  {
+    "id": "Desc_IronRod_C",
+    "name": {
+      "ja": "鉄のロッド",
+      "en": "Iron Rod"
+    },
+    "form": "solid",
+    "sinkPoints": 4,
+    "icon": "IconDesc_IronRods_256"
+  },
+  {
+    "id": "Desc_IronScrew_C",
+    "name": {
+      "ja": "ネジ",
+      "en": "Screws"
+    },
+    "form": "solid",
+    "sinkPoints": 2,
+    "icon": "IconDesc_IronScrews_256"
+  },
+  {
+    "id": "Desc_Leaves_C",
+    "name": {
+      "ja": "葉",
+      "en": "Leaves"
+    },
+    "form": "solid",
+    "sinkPoints": 3,
+    "icon": "IconDesc_Leaves_256"
+  },
+  {
+    "id": "Desc_LiquidBiofuel_C",
+    "name": {
+      "ja": "液体バイオ燃料",
+      "en": "Liquid Biofuel"
+    },
+    "form": "liquid",
+    "sinkPoints": 261,
+    "icon": "IconDesc_LiquidBiofuel_Pipe_256"
+  },
+  {
+    "id": "Desc_LiquidFuel_C",
+    "name": {
+      "ja": "燃料",
+      "en": "Fuel"
+    },
+    "form": "liquid",
+    "sinkPoints": 75,
+    "icon": "IconDesc_LiquidFuel_Pipe_256"
+  },
+  {
+    "id": "Desc_LiquidOil_C",
+    "name": {
+      "ja": "原油",
+      "en": "Crude Oil"
+    },
+    "form": "liquid",
+    "sinkPoints": 30,
+    "icon": "LiquidOil_Pipe_512"
+  },
+  {
+    "id": "Desc_LiquidTurboFuel_C",
+    "name": {
+      "ja": "ターボ燃料",
+      "en": "Turbofuel"
+    },
+    "form": "liquid",
+    "sinkPoints": 225,
+    "icon": "IconDesc_LiquidTurboFuel_Pipe_256"
+  },
+  {
+    "id": "Desc_Locomotive_C",
+    "name": {
+      "ja": "電気機関車",
+      "en": "Electric Locomotive"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "Locomotive_512"
+  },
+  {
+    "id": "Desc_Medkit_C",
+    "name": {
+      "ja": "薬用吸入器",
+      "en": "Medicinal Inhaler"
+    },
+    "form": "solid",
+    "sinkPoints": 125,
+    "icon": "Inhaler_256"
+  },
+  {
+    "id": "Desc_ModularFrame_C",
+    "name": {
+      "ja": "モジュラー・フレーム",
+      "en": "Modular Frame"
+    },
+    "form": "solid",
+    "sinkPoints": 408,
+    "icon": "IconDesc_ModularFrame_256"
+  },
+  {
+    "id": "Desc_ModularFrameFused_C",
+    "name": {
+      "ja": "溶融モジュラー・フレーム",
+      "en": "Fused Modular Frame"
+    },
+    "form": "solid",
+    "sinkPoints": 62840,
+    "icon": "IconDesc_FusedModularFrame_256"
+  },
+  {
+    "id": "Desc_ModularFrameHeavy_C",
+    "name": {
+      "ja": "ヘビー・モジュラー・フレーム",
+      "en": "Heavy Modular Frame"
+    },
+    "form": "solid",
+    "sinkPoints": 10800,
+    "icon": "IconDesc_ModularFrameHeavy_256"
+  },
+  {
+    "id": "Desc_ModularFrameLightweight_C",
+    "name": {
+      "ja": "無線制御ユニット",
+      "en": "Radio Control Unit"
+    },
+    "form": "solid",
+    "sinkPoints": 32352,
+    "icon": "IconDesc_RadioControlUnit_256"
+  },
+  {
+    "id": "Desc_Motor_C",
+    "name": {
+      "ja": "モーター",
+      "en": "Motor"
+    },
+    "form": "solid",
+    "sinkPoints": 1520,
+    "icon": "IconDesc_Engine_256"
+  },
+  {
+    "id": "Desc_MotorLightweight_C",
+    "name": {
+      "ja": "ターボ・モーター",
+      "en": "Turbo Motor"
+    },
+    "form": "solid",
+    "sinkPoints": 240496,
+    "icon": "IconDesc_TurboMotor_256"
+  },
+  {
+    "id": "Desc_Mycelia_C",
+    "name": {
+      "ja": "菌糸",
+      "en": "Mycelia"
+    },
+    "form": "solid",
+    "sinkPoints": 10,
+    "icon": "IconDesc_Mycelia_256"
+  },
+  {
+    "id": "Desc_NitricAcid_C",
+    "name": {
+      "ja": "硝酸",
+      "en": "Nitric Acid"
+    },
+    "form": "liquid",
+    "sinkPoints": 94,
+    "icon": "IconDesc_NitricAcid_256"
+  },
+  {
+    "id": "Desc_NitrogenGas_C",
+    "name": {
+      "ja": "窒素ガス",
+      "en": "Nitrogen Gas"
+    },
+    "form": "gas",
+    "sinkPoints": 10,
+    "icon": "IconDesc_NitrogenGas_256"
+  },
+  {
+    "id": "Desc_NobeliskCluster_C",
+    "name": {
+      "ja": "クラスター・ノーベリスク",
+      "en": "Cluster Nobelisk"
+    },
+    "form": "solid",
+    "sinkPoints": 1376,
+    "icon": "IconDesc_Cluster_256"
+  },
+  {
+    "id": "Desc_NobeliskExplosive_C",
+    "name": {
+      "ja": "ノーベリスク",
+      "en": "Nobelisk"
+    },
+    "form": "solid",
+    "sinkPoints": 152,
+    "icon": "IconDesc_Explosive_256"
+  },
+  {
+    "id": "Desc_NobeliskGas_C",
+    "name": {
+      "ja": "ガス・ノーベリスク",
+      "en": "Gas Nobelisk"
+    },
+    "form": "solid",
+    "sinkPoints": 544,
+    "icon": "IconDesc_Gas_256"
+  },
+  {
+    "id": "Desc_NobeliskNuke_C",
+    "name": {
+      "ja": "ニューク・ノーベリスク",
+      "en": "Nuke Nobelisk"
+    },
+    "form": "solid",
+    "sinkPoints": 19600,
+    "icon": "IconDesc_Nuke_256"
+  },
+  {
+    "id": "Desc_NobeliskShockwave_C",
+    "name": {
+      "ja": "パルス・ノーベリスク",
+      "en": "Pulse Nobelisk"
+    },
+    "form": "solid",
+    "sinkPoints": 1533,
+    "icon": "IconDesc_Shock_256"
+  },
+  {
+    "id": "Desc_NonFissibleUranium_C",
+    "name": {
+      "ja": "非核分裂性ウラン",
+      "en": "Non-Fissile Uranium"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_NonFissileUranium_256"
+  },
+  {
+    "id": "Desc_NuclearFuelRod_C",
+    "name": {
+      "ja": "ウラン燃料棒",
+      "en": "Uranium Fuel Rod"
+    },
+    "form": "solid",
+    "sinkPoints": 43468,
+    "icon": "IconDesc_NuclearFuelRod_256"
+  },
+  {
+    "id": "Desc_NuclearWaste_C",
+    "name": {
+      "ja": "ウラン廃棄物",
+      "en": "Uranium Waste"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_NuclearWaste_256"
+  },
+  {
+    "id": "Desc_Nut_C",
+    "name": {
+      "ja": "ベリル・ナッツ",
+      "en": "Beryl Nut"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "Nut_256_New"
+  },
+  {
+    "id": "Desc_OreBauxite_C",
+    "name": {
+      "ja": "ボーキサイト",
+      "en": "Bauxite"
+    },
+    "form": "solid",
+    "sinkPoints": 8,
+    "icon": "IconDesc_Bauxite_256"
+  },
+  {
+    "id": "Desc_OreCopper_C",
+    "name": {
+      "ja": "銅鉱石",
+      "en": "Copper Ore"
+    },
+    "form": "solid",
+    "sinkPoints": 3,
+    "icon": "IconDesc_copper_new_256"
+  },
+  {
+    "id": "Desc_OreGold_C",
+    "name": {
+      "ja": "カテリウム鉱石",
+      "en": "Caterium Ore"
+    },
+    "form": "solid",
+    "sinkPoints": 7,
+    "icon": "IconDesc_CateriumOre_256"
+  },
+  {
+    "id": "Desc_OreIron_C",
+    "name": {
+      "ja": "鉄鉱石",
+      "en": "Iron Ore"
+    },
+    "form": "solid",
+    "sinkPoints": 1,
+    "icon": "IconDesc_iron_new_256"
+  },
+  {
+    "id": "Desc_OreUranium_C",
+    "name": {
+      "ja": "ウラン",
+      "en": "Uranium"
+    },
+    "form": "solid",
+    "sinkPoints": 35,
+    "icon": "IconDesc_UraniumOre_256"
+  },
+  {
+    "id": "Desc_PackagedAlumina_C",
+    "name": {
+      "ja": "包装済みアルミナ溶液",
+      "en": "Packaged Alumina Solution"
+    },
+    "form": "solid",
+    "sinkPoints": 160,
+    "icon": "IconDesc_PackagedAluminaSolution_256"
+  },
+  {
+    "id": "Desc_PackagedBiofuel_C",
+    "name": {
+      "ja": "包装済み液体バイオ燃料",
+      "en": "Packaged Liquid Biofuel"
+    },
+    "form": "solid",
+    "sinkPoints": 370,
+    "icon": "IconDesc_LiquidBiofuel_256"
+  },
+  {
+    "id": "Desc_PackagedIonizedFuel_C",
+    "name": {
+      "ja": "包装済みイオン燃料",
+      "en": "Packaged Ionized Fuel"
+    },
+    "form": "solid",
+    "sinkPoints": 5246,
+    "icon": "IconDesc_IonizedRocketFuel_256"
+  },
+  {
+    "id": "Desc_PackagedNitricAcid_C",
+    "name": {
+      "ja": "容器入り硝酸",
+      "en": "Packaged Nitric Acid"
+    },
+    "form": "solid",
+    "sinkPoints": 412,
+    "icon": "IconDesc_PackagedNitricAcid_256"
+  },
+  {
+    "id": "Desc_PackagedNitrogenGas_C",
+    "name": {
+      "ja": "包装済み窒素ガス",
+      "en": "Packaged Nitrogen Gas"
+    },
+    "form": "solid",
+    "sinkPoints": 312,
+    "icon": "IconDesc_PackagedNitrogen_256"
+  },
+  {
+    "id": "Desc_PackagedOil_C",
+    "name": {
+      "ja": "包装済み原油",
+      "en": "Packaged Oil"
+    },
+    "form": "solid",
+    "sinkPoints": 180,
+    "icon": "Oil_256"
+  },
+  {
+    "id": "Desc_PackagedOilResidue_C",
+    "name": {
+      "ja": "包装済み廃重油",
+      "en": "Packaged Heavy Oil Residue"
+    },
+    "form": "solid",
+    "sinkPoints": 180,
+    "icon": "OilResidue_256"
+  },
+  {
+    "id": "Desc_PackagedRocketFuel_C",
+    "name": {
+      "ja": "包装済みロケット燃料",
+      "en": "Packaged Rocket Fuel"
+    },
+    "form": "solid",
+    "sinkPoints": 1028,
+    "icon": "IconDesc_PackagedRocketFuel_256"
+  },
+  {
+    "id": "Desc_PackagedSulfuricAcid_C",
+    "name": {
+      "ja": "包装済み硫酸",
+      "en": "Packaged Sulfuric Acid"
+    },
+    "form": "solid",
+    "sinkPoints": 152,
+    "icon": "IconDesc_PckagedSulphuricAcid_256"
+  },
+  {
+    "id": "Desc_PackagedWater_C",
+    "name": {
+      "ja": "包装済み水",
+      "en": "Packaged Water"
+    },
+    "form": "solid",
+    "sinkPoints": 130,
+    "icon": "IconDesc_PackagedWater_256"
+  },
+  {
+    "id": "Desc_Parachute_C",
+    "name": {
+      "ja": "パラシュート",
+      "en": "Parachute"
+    },
+    "form": "solid",
+    "sinkPoints": 6080,
+    "icon": "Parachute_256"
+  },
+  {
+    "id": "Desc_PetroleumCoke_C",
+    "name": {
+      "ja": "石油コークス",
+      "en": "Petroleum Coke"
+    },
+    "form": "solid",
+    "sinkPoints": 20,
+    "icon": "IconDesc_PetroleumCoke_256"
+  },
+  {
+    "id": "Desc_Plastic_C",
+    "name": {
+      "ja": "プラスチック",
+      "en": "Plastic"
+    },
+    "form": "solid",
+    "sinkPoints": 75,
+    "icon": "IconDesc_Plastic_256"
+  },
+  {
+    "id": "Desc_PlutoniumCell_C",
+    "name": {
+      "ja": "被覆型プルトニウム・セル",
+      "en": "Encased Plutonium Cell"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_EncasedPlutoniumCell_256"
+  },
+  {
+    "id": "Desc_PlutoniumFuelRod_C",
+    "name": {
+      "ja": "プルトニウム燃料棒",
+      "en": "Plutonium Fuel Rod"
+    },
+    "form": "solid",
+    "sinkPoints": 153184,
+    "icon": "IconDesc_PlutoniumFuelRod_256"
+  },
+  {
+    "id": "Desc_PlutoniumPellet_C",
+    "name": {
+      "ja": "プルトニウム・ペレット",
+      "en": "Plutonium Pellet"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_PlutoniumPellet_256"
+  },
+  {
+    "id": "Desc_PlutoniumWaste_C",
+    "name": {
+      "ja": "プルトニウム廃棄物",
+      "en": "Plutonium Waste"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_PlutoniumWaste_256"
+  },
+  {
+    "id": "Desc_PolymerResin_C",
+    "name": {
+      "ja": "合成樹脂",
+      "en": "Polymer Resin"
+    },
+    "form": "solid",
+    "sinkPoints": 12,
+    "icon": "IconDesc_PolymerResin_256"
+  },
+  {
+    "id": "Desc_PressureConversionCube_C",
+    "name": {
+      "ja": "圧力変換キューブ",
+      "en": "Pressure Conversion Cube"
+    },
+    "form": "solid",
+    "sinkPoints": 255088,
+    "icon": "IconDesc_ConversionCube_256"
+  },
+  {
+    "id": "Desc_QuantumEnergy_C",
+    "name": {
+      "ja": "励起フォトニック物質",
+      "en": "Excited Photonic Matter"
+    },
+    "form": "gas",
+    "sinkPoints": 100,
+    "icon": "IconDesc_QuantumEnergy_256"
+  },
+  {
+    "id": "Desc_QuantumOscillator_C",
+    "name": {
+      "ja": "重ね合わせ発振器",
+      "en": "Superposition Oscillator"
+    },
+    "form": "solid",
+    "sinkPoints": 37292,
+    "icon": "IconDesc_SuperPositionOscillator_256"
+  },
+  {
+    "id": "Desc_QuartzCrystal_C",
+    "name": {
+      "ja": "石英結晶",
+      "en": "Quartz Crystal"
+    },
+    "form": "solid",
+    "sinkPoints": 50,
+    "icon": "IconDesc_QuartzResource_256"
+  },
+  {
+    "id": "Desc_RawQuartz_C",
+    "name": {
+      "ja": "未加工石英",
+      "en": "Raw Quartz"
+    },
+    "form": "solid",
+    "sinkPoints": 15,
+    "icon": "IconDesc_QuartzCrystal_256"
+  },
+  {
+    "id": "Desc_Rebar_Explosive_C",
+    "name": {
+      "ja": "爆砕鉄筋",
+      "en": "Explosive Rebar"
+    },
+    "form": "solid",
+    "sinkPoints": 360,
+    "icon": "IconDesc_ExpRebar_256"
+  },
+  {
+    "id": "Desc_Rebar_Spreadshot_C",
+    "name": {
+      "ja": "破砕鉄筋",
+      "en": "Shatter Rebar"
+    },
+    "form": "solid",
+    "sinkPoints": 332,
+    "icon": "IconDesc_ScatterRebar_256"
+  },
+  {
+    "id": "Desc_Rebar_Stunshot_C",
+    "name": {
+      "ja": "スタン鉄筋",
+      "en": "Stun Rebar"
+    },
+    "form": "solid",
+    "sinkPoints": 186,
+    "icon": "IconDesc_StunRebar_256"
+  },
+  {
+    "id": "Desc_RebarGunProjectile_C",
+    "name": {
+      "ja": "鉄筋ガン",
+      "en": "Rebar Gun"
+    },
+    "form": "solid",
+    "sinkPoints": 1968,
+    "icon": "IconDesc_RebarGun_256"
+  },
+  {
+    "id": "Desc_RocketFuel_C",
+    "name": {
+      "ja": "ロケット燃料",
+      "en": "Rocket Fuel"
+    },
+    "form": "gas",
+    "sinkPoints": 289,
+    "icon": "IconDesc_RocketFuelPipe_256"
+  },
+  {
+    "id": "Desc_Rotor_C",
+    "name": {
+      "ja": "ローター",
+      "en": "Rotor"
+    },
+    "form": "solid",
+    "sinkPoints": 140,
+    "icon": "IconDesc_Rotor_256"
+  },
+  {
+    "id": "Desc_Rubber_C",
+    "name": {
+      "ja": "ゴム",
+      "en": "Rubber"
+    },
+    "form": "solid",
+    "sinkPoints": 60,
+    "icon": "IconDesc_Rubber_256"
+  },
+  {
+    "id": "Desc_SAM_C",
+    "name": {
+      "ja": "SAM",
+      "en": "SAM"
+    },
+    "form": "solid",
+    "sinkPoints": 20,
+    "icon": "IconDesc_SameOre_256"
+  },
+  {
+    "id": "Desc_SAMFluctuator_C",
+    "name": {
+      "ja": "SAM 変動機",
+      "en": "SAM Fluctuator"
+    },
+    "form": "solid",
+    "sinkPoints": 1968,
+    "icon": "IconDesc_SamFluctuator_256"
+  },
+  {
+    "id": "Desc_SAMIngot_C",
+    "name": {
+      "ja": "活性SAM",
+      "en": "Reanimated SAM"
+    },
+    "form": "solid",
+    "sinkPoints": 160,
+    "icon": "IconDesc_ReanimatedSam_256"
+  },
+  {
+    "id": "Desc_Shroom_C",
+    "name": {
+      "ja": "ベーコンタケ",
+      "en": "Bacon Agaric"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "Mushroom_256"
+  },
+  {
+    "id": "Desc_Silica_C",
+    "name": {
+      "ja": "シリカ",
+      "en": "Silica"
+    },
+    "form": "solid",
+    "sinkPoints": 20,
+    "icon": "IconDesc_Silica_256"
+  },
+  {
+    "id": "Desc_SingularityCell_C",
+    "name": {
+      "ja": "シンギュラリティセル",
+      "en": "Singularity Cell"
+    },
+    "form": "solid",
+    "sinkPoints": 114675,
+    "icon": "IconDesc_SingularityCell_256"
+  },
+  {
+    "id": "Desc_Snow_C",
+    "name": {
+      "ja": "FICSMAS 本物の雪",
+      "en": "FICSMAS Actual Snow"
+    },
+    "form": "solid",
+    "sinkPoints": 5,
+    "icon": "IconDesc_Snow_256"
+  },
+  {
+    "id": "Desc_SnowballProjectile_C",
+    "name": {
+      "ja": "雪玉",
+      "en": "Snowball"
+    },
+    "form": "solid",
+    "sinkPoints": 30,
+    "icon": "IconDesc_SnowballProjectile_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_1_C",
+    "name": {
+      "ja": "スマート・プレート",
+      "en": "Smart Plating"
+    },
+    "form": "solid",
+    "sinkPoints": 520,
+    "icon": "IconDesc_SpelevatorPart_1_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_10_C",
+    "name": {
+      "ja": "生化学スカルプター",
+      "en": "Biochemical Sculptor"
+    },
+    "form": "solid",
+    "sinkPoints": 301778,
+    "icon": "IconDesc_BiochemicalSculptor_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_11_C",
+    "name": {
+      "ja": "弾道ワープドライブ",
+      "en": "Ballistic Warp Drive"
+    },
+    "form": "solid",
+    "sinkPoints": 2895334,
+    "icon": "IconDesc_BallisticWarpDrive_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_12_C",
+    "name": {
+      "ja": "AI拡張サーバー",
+      "en": "AI Expansion Server"
+    },
+    "form": "solid",
+    "sinkPoints": 597652,
+    "icon": "IconDesc_AIExpension_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_2_C",
+    "name": {
+      "ja": "多目的フレームワーク",
+      "en": "Versatile Framework"
+    },
+    "form": "solid",
+    "sinkPoints": 1176,
+    "icon": "IconDesc_SpelevatorPart_2_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_3_C",
+    "name": {
+      "ja": "自動ワイヤー",
+      "en": "Automated Wiring"
+    },
+    "form": "solid",
+    "sinkPoints": 1440,
+    "icon": "SpelevatorPart_3_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_4_C",
+    "name": {
+      "ja": "モジュラーエンジン",
+      "en": "Modular Engine"
+    },
+    "form": "solid",
+    "sinkPoints": 9960,
+    "icon": "IconDesc_SpelevatorPart_4_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_5_C",
+    "name": {
+      "ja": "自律制御ユニット",
+      "en": "Adaptive Control Unit"
+    },
+    "form": "solid",
+    "sinkPoints": 76368,
+    "icon": "IconDesc_SpelevatorPart_5_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_6_C",
+    "name": {
+      "ja": "磁界発生装置",
+      "en": "Magnetic Field Generator"
+    },
+    "form": "solid",
+    "sinkPoints": 11000,
+    "icon": "IconDesc_MagneticFieldGenerator_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_7_C",
+    "name": {
+      "ja": "組立指揮システム",
+      "en": "Assembly Director System"
+    },
+    "form": "solid",
+    "sinkPoints": 500176,
+    "icon": "IconDesc_AssemblyDirectorSystem_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_8_C",
+    "name": {
+      "ja": "熱推進型ロケット",
+      "en": "Thermal Propulsion Rocket"
+    },
+    "form": "solid",
+    "sinkPoints": 728508,
+    "icon": "IconDesc_ThermalPropulsionRocket_256"
+  },
+  {
+    "id": "Desc_SpaceElevatorPart_9_C",
+    "name": {
+      "ja": "核パスタ",
+      "en": "Nuclear Pasta"
+    },
+    "form": "solid",
+    "sinkPoints": 538976,
+    "icon": "IconDesc_NuclearPasta_256"
+  },
+  {
+    "id": "Desc_SpikedRebar_C",
+    "name": {
+      "ja": "鉄筋",
+      "en": "Iron Rebar"
+    },
+    "form": "solid",
+    "sinkPoints": 8,
+    "icon": "IconDesc_Rebar_256"
+  },
+  {
+    "id": "Desc_SpitterParts_C",
+    "name": {
+      "ja": "スピッターの遺骸",
+      "en": "Spitter Remains"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_SpitterPart_256"
+  },
+  {
+    "id": "Desc_Stator_C",
+    "name": {
+      "ja": "固定子",
+      "en": "Stator"
+    },
+    "form": "solid",
+    "sinkPoints": 240,
+    "icon": "IconDesc_Stator_256"
+  },
+  {
+    "id": "Desc_SteelIngot_C",
+    "name": {
+      "ja": "鋼鉄のインゴット",
+      "en": "Steel Ingot"
+    },
+    "form": "solid",
+    "sinkPoints": 8,
+    "icon": "IconDesc_SteelIngot_256"
+  },
+  {
+    "id": "Desc_SteelPipe_C",
+    "name": {
+      "ja": "鋼管",
+      "en": "Steel Pipe"
+    },
+    "form": "solid",
+    "sinkPoints": 24,
+    "icon": "IconDesc_SteelPipe_256"
+  },
+  {
+    "id": "Desc_SteelPlate_C",
+    "name": {
+      "ja": "鋼梁",
+      "en": "Steel Beam"
+    },
+    "form": "solid",
+    "sinkPoints": 64,
+    "icon": "IconDesc_SteelBeam_256"
+  },
+  {
+    "id": "Desc_SteelPlateReinforced_C",
+    "name": {
+      "ja": "コンクリート被覆型鋼梁",
+      "en": "Encased Industrial Beam"
+    },
+    "form": "solid",
+    "sinkPoints": 528,
+    "icon": "IconDesc_EncasedSteelBeam_256"
+  },
+  {
+    "id": "Desc_StingerParts_C",
+    "name": {
+      "ja": "スティンガーの遺骸",
+      "en": "Stinger Remains"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_StingerPart_256"
+  },
+  {
+    "id": "Desc_Stone_C",
+    "name": {
+      "ja": "石灰岩",
+      "en": "Limestone"
+    },
+    "form": "solid",
+    "sinkPoints": 2,
+    "icon": "Stone_256"
+  },
+  {
+    "id": "Desc_Sulfur_C",
+    "name": {
+      "ja": "硫黄",
+      "en": "Sulfur"
+    },
+    "form": "solid",
+    "sinkPoints": 11,
+    "icon": "Sulfur_256"
+  },
+  {
+    "id": "Desc_SulfuricAcid_C",
+    "name": {
+      "ja": "硫酸",
+      "en": "Sulfuric Acid"
+    },
+    "form": "liquid",
+    "sinkPoints": 16,
+    "icon": "IconDesc_LiquidSulfuricAcid_Pipe_256"
+  },
+  {
+    "id": "Desc_TemporalProcessor_C",
+    "name": {
+      "ja": "ニューラル量子プロセッサー",
+      "en": "Neural-Quantum Processor"
+    },
+    "form": "solid",
+    "sinkPoints": 248034,
+    "icon": "IconDesc_TemporalProcessor_256"
+  },
+  {
+    "id": "Desc_TimeCrystal_C",
+    "name": {
+      "ja": "時の結晶",
+      "en": "Time Crystal"
+    },
+    "form": "solid",
+    "sinkPoints": 960,
+    "icon": "IconDesc_ExoticMatter_256"
+  },
+  {
+    "id": "Desc_Tractor_C",
+    "name": {
+      "ja": "トラクター",
+      "en": "Tractor"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_Tractor_512"
+  },
+  {
+    "id": "Desc_Truck_C",
+    "name": {
+      "ja": "トラック",
+      "en": "Truck"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "IconDesc_Truck_512"
+  },
+  {
+    "id": "Desc_TurboFuel_C",
+    "name": {
+      "ja": "容器入りターボ燃料",
+      "en": "Packaged Turbofuel"
+    },
+    "form": "solid",
+    "sinkPoints": 570,
+    "icon": "IconDesc_TurboFuel_256"
+  },
+  {
+    "id": "Desc_UraniumCell_C",
+    "name": {
+      "ja": "被覆型ウラン・セル",
+      "en": "Encased Uranium Cell"
+    },
+    "form": "solid",
+    "sinkPoints": 147,
+    "icon": "IconDesc_NuclearCell_256"
+  },
+  {
+    "id": "Desc_WAT1_C",
+    "name": {
+      "ja": "サマースループ",
+      "en": "Somersloop"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "Wat_1_256"
+  },
+  {
+    "id": "Desc_WAT2_C",
+    "name": {
+      "ja": "マーサー・スフィア",
+      "en": "Mercer Sphere"
+    },
+    "form": "solid",
+    "sinkPoints": 0,
+    "icon": "Wat_2_256"
+  },
+  {
+    "id": "Desc_Water_C",
+    "name": {
+      "ja": "水",
+      "en": "Water"
+    },
+    "form": "liquid",
+    "sinkPoints": 5,
+    "icon": "LiquidWater_Pipe_256"
+  },
+  {
+    "id": "Desc_Wire_C",
+    "name": {
+      "ja": "ワイヤー",
+      "en": "Wire"
+    },
+    "form": "solid",
+    "sinkPoints": 6,
+    "icon": "IconDesc_Wire_256"
+  },
+  {
+    "id": "Desc_Wood_C",
+    "name": {
+      "ja": "木",
+      "en": "Wood"
+    },
+    "form": "solid",
+    "sinkPoints": 30,
+    "icon": "IconDesc_Wood_256"
+  },
+  {
+    "id": "Desc_XmasBall1_C",
+    "name": {
+      "ja": "赤い FICSMAS オーナメント",
+      "en": "Red FICSMAS Ornament"
+    },
+    "form": "solid",
+    "sinkPoints": 2,
+    "icon": "IconDesc_XmasBall_Red_256"
+  },
+  {
+    "id": "Desc_XmasBall2_C",
+    "name": {
+      "ja": "青いFICSMASオーナメント",
+      "en": "Blue FICSMAS Ornament"
+    },
+    "form": "solid",
+    "sinkPoints": 1,
+    "icon": "IconDesc_XmasBall_Blue_256"
+  },
+  {
+    "id": "Desc_XmasBall3_C",
+    "name": {
+      "ja": "銅の FICSMAS オーナメント",
+      "en": "Copper FICSMAS Ornament"
+    },
+    "form": "solid",
+    "sinkPoints": 32,
+    "icon": "IconDesc_XmasBall_Yellow_256"
+  },
+  {
+    "id": "Desc_XmasBall4_C",
+    "name": {
+      "ja": "鉄の FICSMAS オーナメント",
+      "en": "Iron FICSMAS Ornament"
+    },
+    "form": "solid",
+    "sinkPoints": 18,
+    "icon": "IconDesc_XmasBall_Silver_256"
+  },
+  {
+    "id": "Desc_XmasBallCluster_C",
+    "name": {
+      "ja": "FICSMAS オーナメント一式",
+      "en": "FICSMAS Ornament Bundle"
+    },
+    "form": "solid",
+    "sinkPoints": 100,
+    "icon": "IconDesc_Balls_256"
+  },
+  {
+    "id": "Desc_XmasBow_C",
+    "name": {
+      "ja": "FICSMAS リボン",
+      "en": "FICSMAS Bow"
+    },
+    "form": "solid",
+    "sinkPoints": 4,
+    "icon": "IconDesc_Bow_256"
+  },
+  {
+    "id": "Desc_XmasBranch_C",
+    "name": {
+      "ja": "FICSMAS 枝木",
+      "en": "FICSMAS Tree Branch"
+    },
+    "form": "solid",
+    "sinkPoints": 2,
+    "icon": "IconDesc_Branch_256"
+  },
+  {
+    "id": "Desc_XmasStar_C",
+    "name": {
+      "ja": "FICSMAS ワンダースター",
+      "en": "FICSMAS Wonder Star"
+    },
+    "form": "solid",
+    "sinkPoints": 6540,
+    "icon": "IconDesc_Star_256"
+  },
+  {
+    "id": "Desc_XmasWreath_C",
+    "name": {
+      "ja": "FICSMAS リース",
+      "en": "FICSMAS Wreath"
+    },
+    "form": "solid",
+    "sinkPoints": 630,
+    "icon": "IconDesc_WreathNoBow_256"
+  }
+]

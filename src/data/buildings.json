@@ -1,0 +1,680 @@
+[
+  {
+    "id": "Build_AssemblerMk1_C",
+    "name": {
+      "ja": "組立機",
+      "en": "Assembler"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 15,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 2,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_IronPlateReinforced_C",
+        "amount": 8
+      },
+      {
+        "item": "Desc_Rotor_C",
+        "amount": 4
+      },
+      {
+        "item": "Desc_Cable_C",
+        "amount": 10
+      }
+    ]
+  },
+  {
+    "id": "Build_Blender_C",
+    "name": {
+      "ja": "混合機",
+      "en": "Blender"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 75,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 4,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_Computer_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ModularFrameHeavy_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Motor_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_AluminumCasing_C",
+        "amount": 50
+      }
+    ]
+  },
+  {
+    "id": "Build_ConstructorMk1_C",
+    "name": {
+      "ja": "製作機",
+      "en": "Constructor"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 4,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 1,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_IronPlateReinforced_C",
+        "amount": 2
+      },
+      {
+        "item": "Desc_Cable_C",
+        "amount": 8
+      }
+    ]
+  },
+  {
+    "id": "Build_Converter_C",
+    "name": {
+      "ja": "変換機",
+      "en": "Converter"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 0.1,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 2,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_ModularFrameFused_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_CoolingSystem_C",
+        "amount": 25
+      },
+      {
+        "item": "Desc_ModularFrameLightweight_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_SAMFluctuator_C",
+        "amount": 100
+      }
+    ],
+    "variablePower": {
+      "minMW": 100,
+      "maxMW": 400
+    }
+  },
+  {
+    "id": "Build_FoundryMk1_C",
+    "name": {
+      "ja": "鋳造炉",
+      "en": "Foundry"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 16,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 2,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_ModularFrame_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Rotor_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Cement_C",
+        "amount": 20
+      }
+    ]
+  },
+  {
+    "id": "Build_FrackingExtractor_C",
+    "name": {
+      "ja": "地下資源抽出機",
+      "en": "Resource Well Extractor"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_SteelPlate_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_AluminumCasing_C",
+        "amount": 10
+      }
+    ]
+  },
+  {
+    "id": "Build_FrackingSmasher_C",
+    "name": {
+      "ja": "資源井加圧機",
+      "en": "Resource Well Pressurizer"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 150,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_ModularFrameLightweight_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ModularFrameHeavy_C",
+        "amount": 25
+      },
+      {
+        "item": "Desc_Motor_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_AluminumPlate_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_Rubber_C",
+        "amount": 100
+      }
+    ]
+  },
+  {
+    "id": "Build_GeneratorBiomass_Automated_C",
+    "name": {
+      "ja": "バイオマス・バーナー",
+      "en": "Biomass Burner"
+    },
+    "category": "generator",
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.6,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_IronPlate_C",
+        "amount": 15
+      },
+      {
+        "item": "Desc_IronRod_C",
+        "amount": 15
+      },
+      {
+        "item": "Desc_Wire_C",
+        "amount": 25
+      }
+    ],
+    "powerProductionMW": 30
+  },
+  {
+    "id": "Build_GeneratorCoal_C",
+    "name": {
+      "ja": "石炭発電機",
+      "en": "Coal-Powered Generator"
+    },
+    "category": "generator",
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.6,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_IronPlateReinforced_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_Rotor_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Cable_C",
+        "amount": 30
+      }
+    ],
+    "powerProductionMW": 75
+  },
+  {
+    "id": "Build_GeneratorFuel_C",
+    "name": {
+      "ja": "燃料式発電機",
+      "en": "Fuel-Powered Generator"
+    },
+    "category": "generator",
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.6,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_Motor_C",
+        "amount": 15
+      },
+      {
+        "item": "Desc_SteelPlateReinforced_C",
+        "amount": 15
+      },
+      {
+        "item": "Desc_CopperSheet_C",
+        "amount": 30
+      },
+      {
+        "item": "Desc_Rubber_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_HighSpeedWire_C",
+        "amount": 50
+      }
+    ],
+    "powerProductionMW": 250
+  },
+  {
+    "id": "Build_GeneratorGeoThermal_C",
+    "name": {
+      "ja": "地熱発電機",
+      "en": "Geothermal Generator"
+    },
+    "category": "generator",
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.6,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_Motor_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ModularFrame_C",
+        "amount": 25
+      },
+      {
+        "item": "Desc_HighSpeedConnector_C",
+        "amount": 25
+      },
+      {
+        "item": "Desc_CopperSheet_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_Wire_C",
+        "amount": 250
+      }
+    ]
+  },
+  {
+    "id": "Build_GeneratorNuclear_C",
+    "name": {
+      "ja": "原子力発電所",
+      "en": "Nuclear Power Plant"
+    },
+    "category": "generator",
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.6,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_ComputerSuper_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ModularFrameHeavy_C",
+        "amount": 25
+      },
+      {
+        "item": "Desc_AluminumPlate_C",
+        "amount": 100
+      },
+      {
+        "item": "Desc_Cable_C",
+        "amount": 200
+      },
+      {
+        "item": "Desc_Cement_C",
+        "amount": 250
+      }
+    ],
+    "powerProductionMW": 2500
+  },
+  {
+    "id": "Build_HadronCollider_C",
+    "name": {
+      "ja": "粒子加速器",
+      "en": "Particle Accelerator"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 0.1,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 4,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_MotorLightweight_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ComputerSuper_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ModularFrameFused_C",
+        "amount": 25
+      },
+      {
+        "item": "Desc_CoolingSystem_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_HighSpeedWire_C",
+        "amount": 500
+      }
+    ],
+    "variablePower": {
+      "minMW": 250,
+      "maxMW": 1500
+    }
+  },
+  {
+    "id": "Build_ManufacturerMk1_C",
+    "name": {
+      "ja": "製造機",
+      "en": "Manufacturer"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 55,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 4,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_Motor_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_ModularFrame_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_Plastic_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_Cable_C",
+        "amount": 50
+      }
+    ]
+  },
+  {
+    "id": "Build_MinerMk1_C",
+    "name": {
+      "ja": "採鉱機 Mk.1",
+      "en": "Miner Mk.1"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 5,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "BP_ItemDescriptorPortableMiner_C",
+        "amount": 1
+      },
+      {
+        "item": "Desc_IronPlate_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Cement_C",
+        "amount": 10
+      }
+    ]
+  },
+  {
+    "id": "Build_MinerMk2_C",
+    "name": {
+      "ja": "採鉱機 Mk.2",
+      "en": "Miner Mk.2"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 15,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "BP_ItemDescriptorPortableMiner_C",
+        "amount": 2
+      },
+      {
+        "item": "Desc_SteelPlateReinforced_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_SteelPipe_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_ModularFrame_C",
+        "amount": 10
+      }
+    ]
+  },
+  {
+    "id": "Build_MinerMk3_C",
+    "name": {
+      "ja": "採鉱機 Mk.3",
+      "en": "Miner Mk.3"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 45,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "BP_ItemDescriptorPortableMiner_C",
+        "amount": 3
+      },
+      {
+        "item": "Desc_SteelPipe_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_ComputerSuper_C",
+        "amount": 5
+      },
+      {
+        "item": "Desc_ModularFrameFused_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_MotorLightweight_C",
+        "amount": 3
+      }
+    ]
+  },
+  {
+    "id": "Build_OilPump_C",
+    "name": {
+      "ja": "原油抽出機",
+      "en": "Oil Extractor"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 40,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_Motor_C",
+        "amount": 15
+      },
+      {
+        "item": "Desc_SteelPlateReinforced_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_Cable_C",
+        "amount": 60
+      }
+    ]
+  },
+  {
+    "id": "Build_OilRefinery_C",
+    "name": {
+      "ja": "精製機",
+      "en": "Refinery"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 30,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 2,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_Motor_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_SteelPlateReinforced_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_SteelPipe_C",
+        "amount": 30
+      },
+      {
+        "item": "Desc_CopperSheet_C",
+        "amount": 20
+      }
+    ]
+  },
+  {
+    "id": "Build_Packager_C",
+    "name": {
+      "ja": "充填機",
+      "en": "Packager"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 10,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_SteelPlate_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_Rubber_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Plastic_C",
+        "amount": 10
+      }
+    ]
+  },
+  {
+    "id": "Build_QuantumEncoder_C",
+    "name": {
+      "ja": "量子エンコーダー",
+      "en": "Quantum Encoder"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 0.1,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 4,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_MotorLightweight_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_ComputerSuper_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_CoolingSystem_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_TimeCrystal_C",
+        "amount": 50
+      },
+      {
+        "item": "Desc_FicsiteMesh_C",
+        "amount": 100
+      }
+    ],
+    "variablePower": {
+      "minMW": 0,
+      "maxMW": 2000
+    }
+  },
+  {
+    "id": "Build_SmelterMk1_C",
+    "name": {
+      "ja": "製錬炉",
+      "en": "Smelter"
+    },
+    "category": "manufacturer",
+    "powerConsumptionMW": 4,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 1,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_IronRod_C",
+        "amount": 5
+      },
+      {
+        "item": "Desc_Wire_C",
+        "amount": 8
+      }
+    ]
+  },
+  {
+    "id": "Build_WaterPump_C",
+    "name": {
+      "ja": "揚水ポンプ",
+      "en": "Water Extractor"
+    },
+    "category": "extractor",
+    "powerConsumptionMW": 20,
+    "powerExponent": 1.321929,
+    "maxSomersloops": 0,
+    "somersloopPowerExponent": 2,
+    "buildCost": [
+      {
+        "item": "Desc_CopperSheet_C",
+        "amount": 20
+      },
+      {
+        "item": "Desc_IronPlateReinforced_C",
+        "amount": 10
+      },
+      {
+        "item": "Desc_Rotor_C",
+        "amount": 10
+      }
+    ]
+  }
+]
