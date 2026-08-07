@@ -1,7 +1,8 @@
 /** 入力サイドバー。 */
 import { AlternatesPanel } from './AlternatesPanel.tsx'
+import { ExportPanel } from './ExportPanel.tsx'
 import { LimitsPanel } from './LimitsPanel.tsx'
-import { ExtractionPanel, ObjectivePanel } from './OptionsPanel.tsx'
+import { ExtractionPanel, LogisticsPanel, ObjectivePanel } from './OptionsPanel.tsx'
 import { TargetsPanel } from './TargetsPanel.tsx'
 
 export function Sidebar() {
@@ -12,6 +13,8 @@ export function Sidebar() {
       <ExtractionPanel />
       <AlternatesPanel />
       <LimitsPanel />
+      <LogisticsPanel />
+      <ExportPanel />
     </aside>
   )
 }

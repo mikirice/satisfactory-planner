@@ -66,6 +66,45 @@ const GAME_VERSION = '1.1.x'
 const OUT_DIR = join(PROJECT_ROOT, 'src', 'data')
 
 // ---------------------------------------------------------------------------
+// 日本語名のフォールバック
+// ---------------------------------------------------------------------------
+
+/** ひらがな・カタカナ・漢字・半角カナのいずれかを含むか。 */
+const JAPANESE_CHAR = /[぀-ヿ㐀-鿿ｦ-ﾟ]/
+
+/**
+ * ゲーム公式 ja ローカライズ自体が未訳のものだけをここで補う。
+ *
+ * 通常のアイテム名・レシピ名は手訳しない（README の方針。ゲーム内表記と食い違うため）。
+ * ただし ja.json が英語のままだと画面に英語が出てしまうので、その分だけ例外的に訳を置く。
+ * 上流（ゲーム側のローカライズ）が訳を入れたらこの行を削除すること。
+ *
+ * - Recipe_Alternate_PolyesterFabric_C: ja.json が "Alternate: Polyester Fabric" のまま
+ *   （1.1.x で確認）。産出物の布地＝Fabric に合わせて「代替: ポリエステル生地」とする
+ */
+const JA_NAME_OVERRIDES: Readonly<Record<string, string>> = {
+  Recipe_Alternate_PolyesterFabric_C: '代替: ポリエステル生地',
+}
+
+/**
+ * 公式 ja ローカライズでも英字表記が正しいもの（未訳ではない）。
+ * 未訳検出（日本語文字を含まない）に引っかかるが、フォールバックしてはいけない。
+ */
+const INTENTIONALLY_ASCII_JA_NAMES = new Set([
+  'Desc_SAM_C', // 公式 ja でも "SAM"
+  'Desc_Ficsonium_C', // 公式 ja でも "FICSONIUM"
+  'Recipe_Ficsonium_C',
+])
+
+/**
+ * ja.json が英語のままだったときの一般フォールバック。
+ * 代替レシピは接頭辞だけでも日本語化しておくと一覧で見分けがつく。
+ */
+function fallbackJaName(enName: string): string {
+  return enName.startsWith('Alternate:') ? `代替:${enName.slice('Alternate:'.length)}` : enName
+}
+
+// ---------------------------------------------------------------------------
 // Docs.json 読み込み
 // ---------------------------------------------------------------------------
 
@@ -215,6 +254,7 @@ async function main(): Promise<void> {
 
   const warnings: Warning[] = []
   const missingJaNames: string[] = []
+  const untranslatedJaNames: string[] = []
 
   const en = await readDocs('en-US.json')
   const ja = await readDocs('ja.json')
@@ -228,10 +268,21 @@ async function main(): Promise<void> {
   }
 
   const localized = (id: string, enName: string): LocalizedName => {
+    const override = JA_NAME_OVERRIDES[id]
+    if (override) {
+      untranslatedJaNames.push(id)
+      return { ja: override, en: enName }
+    }
     const jaName = jaNames.get(id)
     if (!jaName) {
+      // ja.json にエントリ自体が無い
       missingJaNames.push(id)
-      return { ja: enName, en: enName }
+      return { ja: fallbackJaName(enName), en: enName }
+    }
+    // エントリはあるが英語のまま（上流のローカライズ漏れ）
+    if (!JAPANESE_CHAR.test(jaName) && !INTENTIONALLY_ASCII_JA_NAMES.has(id)) {
+      untranslatedJaNames.push(id)
+      return { ja: fallbackJaName(jaName), en: enName }
     }
     return { ja: jaName, en: enName }
   }
@@ -462,6 +513,7 @@ async function main(): Promise<void> {
     generatedAt: new Date().toISOString(),
     counts: { items: itemList.length, recipes: recipes.length, buildings: buildingList.length },
     missingJaNames: [...new Set(missingJaNames)].sort(),
+    untranslatedJaNames: [...new Set(untranslatedJaNames)].sort(),
   }
 
   await mkdir(OUT_DIR, { recursive: true })
@@ -502,6 +554,13 @@ async function main(): Promise<void> {
     )
   } else {
     console.log('[build-data] ja names     : OK (no fallback to en)')
+  }
+
+  if (meta.untranslatedJaNames.length > 0) {
+    console.warn(
+      `[build-data] WARNING: ${meta.untranslatedJaNames.length} entities are untranslated in the ` +
+        `official ja localization, applied a fallback: ${meta.untranslatedJaNames.join(', ')}`,
+    )
   }
 
   if (warnings.length > 0) {

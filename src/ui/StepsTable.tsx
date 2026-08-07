@@ -1,19 +1,10 @@
 /** 生産ステップ表（機械種別でグルーピング）。 */
-import { buildingsById } from '../data/index.ts'
-import type { Solution, SolutionStep } from '../solver/index.ts'
+import { builtCount, groupByBuilding } from '../plan/aggregate.ts'
+import type { Solution } from '../solver/index.ts'
 import { fmtCount, fmtPower, fmtPowerRange, fmtRate, itemName } from './format.ts'
 import { T } from './text.ts'
 
 type Props = { solution: Solution }
-
-type Group = {
-  buildingId: string
-  buildingNameJa: string
-  steps: SolutionStep[]
-  machineCount: number
-  buildingCount: number
-  powerMW: number
-}
 
 export function StepsTable({ solution }: Props) {
   if (solution.steps.length === 0) return <p className="hint">{T.steps.empty}</p>
@@ -91,31 +82,3 @@ function flowList(rates: { item: string; ratePerMin: number }[]) {
   )
 }
 
-function builtCount(machineCount: number): number {
-  return machineCount <= 0 ? 0 : Math.max(1, Math.ceil(machineCount - 1e-9))
-}
-
-function groupByBuilding(steps: readonly SolutionStep[]): Group[] {
-  const groups = new Map<string, Group>()
-  for (const step of steps) {
-    let group = groups.get(step.buildingId)
-    if (!group) {
-      group = {
-        buildingId: step.buildingId,
-        buildingNameJa: buildingsById.get(step.buildingId)?.name.ja ?? step.buildingName.ja,
-        steps: [],
-        machineCount: 0,
-        buildingCount: 0,
-        powerMW: 0,
-      }
-      groups.set(step.buildingId, group)
-    }
-    group.steps.push(step)
-    group.machineCount += step.machineCount
-    group.buildingCount += builtCount(step.machineCount)
-    group.powerMW += step.powerMW
-  }
-  return [...groups.values()].sort(
-    (a, b) => b.powerMW - a.powerMW || a.buildingId.localeCompare(b.buildingId),
-  )
-}

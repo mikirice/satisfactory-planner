@@ -1,5 +1,5 @@
-/** 目的関数プリセットと採掘設備の選択。 */
-import { extractorsById } from '../data/index.ts'
+/** 目的関数プリセット・採掘設備・搬送手段の選択。 */
+import { belts, extractorsById, pipes } from '../data/index.ts'
 import { MINER_IDS } from '../solver/index.ts'
 import { OBJECTIVE_PRESETS, usePlanner } from '../store/planner.ts'
 import { T } from './text.ts'
@@ -56,6 +56,40 @@ export function ExtractionPanel() {
         </select>
       </label>
       <p className="hint">{T.sidebar.minerHint}</p>
+    </section>
+  )
+}
+
+export function LogisticsPanel() {
+  const beltId = usePlanner((s) => s.beltId)
+  const pipeId = usePlanner((s) => s.pipeId)
+  const setBeltId = usePlanner((s) => s.setBeltId)
+  const setPipeId = usePlanner((s) => s.setPipeId)
+
+  return (
+    <section className="panel">
+      <h2 className="panel__title">{T.sidebar.logistics}</h2>
+      <label className="field">
+        <span className="field__label">{T.sidebar.belt}</span>
+        <select className="input" value={beltId} onChange={(e) => setBeltId(e.target.value)}>
+          {belts.map((belt) => (
+            <option key={belt.id} value={belt.id}>
+              {belt.name.ja}（{belt.itemsPerMin} 個/分）
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="field">
+        <span className="field__label">{T.sidebar.pipe}</span>
+        <select className="input" value={pipeId} onChange={(e) => setPipeId(e.target.value)}>
+          {pipes.map((pipe) => (
+            <option key={pipe.id} value={pipe.id}>
+              {pipe.name.ja}（{pipe.m3PerMin} m³/min）
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="hint">{T.sidebar.logisticsHint}</p>
     </section>
   )
 }

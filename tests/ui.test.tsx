@@ -11,8 +11,10 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import App from '../src/App.tsx'
+import { planFileName } from '../src/export/excel.ts'
 import { planExtraction } from '../src/solver/index.ts'
 import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
+import { usePlanner } from '../src/store/planner.ts'
 import { BalanceTable } from '../src/ui/BalanceTable.tsx'
 import { InfeasiblePanel } from '../src/ui/InfeasiblePanel.tsx'
 import { ResourcesTable } from '../src/ui/ResourcesTable.tsx'
@@ -148,6 +150,44 @@ describe('画面の骨格', () => {
     expect(text).toContain('採鉱機 Mk.3')
     // 目標が空なので結果は出ない
     expect(text).toContain('目標を追加すると計算します')
+  })
+
+  it('サイドバー下部に物流の選択と Excel 出力がある', async () => {
+    const container = await render(<App />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('物流')
+    expect(text).toContain('ベルト')
+    expect(text).toContain('パイプ')
+    expect(text).toContain('Excel出力')
+    expect(text).toContain('プラン名')
+
+    // 既定は最速の Mk（本数が最小になる）
+    const selects = [...container.querySelectorAll<HTMLSelectElement>('select')]
+    const beltSelect = selects.find((s) => s.value.includes('ConveyorBelt'))!
+    expect(beltSelect.value).toBe(usePlanner.getState().beltId)
+    expect(beltSelect.options.length).toBe(6)
+  })
+
+  it('解が無いときは Excelダウンロードが押せない', async () => {
+    const container = await render(<App />)
+    const button = [...container.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Excelダウンロード',
+    )!
+    expect(button).toBeDefined()
+    expect(button.disabled).toBe(true)
+    expect(container.textContent).toContain('解が出てからダウンロードできます')
+  })
+
+  it('プラン名の入力がストアに入る（ファイル名に使われる）', async () => {
+    const container = await render(<App />)
+    const input = container.querySelector<HTMLInputElement>('input[type="text"]')!
+    await act(async () => {
+      typeInto(input, '鉄板ライン')
+    })
+    expect(usePlanner.getState().planName).toBe('鉄板ライン')
+    expect(planFileName(usePlanner.getState().planName, new Date(2026, 7, 7))).toBe(
+      'satisfactory-plan_鉄板ライン_20260807.xlsx',
+    )
   })
 
   it('アイテム検索が日本語名でインクリメンタルに絞り込める', async () => {

@@ -114,6 +114,27 @@ ul {
   border-color: var(--border-strong);
 }
 
+/* 主操作（Excelダウンロード）。パネル幅いっぱいに置く */
+.button--primary {
+  width: 100%;
+  padding: 9px 12px;
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button--primary:disabled {
+  border-color: var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+}
+
 /* --- 表 ------------------------------------------------------------------ */
 
 .table {

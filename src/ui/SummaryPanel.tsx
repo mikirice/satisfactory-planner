@@ -1,4 +1,5 @@
 /** サマリー: 総電力（幅表示＋製造/採掘内訳）・建物数・建設コスト・シンクポイント・副産物。 */
+import { mergeBuildCost } from '../plan/aggregate.ts'
 import type { ExtractionPlan, Solution } from '../solver/index.ts'
 import { fmtCount, fmtInt, fmtPower, fmtPowerRange, fmtRate, itemName, itemUnit } from './format.ts'
 import { T } from './text.ts'
@@ -139,20 +140,3 @@ export function SummaryPanel({ solution, extraction }: Props) {
   )
 }
 
-type BuildCostRow = { item: string; manufacturing: number; extraction: number; total: number }
-
-function mergeBuildCost(solution: Solution, extraction: ExtractionPlan | null): BuildCostRow[] {
-  const rows = new Map<string, BuildCostRow>()
-  const rowFor = (item: string): BuildCostRow => {
-    let row = rows.get(item)
-    if (!row) {
-      row = { item, manufacturing: 0, extraction: 0, total: 0 }
-      rows.set(item, row)
-    }
-    return row
-  }
-  for (const cost of solution.totalBuildCost) rowFor(cost.item).manufacturing += cost.amount
-  for (const cost of extraction?.totalBuildCost ?? []) rowFor(cost.item).extraction += cost.amount
-  for (const row of rows.values()) row.total = row.manufacturing + row.extraction
-  return [...rows.values()].sort((a, b) => b.total - a.total || a.item.localeCompare(b.item))
-}

@@ -40,6 +40,21 @@ export const T = {
     limitsHint: '空欄はマップ上限。0 にするとその原料を使わない解を探します。',
     limitsReset: 'マップ上限に戻す',
     unlimited: '無制限',
+
+    logistics: '物流',
+    belt: 'ベルト',
+    pipe: 'パイプ',
+    logisticsHint: '物流シートの本数計算に使います。解には影響しません。',
+  },
+
+  export: {
+    heading: 'Excel出力',
+    planName: 'プラン名',
+    planNamePlaceholder: '未入力なら plan',
+    download: 'Excelダウンロード',
+    downloading: '作成中…',
+    needsSolution: '解が出てからダウンロードできます',
+    failed: 'Excelの作成に失敗しました',
   },
 
   tabs: {

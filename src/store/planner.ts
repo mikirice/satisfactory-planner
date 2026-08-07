@@ -7,8 +7,9 @@
  */
 import { create } from 'zustand'
 
-import { recipes } from '../data/index.ts'
+import { belts, pipes, recipes } from '../data/index.ts'
 import { DEFAULT_RESOURCE_LIMITS } from '../data/map-limits.ts'
+import type { ExcelExportInput } from '../export/excel.ts'
 import {
   DEFAULT_MINER_ID,
   planExtraction,
@@ -83,6 +84,12 @@ export type PlannerState = {
   objective: ObjectivePresetId
   /** 固体ノードに置く採掘機 */
   minerId: string
+  /** Excel のファイル名に使うプラン名。空なら 'plan' */
+  planName: string
+  /** 物流の本数換算に使うベルト（Belt.id） */
+  beltId: string
+  /** 物流の本数換算に使うパイプ（Pipe.id） */
+  pipeId: string
 
   status: SolveStatus
   result: SolveResult | null
@@ -101,6 +108,9 @@ export type PlannerState = {
   resetLimits: () => void
   setObjective: (id: ObjectivePresetId) => void
   setMinerId: (id: string) => void
+  setPlanName: (name: string) => void
+  setBeltId: (id: string) => void
+  setPipeId: (id: string) => void
   /** 即時に解き直す（デバウンスなし。テストや初期化用） */
   recompute: () => Promise<void>
 }
@@ -125,6 +135,28 @@ export function toSolveInput(state: PlannerState): SolveInput {
   }
 }
 
+/** 既定の搬送手段は最速の Mk（本数が最小になるので初見で驚かない）。 */
+export const DEFAULT_BELT_ID = belts.at(-1)!.id
+export const DEFAULT_PIPE_ID = pipes.at(-1)!.id
+
+/**
+ * 現在の状態から Excel 出力の入力を組み立てる。
+ * 最適解が出ていないときは null（＝ダウンロードさせない）。
+ */
+export function toExcelInput(state: PlannerState): ExcelExportInput | null {
+  if (state.result?.status !== 'optimal') return null
+  return {
+    solution: state.result,
+    extraction: state.extraction,
+    planName: state.planName,
+    beltId: state.beltId,
+    pipeId: state.pipeId,
+    objectiveLabel: objectivePresetById.get(state.objective)?.label,
+    enabledAlternateIds: Object.keys(state.enabledAlternates),
+    minerId: state.minerId,
+  }
+}
+
 export const usePlanner = create<PlannerState>((set, get) => {
   /** 入力を変えたときの共通処理: 反映してデバウンス再計算 */
   const change = (patch: Partial<PlannerState>): void => {
@@ -142,6 +174,9 @@ export const usePlanner = create<PlannerState>((set, get) => {
     limitOverrides: {},
     objective: 'resources',
     minerId: DEFAULT_MINER_ID,
+    planName: '',
+    beltId: DEFAULT_BELT_ID,
+    pipeId: DEFAULT_PIPE_ID,
 
     status: 'idle',
     result: null,
@@ -185,6 +220,11 @@ export const usePlanner = create<PlannerState>((set, get) => {
     setObjective: (id) => change({ objective: id }),
 
     setMinerId: (id) => change({ minerId: id }),
+
+    // プラン名・搬送手段は解に影響しないので再計算しない（set のまま）
+    setPlanName: (name) => set({ planName: name }),
+    setBeltId: (id) => set({ beltId: id }),
+    setPipeId: (id) => set({ pipeId: id }),
 
     recompute: async () => {
       const state = get()

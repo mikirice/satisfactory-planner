@@ -167,4 +167,9 @@ export type DataMeta = {
   }
   /** ja 名が取得できず en でフォールバックした ID 一覧 */
   missingJaNames: string[]
+  /**
+   * 公式 ja ローカライズが未訳（英語のまま）で、フォールバックを当てた ID 一覧。
+   * JA_NAME_OVERRIDES の手当てか「代替:」接頭辞の置換が入っている（scripts/build-data.ts）。
+   */
+  untranslatedJaNames: string[]
 }

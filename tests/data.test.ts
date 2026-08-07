@@ -217,6 +217,37 @@ describe('日本語名', () => {
     const translated = items.filter((i) => i.name.ja !== i.name.en)
     expect(translated.length / items.length).toBeGreaterThan(0.9)
   })
+})
+
+describe('レシピ名の日本語カバレッジ', () => {
+  /** ひらがな・カタカナ・漢字・半角カナのいずれかを含むか（scripts/build-data.ts と同じ判定）。 */
+  const JAPANESE_CHAR = /[぀-ヿ㐀-鿿ｦ-ﾟ]/
+
+  /**
+   * 公式 ja ローカライズでも英字表記が正しいもの（未訳ではない）。
+   * ここに載っていない英語名が出たらデータ生成側のフォールバック漏れ。
+   */
+  const ASCII_ALLOWLIST = new Set(['Desc_SAM_C', 'Desc_Ficsonium_C', 'Recipe_Ficsonium_C'])
+
+  it('英語のままの名前が残っていない（許容リストを除く）', () => {
+    const offenders = [...items, ...recipes, ...buildings]
+      .filter((e) => !JAPANESE_CHAR.test(e.name.ja) && !ASCII_ALLOWLIST.has(e.id))
+      .map((e) => `${e.id} = ${e.name.ja}`)
+    expect(offenders).toEqual([])
+  })
+
+  it('代替レシピ名が「Alternate:」のまま残っていない', () => {
+    const offenders = recipes.filter((r) => r.name.ja.startsWith('Alternate:')).map((r) => r.id)
+    expect(offenders).toEqual([])
+  })
+
+  it('公式 ja が未訳のレシピにはフォールバック訳が入る', () => {
+    // ja.json 自体が "Alternate: Polyester Fabric" のまま（1.1.x）
+    expect(recipesById.get('Recipe_Alternate_PolyesterFabric_C')!.name.ja).toBe(
+      '代替: ポリエステル生地',
+    )
+    expect(meta.untranslatedJaNames).toContain('Recipe_Alternate_PolyesterFabric_C')
+  })
 
   it('液体・気体アイテムが form 通りに分類されている', () => {
     expect(itemsById.get('Desc_Water_C')!.form).toBe('liquid')
