@@ -1,0 +1,70 @@
+{
+  "belts": [
+    {
+      "id": "Build_ConveyorBeltMk1_C",
+      "name": {
+        "ja": "コンベア・ベルト Mk.1",
+        "en": "Conveyor Belt Mk.1"
+      },
+      "itemsPerMin": 60
+    },
+    {
+      "id": "Build_ConveyorBeltMk2_C",
+      "name": {
+        "ja": "コンベア・ベルト Mk.2",
+        "en": "Conveyor Belt Mk.2"
+      },
+      "itemsPerMin": 120
+    },
+    {
+      "id": "Build_ConveyorBeltMk3_C",
+      "name": {
+        "ja": "コンベア・ベルト Mk.3",
+        "en": "Conveyor Belt Mk.3"
+      },
+      "itemsPerMin": 270
+    },
+    {
+      "id": "Build_ConveyorBeltMk4_C",
+      "name": {
+        "ja": "コンベア・ベルト Mk.4",
+        "en": "Conveyor Belt Mk.4"
+      },
+      "itemsPerMin": 480
+    },
+    {
+      "id": "Build_ConveyorBeltMk5_C",
+      "name": {
+        "ja": "コンベア・ベルト Mk.5",
+        "en": "Conveyor Belt Mk.5"
+      },
+      "itemsPerMin": 780
+    },
+    {
+      "id": "Build_ConveyorBeltMk6_C",
+      "name": {
+        "ja": "コンベア・ベルト Mk.6",
+        "en": "Conveyor Belt Mk.6"
+      },
+      "itemsPerMin": 1200
+    }
+  ],
+  "pipes": [
+    {
+      "id": "Build_Pipeline_C",
+      "name": {
+        "ja": "パイプラインMk.1",
+        "en": "Pipeline Mk.1"
+      },
+      "m3PerMin": 300
+    },
+    {
+      "id": "Build_PipelineMK2_C",
+      "name": {
+        "ja": "パイプラインMk.2",
+        "en": "Pipeline Mk.2"
+      },
+      "m3PerMin": 600
+    }
+  ]
+}

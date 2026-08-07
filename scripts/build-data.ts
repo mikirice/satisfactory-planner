@@ -18,19 +18,27 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 import {
+  BELT_SPEED_TO_ITEMS_PER_MIN,
   DATA_SCHEMA_VERSION,
   DEFAULT_POWER_EXPONENT,
   DEFAULT_SOMERSLOOP_POWER_EXPONENT,
   FLUID_INTERNAL_UNIT_SCALE,
+  PIPE_FLOW_LIMIT_TO_M3_PER_MIN,
+  SECONDS_PER_MINUTE,
 } from '../src/data/constants.ts'
 import type {
+  Belt,
   Building,
   BuildingCategory,
   DataMeta,
+  Extractor,
+  ExtractorCategory,
   Item,
   ItemAmount,
   ItemForm,
   LocalizedName,
+  Logistics,
+  Pipe,
   Recipe,
   VariablePower,
 } from '../src/data/types.ts'
@@ -138,6 +146,55 @@ function parseSomersloopSlots(cls: DocsClass): number {
 }
 
 /**
+ * 抽出設備の NativeClass → カテゴリ。
+ * FGBuildableResourceExtractor だけは採掘機と石油採掘機の両方を含むので
+ * mExtractorTypeName / 対象資源で後段で振り分ける。
+ */
+const EXTRACTOR_NATIVE_CLASSES = new Set([
+  'FGBuildableResourceExtractor',
+  'FGBuildableWaterPump',
+  'FGBuildableFrackingExtractor',
+  'FGBuildableFrackingActivator',
+])
+
+function extractorCategory(nativeClass: string, cls: DocsClass): ExtractorCategory {
+  switch (nativeClass) {
+    case 'FGBuildableWaterPump':
+      return 'waterExtractor'
+    case 'FGBuildableFrackingExtractor':
+      return 'wellExtractor'
+    case 'FGBuildableFrackingActivator':
+      return 'wellPressurizer'
+    default:
+      // Miner Mk.1〜3 は mExtractorTypeName="Miner"、石油採掘機は "None"
+      return cls.mExtractorTypeName === 'Miner' ? 'miner' : 'oilExtractor'
+  }
+}
+
+/** "(RF_LIQUID,RF_GAS)" → ['liquid', 'gas'] */
+function parseAllowedForms(raw: string | undefined): ItemForm[] {
+  if (!raw) return []
+  const forms: ItemForm[] = []
+  for (const token of raw.matchAll(/RF_[A-Z]+/g)) {
+    switch (token[0]) {
+      case 'RF_SOLID':
+        forms.push('solid')
+        break
+      case 'RF_LIQUID':
+        forms.push('liquid')
+        break
+      case 'RF_GAS':
+        forms.push('gas')
+        break
+      default:
+        // RF_HEAT（間欠泉）等は生産チェーンの対象外なので無視する
+        break
+    }
+  }
+  return [...new Set(forms)]
+}
+
+/**
  * アイテム判定: mForm を持ち、表示名が空でないクラスをアイテムとみなす。
  * これにより FGItemDescriptor / FGResourceDescriptor / バイオマス / 核燃料 /
  * 装備 / 弾薬 / パワーシャード等をまとめて拾える。
@@ -180,6 +237,13 @@ async function main(): Promise<void> {
   }
 
   // --- items -------------------------------------------------------------
+  // 原料（マップから直接採取するアイテム）は FGResourceDescriptor に列挙されている。
+  const rawResourceIds = new Set<string>()
+  for (const group of en) {
+    if (shortNativeClass(group.NativeClass) !== 'FGResourceDescriptor') continue
+    for (const cls of group.Classes) rawResourceIds.add(cls.ClassName)
+  }
+
   const items = new Map<string, Item>()
   for (const group of en) {
     for (const cls of group.Classes) {
@@ -190,6 +254,7 @@ async function main(): Promise<void> {
         name: localized(cls.ClassName, cls.mDisplayName),
         form: parseForm(cls.mForm),
         sinkPoints: Math.max(0, Math.round(num(cls.mResourceSinkPoints))),
+        isRawResource: rawResourceIds.has(cls.ClassName),
         icon: parseIcon(cls.mPersistentBigIcon || cls.mSmallIcon),
       })
     }
@@ -305,7 +370,87 @@ async function main(): Promise<void> {
     }
   }
 
+  // --- extractors --------------------------------------------------------
+  // 採掘・抽出はレシピとして定義されていないので、建物クラスの
+  // mItemsPerCycle / mExtractCycleTime から抽出レートを組み立てる。
+  // 純度倍率（Impure 0.5 / Normal 1 / Pure 2）は constants.ts の PURITY_MULTIPLIER。
+  const extractors: Extractor[] = []
+  for (const group of en) {
+    const nativeClass = shortNativeClass(group.NativeClass)
+    if (!EXTRACTOR_NATIVE_CLASSES.has(nativeClass)) continue
+    for (const cls of group.Classes) {
+      if (!cls.mDisplayName) continue
+      if (!buildings.has(cls.ClassName)) {
+        warnings.push(`extractor ${cls.ClassName} has no matching building entry`)
+        continue
+      }
+      const category = extractorCategory(nativeClass, cls)
+      const allowedForms = parseAllowedForms(cls.mAllowedResourceForms)
+      // 液体・気体を扱う設備は mItemsPerCycle も内部単位（1000倍）
+      const isFluid = allowedForms.length > 0 && !allowedForms.includes('solid')
+      const rawPerCycle = num(cls.mItemsPerCycle)
+      const itemsPerCycle = isFluid ? rawPerCycle / FLUID_INTERNAL_UNIT_SCALE : rawPerCycle
+      const cycleTimeSec = num(cls.mExtractCycleTime)
+      const baseRatePerMin =
+        cycleTimeSec > 0 ? (itemsPerCycle * SECONDS_PER_MINUTE) / cycleTimeSec : 0
+
+      // mOnlyAllowCertainResources=False の採掘機は「全ての固体ノード」なので null
+      const restricted = cls.mOnlyAllowCertainResources === 'True'
+      const allowedResources = restricted
+        ? parseProducedIn(cls.mAllowedResources).filter((id) => items.has(id))
+        : null
+      if (restricted && (!allowedResources || allowedResources.length === 0)) {
+        warnings.push(`extractor ${cls.ClassName}: mAllowedResources could not be resolved`)
+      }
+
+      extractors.push({
+        id: cls.ClassName,
+        name: localized(cls.ClassName, cls.mDisplayName),
+        category,
+        itemsPerCycle,
+        extractCycleTimeSec: cycleTimeSec,
+        baseRatePerMin,
+        powerConsumptionMW: num(cls.mPowerConsumption),
+        powerExponent: num(cls.mPowerConsumptionExponent, DEFAULT_POWER_EXPONENT),
+        allowedResources,
+        allowedForms,
+        // 水の汲み上げ機は水面に置くだけで純度の概念がない
+        purityAffected: category !== 'waterExtractor' && category !== 'wellPressurizer',
+      })
+    }
+  }
+
+  // --- logistics（ベルト / パイプ） ----------------------------------------
+  // "Clean ..." 系（*_NoIndicator_C）は見た目違いの同性能品なので除外する。
+  const belts: Belt[] = []
+  const pipes: Pipe[] = []
+  for (const group of en) {
+    const nativeClass = shortNativeClass(group.NativeClass)
+    for (const cls of group.Classes) {
+      if (!cls.mDisplayName || cls.ClassName.includes('NoIndicator')) continue
+      if (nativeClass === 'FGBuildableConveyorBelt') {
+        belts.push({
+          id: cls.ClassName,
+          name: localized(cls.ClassName, cls.mDisplayName),
+          itemsPerMin: num(cls.mSpeed) * BELT_SPEED_TO_ITEMS_PER_MIN,
+        })
+      } else if (nativeClass === 'FGBuildablePipeline') {
+        pipes.push({
+          id: cls.ClassName,
+          name: localized(cls.ClassName, cls.mDisplayName),
+          m3PerMin: num(cls.mFlowLimit) * PIPE_FLOW_LIMIT_TO_M3_PER_MIN,
+        })
+      }
+    }
+  }
+  belts.sort((a, b) => a.itemsPerMin - b.itemsPerMin)
+  pipes.sort((a, b) => a.m3PerMin - b.m3PerMin)
+  const logistics: Logistics = { belts, pipes }
+  if (belts.length === 0) warnings.push('no conveyor belts found (FGBuildableConveyorBelt)')
+  if (pipes.length === 0) warnings.push('no pipelines found (FGBuildablePipeline)')
+
   recipes.sort((a, b) => a.id.localeCompare(b.id))
+  extractors.sort((a, b) => a.id.localeCompare(b.id))
   const itemList = [...items.values()].sort((a, b) => a.id.localeCompare(b.id))
   const buildingList = [...buildings.values()].sort((a, b) => a.id.localeCompare(b.id))
 
@@ -326,6 +471,8 @@ async function main(): Promise<void> {
   await write('items.json', itemList)
   await write('recipes.json', recipes)
   await write('buildings.json', buildingList)
+  await write('extractors.json', extractors)
+  await write('logistics.json', logistics)
   await write('meta.json', meta)
 
   // --- ログ ---------------------------------------------------------------
@@ -333,6 +480,16 @@ async function main(): Promise<void> {
   console.log(`[build-data] items        : ${itemList.length}`)
   console.log(`[build-data] recipes      : ${recipes.length} (alternate: ${recipes.filter((r) => r.isAlternate).length})`)
   console.log(`[build-data] buildings    : ${buildingList.length}`)
+  console.log(`[build-data] raw resources: ${itemList.filter((i) => i.isRawResource).length}`)
+  console.log(
+    `[build-data] extractors   : ${extractors.length} (${extractors
+      .map((e) => `${e.name.en}=${e.baseRatePerMin}/min`)
+      .join(', ')})`,
+  )
+  console.log(
+    `[build-data] logistics    : belts ${belts.length} (max ${belts.at(-1)?.itemsPerMin}/min) / ` +
+      `pipes ${pipes.length} (max ${pipes.at(-1)?.m3PerMin} m³/min)`,
+  )
 
   const missingJaInOutput = new Set<string>()
   for (const e of [...itemList, ...recipes, ...buildingList]) {
@@ -352,7 +509,10 @@ async function main(): Promise<void> {
     for (const w of warnings.slice(0, 40)) console.warn(`  - ${w}`)
     if (warnings.length > 40) console.warn(`  ... and ${warnings.length - 40} more`)
   }
-  console.log(`[build-data] wrote items.json / recipes.json / buildings.json / meta.json to src/data/`)
+  console.log(
+    '[build-data] wrote items.json / recipes.json / buildings.json / extractors.json / ' +
+      'logistics.json / meta.json to src/data/',
+  )
 }
 
 await main()

@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "gameVersion": "1.1.x",
   "sourceUrl": "https://raw.githubusercontent.com/aringadre76/satisfactory-api/master/Docs",
-  "generatedAt": "2026-08-07T13:20:22.977Z",
+  "generatedAt": "2026-08-07T13:57:55.071Z",
   "counts": {
     "items": 198,
     "recipes": 291,

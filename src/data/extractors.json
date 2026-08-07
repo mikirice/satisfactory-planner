@@ -1,0 +1,142 @@
+[
+  {
+    "id": "Build_FrackingExtractor_C",
+    "name": {
+      "ja": "地下資源抽出機",
+      "en": "Resource Well Extractor"
+    },
+    "category": "wellExtractor",
+    "itemsPerCycle": 1,
+    "extractCycleTimeSec": 1,
+    "baseRatePerMin": 60,
+    "powerConsumptionMW": 0,
+    "powerExponent": 1.321929,
+    "allowedResources": [
+      "Desc_LiquidOil_C",
+      "Desc_NitrogenGas_C",
+      "Desc_Water_C"
+    ],
+    "allowedForms": [
+      "liquid",
+      "gas"
+    ],
+    "purityAffected": true
+  },
+  {
+    "id": "Build_FrackingSmasher_C",
+    "name": {
+      "ja": "資源井加圧機",
+      "en": "Resource Well Pressurizer"
+    },
+    "category": "wellPressurizer",
+    "itemsPerCycle": 0,
+    "extractCycleTimeSec": 0,
+    "baseRatePerMin": 0,
+    "powerConsumptionMW": 150,
+    "powerExponent": 1.321929,
+    "allowedResources": [
+      "Desc_LiquidOil_C",
+      "Desc_NitrogenGas_C",
+      "Desc_Water_C"
+    ],
+    "allowedForms": [
+      "liquid",
+      "gas"
+    ],
+    "purityAffected": false
+  },
+  {
+    "id": "Build_MinerMk1_C",
+    "name": {
+      "ja": "採鉱機 Mk.1",
+      "en": "Miner Mk.1"
+    },
+    "category": "miner",
+    "itemsPerCycle": 1,
+    "extractCycleTimeSec": 1,
+    "baseRatePerMin": 60,
+    "powerConsumptionMW": 5,
+    "powerExponent": 1.321929,
+    "allowedResources": null,
+    "allowedForms": [
+      "solid"
+    ],
+    "purityAffected": true
+  },
+  {
+    "id": "Build_MinerMk2_C",
+    "name": {
+      "ja": "採鉱機 Mk.2",
+      "en": "Miner Mk.2"
+    },
+    "category": "miner",
+    "itemsPerCycle": 1,
+    "extractCycleTimeSec": 0.5,
+    "baseRatePerMin": 120,
+    "powerConsumptionMW": 15,
+    "powerExponent": 1.321929,
+    "allowedResources": null,
+    "allowedForms": [
+      "solid"
+    ],
+    "purityAffected": true
+  },
+  {
+    "id": "Build_MinerMk3_C",
+    "name": {
+      "ja": "採鉱機 Mk.3",
+      "en": "Miner Mk.3"
+    },
+    "category": "miner",
+    "itemsPerCycle": 1,
+    "extractCycleTimeSec": 0.25,
+    "baseRatePerMin": 240,
+    "powerConsumptionMW": 45,
+    "powerExponent": 1.321929,
+    "allowedResources": null,
+    "allowedForms": [
+      "solid"
+    ],
+    "purityAffected": true
+  },
+  {
+    "id": "Build_OilPump_C",
+    "name": {
+      "ja": "原油抽出機",
+      "en": "Oil Extractor"
+    },
+    "category": "oilExtractor",
+    "itemsPerCycle": 2,
+    "extractCycleTimeSec": 1,
+    "baseRatePerMin": 120,
+    "powerConsumptionMW": 40,
+    "powerExponent": 1.321929,
+    "allowedResources": [
+      "Desc_LiquidOil_C"
+    ],
+    "allowedForms": [
+      "liquid"
+    ],
+    "purityAffected": true
+  },
+  {
+    "id": "Build_WaterPump_C",
+    "name": {
+      "ja": "揚水ポンプ",
+      "en": "Water Extractor"
+    },
+    "category": "waterExtractor",
+    "itemsPerCycle": 2,
+    "extractCycleTimeSec": 1,
+    "baseRatePerMin": 120,
+    "powerConsumptionMW": 20,
+    "powerExponent": 1.321929,
+    "allowedResources": [
+      "Desc_Water_C"
+    ],
+    "allowedForms": [
+      "liquid"
+    ],
+    "purityAffected": false
+  }
+]
