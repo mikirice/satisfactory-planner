@@ -8,10 +8,12 @@
 import { act } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from '../src/App.tsx'
 import { planFileName } from '../src/export/excel.ts'
+import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
+import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import { planExtraction } from '../src/solver/index.ts'
 import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
 import { usePlanner } from '../src/store/planner.ts'
@@ -53,7 +55,22 @@ afterEach(async () => {
     for (const m of mounted.splice(0)) m.unmount()
   })
   document.body.innerHTML = ''
+  setPlanStorage(null)
+  history.replaceState(null, '', '/') // 共有URLのハッシュを次のテストに持ち越さない
+  // 復元テストの入力を次のテストに残さない（残すと裏で求解が走る）
+  usePlanner.setState({
+    targets: [],
+    enabledAlternates: {},
+    limitOverrides: {},
+    objective: 'resources',
+    planName: '',
+  })
 })
+
+/** ラベルの一致するボタンを探す（テキストは text.ts と同じ日本語） */
+function buttonByText(container: HTMLElement, label: string): HTMLButtonElement {
+  return [...container.querySelectorAll('button')].find((b) => b.textContent === label)!
+}
 
 /**
  * 鉄板 60/min 相当の解（tests/solver.test.ts の既知値と同じ構成）。
@@ -200,6 +217,89 @@ describe('画面の骨格', () => {
     const options = [...container.querySelectorAll('.suggestions__item')].map((b) => b.textContent)
     expect(options.length).toBeGreaterThan(0)
     expect(options.every((label) => label?.includes('鉄板'))).toBe(true)
+  })
+})
+
+describe('プランの保存・共有', () => {
+  it('名前を付けて保存すると一覧に出て、削除できる', async () => {
+    setPlanStorage(createMemoryPlanStorage())
+    const container = await render(<App />)
+
+    const nameInput = container.querySelector<HTMLInputElement>('input[type="text"]')!
+    await act(async () => {
+      typeInto(nameInput, '鉄板ライン')
+    })
+    await act(async () => {
+      buttonByText(container, 'このプランを保存').click()
+    })
+
+    expect(container.textContent).toContain('「鉄板ライン」を保存しました')
+    const item = container.querySelector('.plan')!
+    expect(item.textContent).toContain('鉄板ライン')
+    expect(buttonByText(container, '読込')).toBeDefined()
+
+    // 削除は確認ダイアログを通す（キャンセルしたら消えない）
+    const confirmMock = vi.fn(() => false)
+    vi.stubGlobal('confirm', confirmMock)
+    await act(async () => {
+      buttonByText(container, '削除').click()
+    })
+    expect(confirmMock).toHaveBeenCalled()
+    expect(container.querySelectorAll('.plan').length).toBe(1)
+
+    vi.stubGlobal('confirm', () => true)
+    await act(async () => {
+      buttonByText(container, '削除').click()
+    })
+    expect(container.querySelectorAll('.plan').length).toBe(0)
+    expect(container.textContent).toContain('保存したプランはまだありません')
+    vi.unstubAllGlobals()
+  })
+
+  it('共有URLをコピーすると #plan= 付きのURLがクリップボードに入る', async () => {
+    setPlanStorage(createMemoryPlanStorage())
+    let copied = ''
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async (text: string) => void (copied = text) },
+    })
+
+    const container = await render(<App />)
+    await act(async () => {
+      buttonByText(container, '共有URLをコピー').click()
+    })
+
+    expect(copied).toContain('#plan=')
+    // アドレスバーは触らない（触ると編集後のリロードで古い共有内容に戻ってしまう）
+    expect(location.hash).toBe('')
+    expect(container.querySelector<HTMLInputElement>('.share-url')?.value).toBe(copied)
+    expect(container.textContent).toContain('共有URLをコピーしました')
+  })
+
+  it('共有URLで開くと入力が復元される', async () => {
+    setPlanStorage(createMemoryPlanStorage())
+    const encoded = encodePlan(
+      toPlanSnapshot({
+        targets: [{ key: 't1', item: 'Desc_IronPlate_C', ratePerMin: 45 }],
+        enabledAlternates: {},
+        limitOverrides: {},
+        objective: 'buildings',
+        minerId: usePlanner.getState().minerId,
+        planName: '共有されたプラン',
+        beltId: usePlanner.getState().beltId,
+        pipeId: usePlanner.getState().pipeId,
+      }),
+    )
+    history.replaceState(null, '', `/#plan=${encoded}`)
+
+    const container = await render(<App />)
+    expect(container.textContent).toContain('共有URLからプランを復元しました')
+    // 復元後はハッシュを外し、内容は自動保存に移してある
+    expect(location.hash).toBe('')
+    const state = usePlanner.getState()
+    expect(state.planName).toBe('共有されたプラン')
+    expect(state.targets.map((t) => t.ratePerMin)).toEqual([45])
+    expect(state.objective).toBe('buildings')
   })
 })
 

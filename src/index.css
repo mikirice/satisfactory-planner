@@ -102,6 +102,12 @@ ul {
   border-color: var(--accent);
 }
 
+/* 一覧の中に並べる小さい操作（読込・削除） */
+.button--small {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
 .button--quiet {
   background: transparent;
   border-color: transparent;

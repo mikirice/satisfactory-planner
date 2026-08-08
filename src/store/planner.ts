@@ -10,6 +10,8 @@ import { create } from 'zustand'
 import { belts, pipes, recipes } from '../data/index.ts'
 import { DEFAULT_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { ExcelExportInput } from '../export/excel.ts'
+// 型だけの参照（実行時の循環 import は起きない）
+import type { PlanInput } from '../plan/serialize.ts'
 import {
   DEFAULT_MINER_ID,
   planExtraction,
@@ -111,6 +113,8 @@ export type PlannerState = {
   setPlanName: (name: string) => void
   setBeltId: (id: string) => void
   setPipeId: (id: string) => void
+  /** 保存/共有から復元した入力をまとめて反映する（解は保存しないので解き直す） */
+  applyPlan: (input: PlanInput) => void
   /** 即時に解き直す（デバウンスなし。テストや初期化用） */
   recompute: () => Promise<void>
 }
@@ -225,6 +229,22 @@ export const usePlanner = create<PlannerState>((set, get) => {
     setPlanName: (name) => set({ planName: name }),
     setBeltId: (id) => set({ beltId: id }),
     setPipeId: (id) => set({ pipeId: id }),
+
+    applyPlan: (input) =>
+      change({
+        targets: input.targets.map((t) => ({
+          key: nextKey(),
+          item: t.item,
+          ratePerMin: t.ratePerMin,
+        })),
+        enabledAlternates: { ...input.enabledAlternates },
+        limitOverrides: { ...input.limitOverrides },
+        objective: input.objective,
+        minerId: input.minerId,
+        planName: input.planName,
+        beltId: input.beltId,
+        pipeId: input.pipeId,
+      }),
 
     recompute: async () => {
       const state = get()

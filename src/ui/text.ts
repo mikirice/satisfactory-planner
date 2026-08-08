@@ -47,6 +47,36 @@ export const T = {
     logisticsHint: '物流シートの本数計算に使います。解には影響しません。',
   },
 
+  plans: {
+    heading: 'プラン',
+    hint: '入力だけを保存します（結果は読み込み時に計算し直します）。',
+    save: 'このプランを保存',
+    saved: (name: string): string => `「${name}」を保存しました`,
+    overwritten: (name: string): string => `「${name}」を上書きしました`,
+    nameRequired: 'プラン名を入れてから保存してください（Excel出力の欄と共通です）',
+    listEmpty: '保存したプランはまだありません',
+    load: '読込',
+    remove: '削除',
+    confirmRemove: (name: string): string => `「${name}」を削除します。よろしいですか？`,
+    loaded: (name: string): string => `「${name}」を読み込みました`,
+    removed: (name: string): string => `「${name}」を削除しました`,
+    share: '共有URLをコピー',
+    shareHint: 'URLに入力内容を埋め込みます。開いた人はそのまま計算結果を見られます。',
+    shareCopied: '共有URLをコピーしました',
+    shareFailed: 'コピーできませんでした。URLを選択してコピーしてください',
+    restoredFromUrl: '共有URLからプランを復元しました',
+    restoredFromAutosave: '前回の作業内容を復元しました',
+    restoreFailed: 'プランを復元できませんでした',
+    warnings: (n: number): string => `${n} 件は読み込めず無視しました`,
+    storageFailed: 'ブラウザに保存できませんでした',
+    updatedAt: (d: Date): string =>
+      `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(
+        d.getDate(),
+      ).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(
+        d.getMinutes(),
+      ).padStart(2, '0')}`,
+  },
+
   export: {
     heading: 'Excel出力',
     planName: 'プラン名',

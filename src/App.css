@@ -285,6 +285,58 @@
   font-size: 13px;
 }
 
+/* --- プラン（保存・共有） ------------------------------------------------- */
+
+.plan-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.plan-actions .button {
+  flex: 1;
+}
+
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+}
+
+.plan__name {
+  font-size: 13px;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.plan__meta {
+  grid-column: 1;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  gap: 6px;
+}
+
+.share-url {
+  font-size: 11px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
 /* --- タブ ---------------------------------------------------------------- */
 
 .tabs {
