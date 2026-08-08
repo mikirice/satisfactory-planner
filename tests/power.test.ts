@@ -472,6 +472,168 @@ describe('工場の消費電力ぶんを賄う', () => {
 })
 
 // ---------------------------------------------------------------------------
+// 燃料の選択（発電機ごとに使う燃料を絞る）
+// ---------------------------------------------------------------------------
+
+describe('燃料の選択', () => {
+  const ALL = [COAL, FUEL, NUCLEAR]
+  /** 全燃料を明示的に許可した指定（= 未指定と同じ意味） */
+  const allFuels = Object.fromEntries(
+    generators.map((g) => [g.id, g.fuels.map((f) => f.item)]),
+  ) as Record<string, string[]>
+
+  it('全燃料を明示しても未指定と LP が完全に一致する（回帰）', () => {
+    const base = buildProductionModel({
+      ...IRON_PLATE_60,
+      power: { generators: ALL, targetMW: 300, coverFactoryPower: true },
+    })
+    const explicit = buildProductionModel({
+      ...IRON_PLATE_60,
+      power: { generators: ALL, fuels: allFuels, targetMW: 300, coverFactoryPower: true },
+    })
+    expect(explicit.generatorVariants.map((v) => v.key)).toEqual(
+      base.generatorVariants.map((v) => v.key),
+    )
+    expect(explicit.lp.variables).toEqual(base.lp.variables)
+    expect(explicit.lp.constraints).toEqual(base.lp.constraints)
+  })
+
+  it('全燃料を明示した解は未指定の解と一致する（回帰）', async () => {
+    const base = await solveOk({ targets: [], power: { generators: ALL, targetMW: 3000 } })
+    const explicit = await solveOk({
+      targets: [],
+      power: { generators: ALL, fuels: allFuels, targetMW: 3000 },
+    })
+    expect(explicit.objectiveValue).toBeCloseTo(base.objectiveValue, 9)
+    expect(explicit.steps.map((s) => [s.recipeId, s.machineCount])).toEqual(
+      base.steps.map((s) => [s.recipeId, s.machineCount]),
+    )
+  })
+
+  it('許可した燃料の変数だけを作る（原子力＝ウラン燃料棒のみ）', () => {
+    const model = buildProductionModel({
+      targets: [],
+      power: { generators: [NUCLEAR], fuels: { [NUCLEAR]: ['Desc_NuclearFuelRod_C'] }, targetMW: 2500 },
+    })
+    expect(model.generatorVariants.map((v) => v.key)).toEqual([
+      generatorVarKey(NUCLEAR, 'Desc_NuclearFuelRod_C'),
+    ])
+    expect(model.powerPlan.allowedFuels.get(NUCLEAR)!.map((f) => f.item)).toEqual([
+      'Desc_NuclearFuelRod_C',
+    ])
+  })
+
+  it('ウラン燃料棒だけに絞るとプルトニウムの燃料棒チェーンを組まない', async () => {
+    const free = await solveOk({ targets: [], power: { generators: [NUCLEAR], targetMW: 2500 } })
+    const uranium = await solveOk({
+      targets: [],
+      power: { generators: [NUCLEAR], fuels: { [NUCLEAR]: ['Desc_NuclearFuelRod_C'] }, targetMW: 2500 },
+    })
+    // 燃料棒の製造までは同じ LP が解くが、プルトニウム燃料棒での発電は選べない
+    expect(uranium.steps.some((s) => s.recipeId === 'Recipe_NuclearFuelRod_C')).toBe(true)
+    expect(uranium.steps.some((s) => s.fuelItem === 'Desc_PlutoniumFuelRod_C')).toBe(false)
+    expect(uranium.powerGeneration!.fuelUsage.map((f) => f.item)).toEqual([
+      'Desc_NuclearFuelRod_C',
+    ])
+    // 絞ったぶん選択肢は減るので、資源コストは悪化しない側に動かない（単調）
+    expect(uranium.objectiveValue).toBeGreaterThanOrEqual(free.objectiveValue - 1e-6)
+  })
+
+  it('石油コークスだけに絞ると石炭を燃やさずコークスの生産チェーンが立つ', async () => {
+    const coal = await solveOk({ targets: [], power: { generators: [COAL], targetMW: 300 } })
+    expect(rateOf(coal.powerGeneration!.fuelUsage, 'Desc_Coal_C')).toBeCloseTo(60, 6)
+
+    const coke = await solveOk({
+      targets: [],
+      power: { generators: [COAL], fuels: { [COAL]: ['Desc_PetroleumCoke_C'] }, targetMW: 300 },
+    })
+    expect(rateOf(coke.powerGeneration!.fuelUsage, 'Desc_PetroleumCoke_C')).toBeCloseTo(100, 6)
+    expect(rateOf(coke.powerGeneration!.fuelUsage, 'Desc_Coal_C')).toBe(0)
+    // コークスは石油の残渣から作るので、原油まで遡る（石炭は1つも掘らない）
+    expect(coke.steps.some((s) => s.recipeId === 'Recipe_PetroleumCoke_C')).toBe(true)
+    expect(rateOf(coke.rawResources, 'Desc_LiquidOil_C')).toBeGreaterThan(0)
+    expect(rateOf(coke.rawResources, 'Desc_Coal_C')).toBe(0)
+  })
+
+  it('燃料を全部オフにした方式は解に現れない', async () => {
+    // その方式しか無ければ発電計画そのものが無効（＝従来と同じ LP）
+    const plan = resolvePowerPlan({ generators: [COAL], fuels: { [COAL]: [] }, targetMW: 300 })
+    expect(plan.active).toBe(false)
+    expect(plan.generators).toEqual([])
+    const alone = buildProductionModel({
+      ...IRON_PLATE_60,
+      power: { generators: [COAL], fuels: { [COAL]: [] }, targetMW: 300 },
+    })
+    expect(alone.generatorVariants).toEqual([])
+    expect(alone.lp.variables).toEqual(buildProductionModel(IRON_PLATE_60).lp.variables)
+
+    // 他の方式が残っていれば、その方式の変数だけが立つ
+    const model = buildProductionModel({
+      targets: [],
+      power: { generators: [COAL, FUEL], fuels: { [COAL]: [] }, targetMW: 250 },
+    })
+    expect(model.powerPlan.generators.map((g) => g.id)).toEqual([FUEL])
+    expect(model.generatorVariants.every((v) => v.generator.id === FUEL)).toBe(true)
+
+    const solution = await solveOk({
+      targets: [],
+      power: { generators: [COAL, FUEL], fuels: { [COAL]: [] }, targetMW: 250 },
+    })
+    expect(solution.steps.some((s) => s.buildingId === COAL)).toBe(false)
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(1)
+  })
+
+  it('選んだ燃料が用意できないときは、その燃料名を挙げて実行不能を報告する', async () => {
+    // 圧縮石炭は代替レシピ（強化石炭）でしか作れない。既定のレシピ集合では用意できない
+    const result = await solveProduction({
+      targets: [],
+      power: { generators: [COAL], fuels: { [COAL]: ['Desc_CompactedCoal_C'] }, targetMW: 300 },
+    })
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.message).toContain('圧縮石炭')
+    // 絞り込みが原因だと分かるヒントを出す（他の燃料も許せば解ける）
+    expect(result.message).toContain('選択中の燃料')
+    expect(result.message).not.toContain('石油コークス')
+
+    // 石炭も許可すれば解ける
+    const relaxed = await solveOk({
+      targets: [],
+      power: {
+        generators: [COAL],
+        fuels: { [COAL]: ['Desc_CompactedCoal_C', 'Desc_Coal_C'] },
+        targetMW: 300,
+      },
+    })
+    expect(rateOf(relaxed.powerGeneration!.fuelUsage, 'Desc_Coal_C')).toBeCloseTo(60, 6)
+  })
+
+  it('絞っていない方式のメッセージは従来どおり（全燃料を挙げる）', async () => {
+    const result = await solveProduction({
+      targets: [],
+      enabledRecipes: [],
+      power: { generators: [NUCLEAR], targetMW: 2500 },
+    })
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.message).toContain('ウラン燃料棒')
+    expect(result.message).not.toContain('選択中の燃料')
+  })
+
+  it('その発電機に無い燃料IDは例外', () => {
+    expect(() =>
+      resolvePowerPlan({ generators: [COAL], fuels: { [COAL]: ['Desc_Water_C'] }, targetMW: 1 }),
+    ).toThrow(/unknown fuel item/)
+    // 許可していない発電機ぶんの指定は無視する（画面が選択を持ち続けるため）
+    expect(
+      resolvePowerPlan({ generators: [COAL], fuels: { [FUEL]: [] }, targetMW: 1 }).generators.map(
+        (g) => g.id,
+      ),
+    ).toEqual([COAL])
+  })
+})
+
+// ---------------------------------------------------------------------------
 // 実行不能の報告
 // ---------------------------------------------------------------------------
 

@@ -64,8 +64,9 @@ export const T = {
       '発電のために増える建物（燃料の精製・ウラン加工など）の消費も含めて自給できる台数を求めます。採掘設備の電力は含みません。',
     powerMethods: '発電方式',
     powerMethodsHint:
-      '許可した方式の中から、いちばん資源効率のよい組み合わせをソルバーが選びます。すべてオフなら発電計画は行いません。',
-    powerFuels: (fuels: string): string => `燃料: ${fuels}`,
+      '許可した方式と燃料の中から、いちばん資源効率のよい組み合わせをソルバーが選びます。すべてオフなら発電計画は行いません。',
+    powerFuelsHeading: '使う燃料',
+    powerFuelNone: '燃料が選ばれていません（この方式は使いません）',
     powerGeneratorSpec: (mw: string): string => `${mw} MW/台`,
     powerIdle: '目標発電量を入れるか「工場の消費電力ぶんを賄う」をオンにすると計算します。',
     powerNoMethod: '発電方式を1つ以上選んでください。',

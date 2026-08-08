@@ -8,6 +8,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { generatorsById } from '../src/data/index.ts'
 import {
   AUTOSAVE_DEBOUNCE_MS,
   currentSnapshot,
@@ -86,11 +87,12 @@ describe('プランのシリアライズ', () => {
       limitOverrides: { Desc_OreIron_C: 480, Desc_Water_C: null },
       objective: 'power',
       minerId: 'Build_MinerMk2_C',
-      // v3 / v4 のキーは既定値なので保存形式には出ないが、復元結果には既定が入る
+      // v3 / v4 / v5 のキーは既定値なので保存形式には出ないが、復元結果には既定が入る
       maxClock: 1,
       extractionClock: 1,
       somersloops: 0,
       enabledGenerators: {},
+      enabledFuels: {},
       powerTargetMW: 0,
       coverFactoryPower: false,
       planName: '鉄板ライン',
@@ -391,6 +393,88 @@ describe('プランのシリアライズ', () => {
     expect(parsed.input.enabledGenerators).toEqual({ Build_GeneratorCoal_C: true })
     expect(parsed.input.powerTargetMW).toBe(0)
     expect(parsed.input.coverFactoryPower).toBe(false)
+    expect(parsed.warnings).toHaveLength(3)
+  })
+
+  it('発電の燃料選択を保存して復元できる（v5）', () => {
+    const snapshot = toPlanSnapshot({
+      ...source,
+      enabledGenerators: { Build_GeneratorCoal_C: true, Build_GeneratorNuclear_C: true },
+      enabledFuels: {
+        Build_GeneratorCoal_C: { Desc_PetroleumCoke_C: true },
+        Build_GeneratorNuclear_C: { Desc_NuclearFuelRod_C: true },
+      },
+      powerTargetMW: 300,
+    })
+    expect(snapshot.v).toBe(PLAN_SCHEMA_VERSION)
+    expect(snapshot.u).toEqual({
+      Build_GeneratorCoal_C: ['Desc_PetroleumCoke_C'],
+      Build_GeneratorNuclear_C: ['Desc_NuclearFuelRod_C'],
+    })
+
+    const parsed = parsePlanSnapshot(snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.enabledFuels).toEqual({
+      Build_GeneratorCoal_C: { Desc_PetroleumCoke_C: true },
+      Build_GeneratorNuclear_C: { Desc_NuclearFuelRod_C: true },
+    })
+  })
+
+  it('全燃料を使う方式はキーごと省略する（共有URLを短く保つ）', () => {
+    const all = generatorsById.get('Build_GeneratorCoal_C')!.fuels.map((f) => f.item)
+    const snapshot = toPlanSnapshot({
+      ...source,
+      enabledGenerators: { Build_GeneratorCoal_C: true },
+      enabledFuels: {
+        Build_GeneratorCoal_C: Object.fromEntries(all.map((i) => [i, true as const])),
+      },
+      powerTargetMW: 300,
+    }) as unknown as Record<string, unknown>
+    expect('u' in snapshot).toBe(false)
+
+    const bare = toPlanSnapshot(source) as unknown as Record<string, unknown>
+    expect('u' in bare).toBe(false)
+  })
+
+  it('燃料を1つも選んでいない方式は空配列として保存される', () => {
+    const snapshot = toPlanSnapshot({
+      ...source,
+      enabledGenerators: { Build_GeneratorCoal_C: true },
+      enabledFuels: { Build_GeneratorCoal_C: {} },
+      powerTargetMW: 300,
+    })
+    expect(snapshot.u).toEqual({ Build_GeneratorCoal_C: [] })
+
+    const parsed = parsePlanSnapshot(snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.input.enabledFuels).toEqual({ Build_GeneratorCoal_C: {} })
+  })
+
+  it('v4 以前のデータを読むと燃料は全許可（既定）になる', () => {
+    const v4 = { ...toPlanSnapshot(source), v: 4 }
+    const parsed = parsePlanSnapshot(v4)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.enabledFuels).toEqual({})
+  })
+
+  it('不正な燃料設定は警告して落とす', () => {
+    const parsed = parsePlanSnapshot({
+      ...toPlanSnapshot(source),
+      u: {
+        Build_Nope_C: ['Desc_Coal_C'],
+        Build_GeneratorCoal_C: ['Desc_Coal_C', 'Desc_Water_C'],
+        Build_GeneratorFuel_C: 'いろいろ',
+      },
+    })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    // 水は石炭発電機の燃料ではないので落ちる。石炭だけが残る
+    expect(parsed.input.enabledFuels).toEqual({ Build_GeneratorCoal_C: { Desc_Coal_C: true } })
     expect(parsed.warnings).toHaveLength(3)
   })
 

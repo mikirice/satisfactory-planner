@@ -107,7 +107,7 @@ src/ui/
   icons.ts            ID → アイコン画像パスの解決（無ければ null＝文字だけ表示）
   ItemIcon.tsx        アイコン1つ分の <img>（欠落・読み込み失敗時は何も描かない）
   Sidebar.tsx         入力（目標 / 目的関数 / 発電計画 / クロック / 採掘設備 / 代替レシピ / 原料上限 / 物流 / Excel出力）
-  PowerPanel.tsx      発電計画の入力（発電方式の許可・目標発電量・工場の消費を賄う）
+  PowerPanel.tsx      発電計画の入力（発電方式の許可・使う燃料の選択・目標発電量・工場の消費を賄う）
   ResultView.tsx      結果タブ（サマリー / 生産ステップ / 原料 / アイテム収支 / フローチャート）
   ExportPanel.tsx     プラン名の入力とExcelダウンロード（exceljsはクリック時に動的import）
   FlowChart.tsx       閲覧専用フローチャート（React Flow。タブを開いたときに遅延import）
@@ -196,11 +196,18 @@ await solveProduction({
   targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }],
   power: {
     generators: ['Build_GeneratorCoal_C'], // 許可する発電方式（既定は空＝発電計画なし）
+    fuels: { Build_GeneratorCoal_C: ['Desc_CompactedCoal_C'] }, // 使う燃料の絞り込み（省略＝全燃料）
     targetMW: 300,                          // 総発電量の下限
     coverFactoryPower: true,                // 製造建物の消費を賄う（自己消費の循環も LP が解く）
   },
 })
 ```
+
+`fuels` は発電機ごとの燃料の許可集合。**キーの無い発電機は全燃料許可**（省略すれば
+従来と1変数も変わらない LP になる）。空配列にした方式は変数を1本も作らないので、
+「石炭発電機は圧縮石炭だけ」「原子力はウラン燃料棒だけ（プルトニウムチェーンを組まない）」
+といった指定ができる。選んだ燃料をどうしても用意できない構成は、実行不能の原因として
+**その燃料名を挙げて**報告する（`findUnusableGenerators`）。
 
 制約は電力専用の行を2本張る（電力を疑似アイテムにはしない。存在しないアイテムIDを
 作ると表・グラフ・Excel が名前を引けなくなるため）:

@@ -8,20 +8,33 @@
  * 既定は「発電方式すべてオフ」＝ 発電計画なし。従来と同じ解になる。
  */
 import { itemsById } from '../data/index.ts'
-import { isPowerPlanActive, powerGenerators, usePlanner } from '../store/planner.ts'
+import {
+  allowedFuelItems,
+  isPowerPlanActive,
+  powerGenerators,
+  usePlanner,
+} from '../store/planner.ts'
 import { fmtPower } from './format.ts'
+import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 export function PowerPanel() {
   const enabledGenerators = usePlanner((s) => s.enabledGenerators)
+  const enabledFuels = usePlanner((s) => s.enabledFuels)
   const powerTargetMW = usePlanner((s) => s.powerTargetMW)
   const coverFactoryPower = usePlanner((s) => s.coverFactoryPower)
   const setGenerator = usePlanner((s) => s.setGenerator)
+  const setGeneratorFuel = usePlanner((s) => s.setGeneratorFuel)
   const setPowerTargetMW = usePlanner((s) => s.setPowerTargetMW)
   const setCoverFactoryPower = usePlanner((s) => s.setCoverFactoryPower)
 
   const anyGenerator = Object.keys(enabledGenerators).length > 0
-  const active = isPowerPlanActive({ enabledGenerators, powerTargetMW, coverFactoryPower })
+  const active = isPowerPlanActive({
+    enabledGenerators,
+    enabledFuels,
+    powerTargetMW,
+    coverFactoryPower,
+  })
 
   return (
     <section className="panel">
@@ -29,33 +42,54 @@ export function PowerPanel() {
 
       <div className="checkbox-list">
         <p className="target-group__head">{T.sidebar.powerMethods}</p>
-        {powerGenerators.map((generator) => (
-          <label
-            key={generator.id}
-            className={enabledGenerators[generator.id] ? 'checkbox checkbox--on' : 'checkbox'}
-          >
-            <input
-              type="checkbox"
-              checked={enabledGenerators[generator.id] === true}
-              onChange={(e) => setGenerator(generator.id, e.target.checked)}
-            />
-            <span className="checkbox__body">
-              <span className="checkbox__label">
-                {generator.name.ja}
-                <span className="checkbox__meta">
-                  {T.sidebar.powerGeneratorSpec(fmtPower(generator.powerProductionMW))}
+        {powerGenerators.map((generator) => {
+          const on = enabledGenerators[generator.id] === true
+          // 燃料のチェックは方式の label の**外**に置く（label の入れ子は不正なHTML）
+          const allowed = new Set(allowedFuelItems(generator, enabledFuels))
+          return (
+            <div className="power-method" key={generator.id}>
+              <label className={on ? 'checkbox checkbox--on' : 'checkbox'}>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={(e) => setGenerator(generator.id, e.target.checked)}
+                />
+                <span className="checkbox__body">
+                  <span className="checkbox__label">
+                    {generator.name.ja}
+                    <span className="checkbox__meta">
+                      {T.sidebar.powerGeneratorSpec(fmtPower(generator.powerProductionMW))}
+                    </span>
+                  </span>
                 </span>
-              </span>
-              <span className="checkbox__hint">
-                {T.sidebar.powerFuels(
-                  generator.fuels
-                    .map((fuel) => itemsById.get(fuel.item)?.name.ja ?? fuel.item)
-                    .join('・'),
-                )}
-              </span>
-            </span>
-          </label>
-        ))}
+              </label>
+              {on && (
+                <div className="fuel-list">
+                  <p className="fuel-list__head">{T.sidebar.powerFuelsHeading}</p>
+                  {generator.fuels.map((fuel) => {
+                    const name = itemsById.get(fuel.item)?.name.ja ?? fuel.item
+                    return (
+                      <label className="check" key={fuel.item}>
+                        <input
+                          type="checkbox"
+                          checked={allowed.has(fuel.item)}
+                          onChange={(e) =>
+                            setGeneratorFuel(generator.id, fuel.item, e.target.checked)
+                          }
+                        />
+                        <ItemIcon id={fuel.item} name={name} size={CELL_ICON} />
+                        <span>{name}</span>
+                      </label>
+                    )
+                  })}
+                  {allowed.size === 0 && (
+                    <p className="callout callout--warn">{T.sidebar.powerFuelNone}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       <p className="hint">{T.sidebar.powerMethodsHint}</p>
 

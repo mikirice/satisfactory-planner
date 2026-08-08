@@ -379,6 +379,25 @@
   overflow-wrap: anywhere;
 }
 
+/* 発電方式1件（方式のチェック＋その方式で使う燃料のチェック） */
+.power-method {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 燃料のチェックは方式の下にぶら下げる（親子関係が見た目で分かるよう字下げする） */
+.fuel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0 0 12px;
+}
+
+.fuel-list__head {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* --- チェックリスト（代替レシピ） ---------------------------------------- */
 
 .check-list {

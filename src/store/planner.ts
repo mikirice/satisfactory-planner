@@ -8,6 +8,7 @@
 import { create } from 'zustand'
 
 import { belts, generators, pipes, recipes } from '../data/index.ts'
+import type { Generator } from '../data/types.ts'
 import { DEFAULT_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { ExcelExportInput } from '../export/excel.ts'
 // クロック / Somersloop の既定値と丸めは保存形式と共有する（store → serialize の一方向）
@@ -110,6 +111,19 @@ export const powerGenerators = [...generators].sort(
   (a, b) => a.powerProductionMW - b.powerProductionMW || a.id.localeCompare(b.id),
 )
 
+/**
+ * その発電機で使ってよい燃料の Item.id。
+ * `enabledFuels` にキーが無い発電機は**全燃料許可**（既定。従来と同じ挙動）。
+ */
+export function allowedFuelItems(
+  generator: Generator,
+  enabledFuels: Record<string, Record<string, true>>,
+): string[] {
+  const selection = enabledFuels[generator.id]
+  if (selection === undefined) return generator.fuels.map((f) => f.item)
+  return generator.fuels.filter((f) => selection[f.item] === true).map((f) => f.item)
+}
+
 /** 代替レシピの一覧（日本語名の五十音順）。 */
 export const alternateRecipes = recipes
   .filter((r) => r.isAlternate)
@@ -142,6 +156,12 @@ export type PlannerState = {
    * 発電に使ってよい発電機（Building.id）。既定は空 = 発電計画なし（従来と同じ挙動）。
    */
   enabledGenerators: Record<string, true>
+  /**
+   * 発電方式ごとに使ってよい燃料（Building.id → 燃料 Item.id の集合）。
+   * **キーが無い発電機は全燃料許可**（既定・従来と同じ挙動）。空オブジェクトは
+   * 「燃料を1つも選んでいない」＝その方式を使わない、という意味。
+   */
+  enabledFuels: Record<string, Record<string, true>>
   /** 目標発電量(MW)。0 = 指定なし */
   powerTargetMW: number
   /** 工場（製造建物）の消費電力ぶんを発電で賄うか */
@@ -191,6 +211,8 @@ export type PlannerState = {
   setSomersloops: (count: number) => void
   /** 発電方式の許可を切り替える（Building.id） */
   setGenerator: (generatorId: string, enabled: boolean) => void
+  /** その発電方式で使う燃料の1つを切り替える（全部オンなら記録を消して既定に戻す） */
+  setGeneratorFuel: (generatorId: string, fuelItem: string, enabled: boolean) => void
   /** 目標発電量(MW)。負数・非数は 0 に丸める */
   setPowerTargetMW: (mw: number) => void
   /** 「工場の消費電力ぶんを賄う」の切り替え */
@@ -250,22 +272,35 @@ function mergeInputEntries(entries: readonly { item: string; ratePerMin: number 
 /** 現在の入力から SolveInput を組み立てる（テストから検証できるよう export）。 */
 /**
  * 発電計画が実際に LP を動かす状態か。
- * 発電機が1つ以上許可され、かつ目標発電量か自給のどちらかが指定されているとき。
- * （solver 側の `resolvePowerPlan().active` と同じ判定。画面の「解くかどうか」に使う）
+ * 「燃料を1つ以上使える発電機」が1つ以上許可され、かつ目標発電量か自給のどちらかが
+ * 指定されているとき。（solver 側の `resolvePowerPlan().active` と同じ判定。
+ * 画面の「解くかどうか」に使う）
  */
 export function isPowerPlanActive(state: {
   enabledGenerators: Record<string, true>
+  /** 省略時は全燃料許可（＝発電方式が選ばれていれば有効） */
+  enabledFuels?: Record<string, Record<string, true>>
   powerTargetMW: number
   coverFactoryPower: boolean
 }): boolean {
-  return (
-    Object.keys(state.enabledGenerators).length > 0 &&
-    (state.powerTargetMW > 0 || state.coverFactoryPower)
+  const enabledFuels = state.enabledFuels ?? {}
+  const usable = powerGenerators.some(
+    (g) =>
+      state.enabledGenerators[g.id] === true && allowedFuelItems(g, enabledFuels).length > 0,
   )
+  return usable && (state.powerTargetMW > 0 || state.coverFactoryPower)
 }
 
 export function toSolveInput(state: PlannerState): SolveInput {
   const preset = objectivePresetById.get(state.objective) ?? OBJECTIVE_PRESETS[0]
+  // 燃料を絞っている方式だけ渡す。1つも絞っていなければキーごと省略して、
+  // ソルバー側を「従来と同じ入力」のまま通す（回帰の担保）。
+  const fuels: Record<string, string[]> = {}
+  for (const generator of powerGenerators) {
+    if (state.enabledGenerators[generator.id] !== true) continue
+    if (state.enabledFuels[generator.id] === undefined) continue
+    fuels[generator.id] = allowedFuelItems(generator, state.enabledFuels)
+  }
   const maximize = state.targets.find((t) => t.mode === 'max' && t.item)?.item
   const inputs: Record<string, number> = {}
   for (const i of state.inputs) {
@@ -285,6 +320,7 @@ export function toSolveInput(state: PlannerState): SolveInput {
     somersloops: state.somersloops,
     power: {
       generators: Object.keys(state.enabledGenerators),
+      ...(Object.keys(fuels).length === 0 ? {} : { fuels }),
       targetMW: state.powerTargetMW,
       coverFactoryPower: state.coverFactoryPower,
     },
@@ -335,6 +371,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
     extractionClock: DEFAULT_EXTRACTION_CLOCK,
     somersloops: DEFAULT_SOMERSLOOPS,
     enabledGenerators: {},
+    enabledFuels: {},
     powerTargetMW: DEFAULT_POWER_TARGET_MW,
     coverFactoryPower: DEFAULT_COVER_FACTORY_POWER,
     planName: '',
@@ -424,6 +461,23 @@ export const usePlanner = create<PlannerState>((set, get) => {
       change({ enabledGenerators: next })
     },
 
+    setGeneratorFuel: (generatorId, fuelItem, enabled) => {
+      const generator = powerGenerators.find((g) => g.id === generatorId)
+      if (generator === undefined) return
+      // 「キーが無い = 全燃料許可」なので、外すときはいったん全燃料を書き出してから落とす
+      const current = new Set(allowedFuelItems(generator, get().enabledFuels))
+      if (enabled) current.add(fuelItem)
+      else current.delete(fuelItem)
+      const next = { ...get().enabledFuels }
+      if (current.size === generator.fuels.length) {
+        // 全部オンなら記録を消して既定（全燃料許可）に戻す。共有URLを短く保つため
+        delete next[generatorId]
+      } else {
+        next[generatorId] = Object.fromEntries([...current].map((item) => [item, true as const]))
+      }
+      change({ enabledFuels: next })
+    },
+
     setPowerTargetMW: (mw) => change({ powerTargetMW: clampPowerTargetMW(mw) }),
 
     setCoverFactoryPower: (cover) => change({ coverFactoryPower: cover }),
@@ -445,6 +499,9 @@ export const usePlanner = create<PlannerState>((set, get) => {
         extractionClock: clampExtractionClock(input.extractionClock),
         somersloops: clampSomersloops(input.somersloops),
         enabledGenerators: { ...input.enabledGenerators },
+        enabledFuels: Object.fromEntries(
+          Object.entries(input.enabledFuels).map(([id, fuels]) => [id, { ...fuels }]),
+        ),
         powerTargetMW: clampPowerTargetMW(input.powerTargetMW),
         coverFactoryPower: input.coverFactoryPower,
         planName: input.planName,

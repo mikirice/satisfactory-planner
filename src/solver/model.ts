@@ -186,8 +186,16 @@ export type GeneratorVariant = {
 
 /** 解決済みの発電計画（LP に実際に反映される形）。 */
 export type ResolvedPowerPlan = {
-  /** 変数を作る発電機 */
+  /**
+   * 変数を作る発電機。
+   * 燃料を1つも許可されなかった方式は**ここに入らない**（＝選ばれていないのと同じ扱い）。
+   */
   generators: Generator[]
+  /**
+   * 発電機ごとに実際に使える燃料（Building.id → 燃料）。
+   * 並びは generators.json の宣言順のまま（変数の順序を従来と揃えるため）。
+   */
+  allowedFuels: Map<string, GeneratorFuel[]>
   /** 目標発電量(MW)。0 = 指定なし */
   targetMW: number
   coverFactoryPower: boolean
@@ -198,9 +206,12 @@ export type ResolvedPowerPlan = {
 /**
  * `SolveInput.power` を検証して解決する。
  *
- * 「発電機が1つ以上あり、かつ目標発電量か自給のどちらかが指定されている」ときだけ有効。
- * どちらも無いと発電機を建てる理由が無く、変数を足しても必ず 0 になるので、
+ * 「燃料を使える発電機が1つ以上あり、かつ目標発電量か自給のどちらかが指定されている」
+ * ときだけ有効。どちらも無いと発電機を建てる理由が無く、変数を足しても必ず 0 になるので、
  * LP を従来と1変数も変えないほうが安全（回帰の担保）。
+ *
+ * 燃料の指定（`power.fuels`）は発電機ごとの絞り込み。キーが無ければ全燃料許可なので、
+ * 指定しなければ従来とまったく同じモデルになる。
  */
 export function resolvePowerPlan(power: PowerPlanInput | undefined): ResolvedPowerPlan {
   const targetMW = power?.targetMW ?? 0
@@ -209,14 +220,33 @@ export function resolvePowerPlan(power: PowerPlanInput | undefined): ResolvedPow
   }
   const coverFactoryPower = power?.coverFactoryPower === true
   const generators: Generator[] = []
+  const allowedFuels = new Map<string, GeneratorFuel[]>()
   for (const id of new Set(power?.generators ?? [])) {
     const generator = generatorsById.get(id)
     if (!generator) throw new Error(`unknown generator id: ${id}`)
+    const requested = power?.fuels?.[generator.id]
+    let fuels: GeneratorFuel[]
+    if (requested === undefined) {
+      fuels = [...generator.fuels]
+    } else {
+      // 知らない燃料IDは黙って捨てず例外（発電機IDと同じ扱い。保存データ側で検証済みの前提）
+      const wanted = new Set(requested)
+      for (const item of wanted) {
+        if (!generator.fuels.some((f) => f.item === item)) {
+          throw new Error(`unknown fuel item for generator ${generator.id}: ${item}`)
+        }
+      }
+      fuels = generator.fuels.filter((f) => wanted.has(f.item))
+    }
+    // 燃料をすべて外された方式は「選んでいない」のと同じにする（変数も診断も出さない）
+    if (fuels.length === 0) continue
     generators.push(generator)
+    allowedFuels.set(generator.id, fuels)
   }
   generators.sort((a, b) => a.id.localeCompare(b.id))
   return {
     generators,
+    allowedFuels,
     targetMW,
     coverFactoryPower,
     active: generators.length > 0 && (targetMW > 0 || coverFactoryPower),
@@ -349,7 +379,7 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   const powerPlan = resolvePowerPlan(input.power)
   const generatorVariants: GeneratorVariant[] = powerPlan.active
     ? powerPlan.generators.flatMap((generator) =>
-        generator.fuels.map((fuel) => ({
+        (powerPlan.allowedFuels.get(generator.id) ?? []).map((fuel) => ({
           generator,
           fuel,
           key: generatorVarKey(generator.id, fuel.item),

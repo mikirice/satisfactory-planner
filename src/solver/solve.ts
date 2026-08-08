@@ -658,14 +658,22 @@ export function findUnusableGenerators(
       (!v.fuel.supplementalItem || available.has(v.fuel.supplementalItem)),
   )
   if (usable.length > 0) return []
-  return model.powerPlan.generators.map((generator) => ({
-    kind: 'unproducibleItem' as const,
-    item: generator.fuels[0]?.item ?? generator.id,
-    message:
-      `${generator.name.ja} の燃料（${generator.fuels
-        .map((f) => jaName(f.item))
-        .join(' / ')}）を、有効なレシピと利用できる原料からは用意できません`,
-  }))
+  return model.powerPlan.generators.map((generator) => {
+    // 燃料を絞っている場合は「絞ったせいで解けない」ことが分かるよう、許可した燃料だけを挙げる
+    const allowed = model.powerPlan.allowedFuels.get(generator.id) ?? generator.fuels
+    const restricted = allowed.length < generator.fuels.length
+    return {
+      kind: 'unproducibleItem' as const,
+      item: allowed[0]?.item ?? generator.id,
+      message:
+        `${generator.name.ja} の燃料（${allowed
+          .map((f) => jaName(f.item))
+          .join(' / ')}）を、有効なレシピと利用できる原料からは用意できません` +
+        (restricted
+          ? '（選択中の燃料だけで判定しています。他の燃料も許可すると解けることがあります）'
+          : ''),
+    }
+  })
 }
 
 /**

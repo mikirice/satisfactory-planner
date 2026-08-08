@@ -70,14 +70,16 @@ export function clampPowerTargetMW(mw: number | undefined): number {
  *       いずれも既定値なら省略するので v1 / v2 もそのまま読める
  * v4 … 発電計画（g: 許可する発電機・w: 目標発電量MW・f: 工場消費を賄う）を追加。
  *       いずれも既定値（発電計画なし）なら省略するので v1〜v3 もそのまま読める
+ * v5 … 発電方式ごとの燃料選択（u）を追加。全燃料許可（既定）の方式は書かないので、
+ *       絞り込みを使っていないプランは v4 と同じ長さのまま。v1〜v4 もそのまま読める
  */
-export const PLAN_SCHEMA_VERSION = 4
+export const PLAN_SCHEMA_VERSION = 5
 
 /**
  * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
  * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
  */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4]
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -114,6 +116,11 @@ export type PlanSnapshot = {
   s?: number
   /** 発電に許可した発電機の Building.id。v4〜。空なら省略 */
   g?: string[]
+  /**
+   * 発電方式ごとに使う燃料（Building.id → 燃料 Item.id）。v5〜。
+   * **全燃料を使う方式は書かない**（キーが無い = 全許可）。全方式が全許可なら省略
+   */
+  u?: Record<string, string[]>
   /** 目標発電量(MW)。v4〜。既定 0 なら省略 */
   w?: number
   /** 工場の消費電力ぶんを賄うか。v4〜。既定 false なら省略 */
@@ -136,6 +143,8 @@ export type PlanInput = {
   somersloops: number
   /** 発電に許可した発電機（Building.id） */
   enabledGenerators: Record<string, true>
+  /** 発電方式ごとに使う燃料。キーが無い発電機は全燃料許可（既定） */
+  enabledFuels: Record<string, Record<string, true>>
   /** 目標発電量(MW) */
   powerTargetMW: number
   /** 工場の消費電力ぶんを賄うか */
@@ -162,6 +171,8 @@ export type PlanSource = {
   somersloops?: number
   /** 発電に許可した発電機（v3 以前のデータには無いので省略可） */
   enabledGenerators?: Record<string, true>
+  /** 発電方式ごとに使う燃料（v4 以前のデータには無いので省略可＝全燃料許可） */
+  enabledFuels?: Record<string, Record<string, true>>
   /** 目標発電量(MW)（省略時 0） */
   powerTargetMW?: number
   /** 工場の消費電力ぶんを賄うか（省略時 false） */
@@ -184,6 +195,27 @@ const beltIds = new Set(belts.map((b) => b.id))
 const pipeIds = new Set(pipes.map((p) => p.id))
 const minerIds = new Set<string>(MINER_IDS)
 
+/**
+ * 燃料選択を保存形式に落とす。
+ * 全燃料を使う方式（＝既定）はキーごと落として共有URLを短く保つ。
+ * 知らない発電機・燃料も落とす（ゲームデータ更新で消えた場合の保険）。
+ */
+function toFuelSnapshot(
+  enabledFuels: Record<string, Record<string, true>>,
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const id of Object.keys(enabledFuels).sort()) {
+    const generator = generatorsById.get(id)
+    if (generator === undefined) continue
+    const selected = generator.fuels
+      .filter((f) => enabledFuels[id]?.[f.item] === true)
+      .map((f) => f.item)
+    if (selected.length === generator.fuels.length) continue
+    out[id] = selected.sort()
+  }
+  return out
+}
+
 /** 現在の入力から保存形式を作る。 */
 export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
   const maximize = state.targets.find((t) => t.mode === 'max' && t.item !== '')?.item
@@ -194,6 +226,7 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
   const extractionClock = clampExtractionClock(state.extractionClock ?? DEFAULT_EXTRACTION_CLOCK)
   const somersloops = clampSomersloops(state.somersloops ?? DEFAULT_SOMERSLOOPS)
   const enabledGenerators = Object.keys(state.enabledGenerators ?? {}).sort()
+  const enabledFuels = toFuelSnapshot(state.enabledFuels ?? {})
   const powerTargetMW = clampPowerTargetMW(state.powerTargetMW ?? DEFAULT_POWER_TARGET_MW)
   const coverFactoryPower = state.coverFactoryPower ?? DEFAULT_COVER_FACTORY_POWER
   return {
@@ -218,6 +251,7 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
     ...(extractionClock === DEFAULT_EXTRACTION_CLOCK ? {} : { e: extractionClock }),
     ...(somersloops === DEFAULT_SOMERSLOOPS ? {} : { s: somersloops }),
     ...(enabledGenerators.length === 0 ? {} : { g: enabledGenerators }),
+    ...(Object.keys(enabledFuels).length === 0 ? {} : { u: enabledFuels }),
     ...(powerTargetMW === DEFAULT_POWER_TARGET_MW ? {} : { w: powerTargetMW }),
     ...(coverFactoryPower === DEFAULT_COVER_FACTORY_POWER ? {} : { f: coverFactoryPower }),
   }
@@ -236,6 +270,7 @@ export function defaultPlanInput(): PlanInput {
     extractionClock: DEFAULT_EXTRACTION_CLOCK,
     somersloops: DEFAULT_SOMERSLOOPS,
     enabledGenerators: {},
+    enabledFuels: {},
     powerTargetMW: DEFAULT_POWER_TARGET_MW,
     coverFactoryPower: DEFAULT_COVER_FACTORY_POWER,
     planName: '',
@@ -413,6 +448,33 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
     }
   } else if (raw.g !== undefined) {
     warnings.push('発電機のデータが不正なので無視しました')
+  }
+  // --- 発電の燃料選択（v5〜。無ければ全燃料許可＝これまでと同じ） -------------
+  if (isRecord(raw.u)) {
+    for (const [id, list] of Object.entries(raw.u)) {
+      const generator = generatorsById.get(id)
+      if (generator === undefined) {
+        warnings.push(`存在しない発電機「${id}」の燃料設定を無視しました`)
+        continue
+      }
+      if (!Array.isArray(list)) {
+        warnings.push(`${generator.name.ja} の燃料設定が不正なので全燃料に戻しました`)
+        continue
+      }
+      const selected: Record<string, true> = {}
+      for (const item of list) {
+        if (typeof item !== 'string' || !generator.fuels.some((f) => f.item === item)) {
+          warnings.push(`${generator.name.ja} では使えない燃料「${String(item)}」を無視しました`)
+          continue
+        }
+        selected[item] = true
+      }
+      // 全燃料が選ばれているなら既定と同じ。キーを作らない（＝全許可）
+      if (Object.keys(selected).length === generator.fuels.length) continue
+      input.enabledFuels[id] = selected
+    }
+  } else if (raw.u !== undefined) {
+    warnings.push('発電の燃料設定が不正なので無視しました')
   }
   if (raw.w !== undefined) {
     if (typeof raw.w === 'number' && Number.isFinite(raw.w) && raw.w >= 0) {
