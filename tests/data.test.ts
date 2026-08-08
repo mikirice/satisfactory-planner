@@ -50,6 +50,40 @@ describe('スキーマ整合性', () => {
     expect(unresolved).toEqual([])
   })
 
+  /**
+   * ingredients が空でも落とさない（意図的）。
+   * コンバーターの励起フォトニック物質は原料ゼロ（電力だけ）で生成されるレシピで、
+   * これを弾くと FICSONIUM燃料棒・宇宙エレベーターのフェーズ5部品が丸ごと作れなくなる。
+   */
+  it('原料ゼロのレシピも収録する（励起フォトニック物質）', () => {
+    const quantum = recipesById.get('Recipe_QuantumEnergy_C')
+    expect(quantum, 'Recipe_QuantumEnergy_C').toBeDefined()
+    expect(quantum!.ingredients).toEqual([])
+    expect(quantum!.products).toEqual([{ item: 'Desc_QuantumEnergy_C', amount: 10 }])
+    expect(quantum!.producedIn).toBe('Build_Converter_C')
+  })
+
+  it('FICSONIUM の再処理チェーンのレシピが揃っている', () => {
+    const ficsonium = recipesById.get('Recipe_Ficsonium_C')!
+    expect(ficsonium, 'Recipe_Ficsonium_C').toBeDefined()
+    // プルトニウム廃棄物を材料にする（廃棄物を作るレシピはゲームに存在せず、
+    // 原子力発電所でプルトニウム燃料棒を燃やした副産物としてしか得られない）
+    expect(ficsonium.ingredients.map((i) => i.item)).toContain('Desc_PlutoniumWaste_C')
+    const rod = recipesById.get('Recipe_FicsoniumFuelRod_C')!
+    expect(rod, 'Recipe_FicsoniumFuelRod_C').toBeDefined()
+    expect(rod.ingredients.map((i) => i.item)).toEqual([
+      'Desc_Ficsonium_C',
+      'Desc_ElectromagneticControlRod_C',
+      'Desc_FicsiteMesh_C',
+      'Desc_QuantumEnergy_C',
+    ])
+    expect(rod.products.map((p) => p.item)).toContain('Desc_FicsoniumFuelRod_C')
+    // 廃棄物を産出するレシピは無い（＝発電機の副産物だけが供給源）
+    for (const waste of ['Desc_NuclearWaste_C', 'Desc_PlutoniumWaste_C']) {
+      expect(recipes.filter((r) => r.products.some((p) => p.item === waste)), waste).toEqual([])
+    }
+  })
+
   it('全レシピの durationSec > 0・産出が1件以上・数量が正の有限値', () => {
     for (const recipe of recipes) {
       expect(recipe.durationSec, recipe.id).toBeGreaterThan(0)

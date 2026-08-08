@@ -77,7 +77,7 @@ async function solveCost(
   if (totalTarget <= 0 && !model.powerPlan.active) return emptySolution(input)
 
   // 先に「そもそも作れないアイテム」を弾く。LP を回すより原因が明確に出せる。
-  const unreachable = findUnreachableTargets(input, model.supplies)
+  const unreachable = findUnreachableTargets(input, model.supplies, model.generatorVariants)
   if (unreachable.length > 0) return infeasible(unreachable)
   const fuelless = findUnusableGenerators(input, model)
   if (fuelless.length > 0) return infeasible(fuelless)
@@ -145,6 +145,7 @@ async function solveMaximize(
   const unreachable = findUnreachableTargets(
     { ...base, targets: [{ item, ratePerMin: 1 }, ...rateTargets] },
     model.supplies,
+    model.generatorVariants,
   )
   if (unreachable.length > 0) return infeasible(unreachable)
   const fuelless = findUnusableGenerators(base, model)
@@ -590,12 +591,18 @@ function infeasible(reasons: InfeasibleReason[]): InfeasibleResult {
 /**
  * 有効レシピと供給可能な原料だけから到達できるアイテム集合を求め、
  * 目標がそこに含まれなければ「作れない」と判定する（前方到達可能性）。
+ *
+ * `generatorVariants` を渡すと、発電機の副産物（ウラン廃棄物・プルトニウム廃棄物）も
+ * 供給源として数える。これらはレシピでは作れず**発電機を回したときだけ出る**ので、
+ * 渡さないと再処理チェーン（プルトニウム / FICSONIUM 系）が丸ごと「作れない」と
+ * 誤判定される。
  */
 export function findUnreachableTargets(
   input: SolveInput,
   supplies: readonly SupplySource[],
+  generatorVariants: readonly GeneratorVariant[] = [],
 ): InfeasibleReason[] {
-  const available = reachableItems(input, supplies)
+  const available = reachableItems(input, supplies, generatorVariants)
 
   const reasons: InfeasibleReason[] = []
   for (const target of input.targets) {
@@ -610,8 +617,18 @@ export function findUnreachableTargets(
   return reasons
 }
 
-/** 有効レシピと供給可能な原料だけから到達できるアイテム集合（前方到達可能性）。 */
-function reachableItems(input: SolveInput, supplies: readonly SupplySource[]): Set<string> {
+/**
+ * 有効レシピと供給可能な原料だけから到達できるアイテム集合（前方到達可能性）。
+ *
+ * レシピに加えて**発電機も「燃料(+水) → 副産物」の生産者として数える**。
+ * ウラン廃棄物・プルトニウム廃棄物を作るレシピはゲームに存在せず、燃料棒を燃やした
+ * 副産物としてしか得られないため、ここで数えないと再処理チェーンが全滅する。
+ */
+function reachableItems(
+  input: SolveInput,
+  supplies: readonly SupplySource[],
+  generatorVariants: readonly GeneratorVariant[] = [],
+): Set<string> {
   const enabledIds = input.enabledRecipes
     ? [...new Set(input.enabledRecipes)]
     : defaultEnabledRecipeIds()
@@ -622,6 +639,9 @@ function reachableItems(input: SolveInput, supplies: readonly SupplySource[]): S
   }
 
   const remaining = new Set(enabledIds)
+  const remainingVariants = new Set(
+    generatorVariants.filter((v) => v.fuel.byproduct && v.fuel.byproduct.ratePerMin > 0),
+  )
   let changed = true
   while (changed) {
     changed = false
@@ -635,6 +655,17 @@ function reachableItems(input: SolveInput, supplies: readonly SupplySource[]): S
           available.add(p.item)
           changed = true
         }
+      }
+    }
+    for (const variant of [...remainingVariants]) {
+      const { fuel } = variant
+      if (!available.has(fuel.item)) continue
+      if (fuel.supplementalItem && !available.has(fuel.supplementalItem)) continue
+      remainingVariants.delete(variant)
+      const byproduct = fuel.byproduct!.item
+      if (!available.has(byproduct)) {
+        available.add(byproduct)
+        changed = true
       }
     }
   }
@@ -651,27 +682,51 @@ export function findUnusableGenerators(
   model: ProductionModel,
 ): InfeasibleReason[] {
   if (!model.powerPlan.active) return []
-  const available = reachableItems(input, model.supplies)
+  // 発電機の副産物も供給源に数える（FICSONIUM燃料棒はプルトニウム廃棄物が要る）
+  const available = reachableItems(input, model.supplies, model.generatorVariants)
   const usable = model.generatorVariants.filter(
     (v) =>
       available.has(v.fuel.item) &&
       (!v.fuel.supplementalItem || available.has(v.fuel.supplementalItem)),
   )
   if (usable.length > 0) return []
+
+  // 「同じ発電機の別の燃料を燃やして出る副産物」が足りないだけのケースを見分ける。
+  // 例: FICSONIUM燃料棒はプルトニウム廃棄物（＝プルトニウム燃料棒の副産物）が要るので、
+  // FICSONIUM燃料棒だけを選ぶと絶対に解けない。外した燃料を名指しして案内する。
+  const withAllFuels = reachableItems(
+    input,
+    model.supplies,
+    model.powerPlan.generators.flatMap((generator) =>
+      generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
+    ),
+  )
+
   return model.powerPlan.generators.map((generator) => {
     // 燃料を絞っている場合は「絞ったせいで解けない」ことが分かるよう、許可した燃料だけを挙げる
     const allowed = model.powerPlan.allowedFuels.get(generator.id) ?? generator.fuels
     const restricted = allowed.length < generator.fuels.length
+    const unlocked = allowed.filter((f) => withAllFuels.has(f.item))
+    // 外している燃料のうち、副産物（廃棄物）を出すもの＝ふさがっている供給源
+    const missing = generator.fuels.filter(
+      (f) => f.byproduct !== undefined && !allowed.some((a) => a.item === f.item),
+    )
+    const hint =
+      restricted && unlocked.length > 0 && missing.length > 0
+        ? `（${unlocked.map((f) => jaName(f.item)).join(' / ')} の材料には ` +
+          `${[...new Set(missing.map((f) => jaName(f.byproduct!.item)))].join(' / ')} が要ります。` +
+          `これはレシピでは作れず ${missing.map((f) => jaName(f.item)).join(' / ')} を燃やしたときの` +
+          '副産物なので、その燃料も一緒に許可してください）'
+        : restricted
+          ? '（選択中の燃料だけで判定しています。他の燃料も許可すると解けることがあります）'
+          : ''
     return {
       kind: 'unproducibleItem' as const,
       item: allowed[0]?.item ?? generator.id,
       message:
         `${generator.name.ja} の燃料（${allowed
           .map((f) => jaName(f.item))
-          .join(' / ')}）を、有効なレシピと利用できる原料からは用意できません` +
-        (restricted
-          ? '（選択中の燃料だけで判定しています。他の燃料も許可すると解けることがあります）'
-          : ''),
+          .join(' / ')}）を、有効なレシピと利用できる原料からは用意できません` + hint,
     }
   })
 }

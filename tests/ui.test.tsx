@@ -758,7 +758,7 @@ describe('発電計画', () => {
     usePlanner.setState({ enabledGenerators: {}, powerTargetMW: 0, coverFactoryPower: false })
   })
 
-  it('発電方式をオンにすると燃料のチェックリストが開く（既定は全部オン）', async () => {
+  it('発電方式をオンにすると燃料のチェックリストが開く（既定は全部オフ）', async () => {
     const container = await render(<App />)
     // オフのうちは燃料の一覧を出さない（サイドバーを長くしないため）
     expect(container.textContent ?? '').not.toContain('使う燃料')
@@ -771,13 +771,17 @@ describe('発電計画', () => {
     expect(text).toContain('使う燃料')
     expect(text).toContain('圧縮石炭')
     expect(text).toContain('石油コークス')
-    // 既定は全燃料オン＝記録を持たない（従来と同じ解になる）
-    expect(usePlanner.getState().enabledFuels).toEqual({})
+    // 既定は全燃料オフ（実プレイでは1方式に1種類しか流さない）。
+    // 空の記録を明示的に持つ（キー無し = v5 以前の「全燃料許可」と区別するため）
+    expect(usePlanner.getState().enabledFuels).toEqual({ Build_GeneratorCoal_C: {} })
+    const fuelBoxes = [...container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')].slice(1, 4)
+    expect(fuelBoxes.some((b) => b.checked)).toBe(false)
+    expect(container.textContent ?? '').toContain('燃料が選ばれていません')
 
     usePlanner.setState({ enabledGenerators: {}, enabledFuels: {}, powerTargetMW: 0 })
   })
 
-  it('燃料を全部オフにすると、その方式は使わない旨を出す', async () => {
+  it('燃料を選んでから全部オフに戻すと、その方式は使わない旨を出す', async () => {
     const container = await render(<App />)
     const coalCheckbox = [...container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')][0]!
     await act(async () => {
@@ -786,6 +790,11 @@ describe('発電計画', () => {
 
     // 石炭発電機の燃料チェックは、方式のチェックのすぐ後ろに並ぶ（3種）
     const fuelBoxes = [...container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')].slice(1, 4)
+    for (const box of fuelBoxes) {
+      await act(async () => {
+        box.click()
+      })
+    }
     expect(fuelBoxes.every((b) => b.checked)).toBe(true)
     for (const box of fuelBoxes) {
       await act(async () => {
@@ -798,7 +807,7 @@ describe('発電計画', () => {
     usePlanner.setState({ enabledGenerators: {}, enabledFuels: {}, powerTargetMW: 0 })
   })
 
-  it('燃料を1つだけ残すと store に記録され、戻すと記録が消える', async () => {
+  it('燃料を1つだけ選ぶと store に記録される（全部オンにしても記録は残る）', async () => {
     const container = await render(<App />)
     const coalCheckbox = [...container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')][0]!
     await act(async () => {
@@ -809,14 +818,16 @@ describe('発電計画', () => {
       fuelBoxes[0]!.click()
     })
     expect(Object.keys(usePlanner.getState().enabledFuels)).toEqual(['Build_GeneratorCoal_C'])
-    expect(usePlanner.getState().enabledFuels.Build_GeneratorCoal_C).not.toHaveProperty(
-      'Desc_Coal_C',
+    expect(usePlanner.getState().enabledFuels.Build_GeneratorCoal_C).toEqual({ Desc_Coal_C: true })
+    // 全部オンにしても記録は消さない（キー無し＝v5互換の全許可、とは別物なので）
+    for (const box of fuelBoxes.slice(1)) {
+      await act(async () => {
+        box.click()
+      })
+    }
+    expect(Object.keys(usePlanner.getState().enabledFuels.Build_GeneratorCoal_C!).sort()).toEqual(
+      ['Desc_Coal_C', 'Desc_CompactedCoal_C', 'Desc_PetroleumCoke_C'],
     )
-    await act(async () => {
-      fuelBoxes[0]!.click()
-    })
-    // 全部オンに戻したら既定（＝キーなし）に戻す
-    expect(usePlanner.getState().enabledFuels).toEqual({})
 
     usePlanner.setState({ enabledGenerators: {}, enabledFuels: {}, powerTargetMW: 0 })
   })

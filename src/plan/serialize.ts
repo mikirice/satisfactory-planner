@@ -72,14 +72,20 @@ export function clampPowerTargetMW(mw: number | undefined): number {
  *       いずれも既定値（発電計画なし）なら省略するので v1〜v3 もそのまま読める
  * v5 … 発電方式ごとの燃料選択（u）を追加。全燃料許可（既定）の方式は書かないので、
  *       絞り込みを使っていないプランは v4 と同じ長さのまま。v1〜v4 もそのまま読める
+ * v6 … 燃料の既定を「未選択」に変更（実プレイでは1方式に1種類の燃料しか流さないため）。
+ *       意味が変わるのは **u にキーが無い方式** で、v5 以前は「全燃料許可」、v6 以降は
+ *       「選択を記録していない」。そこで v6 は**選んだ方式の燃料を必ず u に書く**
+ *       （全選択・空選択も省略しない）。読み込みは版に関わらず
+ *       「キーがある＝その配列が選択」「キーが無い＝全燃料許可（v5 以前の互換）」で、
+ *       v1〜v5 の保存プラン・共有URLはこれまでどおりの解になる
  */
-export const PLAN_SCHEMA_VERSION = 5
+export const PLAN_SCHEMA_VERSION = 6
 
 /**
  * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
  * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
  */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5]
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, 6]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -118,7 +124,8 @@ export type PlanSnapshot = {
   g?: string[]
   /**
    * 発電方式ごとに使う燃料（Building.id → 燃料 Item.id）。v5〜。
-   * **全燃料を使う方式は書かない**（キーが無い = 全許可）。全方式が全許可なら省略
+   * v6 からは**選択のある方式をすべて書く**（全選択も空選択も省略しない）。
+   * キーが無い方式は v5 以前の書き方＝全燃料許可として読む。何も無ければ省略
    */
   u?: Record<string, string[]>
   /** 目標発電量(MW)。v4〜。既定 0 なら省略 */
@@ -196,9 +203,12 @@ const pipeIds = new Set(pipes.map((p) => p.id))
 const minerIds = new Set<string>(MINER_IDS)
 
 /**
- * 燃料選択を保存形式に落とす。
- * 全燃料を使う方式（＝既定）はキーごと落として共有URLを短く保つ。
- * 知らない発電機・燃料も落とす（ゲームデータ更新で消えた場合の保険）。
+ * 燃料選択を保存形式に落とす（v6）。
+ *
+ * 記録のある方式は**全選択・空選択も含めてそのまま書く**。v5 のように
+ * 「全選択なら省略」してしまうと、読み戻したときに v5 以前の互換ルール
+ * （キーが無い＝全燃料許可）と区別できず、既定を「未選択」にした意味が消えるため。
+ * 知らない発電機・燃料は落とす（ゲームデータ更新で消えた場合の保険）。
  */
 function toFuelSnapshot(
   enabledFuels: Record<string, Record<string, true>>,
@@ -207,11 +217,10 @@ function toFuelSnapshot(
   for (const id of Object.keys(enabledFuels).sort()) {
     const generator = generatorsById.get(id)
     if (generator === undefined) continue
-    const selected = generator.fuels
+    out[id] = generator.fuels
       .filter((f) => enabledFuels[id]?.[f.item] === true)
       .map((f) => f.item)
-    if (selected.length === generator.fuels.length) continue
-    out[id] = selected.sort()
+      .sort()
   }
   return out
 }
@@ -449,7 +458,9 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
   } else if (raw.g !== undefined) {
     warnings.push('発電機のデータが不正なので無視しました')
   }
-  // --- 発電の燃料選択（v5〜。無ければ全燃料許可＝これまでと同じ） -------------
+  // --- 発電の燃料選択（v5〜） -------------------------------------------------
+  // キーがある方式はその配列が選択そのもの（空なら燃料なし）。
+  // キーが無い方式は v5 以前の書き方なので全燃料許可として読む（後方互換）。
   if (isRecord(raw.u)) {
     for (const [id, list] of Object.entries(raw.u)) {
       const generator = generatorsById.get(id)
@@ -469,8 +480,6 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
         }
         selected[item] = true
       }
-      // 全燃料が選ばれているなら既定と同じ。キーを作らない（＝全許可）
-      if (Object.keys(selected).length === generator.fuels.length) continue
       input.enabledFuels[id] = selected
     }
   } else if (raw.u !== undefined) {

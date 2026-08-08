@@ -634,6 +634,81 @@ describe('燃料の選択', () => {
 })
 
 // ---------------------------------------------------------------------------
+// FICSONIUM（発電機の副産物を材料にするチェーン）
+//
+// プルトニウム廃棄物・ウラン廃棄物を作るレシピはゲームに存在せず、
+// 燃料棒を燃やした副産物としてしか得られない。到達可能性の判定でここを見落とすと
+// 「FICSONIUM燃料棒はレシピからは作れない」と誤判定して LP を回す前に弾いてしまう。
+// ---------------------------------------------------------------------------
+
+describe('FICSONIUM燃料棒（廃棄物の再処理チェーン）', () => {
+  const NUCLEAR_FUELS = [
+    'Desc_FicsoniumFuelRod_C',
+    'Desc_PlutoniumFuelRod_C',
+    'Desc_NuclearFuelRod_C',
+  ]
+
+  it('原子力の全燃料を許可すれば 2500MW が解ける', async () => {
+    const solution = await solveOk({
+      targets: [],
+      power: { generators: [NUCLEAR], fuels: { [NUCLEAR]: NUCLEAR_FUELS }, targetMW: 2500 },
+    })
+    expect(solution.powerGeneration!.totalMW).toBeGreaterThanOrEqual(2500 - 1e-6)
+  })
+
+  it('FICSONIUM燃料棒を作る計画が組める（プルトニウム廃棄物→FICSONIUM の再処理まで）', async () => {
+    const solution = await solveOk({
+      targets: [{ item: 'Desc_FicsoniumFuelRod_C', ratePerMin: 1 }],
+      power: { generators: [NUCLEAR], fuels: { [NUCLEAR]: NUCLEAR_FUELS }, targetMW: 2500 },
+    })
+    // 連鎖: ウラン燃料棒を燃やす → ウラン廃棄物 → プルトニウム燃料棒 → プルトニウム廃棄物
+    //       → FICSONIUM → FICSONIUM燃料棒
+    const recipeIds = solution.steps.map((s) => s.recipeId)
+    expect(recipeIds).toContain('Recipe_FicsoniumFuelRod_C')
+    expect(recipeIds).toContain('Recipe_Ficsonium_C')
+    expect(recipeIds).toContain('Recipe_PlutoniumFuelRod_C')
+    expect(recipeIds).toContain('Recipe_Plutonium_C')
+    // 廃棄物は発電機の副産物としてだけ供給される（レシピでは作れない）
+    const plutoniumWaste = solution.itemBalance.find((b) => b.item === 'Desc_PlutoniumWaste_C')!
+    expect(plutoniumWaste.producedPerMin).toBeGreaterThan(0)
+    expect(solution.steps.some((s) => s.fuelItem === 'Desc_PlutoniumFuelRod_C')).toBe(true)
+    expect(
+      solution.targets.find((t) => t.item === 'Desc_FicsoniumFuelRod_C')!.producedPerMin,
+    ).toBeCloseTo(1, 6)
+    // 材料の励起フォトニック物質（コンバーターで原料ゼロ）も使う
+    expect(recipeIds).toContain('Recipe_QuantumEnergy_C')
+  })
+
+  it('FICSONIUM燃料棒だけに絞ると解けないが、足りない副産物と燃料を名指しする', async () => {
+    const result = await solveProduction({
+      targets: [],
+      power: {
+        generators: [NUCLEAR],
+        fuels: { [NUCLEAR]: ['Desc_FicsoniumFuelRod_C'] },
+        targetMW: 2500,
+      },
+    })
+    // 実ゲームでも FICSONIUM燃料棒はプルトニウム廃棄物（＝プルトニウム燃料棒を
+    // 燃やしたときだけ出る）が要るので、単独では成立しない
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.message).toContain('プルトニウム廃棄物')
+    expect(result.message).toContain('プルトニウム燃料棒')
+    expect(result.message).toContain('副産物')
+  })
+
+  it('目標にした FICSONIUM燃料棒は、発電計画が無ければ従来どおり作れないと報告する', async () => {
+    const result = await solveProduction({
+      targets: [{ item: 'Desc_FicsoniumFuelRod_C', ratePerMin: 1 }],
+    })
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.message).toContain('FICSONIUM燃料棒')
+  })
+})
+
+
+// ---------------------------------------------------------------------------
 // 実行不能の報告
 // ---------------------------------------------------------------------------
 

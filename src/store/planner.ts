@@ -113,7 +113,10 @@ export const powerGenerators = [...generators].sort(
 
 /**
  * その発電機で使ってよい燃料の Item.id。
- * `enabledFuels` にキーが無い発電機は**全燃料許可**（既定。従来と同じ挙動）。
+ *
+ * `enabledFuels` にキーが無い発電機は**全燃料許可**。これは v5 以前の保存プラン・
+ * 共有URL（燃料を絞っていない方式はキーを持たない）を従来どおり読むための後方互換で、
+ * 新しく方式をオンにしたときは `setGenerator` が空の記録 `{}` を書く（＝燃料未選択）。
  */
 export function allowedFuelItems(
   generator: Generator,
@@ -158,8 +161,9 @@ export type PlannerState = {
   enabledGenerators: Record<string, true>
   /**
    * 発電方式ごとに使ってよい燃料（Building.id → 燃料 Item.id の集合）。
-   * **キーが無い発電機は全燃料許可**（既定・従来と同じ挙動）。空オブジェクトは
-   * 「燃料を1つも選んでいない」＝その方式を使わない、という意味。
+   * 空オブジェクトは「燃料を1つも選んでいない」＝その方式を使わない、という意味。
+   * **キーが無い発電機は全燃料許可**（v5 以前の保存プランを読むための後方互換のみ。
+   * 画面から方式をオンにしたときは空の記録が入る＝実プレイに合わせて燃料は未選択）。
    */
   enabledFuels: Record<string, Record<string, true>>
   /** 目標発電量(MW)。0 = 指定なし */
@@ -456,25 +460,29 @@ export const usePlanner = create<PlannerState>((set, get) => {
 
     setGenerator: (generatorId, enabled) => {
       const next = { ...get().enabledGenerators }
-      if (enabled) next[generatorId] = true
-      else delete next[generatorId]
-      change({ enabledGenerators: next })
+      const nextFuels = { ...get().enabledFuels }
+      if (enabled) {
+        next[generatorId] = true
+        // 実プレイでは1つの発電方式に1種類の燃料しか流さないので、燃料は未選択で始める。
+        // 記録が無いと「全燃料許可」（v5 以前の後方互換）になってしまうので空を明示する。
+        // 一度選んだ燃料は方式をオフ→オンしても残す（誤操作からの復帰）。
+        if (nextFuels[generatorId] === undefined) nextFuels[generatorId] = {}
+      } else {
+        delete next[generatorId]
+      }
+      change({ enabledGenerators: next, enabledFuels: nextFuels })
     },
 
     setGeneratorFuel: (generatorId, fuelItem, enabled) => {
       const generator = powerGenerators.find((g) => g.id === generatorId)
       if (generator === undefined) return
-      // 「キーが無い = 全燃料許可」なので、外すときはいったん全燃料を書き出してから落とす
+      // 「キーが無い = 全燃料許可」（v5 以前の互換）なので、外すときはいったん全燃料を書き出す
       const current = new Set(allowedFuelItems(generator, get().enabledFuels))
       if (enabled) current.add(fuelItem)
       else current.delete(fuelItem)
+      // 全部オンでも記録は消さない。消すと「未選択が既定」の新しい意味と区別できなくなる
       const next = { ...get().enabledFuels }
-      if (current.size === generator.fuels.length) {
-        // 全部オンなら記録を消して既定（全燃料許可）に戻す。共有URLを短く保つため
-        delete next[generatorId]
-      } else {
-        next[generatorId] = Object.fromEntries([...current].map((item) => [item, true as const]))
-      }
+      next[generatorId] = Object.fromEntries([...current].map((item) => [item, true as const]))
       change({ enabledFuels: next })
     },
 

@@ -29,7 +29,13 @@ import {
 import type { PlanSnapshot, PlanSource } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import type { PlanStorage } from '../src/plan/storage.ts'
-import { DEFAULT_BELT_ID, DEFAULT_PIPE_ID, toSolveInput, usePlanner } from '../src/store/planner.ts'
+import {
+  DEFAULT_BELT_ID,
+  DEFAULT_PIPE_ID,
+  allowedFuelItems,
+  toSolveInput,
+  usePlanner,
+} from '../src/store/planner.ts'
 import { DEFAULT_MINER_ID } from '../src/solver/index.ts'
 
 const ALT_RECIPE = 'Recipe_Alternate_AdheredIronPlate_C'
@@ -422,7 +428,9 @@ describe('プランのシリアライズ', () => {
     })
   })
 
-  it('全燃料を使う方式はキーごと省略する（共有URLを短く保つ）', () => {
+  // v5 では「全燃料オン = 既定」なのでキーごと省略していたが、v6 で既定が「未選択」に
+  // 変わったため省略できない（キーが無い = v5 以前の全燃料許可、という別の意味になる）。
+  it('全燃料を使う方式も明示的に書き出す（v6。キー無し＝v5互換の全許可と区別するため）', () => {
     const all = generatorsById.get('Build_GeneratorCoal_C')!.fuels.map((f) => f.item)
     const snapshot = toPlanSnapshot({
       ...source,
@@ -431,9 +439,10 @@ describe('プランのシリアライズ', () => {
         Build_GeneratorCoal_C: Object.fromEntries(all.map((i) => [i, true as const])),
       },
       powerTargetMW: 300,
-    }) as unknown as Record<string, unknown>
-    expect('u' in snapshot).toBe(false)
+    })
+    expect(snapshot.u).toEqual({ Build_GeneratorCoal_C: [...all].sort() })
 
+    // 燃料の記録が1つも無い（＝発電計画を触っていない）プランは従来どおり省略する
     const bare = toPlanSnapshot(source) as unknown as Record<string, unknown>
     expect('u' in bare).toBe(false)
   })
@@ -460,6 +469,34 @@ describe('プランのシリアライズ', () => {
     if (!parsed.ok) return
     expect(parsed.warnings).toEqual([])
     expect(parsed.input.enabledFuels).toEqual({})
+  })
+
+  // v6 で「新しくオンにした方式の燃料は未選択」に変えたが、v5 以前の保存プラン・共有URLは
+  // 「絞っていない方式は u にキーを書かない」形式。これを未選択と誤読すると既存プランの解が
+  // 変わってしまうので、キーが無い方式は従来どおり全燃料許可として読む。
+  it('v5 のプラン（絞っていない方式はキー無し）は全燃料許可のまま読める', () => {
+    const v5 = {
+      ...toPlanSnapshot({
+        ...source,
+        enabledGenerators: { Build_GeneratorCoal_C: true, Build_GeneratorNuclear_C: true },
+        enabledFuels: { Build_GeneratorNuclear_C: { Desc_NuclearFuelRod_C: true } },
+        powerTargetMW: 2500,
+      }),
+      v: 5,
+    }
+    // v5 の書き方（石炭発電機は絞っていないのでキーが無い）
+    expect(v5.u).toEqual({ Build_GeneratorNuclear_C: ['Desc_NuclearFuelRod_C'] })
+
+    const parsed = parsePlanSnapshot(v5)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    // キーが無い石炭発電機は「全燃料許可」のまま（絞った原子力はそのまま）
+    expect(parsed.input.enabledFuels).toEqual({
+      Build_GeneratorNuclear_C: { Desc_NuclearFuelRod_C: true },
+    })
+    const coal = generatorsById.get('Build_GeneratorCoal_C')!
+    expect(allowedFuelItems(coal, parsed.input.enabledFuels)).toEqual(coal.fuels.map((f) => f.item))
   })
 
   it('不正な燃料設定は警告して落とす', () => {
