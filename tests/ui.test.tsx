@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from '../src/App.tsx'
 import { planFileName } from '../src/export/excel.ts'
+import { SAMPLE_PLANS } from '../src/plan/samples.ts'
 import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import { buildingsById } from '../src/data/index.ts'
@@ -356,6 +357,46 @@ describe('画面の骨格', () => {
     expect(container.querySelectorAll('.stock')).toHaveLength(1)
     // 目標産出の行は増えない
     expect(container.querySelectorAll('.target')).toHaveLength(0)
+  })
+})
+
+describe('空状態のサンプル', () => {
+  it('何も入力していないときだけ「例から始める」が出る', async () => {
+    const container = await render(<App />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('例から始める')
+    for (const sample of SAMPLE_PLANS) {
+      expect(text).toContain(sample.title)
+      expect(text).toContain(sample.description)
+    }
+    expect(container.querySelectorAll('.sample')).toHaveLength(SAMPLE_PLANS.length)
+  })
+
+  it('サンプルを押すと目標と代替レシピが入る', async () => {
+    const container = await render(<App />)
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'recycled-plastic')!
+    const button = [...container.querySelectorAll<HTMLButtonElement>('.sample')].find((b) =>
+      b.textContent?.includes(sample.title),
+    )!
+    await act(async () => {
+      button.click()
+    })
+
+    const state = usePlanner.getState()
+    expect(state.targets.map((t) => [t.item, t.ratePerMin])).toEqual(sample.snapshot.t)
+    expect(Object.keys(state.enabledAlternates).sort()).toEqual([...sample.snapshot.a].sort())
+    expect(state.planName).toBe(sample.title)
+    // 入力が入ったので例は引っ込む（作業中の画面に割り込まない）
+    expect(container.querySelector('.sample')).toBeNull()
+  })
+
+  it('既に目標があるときは出さない', async () => {
+    usePlanner.setState({
+      targets: [{ key: 'sample-test', item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+    })
+    const container = await render(<App />)
+    expect(container.textContent).not.toContain('例から始める')
+    expect(container.querySelector('.sample')).toBeNull()
   })
 })
 

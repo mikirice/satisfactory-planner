@@ -5,6 +5,7 @@ import { usePlanner } from '../store/planner.ts'
 import { BalanceTable } from './BalanceTable.tsx'
 import { InfeasiblePanel } from './InfeasiblePanel.tsx'
 import { ResourcesTable } from './ResourcesTable.tsx'
+import { SamplesPanel } from './SamplesPanel.tsx'
 import { StepsTable } from './StepsTable.tsx'
 import { SummaryPanel } from './SummaryPanel.tsx'
 import { T } from './text.ts'
@@ -41,7 +42,13 @@ export function ResultView() {
   }
 
   if (!result) {
-    return <p className="hint">{T.status.idle}</p>
+    // 空状態。まだ何も触っていない人にはサンプル（SamplesPanel 側で判定）を出す
+    return (
+      <div className="stack">
+        <p className="hint">{T.status.idle}</p>
+        <SamplesPanel />
+      </div>
+    )
   }
 
   if (result.status === 'infeasible') {

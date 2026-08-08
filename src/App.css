@@ -542,6 +542,52 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* --- 空状態のサンプル ------------------------------------------------------ */
+
+/*
+ * 「例から始める」（src/ui/SamplesPanel.tsx）。
+ * 押せることが一目で分かるように、ボタンをカード幅いっぱいの面にして
+ * 見出し＋1行説明を縦に積む。説明はボタンの中に置く（別行にすると押す先がぼやける）。
+ */
+.samples__list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.sample {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sample:hover {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+}
+
+.sample__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-strong);
+}
+
+.sample__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 /* --- アイテムアイコン ----------------------------------------------------- */
 
 /*
