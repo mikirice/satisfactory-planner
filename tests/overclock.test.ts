@@ -156,8 +156,10 @@ describe('稼働台数 → クロック割り当て', () => {
 
     const plateStep = result.steps.find((s) => s.recipeId === 'Recipe_IronPlate_C')!
     expect(plateStep.machineCount).toBeCloseTo(3.5, 6)
-    // ソルバー直後のクロックは常に100%
-    expect(plateStep.clockSpeed).toBe(1)
+    // 既定のクロック上限（100%）では 4台を87.5%で回す割り当てになる
+    expect(plateStep.builtCount).toBe(4)
+    expect(plateStep.clockSpeed).toBeCloseTo(0.875, 9)
+    expect(plateStep.powerShards).toBe(0)
 
     const plans = planClocks(plateStep.machineCount, buildingsById.get(plateStep.buildingId)!)
     const best = plans[0]

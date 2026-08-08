@@ -24,7 +24,7 @@ import ExcelJS from 'exceljs'
 import type { Row, Workbook, Worksheet } from 'exceljs'
 
 import { itemsById, meta, recipesById, buildingsById } from '../data/index.ts'
-import { builtCount, groupByBuilding, mergeBuildCost } from '../plan/aggregate.ts'
+import { estimateFootprint, groupByBuilding, mergeBuildCost } from '../plan/aggregate.ts'
 import { enumeratePlanFlows, flowTransport, resolveTransportChoice } from '../plan/flows.ts'
 import type { ExtractionPlan, ItemRate, Solution } from '../solver/index.ts'
 
@@ -80,6 +80,8 @@ export const NUM_FMT = {
   count: '#,##0.0000',
   /** 建てる台数・必要本数・ノード数・シンクポイント */
   int: '#,##0',
+  /** 面積(m²)。概算なので小数1位まで */
+  area: '#,##0.0',
   /** 上限比率・クロック・使用率 */
   percent: '0.0%',
   datetime: 'yyyy/mm/dd hh:mm',
@@ -211,11 +213,59 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
   addKeyValue(ws, '合計（下限）', solution.totalPowerRangeMW.minMW + extractionPowerMW, NUM_FMT.power)
   addKeyValue(ws, '合計（上限）', solution.totalPowerRangeMW.maxMW + extractionPowerMW, NUM_FMT.power)
 
+  // 3.5) クロックと Somersloop（クロックを適用した実消費電力はこちら）
+  addSection(ws, 'クロックと Somersloop')
+  addKeyValue(ws, '製造クロック上限', solution.maxClock, NUM_FMT.percent)
+  addKeyValue(ws, '採掘クロック', extraction?.clock ?? 1, NUM_FMT.percent)
+  addKeyValue(
+    ws,
+    '製造電力（クロック適用・下限）',
+    solution.totalClockedPowerRangeMW.minMW,
+    NUM_FMT.power,
+  )
+  addKeyValue(
+    ws,
+    '製造電力（クロック適用・上限）',
+    solution.totalClockedPowerRangeMW.maxMW,
+    NUM_FMT.power,
+  )
+  addKeyValue(
+    ws,
+    '合計電力（クロック適用・下限）',
+    solution.totalClockedPowerRangeMW.minMW + extractionPowerMW,
+    NUM_FMT.power,
+  )
+  addKeyValue(
+    ws,
+    '合計電力（クロック適用・上限）',
+    solution.totalClockedPowerRangeMW.maxMW + extractionPowerMW,
+    NUM_FMT.power,
+  )
+  addKeyValue(
+    ws,
+    'パワーシャード（個）',
+    solution.totalPowerShards + (extraction?.totalPowerShards ?? 0),
+    NUM_FMT.int,
+  )
+  addKeyValue(ws, 'Somersloop 使用数（個）', solution.totalSomersloops, NUM_FMT.int)
+  addKeyValue(ws, 'Somersloop 使用可能数（個）', solution.somersloopLimit, NUM_FMT.int)
+
   // 4) 建物
   addSection(ws, '建物')
   addKeyValue(ws, '稼働台数（小数）', solution.totalMachineCount, NUM_FMT.count)
   addKeyValue(ws, '建てる台数', solution.totalBuildingCount, NUM_FMT.int)
   addKeyValue(ws, '採掘設備台数', extraction?.totalBuildingCount ?? 0, NUM_FMT.int)
+
+  // 4.5) 床面積（概算）
+  const footprint = estimateFootprint(solution, extraction)
+  addSection(ws, '床面積（概算）')
+  addKeyValue(ws, '製造建物の設置面積 (m²)', footprint.manufacturingAreaM2, NUM_FMT.area)
+  addKeyValue(ws, '採掘設備の設置面積 (m²)', footprint.extractionAreaM2, NUM_FMT.area)
+  addKeyValue(ws, '設置面積の合計 (m²)', footprint.buildingAreaM2, NUM_FMT.area)
+  addKeyValue(ws, '通路係数', footprint.aisleFactor, NUM_FMT.amount)
+  addKeyValue(ws, '概算床面積 (m²)', footprint.totalAreaM2, NUM_FMT.area)
+  addKeyValue(ws, 'ファウンデーション（8m×8m・枚）', footprint.foundations, NUM_FMT.int)
+  ws.addRow(['※ 建物のクリアランスから出した概算です。実際の広さは配置によって変わります。'])
 
   // 5) 必要原料
   addSection(ws, '必要原料')
@@ -295,9 +345,16 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
     '稼働台数',
     '建てる台数',
     'クロック',
+    'パワーシャード',
+    'Somersloop',
     '消費電力(MW)',
     '電力下限(MW)',
     '電力上限(MW)',
+    '幅(m)',
+    '奥行(m)',
+    '高さ(m)',
+    '設置面積(m²/台)',
+    '設置面積合計(m²)',
     '投入',
     '産出',
   ]
@@ -306,23 +363,34 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
   // 機械種別グルーピング（画面の生産ステップ表と同じ並び）
   for (const group of groupByBuilding(input.solution.steps)) {
     for (const step of group.steps) {
-      const built = builtCount(step.machineCount)
+      // 消費電力はクロックを適用した実値（画面の生産ステップ表と同じ）
+      const footprint = buildingsById.get(step.buildingId)?.footprint
       const row = ws.addRow([
         group.buildingNameJa,
         step.recipeName.ja,
         step.machineCount,
-        built,
-        built === 0 ? 0 : step.machineCount / built,
-        step.powerMW,
-        step.powerRangeMW?.minMW ?? step.powerMW,
-        step.powerRangeMW?.maxMW ?? step.powerMW,
+        step.builtCount,
+        step.clockSpeed,
+        step.powerShards,
+        step.somersloops,
+        step.clockedPowerMW,
+        step.clockedPowerRangeMW?.minMW ?? step.clockedPowerMW,
+        step.clockedPowerRangeMW?.maxMW ?? step.clockedPowerMW,
+        footprint?.widthM ?? PLACEHOLDER,
+        footprint?.depthM ?? PLACEHOLDER,
+        footprint?.heightM ?? PLACEHOLDER,
+        footprint?.areaM2 ?? PLACEHOLDER,
+        step.footprintAreaM2,
         flowText(step.inputs),
         flowText(step.outputs),
       ])
       row.getCell(3).numFmt = NUM_FMT.count
       row.getCell(4).numFmt = NUM_FMT.int
       row.getCell(5).numFmt = NUM_FMT.percent
-      for (const col of [6, 7, 8]) row.getCell(col).numFmt = NUM_FMT.power
+      for (const col of [6, 7]) row.getCell(col).numFmt = NUM_FMT.int
+      for (const col of [8, 9, 10]) row.getCell(col).numFmt = NUM_FMT.power
+      if (footprint) for (const col of [11, 12, 13, 14]) row.getCell(col).numFmt = NUM_FMT.area
+      row.getCell(15).numFmt = NUM_FMT.area
     }
   }
 
@@ -336,12 +404,23 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
     input.solution.totalMachineCount,
     input.solution.totalBuildingCount,
     '',
-    input.solution.totalPowerMW,
+    input.solution.totalPowerShards,
+    input.solution.totalSomersloops,
+    input.solution.totalClockedPowerMW,
+    input.solution.totalClockedPowerRangeMW.minMW,
+    input.solution.totalClockedPowerRangeMW.maxMW,
+    '',
+    '',
+    '',
+    '',
+    input.solution.totalFootprintAreaM2,
   ])
   totals.font = { bold: true }
   totals.getCell(3).numFmt = NUM_FMT.count
   totals.getCell(4).numFmt = NUM_FMT.int
-  totals.getCell(6).numFmt = NUM_FMT.power
+  for (const col of [6, 7]) totals.getCell(col).numFmt = NUM_FMT.int
+  for (const col of [8, 9, 10]) totals.getCell(col).numFmt = NUM_FMT.power
+  totals.getCell(15).numFmt = NUM_FMT.area
 
   autoFitColumns(ws)
 }
@@ -412,6 +491,7 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
     'ノードあたりレート',
     'このノード群のレート',
     '加圧機(台)',
+    'パワーシャード',
     '採掘電力(MW)',
     'ノード不足',
   ]
@@ -447,12 +527,14 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
         PLACEHOLDER,
         PLACEHOLDER,
         PLACEHOLDER,
+        plan?.powerShards ?? 0,
         plan?.powerMW ?? 0,
         plan?.shortfallPerMin ?? 0,
       ])
       styleHead(row)
-      row.getCell(15).numFmt = NUM_FMT.power
-      row.getCell(16).numFmt = NUM_FMT.rate
+      row.getCell(15).numFmt = NUM_FMT.int
+      row.getCell(16).numFmt = NUM_FMT.power
+      row.getCell(17).numFmt = NUM_FMT.rate
       continue
     }
 
@@ -474,14 +556,15 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
             : PLACEHOLDER,
           assignment ? assignment.ratePerNodePerMin : PLACEHOLDER,
           assignment ? assignment.ratePerMin : PLACEHOLDER,
-          // 加圧機・採掘電力は設備グループの先頭行だけ（合計すると二重になるため）
+          // 加圧機・シャード・採掘電力は設備グループの先頭行だけ（合計すると二重になるため）
           first ? (group.pressurizerCount ?? 0) : '',
+          first ? group.powerShards : '',
           first ? group.powerMW + (group.pressurizerPowerMW ?? 0) : '',
           // ノード不足は原料ごとの値なので、他の原料列と同じく全行に出す
           plan.shortfallPerMin,
         ])
         styleHead(row)
-        row.getCell(16).numFmt = NUM_FMT.rate
+        row.getCell(17).numFmt = NUM_FMT.rate
         row.getCell(7).numFmt = NUM_FMT.count
         row.getCell(8).numFmt = NUM_FMT.int
         if (assignment) {
@@ -492,7 +575,8 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
         }
         if (first) {
           row.getCell(14).numFmt = NUM_FMT.int
-          row.getCell(15).numFmt = NUM_FMT.power
+          row.getCell(15).numFmt = NUM_FMT.int
+          row.getCell(16).numFmt = NUM_FMT.power
         }
       })
     }

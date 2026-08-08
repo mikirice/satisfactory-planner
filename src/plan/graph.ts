@@ -14,7 +14,7 @@
  * - 循環レシピ（リサイクル・プラスチック / ゴム）は互いに相手の産出を消費するので、
  *   結果として両方向のエッジが張られ、ループがそのまま図に出る。
  */
-import { builtCount } from './aggregate.ts'
+import { stepKey } from './aggregate.ts'
 import { enumeratePlanFlows, flowTransport, itemForm, resolveTransportChoice } from './flows.ts'
 import type { TransportChoice } from './flows.ts'
 import { itemsById } from '../data/index.ts'
@@ -53,10 +53,15 @@ export type RecipeGraphNode = NodeBase & {
   machineCount: number
   /** 実際に建てる台数（切り上げ） */
   buildingCount: number
-  /** 建てる台数で回したときのクロック（0〜1） */
+  /** 建てる台数で回したときのクロック（クロック上限が 100% 超なら 1 を超える） */
   clock: number
+  /** クロック適用後の消費電力(MW) */
   powerMW: number
   powerRangeMW?: PowerRangeMW
+  /** 必要なパワーシャードの総数（0 なら表示しない） */
+  powerShards: number
+  /** 使用する Somersloop の総数（0 なら表示しない） */
+  somersloops: number
   inputs: ItemRate[]
   outputs: ItemRate[]
 }
@@ -213,9 +218,12 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
   }
 }
 
-/** ステップ → ノードID（レシピIDが一意なのでそのまま使える）。 */
+/**
+ * ステップ → ノードID。
+ * Somersloop バリアントは同じレシピの通常ステップと併存しうるので stepKey で分ける。
+ */
 export function recipeNodeId(step: SolutionStep): string {
-  return `recipe:${step.recipeId}`
+  return `recipe:${stepKey(step)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -251,7 +259,6 @@ function sourceNode(
 }
 
 function recipeNode(id: string, step: SolutionStep): RecipeGraphNode {
-  const buildingCount = builtCount(step.machineCount)
   return {
     id,
     kind: 'recipe',
@@ -260,10 +267,12 @@ function recipeNode(id: string, step: SolutionStep): RecipeGraphNode {
     buildingId: step.buildingId,
     buildingNameJa: step.buildingName.ja,
     machineCount: step.machineCount,
-    buildingCount,
-    clock: buildingCount === 0 ? 0 : step.machineCount / buildingCount,
-    powerMW: step.powerMW,
-    ...(step.powerRangeMW ? { powerRangeMW: step.powerRangeMW } : {}),
+    buildingCount: step.builtCount,
+    clock: step.clockSpeed,
+    powerMW: step.clockedPowerMW,
+    ...(step.clockedPowerRangeMW ? { powerRangeMW: step.clockedPowerRangeMW } : {}),
+    powerShards: step.powerShards,
+    somersloops: step.somersloops,
     inputs: step.inputs,
     outputs: step.outputs,
   }

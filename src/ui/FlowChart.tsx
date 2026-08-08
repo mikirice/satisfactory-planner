@@ -215,6 +215,13 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
           : fmtPower(node.powerMW)}{' '}
         MW
       </p>
+      {/* 行が1つ増えるので flow-layout.ts の nodeRows と条件を必ず揃えること */}
+      {node.somersloops > 0 && (
+        <p className="flow-node__meta">
+          {T.flow.somersloops(node.somersloops)}
+          {node.powerShards > 0 ? ` ・ ${T.flow.shards(node.powerShards)}` : ''}
+        </p>
+      )}
       <div className="flow-node__io">
         <ul className="flow-node__col">
           <li className="flow-node__colhead">{T.flow.inputs}</li>

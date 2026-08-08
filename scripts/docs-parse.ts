@@ -71,6 +71,122 @@ export function parseProducedIn(raw: string | undefined): string[] {
   return [...new Set(out)]
 }
 
+// ---------------------------------------------------------------------------
+// 建設クリアランス（mClearanceData）
+// ---------------------------------------------------------------------------
+
+/** 軸平行の直方体（Unreal 単位 = cm）。 */
+export type ClearanceBox = {
+  min: { x: number; y: number; z: number }
+  max: { x: number; y: number; z: number }
+}
+
+/**
+ * mClearanceData をパースして、外形の軸平行バウンディングボックス（cm）を返す。
+ *
+ * 例:
+ *   ((ClearanceBox=(Min=(X=-400,Y=-500,Z=0),Max=(X=400,Y=500,Z=600),IsValid=True)),
+ *    (Type=CT_Soft,ClearanceBox=(...),RelativeTransform=(Translation=(...),Rotation=(...))))
+ *
+ * 除外するもの（意図的）:
+ * - `Type=CT_Soft` … コンベア接続などの「柔らかい」クリアランス。建物の外形ではない
+ * - `ExcludeForSnapping=True` … スナップ対象外の補助クリアランス（アームの可動域など）
+ *
+ * RelativeTransform の Translation と Rotation（クォータニオン）は箱の8頂点に適用してから
+ * 和を取る。スケールは Docs 上 1 固定なので無視する。
+ */
+export function parseClearanceBounds(raw: string | undefined): ClearanceBox | null {
+  if (!raw) return null
+  let min = { x: Infinity, y: Infinity, z: Infinity }
+  let max = { x: -Infinity, y: -Infinity, z: -Infinity }
+  let found = false
+
+  for (const entry of splitTopLevelGroups(raw)) {
+    if (/Type=CT_Soft/.test(entry)) continue
+    if (/ExcludeForSnapping=True/.test(entry)) continue
+    const box = /ClearanceBox=\(Min=\(([^)]*)\),Max=\(([^)]*)\)/.exec(entry)
+    if (!box) continue
+    const lo = parseVector(box[1])
+    const hi = parseVector(box[2])
+    if (!lo || !hi) continue
+
+    const translation = parseVector(/Translation=\(([^)]*)\)/.exec(entry)?.[1]) ?? {
+      x: 0,
+      y: 0,
+      z: 0,
+    }
+    const rotation = parseQuaternion(entry)
+
+    for (const x of [lo.x, hi.x]) {
+      for (const y of [lo.y, hi.y]) {
+        for (const z of [lo.z, hi.z]) {
+          const r = rotateByQuaternion(rotation, { x, y, z })
+          const p = { x: r.x + translation.x, y: r.y + translation.y, z: r.z + translation.z }
+          min = { x: Math.min(min.x, p.x), y: Math.min(min.y, p.y), z: Math.min(min.z, p.z) }
+          max = { x: Math.max(max.x, p.x), y: Math.max(max.y, p.y), z: Math.max(max.z, p.z) }
+          found = true
+        }
+      }
+    }
+  }
+
+  return found ? { min, max } : null
+}
+
+/** "(a),(b(c))" → ["(a)", "(b(c))"]（最外の括弧を1枚剥がしてから分割）。 */
+function splitTopLevelGroups(raw: string): string[] {
+  const inner = raw.trim().replace(/^\(/, '').replace(/\)$/, '')
+  const out: string[] = []
+  let depth = 0
+  let start = 0
+  for (let i = 0; i < inner.length; i += 1) {
+    if (inner[i] === '(') {
+      if (depth === 0) start = i
+      depth += 1
+    } else if (inner[i] === ')') {
+      depth -= 1
+      if (depth === 0) out.push(inner.slice(start, i + 1))
+    }
+  }
+  return out
+}
+
+function parseVector(raw: string | undefined): { x: number; y: number; z: number } | null {
+  if (!raw) return null
+  const m = /X=(-?[\d.eE+-]+),Y=(-?[\d.eE+-]+),Z=(-?[\d.eE+-]+)/.exec(raw)
+  return m
+    ? { x: Number.parseFloat(m[1]), y: Number.parseFloat(m[2]), z: Number.parseFloat(m[3]) }
+    : null
+}
+
+function parseQuaternion(entry: string): { x: number; y: number; z: number; w: number } {
+  const m = /Rotation=\(X=(-?[\d.eE+-]+),Y=(-?[\d.eE+-]+),Z=(-?[\d.eE+-]+),W=(-?[\d.eE+-]+)\)/.exec(
+    entry,
+  )
+  if (!m) return { x: 0, y: 0, z: 0, w: 1 }
+  return {
+    x: Number.parseFloat(m[1]),
+    y: Number.parseFloat(m[2]),
+    z: Number.parseFloat(m[3]),
+    w: Number.parseFloat(m[4]),
+  }
+}
+
+/** v' = v + 2·q.xyz × (q.xyz × v + q.w·v) （クォータニオンによる回転）。 */
+function rotateByQuaternion(
+  q: { x: number; y: number; z: number; w: number },
+  v: { x: number; y: number; z: number },
+): { x: number; y: number; z: number } {
+  const tx = 2 * (q.y * v.z - q.z * v.y)
+  const ty = 2 * (q.z * v.x - q.x * v.z)
+  const tz = 2 * (q.x * v.y - q.y * v.x)
+  return {
+    x: v.x + q.w * tx + (q.y * tz - q.z * ty),
+    y: v.y + q.w * ty + (q.z * tx - q.x * tz),
+    z: v.z + q.w * tz + (q.x * ty - q.y * tx),
+  }
+}
+
 /** 文字列フィールドを数値化する。空文字・非数値は fallback。 */
 export function num(value: string | undefined, fallback = 0): number {
   if (value === undefined || value === '') return fallback

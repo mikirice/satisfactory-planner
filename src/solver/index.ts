@@ -4,7 +4,7 @@
  *   const result = await solveProduction({ targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }] })
  *   if (result.status === 'optimal') { ... }
  */
-export { solveProduction, findUnreachableTargets } from './solve.ts'
+export { solveProduction, findUnreachableTargets, resolveMaxClock } from './solve.ts'
 export type { SolveOptions } from './solve.ts'
 
 export {
@@ -19,6 +19,9 @@ export {
   netRatePerMin,
   recipePowerMW,
   resolveResourceWeights,
+  somersloopPowerFactor,
+  somersloopVarKey,
+  supportsSomersloop,
   variablePowerRange,
 } from './model.ts'
 export type { ProductionModel, SupplySource } from './model.ts'

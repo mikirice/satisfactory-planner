@@ -159,12 +159,37 @@ describe('建物リスト', () => {
     expect(row.getCell(col.get('建てる台数')!).numFmt).toBe(NUM_FMT.int)
   })
 
+  it('建物の寸法・設置面積の列が入る', () => {
+    const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
+    const col = columns(sheet)
+    const row = findRow(sheet, col.get('レシピ')!, '鉄板')!
+    // 製作機 8m × 10m × 6m = 80m²、3台で 240m²
+    expect(row.getCell(col.get('幅(m)')!).value).toBeCloseTo(8, 6)
+    expect(row.getCell(col.get('奥行(m)')!).value).toBeCloseTo(10, 6)
+    expect(row.getCell(col.get('高さ(m)')!).value).toBeCloseTo(6, 6)
+    expect(row.getCell(col.get('設置面積(m²/台)')!).value).toBeCloseTo(80, 6)
+    expect(row.getCell(col.get('設置面積合計(m²)')!).value).toBeCloseTo(240, 6)
+    expect(row.getCell(col.get('設置面積合計(m²)')!).numFmt).toBe(NUM_FMT.area)
+  })
+
+  it('パワーシャードと Somersloop の列が入る（既定はどちらも 0）', () => {
+    const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
+    const col = columns(sheet)
+    const row = findRow(sheet, col.get('レシピ')!, '鉄板')!
+    expect(row.getCell(col.get('パワーシャード')!).value).toBe(0)
+    expect(row.getCell(col.get('Somersloop')!).value).toBe(0)
+  })
+
   it('合計行が解の総台数・総電力と一致する', () => {
     const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
+    const col = columns(sheet)
     const total = findRow(sheet, 1, '合計')!
     expect(total.getCell(3).value).toBeCloseTo(ironPlate.solution.totalMachineCount, 6)
     expect(total.getCell(4).value).toBe(ironPlate.solution.totalBuildingCount)
-    expect(total.getCell(6).value).toBeCloseTo(ironPlate.solution.totalPowerMW, 6)
+    expect(total.getCell(col.get('消費電力(MW)')!).value).toBeCloseTo(
+      ironPlate.solution.totalClockedPowerMW,
+      6,
+    )
   })
 })
 
@@ -373,6 +398,76 @@ describe('サマリー', () => {
     const cable = rows.find((r) => r[0] === 'ケーブル')!
     expect(Number(cable[1])).toBe(10)
     expect(Number(cable[2])).toBe(0)
+  })
+
+  it('クロック・Somersloop・床面積のブロックが載る', async () => {
+    const solution = await solveOk({
+      targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+      maxClock: 2.5,
+      somersloops: 4,
+    })
+    const target = await makeCase({ solution, planName: 'クロック検証' })
+    // シートは増やさない（仕様書 §8 の6シート構成のまま）
+    expect(target.workbook.worksheets.map((w) => w.name)).toEqual([...SHEET_NAME_LIST])
+
+    const sheet = target.workbook.getWorksheet(SHEET_NAMES.summary)!
+    const labels = new Map<string, unknown>()
+    for (let r = 1; r <= sheet.rowCount; r += 1) {
+      const row = sheet.getRow(r)
+      const key = row.getCell(1).value
+      if (typeof key === 'string') labels.set(key, row.getCell(2).value)
+    }
+
+    expect(Number(labels.get('製造クロック上限'))).toBeCloseTo(2.5, 6)
+    expect(Number(labels.get('採掘クロック'))).toBeCloseTo(1, 6)
+    expect(Number(labels.get('製造電力（クロック適用・下限）'))).toBeCloseTo(
+      solution.totalClockedPowerRangeMW.minMW,
+      6,
+    )
+    expect(Number(labels.get('パワーシャード（個）'))).toBe(
+      solution.totalPowerShards + target.input.extraction!.totalPowerShards,
+    )
+    expect(Number(labels.get('Somersloop 使用数（個）'))).toBe(solution.totalSomersloops)
+    expect(Number(labels.get('Somersloop 使用可能数（個）'))).toBe(4)
+
+    // 床面積（概算）
+    expect(Number(labels.get('製造建物の設置面積 (m²)'))).toBeCloseTo(
+      solution.totalFootprintAreaM2,
+      6,
+    )
+    expect(Number(labels.get('通路係数'))).toBeCloseTo(1.5, 6)
+    expect(Number(labels.get('概算床面積 (m²)'))).toBeGreaterThan(0)
+    expect(Number(labels.get('ファウンデーション（8m×8m・枚）'))).toBeGreaterThan(0)
+
+    // 概算である旨の注記
+    const notes: string[] = []
+    for (let r = 1; r <= sheet.rowCount; r += 1) {
+      const value = sheet.getRow(r).getCell(1).value
+      if (typeof value === 'string') notes.push(value)
+    }
+    expect(notes.some((n) => n.includes('概算'))).toBe(true)
+  })
+})
+
+describe('原料シート（採掘クロック）', () => {
+  it('クロック150%だとパワーシャードの列に必要数が入る', async () => {
+    const solution = await solveOk({ targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }] })
+    const extraction = planExtraction(solution, { minerId: 'Build_MinerMk3_C', clock: 1.5 })
+    const buffer = await planWorkbookBuffer({
+      solution,
+      extraction,
+      planName: '採掘クロック',
+      generatedAt: GENERATED_AT,
+    })
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(buffer)
+
+    const sheet = workbook.getWorksheet(SHEET_NAMES.resources)!
+    const col = columns(sheet)
+    expect(col.has('パワーシャード')).toBe(true)
+    const row = findRow(sheet, col.get('原料')!, '鉄鉱石')!
+    expect(row.getCell(col.get('パワーシャード')!).value).toBe(extraction.totalPowerShards)
+    expect(extraction.totalPowerShards).toBeGreaterThan(0)
   })
 })
 

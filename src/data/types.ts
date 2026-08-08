@@ -62,6 +62,26 @@ export type BuildingCategory =
   | 'extractor'
   | 'generator'
 
+/**
+ * 建物の外形（m）。Docs.json の mClearanceData（建設クリアランス）から求めた概算。
+ *
+ * ゲーム内の「設置に必要な広さ」は当たり判定ではなくクリアランス箱で決まるので、
+ * 床面積の概算にはこれを使う。CT_Soft（コンベア接続などの柔らかいクリアランス）と
+ * ExcludeForSnapping（スナップ対象外の補助クリアランス）は除いた箱の和を取る。
+ */
+export type BuildingFootprint = {
+  /** X 方向の幅(m) */
+  widthM: number
+  /** Y 方向の奥行(m) */
+  depthM: number
+  /** Z 方向の高さ(m) */
+  heightM: number
+  /** 設置面積(m²) = widthM × depthM */
+  areaM2: number
+  /** 'docs' = Docs.json 由来 / 'fallback' = Wiki 既知値で補完 */
+  source: 'docs' | 'fallback'
+}
+
 export type Building = {
   /** Docs.json の ClassName。例: "Build_ConstructorMk1_C" */
   id: string
@@ -77,6 +97,8 @@ export type Building = {
   somersloopPowerExponent: number
   /** 建設コスト（建設レシピの材料）。解決できなかった場合は空配列。 */
   buildCost: ItemAmount[]
+  /** 外形と設置面積（床面積の概算に使う）。 */
+  footprint: BuildingFootprint
   /** 発電施設のみ: 発電量(MW) */
   powerProductionMW?: number
   /** 可変電力の建物のみ: 推定消費電力レンジ(MW) */

@@ -32,6 +32,12 @@ export const fmtPower = (n: number): string => powerFormat.format(clean(n))
 /** 整数（建設コスト・建てる台数・シンクポイント） */
 export const fmtInt = (n: number): string => intFormat.format(clean(n))
 
+/** 面積(m²)。整数まるめ（概算なので小数は出さない） */
+export const fmtArea = (n: number): string => intFormat.format(clean(n))
+
+/** クロック（1 = 100%）を「87.5%」の形に。 */
+export const fmtClock = (clock: number): string => `${(clean(clock) * 100).toFixed(1)}%`
+
 /** 比率（0〜1）を % に。無制限などは '—' */
 export const fmtPercent = (n: number | null | undefined): string =>
   n === null || n === undefined || !Number.isFinite(n) ? '—' : percentFormat.format(n)

@@ -10,7 +10,15 @@ import { create } from 'zustand'
 import { belts, pipes, recipes } from '../data/index.ts'
 import { DEFAULT_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { ExcelExportInput } from '../export/excel.ts'
-// 型だけの参照（実行時の循環 import は起きない）
+// クロック / Somersloop の既定値と丸めは保存形式と共有する（store → serialize の一方向）
+import {
+  DEFAULT_EXTRACTION_CLOCK,
+  DEFAULT_MAX_CLOCK,
+  DEFAULT_SOMERSLOOPS,
+  clampExtractionClock,
+  clampMaxClock,
+  clampSomersloops,
+} from '../plan/serialize.ts'
 import type { PlanInput } from '../plan/serialize.ts'
 import {
   DEFAULT_MINER_ID,
@@ -111,6 +119,14 @@ export type PlannerState = {
   objective: ObjectivePresetId
   /** 固体ノードに置く採掘機 */
   minerId: string
+  /**
+   * 製造建物のクロック上限（1 = 100%）。LP は変わらず、建てる台数と電力の後処理が変わる。
+   */
+  maxClock: number
+  /** 採掘設備のクロック（1 = 100%）。EXTRACTION_CLOCK_CHOICES から選ぶ */
+  extractionClock: number
+  /** 使える Somersloop の総数。0 = 使わない */
+  somersloops: number
   /** Excel のファイル名に使うプラン名。空なら 'plan' */
   planName: string
   /** 物流の本数換算に使うベルト（Belt.id） */
@@ -148,6 +164,12 @@ export type PlannerState = {
   resetLimits: () => void
   setObjective: (id: ObjectivePresetId) => void
   setMinerId: (id: string) => void
+  /** 製造クロック上限（1 = 100%）。有効範囲に丸めて反映する */
+  setMaxClock: (clock: number) => void
+  /** 採掘クロック（1 = 100%） */
+  setExtractionClock: (clock: number) => void
+  /** 使える Somersloop 数（負数・非数は 0 に丸める） */
+  setSomersloops: (count: number) => void
   setPlanName: (name: string) => void
   setBeltId: (id: string) => void
   setPipeId: (id: string) => void
@@ -218,6 +240,8 @@ export function toSolveInput(state: PlannerState): SolveInput {
     resourceLimits: state.limitOverrides,
     inputs,
     weights: preset.weights,
+    maxClock: state.maxClock,
+    somersloops: state.somersloops,
   }
 }
 
@@ -261,6 +285,9 @@ export const usePlanner = create<PlannerState>((set, get) => {
     limitOverrides: {},
     objective: 'resources',
     minerId: DEFAULT_MINER_ID,
+    maxClock: DEFAULT_MAX_CLOCK,
+    extractionClock: DEFAULT_EXTRACTION_CLOCK,
+    somersloops: DEFAULT_SOMERSLOOPS,
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
@@ -335,6 +362,12 @@ export const usePlanner = create<PlannerState>((set, get) => {
 
     setMinerId: (id) => change({ minerId: id }),
 
+    setMaxClock: (clock) => change({ maxClock: clampMaxClock(clock) }),
+
+    setExtractionClock: (clock) => change({ extractionClock: clampExtractionClock(clock) }),
+
+    setSomersloops: (count) => change({ somersloops: clampSomersloops(count) }),
+
     // プラン名・搬送手段は解に影響しないので再計算しない（set のまま）
     setPlanName: (name) => set({ planName: name }),
     setBeltId: (id) => set({ beltId: id }),
@@ -348,6 +381,9 @@ export const usePlanner = create<PlannerState>((set, get) => {
         limitOverrides: { ...input.limitOverrides },
         objective: input.objective,
         minerId: input.minerId,
+        maxClock: clampMaxClock(input.maxClock),
+        extractionClock: clampExtractionClock(input.extractionClock),
+        somersloops: clampSomersloops(input.somersloops),
         planName: input.planName,
         beltId: input.beltId,
         pipeId: input.pipeId,
@@ -368,7 +404,10 @@ export const usePlanner = create<PlannerState>((set, get) => {
         if (id !== runId) return // 新しい入力が来ているので捨てる
         const extraction =
           result.status === 'optimal'
-            ? planExtraction(result, { minerId: get().minerId })
+            ? planExtraction(result, {
+                minerId: get().minerId,
+                clock: get().extractionClock,
+              })
             : null
         set({
           status: 'done',

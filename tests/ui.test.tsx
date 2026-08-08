@@ -14,7 +14,8 @@ import App from '../src/App.tsx'
 import { planFileName } from '../src/export/excel.ts'
 import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
-import { planExtraction } from '../src/solver/index.ts'
+import { buildingsById } from '../src/data/index.ts'
+import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
 import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
 import { usePlanner } from '../src/store/planner.ts'
 import { BalanceTable } from '../src/ui/BalanceTable.tsx'
@@ -77,6 +78,11 @@ function buttonByText(container: HTMLElement, label: string): HTMLButtonElement 
  * 鉄板 60/min 相当の解（tests/solver.test.ts の既知値と同じ構成）。
  * 端数のクロック表示を見たいので製作機だけ 3.5 台にしてある。
  */
+const smelter = buildingsById.get('Build_SmelterMk1_C')!
+const constructor_ = buildingsById.get('Build_ConstructorMk1_C')!
+/** 製作機 3.5台分 → 4台を87.5%で回したときの実消費電力 */
+const plateClockedPowerMW = clockedPowerMW(4 * 4, 3.5 / 4, constructor_.powerExponent)
+
 const solution: Solution = {
   status: 'optimal',
   steps: [
@@ -86,8 +92,13 @@ const solution: Solution = {
       buildingId: 'Build_SmelterMk1_C',
       buildingName: { ja: '製錬炉', en: 'Smelter' },
       machineCount: 3,
+      builtCount: 3,
       clockSpeed: 1,
+      powerShards: 0,
+      somersloops: 0,
       powerMW: 12,
+      clockedPowerMW: 12,
+      footprintAreaM2: 3 * smelter.footprint.areaM2,
       inputs: [{ item: 'Desc_OreIron_C', ratePerMin: 90 }],
       outputs: [{ item: 'Desc_IronIngot_C', ratePerMin: 90 }],
     },
@@ -97,8 +108,13 @@ const solution: Solution = {
       buildingId: 'Build_ConstructorMk1_C',
       buildingName: { ja: '製作機', en: 'Constructor' },
       machineCount: 3.5,
-      clockSpeed: 1,
+      builtCount: 4,
+      clockSpeed: 3.5 / 4,
+      powerShards: 0,
+      somersloops: 0,
       powerMW: 14,
+      clockedPowerMW: plateClockedPowerMW,
+      footprintAreaM2: 4 * constructor_.footprint.areaM2,
       inputs: [{ item: 'Desc_IronIngot_C', ratePerMin: 105 }],
       outputs: [{ item: 'Desc_IronPlate_C', ratePerMin: 70 }],
     },
@@ -134,9 +150,19 @@ const solution: Solution = {
   ],
   totalPowerMW: 26,
   totalPowerRangeMW: { minMW: 26, maxMW: 26 },
+  totalClockedPowerMW: 12 + plateClockedPowerMW,
+  totalClockedPowerRangeMW: {
+    minMW: 12 + plateClockedPowerMW,
+    maxMW: 12 + plateClockedPowerMW,
+  },
   totalMachineCount: 6.5,
   totalBuildingCount: 7,
   totalBuildCost: [{ item: 'Desc_IronPlate_C', amount: 30 }],
+  maxClock: 1,
+  totalPowerShards: 0,
+  totalSomersloops: 0,
+  somersloopLimit: 0,
+  totalFootprintAreaM2: 3 * smelter.footprint.areaM2 + 4 * constructor_.footprint.areaM2,
   sinkPointsPerMin: 120,
   objectiveValue: 90,
 }
@@ -519,5 +545,112 @@ describe('結果テーブル', () => {
     expect(text).toContain('原料不足')
     expect(text).toContain('鉄鉱石 が足りません')
     expect(text).toContain('原料上限を上げるか、目標レートを下げてください。')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// クロック / Somersloop / 床面積
+// ---------------------------------------------------------------------------
+
+/** 製作機を250%×2台で回し、Somersloop をフル装着した解（表示だけを見るフィクスチャ）。 */
+const overclocked: Solution = {
+  ...solution,
+  steps: [
+    {
+      ...solution.steps[1],
+      machineCount: 3,
+      builtCount: 2,
+      clockSpeed: 1.5,
+      powerShards: 2,
+      somersloops: 2,
+      powerMW: 48,
+      clockedPowerMW: 30,
+      footprintAreaM2: 2 * constructor_.footprint.areaM2,
+    },
+  ],
+  totalPowerMW: 48,
+  totalPowerRangeMW: { minMW: 48, maxMW: 48 },
+  totalClockedPowerMW: 30,
+  totalClockedPowerRangeMW: { minMW: 30, maxMW: 30 },
+  maxClock: 2.5,
+  totalPowerShards: 2,
+  totalSomersloops: 2,
+  somersloopLimit: 4,
+  totalFootprintAreaM2: 2 * constructor_.footprint.areaM2,
+}
+
+describe('クロックと Somersloop', () => {
+  it('サイドバーでクロック上限と Somersloop 数を変えられる', async () => {
+    const container = await render(<App />)
+    const range = container.querySelector<HTMLInputElement>('.range')!
+    expect(range.value).toBe('100')
+
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+    await act(async () => {
+      setter?.call(range, '250')
+      range.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(usePlanner.getState().maxClock).toBe(2.5)
+
+    const numberInputs = [...container.querySelectorAll<HTMLInputElement>('input[type="number"]')]
+    const sloopInput = numberInputs.at(-1)!
+    await act(async () => {
+      typeInto(sloopInput, '8')
+    })
+    expect(usePlanner.getState().somersloops).toBe(8)
+
+    // 採掘クロックのプルダウンも出ている
+    expect(container.textContent).toContain('採掘クロック')
+    expect(container.textContent).toContain('クロックと Somersloop')
+
+    usePlanner.setState({ maxClock: 1, somersloops: 0, extractionClock: 1 })
+  })
+
+  it('生産ステップ表にクロック・シャード・Somersloop の列が出る', async () => {
+    const container = await render(<StepsTable solution={overclocked} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('2 台 @ 150.0%')
+    expect(text).toContain('シャード')
+    expect(text).toContain('Somersloop')
+    expect(text).toContain('2 個')
+    expect(text).toContain('クロック上限 250.0%')
+  })
+
+  it('Somersloop を使わない解では列を出さない（表を細く保つ）', async () => {
+    const container = await render(<StepsTable solution={solution} />)
+    const text = container.textContent ?? ''
+    expect(text).not.toContain('Somersloop')
+    expect(text).not.toContain('シャード')
+  })
+
+  it('サマリーに Somersloop の使用数と上限が出る', async () => {
+    const container = await render(<SummaryPanel solution={overclocked} extraction={null} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('Somersloop')
+    expect(text).toContain('使用数')
+    expect(text).toContain('使用可能数')
+    expect(text).toContain('パワーシャード')
+  })
+
+  it('サマリーの総電力はクロック適用後で、100%換算も並べて出す', async () => {
+    const container = await render(<SummaryPanel solution={overclocked} extraction={null} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('30.00') // クロック適用後
+    expect(text).toContain('48.00') // 100%換算
+    expect(text).toContain('製造（クロック100%換算）')
+  })
+})
+
+describe('床面積の概算', () => {
+  it('サマリーに概算床面積とファウンデーション枚数が出る', async () => {
+    const container = await render(<SummaryPanel solution={solution} extraction={null} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('概算床面積')
+    // 製錬炉3台(50m²) + 製作機4台(80m²) = 470m² × 1.5 = 705m² → 705/64 = 12枚
+    expect(text).toContain('705')
+    expect(text).toContain('ファウンデーション 12 枚')
+    expect(text).toContain('8m × 8m')
+    // 概算であることを明記する
+    expect(text).toContain('概算です')
   })
 })

@@ -97,6 +97,24 @@ ul {
   font-variant-numeric: tabular-nums;
 }
 
+/* スライダー（製造クロック上限）。現在値はラベルの右端に数値で出す */
+.range {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ラベル内の現在値（「製造クロックの上限   150.0%」） */
+.field__value {
+  float: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
 .button {
   cursor: pointer;
 }

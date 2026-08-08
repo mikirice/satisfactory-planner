@@ -1,6 +1,15 @@
 /** 原料表: 必要レート・マップ上限比率・採掘機台数・純度別ノード数。 */
 import type { ExtractionPlan, ExtractorGroup, ResourceExtraction, Solution } from '../solver/index.ts'
-import { fmtCount, fmtInt, fmtPercent, fmtPower, fmtRate, itemName, itemUnit } from './format.ts'
+import {
+  fmtClock,
+  fmtCount,
+  fmtInt,
+  fmtPercent,
+  fmtPower,
+  fmtRate,
+  itemName,
+  itemUnit,
+} from './format.ts'
 import { T } from './text.ts'
 
 type Props = {
@@ -12,8 +21,12 @@ export function ResourcesTable({ solution, extraction }: Props) {
   if (solution.rawResources.length === 0) return <p className="hint">{T.resources.empty}</p>
   const byItem = new Map((extraction?.resources ?? []).map((r) => [r.item, r]))
 
+  // シャード列は採掘クロックを 100% 超にしたときだけ出す
+  const showShards = (extraction?.totalPowerShards ?? 0) > 0
+
   return (
     <div className="stack">
+      {extraction && <p className="hint">{T.resources.clockNote(fmtClock(extraction.clock))}</p>}
       {extraction && extraction.shortfalls.length > 0 && (
         <p className="callout callout--warn">
           {extraction.shortfalls
@@ -32,6 +45,7 @@ export function ResourcesTable({ solution, extraction }: Props) {
               <th scope="col">{T.resources.extractor}</th>
               <th scope="col" className="num">{T.resources.machines}</th>
               <th scope="col">{T.resources.nodes}</th>
+              {showShards && <th scope="col" className="num">{T.resources.shards}</th>}
               <th scope="col" className="num">{T.resources.power}</th>
             </tr>
           </thead>
@@ -50,6 +64,7 @@ export function ResourcesTable({ solution, extraction }: Props) {
                   plan={plan}
                   groups={groups}
                   span={span}
+                  showShards={showShards}
                 />
               )
             })}
@@ -68,9 +83,19 @@ type RowsProps = {
   plan: ResourceExtraction | undefined
   groups: ExtractorGroup[]
   span: number
+  showShards: boolean
 }
 
-function ResourceRows({ item, ratePerMin, limitPerMin, usageRatio, plan, groups, span }: RowsProps) {
+function ResourceRows({
+  item,
+  ratePerMin,
+  limitPerMin,
+  usageRatio,
+  plan,
+  groups,
+  span,
+  showShards,
+}: RowsProps) {
   const head = (
     <>
       <th scope="row" rowSpan={span}>
@@ -93,7 +118,7 @@ function ResourceRows({ item, ratePerMin, limitPerMin, usageRatio, plan, groups,
     return (
       <tr>
         {head}
-        <td colSpan={3}>—</td>
+        <td colSpan={showShards ? 4 : 3}>—</td>
         <td className="num">{fmtPower(plan?.powerMW ?? 0)}</td>
       </tr>
     )
@@ -118,6 +143,7 @@ function ResourceRows({ item, ratePerMin, limitPerMin, usageRatio, plan, groups,
             <span className="unit"> / 建設 {fmtInt(group.buildingCount)} 台</span>
           </td>
           <td>{nodeBreakdown(group)}</td>
+          {showShards && <td className="num">{fmtInt(group.powerShards)}</td>}
           <td className="num">{fmtPower(group.powerMW + (group.pressurizerPowerMW ?? 0))}</td>
         </tr>
       ))}

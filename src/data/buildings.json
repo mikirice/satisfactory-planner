@@ -23,7 +23,14 @@
         "item": "Desc_Cable_C",
         "amount": 10
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 9,
+      "depthM": 16,
+      "heightM": 3,
+      "areaM2": 144,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_Blender_C",
@@ -53,7 +60,14 @@
         "item": "Desc_AluminumCasing_C",
         "amount": 50
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 18,
+      "depthM": 16,
+      "heightM": 10.5,
+      "areaM2": 288,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_ConstructorMk1_C",
@@ -75,7 +89,14 @@
         "item": "Desc_Cable_C",
         "amount": 8
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 8,
+      "depthM": 10,
+      "heightM": 6,
+      "areaM2": 80,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_Converter_C",
@@ -106,6 +127,13 @@
         "amount": 100
       }
     ],
+    "footprint": {
+      "widthM": 16,
+      "depthM": 16,
+      "heightM": 4,
+      "areaM2": 256,
+      "source": "docs"
+    },
     "variablePower": {
       "minMW": 100,
       "maxMW": 400
@@ -135,7 +163,14 @@
         "item": "Desc_Cement_C",
         "amount": 20
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 10,
+      "depthM": 10,
+      "heightM": 4.5,
+      "areaM2": 100,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_FrackingExtractor_C",
@@ -157,7 +192,14 @@
         "item": "Desc_AluminumCasing_C",
         "amount": 10
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 5,
+      "depthM": 5,
+      "heightM": 5.7,
+      "areaM2": 25,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_FrackingSmasher_C",
@@ -191,7 +233,14 @@
         "item": "Desc_Rubber_C",
         "amount": 100
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 15,
+      "depthM": 15,
+      "heightM": 22.5,
+      "areaM2": 225,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_GeneratorBiomass_Automated_C",
@@ -218,6 +267,13 @@
         "amount": 25
       }
     ],
+    "footprint": {
+      "widthM": 8,
+      "depthM": 8,
+      "heightM": 7,
+      "areaM2": 64,
+      "source": "docs"
+    },
     "powerProductionMW": 30
   },
   {
@@ -245,6 +301,13 @@
         "amount": 30
       }
     ],
+    "footprint": {
+      "widthM": 10,
+      "depthM": 26,
+      "heightM": 9,
+      "areaM2": 260,
+      "source": "docs"
+    },
     "powerProductionMW": 75
   },
   {
@@ -280,6 +343,13 @@
         "amount": 50
       }
     ],
+    "footprint": {
+      "widthM": 20,
+      "depthM": 20,
+      "heightM": 11,
+      "areaM2": 400,
+      "source": "docs"
+    },
     "powerProductionMW": 250
   },
   {
@@ -314,7 +384,14 @@
         "item": "Desc_Wire_C",
         "amount": 250
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 20,
+      "depthM": 19,
+      "heightM": 32,
+      "areaM2": 380,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_GeneratorNuclear_C",
@@ -349,6 +426,13 @@
         "amount": 250
       }
     ],
+    "footprint": {
+      "widthM": 36,
+      "depthM": 42,
+      "heightM": 10,
+      "areaM2": 1512,
+      "source": "docs"
+    },
     "powerProductionMW": 2500
   },
   {
@@ -384,6 +468,13 @@
         "amount": 500
       }
     ],
+    "footprint": {
+      "widthM": 37,
+      "depthM": 27,
+      "heightM": 8,
+      "areaM2": 999,
+      "source": "docs"
+    },
     "variablePower": {
       "minMW": 250,
       "maxMW": 1500
@@ -417,7 +508,14 @@
         "item": "Desc_Cable_C",
         "amount": 50
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 18,
+      "depthM": 20,
+      "heightM": 11,
+      "areaM2": 360,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_MinerMk1_C",
@@ -443,7 +541,14 @@
         "item": "Desc_Cement_C",
         "amount": 10
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 6,
+      "depthM": 14,
+      "heightM": 4,
+      "areaM2": 84,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_MinerMk2_C",
@@ -473,7 +578,14 @@
         "item": "Desc_ModularFrame_C",
         "amount": 10
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 6,
+      "depthM": 14,
+      "heightM": 4,
+      "areaM2": 84,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_MinerMk3_C",
@@ -507,7 +619,14 @@
         "item": "Desc_MotorLightweight_C",
         "amount": 3
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 6,
+      "depthM": 14,
+      "heightM": 6,
+      "areaM2": 84,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_OilPump_C",
@@ -533,7 +652,14 @@
         "item": "Desc_Cable_C",
         "amount": 60
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 8,
+      "depthM": 13,
+      "heightM": 18,
+      "areaM2": 104,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_OilRefinery_C",
@@ -563,7 +689,14 @@
         "item": "Desc_CopperSheet_C",
         "amount": 20
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 10,
+      "depthM": 22,
+      "heightM": 15,
+      "areaM2": 220,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_Packager_C",
@@ -589,7 +722,14 @@
         "item": "Desc_Plastic_C",
         "amount": 10
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 8,
+      "depthM": 8,
+      "heightM": 12,
+      "areaM2": 64,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_QuantumEncoder_C",
@@ -624,6 +764,13 @@
         "amount": 100
       }
     ],
+    "footprint": {
+      "widthM": 22,
+      "depthM": 50,
+      "heightM": 14,
+      "areaM2": 1100,
+      "source": "docs"
+    },
     "variablePower": {
       "minMW": 0,
       "maxMW": 2000
@@ -649,7 +796,14 @@
         "item": "Desc_Wire_C",
         "amount": 8
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 5,
+      "depthM": 10,
+      "heightM": 4.5,
+      "areaM2": 50,
+      "source": "docs"
+    }
   },
   {
     "id": "Build_WaterPump_C",
@@ -675,6 +829,13 @@
         "item": "Desc_Rotor_C",
         "amount": 10
       }
-    ]
+    ],
+    "footprint": {
+      "widthM": 20,
+      "depthM": 18,
+      "heightM": 12,
+      "areaM2": 360,
+      "source": "docs"
+    }
   }
 ]

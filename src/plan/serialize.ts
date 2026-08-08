@@ -14,21 +14,58 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
 
 import { belts, itemsById, pipes, recipesById } from '../data/index.ts'
+import {
+  CLOCK_MAX,
+  EXTRACTION_CLOCK_CHOICES,
+  MANUFACTURING_CLOCK_MIN,
+} from '../data/constants.ts'
 import { DEFAULT_MINER_ID, MINER_IDS } from '../solver/index.ts'
 import type { InputEntry, ObjectivePresetId, TargetEntry, TargetMode } from '../store/planner.ts'
+
+// ---------------------------------------------------------------------------
+// クロック / Somersloop の既定値と丸め
+// （store と共有する。ここに置くのは store → serialize の一方向依存にするため）
+// ---------------------------------------------------------------------------
+
+/** 製造クロック上限の既定（100%）。 */
+export const DEFAULT_MAX_CLOCK = 1
+/** 採掘クロックの既定（100%）。 */
+export const DEFAULT_EXTRACTION_CLOCK = 1
+/** 使える Somersloop 数の既定（0 = 使わない）。 */
+export const DEFAULT_SOMERSLOOPS = 0
+
+/** 製造クロック上限を UI で選べる範囲（10%〜250%）に丸める。 */
+export function clampMaxClock(clock: number | undefined): number {
+  if (clock === undefined || !Number.isFinite(clock)) return DEFAULT_MAX_CLOCK
+  return Math.min(CLOCK_MAX, Math.max(MANUFACTURING_CLOCK_MIN, clock))
+}
+
+/** 採掘クロックを選択肢（100/150/200/250%）に丸める。外れた値は既定に戻す。 */
+export function clampExtractionClock(clock: number | undefined): number {
+  if (clock === undefined || !Number.isFinite(clock)) return DEFAULT_EXTRACTION_CLOCK
+  return EXTRACTION_CLOCK_CHOICES.includes(clock) ? clock : DEFAULT_EXTRACTION_CLOCK
+}
+
+/** Somersloop 数を 0 以上の整数に丸める。 */
+export function clampSomersloops(count: number | undefined): number {
+  if (count === undefined || !Number.isFinite(count)) return DEFAULT_SOMERSLOOPS
+  return Math.max(0, Math.floor(count))
+}
 
 /**
  * スキーマ版。書き出しは常に最新版。
  * v1 … 初版
  * v2 … 産出最大化（x）と既保有アイテムの投入（i）を追加。どちらも省略可なので v1 も読める
+ * v3 … 製造クロック上限（c）・採掘クロック（e）・Somersloop 数（s）を追加。
+ *       いずれも既定値なら省略するので v1 / v2 もそのまま読める
  */
-export const PLAN_SCHEMA_VERSION = 2
+export const PLAN_SCHEMA_VERSION = 3
 
 /**
  * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
  * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
  */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2]
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -57,6 +94,12 @@ export type PlanSnapshot = {
   b: string
   /** pipe id */
   p: string
+  /** 製造クロック上限（1 = 100%）。v3〜。既定 1 なら省略 */
+  c?: number
+  /** 採掘クロック（1 = 100%）。v3〜。既定 1 なら省略 */
+  e?: number
+  /** 使える Somersloop 数。v3〜。既定 0 なら省略 */
+  s?: number
 }
 
 /** 復元して store に流し込む形（TargetEntry の key は store 側で採番する）。 */
@@ -67,6 +110,12 @@ export type PlanInput = {
   limitOverrides: Record<string, number | null>
   objective: ObjectivePresetId
   minerId: string
+  /** 製造クロック上限（1 = 100%） */
+  maxClock: number
+  /** 採掘クロック（1 = 100%） */
+  extractionClock: number
+  /** 使える Somersloop 数 */
+  somersloops: number
   planName: string
   beltId: string
   pipeId: string
@@ -81,6 +130,12 @@ export type PlanSource = {
   limitOverrides: Record<string, number | null>
   objective: ObjectivePresetId
   minerId: string
+  /** 製造クロック上限（v2 以前のデータには無いので省略可。既定 1） */
+  maxClock?: number
+  /** 採掘クロック（省略時 1） */
+  extractionClock?: number
+  /** 使える Somersloop 数（省略時 0） */
+  somersloops?: number
   planName: string
   beltId: string
   pipeId: string
@@ -105,6 +160,9 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
   const inputs = (state.inputs ?? []).filter(
     (i) => i.item !== '' && Number.isFinite(i.ratePerMin),
   )
+  const maxClock = clampMaxClock(state.maxClock ?? DEFAULT_MAX_CLOCK)
+  const extractionClock = clampExtractionClock(state.extractionClock ?? DEFAULT_EXTRACTION_CLOCK)
+  const somersloops = clampSomersloops(state.somersloops ?? DEFAULT_SOMERSLOOPS)
   return {
     v: PLAN_SCHEMA_VERSION,
     n: state.planName,
@@ -122,6 +180,10 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
     m: state.minerId,
     b: state.beltId,
     p: state.pipeId,
+    // 既定値のキーは省略して共有URLを短く保つ（v1/v2 と同じ長さで済む）
+    ...(maxClock === DEFAULT_MAX_CLOCK ? {} : { c: maxClock }),
+    ...(extractionClock === DEFAULT_EXTRACTION_CLOCK ? {} : { e: extractionClock }),
+    ...(somersloops === DEFAULT_SOMERSLOOPS ? {} : { s: somersloops }),
   }
 }
 
@@ -134,6 +196,9 @@ export function defaultPlanInput(): PlanInput {
     limitOverrides: {},
     objective: DEFAULT_OBJECTIVE,
     minerId: DEFAULT_MINER_ID,
+    maxClock: DEFAULT_MAX_CLOCK,
+    extractionClock: DEFAULT_EXTRACTION_CLOCK,
+    somersloops: DEFAULT_SOMERSLOOPS,
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
@@ -273,6 +338,29 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
 
   if (typeof raw.p === 'string' && pipeIds.has(raw.p)) input.pipeId = raw.p
   else if (raw.p !== undefined) warnings.push('パイプが不明だったので既定に戻しました')
+
+  // --- クロック / Somersloop（v3〜。無ければ既定のまま） ---------------------
+  if (raw.c !== undefined) {
+    if (typeof raw.c === 'number' && Number.isFinite(raw.c) && raw.c > 0) {
+      input.maxClock = clampMaxClock(raw.c)
+    } else {
+      warnings.push('製造クロック上限が不正なので既定（100%）に戻しました')
+    }
+  }
+  if (raw.e !== undefined) {
+    if (typeof raw.e === 'number' && EXTRACTION_CLOCK_CHOICES.includes(raw.e)) {
+      input.extractionClock = raw.e
+    } else {
+      warnings.push('採掘クロックが不正なので既定（100%）に戻しました')
+    }
+  }
+  if (raw.s !== undefined) {
+    if (typeof raw.s === 'number' && Number.isFinite(raw.s) && raw.s >= 0) {
+      input.somersloops = clampSomersloops(raw.s)
+    } else {
+      warnings.push('Somersloop の数が不正なので 0 に戻しました')
+    }
+  }
 
   return { ok: true, input, warnings }
 }

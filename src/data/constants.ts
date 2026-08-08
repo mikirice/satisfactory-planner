@@ -73,5 +73,45 @@ export const MAX_POWER_SHARDS_PER_MACHINE = Math.round(
   (CLOCK_MAX - 1) / CLOCK_STEP_PER_POWER_SHARD,
 )
 
+/**
+ * 画面で選べる製造クロック上限の下限（10%）。
+ * ゲーム内は 1% まで下げられる（CLOCK_MIN）が、上限を 1% にすると
+ * 「1台の稼働分に100台建てる」ような使い道のない計画になるため UI では 10% で止める。
+ */
+export const MANUFACTURING_CLOCK_MIN = 0.1
+
+/**
+ * 採掘クロックの選択肢。パワーシャード0〜3個ちょうどに対応する刻み。
+ * （100% / 150% / 200% / 250%）
+ */
+export const EXTRACTION_CLOCK_CHOICES: readonly number[] = [1, 1.5, 2, 2.5]
+
+/**
+ * Somersloop をフル装着したときの産出倍率（= 1 + 最大数/最大数）。
+ * ソルバーの「フル装着バリアント」はこの倍率だけを使う（部分装着は扱わない）。
+ */
+export const SOMERSLOOP_FULL_OUTPUT_MULTIPLIER = 2
+
+/**
+ * ファウンデーション1枚の一辺(m)。8m×8m（Foundation 8m x 4m は高さで、平面は 8×8）。
+ * 出典: https://satisfactory.wiki.gg/wiki/Foundation （2026-08-08 参照）
+ */
+export const FOUNDATION_SIZE_M = 8
+
+/** ファウンデーション1枚の面積(m²)。 */
+export const FOUNDATION_AREA_M2 = FOUNDATION_SIZE_M * FOUNDATION_SIZE_M
+
+/**
+ * 建物の設置面積合計に掛ける通路・搬送スペースの係数（1.5倍）。
+ *
+ * 根拠: 建物同士を隙間なく敷き詰めることはできず、ベルト/パイプの取り回しと
+ * 歩ける通路が要る。公式Wiki の工場設計ガイドやコミュニティのレイアウト例では
+ * 「建物列の間に 2〜4m の通路」を取るのが一般的で、代表的な建物
+ * （製作機 8×10m・組立機 9×16m）に 3m の通路を1方向ぶん足すと面積比は 1.3〜1.4 倍、
+ * 両方向で 1.6〜1.8 倍になる。その中間として 1.5 を採る。
+ * あくまで概算の係数であり、実際のレイアウト次第で上下する。
+ */
+export const AISLE_AREA_FACTOR = 1.5
+
 /** 正規化データのスキーマバージョン。破壊的変更時に上げる。 */
-export const DATA_SCHEMA_VERSION = 2
+export const DATA_SCHEMA_VERSION = 3

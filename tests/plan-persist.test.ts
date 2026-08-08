@@ -86,6 +86,10 @@ describe('プランのシリアライズ', () => {
       limitOverrides: { Desc_OreIron_C: 480, Desc_Water_C: null },
       objective: 'power',
       minerId: 'Build_MinerMk2_C',
+      // v3 のキーは既定値なので保存形式には出ないが、復元結果には既定が入る
+      maxClock: 1,
+      extractionClock: 1,
+      somersloops: 0,
       planName: '鉄板ライン',
       beltId: 'Build_ConveyorBeltMk1_C',
       pipeId: DEFAULT_PIPE_ID,
@@ -181,7 +185,7 @@ describe('プランのシリアライズ', () => {
       ],
       inputs: [{ item: 'Desc_IronIngot_C', ratePerMin: 45 }],
     })
-    expect(snapshot.v).toBe(2)
+    expect(snapshot.v).toBe(PLAN_SCHEMA_VERSION)
     expect(snapshot.x).toBe('Desc_IronPlate_C')
     expect(snapshot.i).toEqual([['Desc_IronIngot_C', 45]])
 
@@ -239,10 +243,95 @@ describe('プランのシリアライズ', () => {
     expect(parsed.input.objective).toBe('power')
     expect(parsed.input.planName).toBe('旧バージョンのプラン')
 
+    // v3 で足したクロック / Somersloop は既定に落ちる
+    expect(parsed.input.maxClock).toBe(1)
+    expect(parsed.input.extractionClock).toBe(1)
+    expect(parsed.input.somersloops).toBe(0)
+
     // 共有URL（v1）も同じく読める
     const decoded = decodePlan(encodePlan(v1 as unknown as PlanSnapshot))
     expect(decoded.ok).toBe(true)
     if (decoded.ok) expect(decoded.input.targets).toHaveLength(1)
+  })
+
+  it('v2 のプラン（クロック / Somersloop が無い時代のデータ）もそのまま読める', () => {
+    const v2 = {
+      v: 2,
+      n: 'v2 のプラン',
+      t: [['Desc_IronPlate_C', 60]],
+      x: 'Desc_IronPlate_C',
+      i: [['Desc_IronIngot_C', 45]],
+      a: [],
+      l: {},
+      o: 'resources',
+      m: DEFAULT_MINER_ID,
+      b: DEFAULT_BELT_ID,
+      p: DEFAULT_PIPE_ID,
+    }
+    const parsed = parsePlanSnapshot(v2)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.targets).toEqual([
+      { item: 'Desc_IronPlate_C', ratePerMin: 60, mode: 'max' },
+    ])
+    expect(parsed.input.maxClock).toBe(1)
+    expect(parsed.input.extractionClock).toBe(1)
+    expect(parsed.input.somersloops).toBe(0)
+  })
+
+  it('クロック・Somersloop を保存して復元できる（v3）', () => {
+    const snapshot = toPlanSnapshot({
+      ...source,
+      maxClock: 2.5,
+      extractionClock: 1.5,
+      somersloops: 12,
+    })
+    expect(snapshot.v).toBe(PLAN_SCHEMA_VERSION)
+    expect(snapshot.c).toBe(2.5)
+    expect(snapshot.e).toBe(1.5)
+    expect(snapshot.s).toBe(12)
+
+    const parsed = parsePlanSnapshot(snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.maxClock).toBe(2.5)
+    expect(parsed.input.extractionClock).toBe(1.5)
+    expect(parsed.input.somersloops).toBe(12)
+  })
+
+  it('既定値のクロック・Somersloop はキーごと省略する', () => {
+    const snapshot = toPlanSnapshot({
+      ...source,
+      maxClock: 1,
+      extractionClock: 1,
+      somersloops: 0,
+    }) as unknown as Record<string, unknown>
+    expect('c' in snapshot).toBe(false)
+    expect('e' in snapshot).toBe(false)
+    expect('s' in snapshot).toBe(false)
+  })
+
+  it('範囲外のクロック・Somersloop は丸めるか既定に戻して警告する', () => {
+    // 書き出し側: 範囲外の値は丸める
+    const clamped = toPlanSnapshot({ ...source, maxClock: 99, somersloops: -3 })
+    expect(clamped.c).toBe(2.5)
+    expect('s' in (clamped as unknown as Record<string, unknown>)).toBe(false)
+
+    // 読み込み側: 選択肢にない採掘クロック・不正な値は既定に戻して警告
+    const parsed = parsePlanSnapshot({
+      ...toPlanSnapshot(source),
+      c: 'fast',
+      e: 1.23,
+      s: -1,
+    })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.input.maxClock).toBe(1)
+    expect(parsed.input.extractionClock).toBe(1)
+    expect(parsed.input.somersloops).toBe(0)
+    expect(parsed.warnings).toHaveLength(3)
   })
 
   it('applyPlan は重複した目標を1行にまとめて取り込む', () => {

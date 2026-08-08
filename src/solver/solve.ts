@@ -2,7 +2,8 @@
  * LP を解いて Solution（仕様書ドラフト-v0 §4.4）に組み立てる本体。
  */
 import { buildingsById, itemsById, ratePerMin, recipesById } from '../data/index.ts'
-import type { ItemAmount } from '../data/types.ts'
+import { CLOCK_MAX, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
+import type { ItemAmount, Recipe } from '../data/types.ts'
 import type { LpBackend, LpResult } from './lp.ts'
 import { glpkBackend } from './glpk-backend.ts'
 import type { ProductionModel, SupplySource } from './model.ts'
@@ -13,8 +14,11 @@ import {
   maximizeVarKey,
   overflowVarKey,
   recipeVarKey,
+  somersloopPowerFactor,
+  somersloopVarKey,
   variablePowerRange,
 } from './model.ts'
+import { clockedPowerMW, powerShardsForClock } from './overclock.ts'
 import type {
   ExternalInputUsage,
   InfeasibleReason,
@@ -65,9 +69,10 @@ async function solveCost(
   tolerance: number,
 ): Promise<SolveResult> {
   const model = buildProductionModel(input)
+  const maxClock = resolveMaxClock(input.maxClock)
 
   const totalTarget = [...model.targets.values()].reduce((sum, v) => sum + v, 0)
-  if (totalTarget <= 0) return emptySolution()
+  if (totalTarget <= 0) return emptySolution(input)
 
   // 先に「そもそも作れないアイテム」を弾く。LP を回すより原因が明確に出せる。
   const unreachable = findUnreachableTargets(input, model.supplies)
@@ -77,7 +82,7 @@ async function solveCost(
 
   switch (result.status) {
     case 'optimal': {
-      const solution = buildSolution(model, result, tolerance)
+      const solution = buildSolution(model, result, tolerance, maxClock)
       // 定式化から漏れたアイテムがあった場合の保険（本来ここには落ちない）
       const short = solution.targets.filter(
         (t) =>
@@ -198,7 +203,7 @@ async function solveMaximize(
 // 解の組み立て
 // ---------------------------------------------------------------------------
 
-function emptySolution(): Solution {
+function emptySolution(input?: SolveInput): Solution {
   return {
     status: 'optimal',
     steps: [],
@@ -209,15 +214,33 @@ function emptySolution(): Solution {
     itemBalance: [],
     totalPowerMW: 0,
     totalPowerRangeMW: { minMW: 0, maxMW: 0 },
+    totalClockedPowerMW: 0,
+    totalClockedPowerRangeMW: { minMW: 0, maxMW: 0 },
     totalMachineCount: 0,
     totalBuildingCount: 0,
     totalBuildCost: [],
+    maxClock: resolveMaxClock(input?.maxClock),
+    totalPowerShards: 0,
+    totalSomersloops: 0,
+    somersloopLimit: input?.somersloops ?? 0,
+    totalFootprintAreaM2: 0,
     sinkPointsPerMin: 0,
     objectiveValue: 0,
   }
 }
 
-function buildSolution(model: ProductionModel, result: LpResult, tolerance: number): Solution {
+/** 製造クロック上限を有効範囲（1〜250%）に丸める。未指定は 1（100%）。 */
+export function resolveMaxClock(maxClock: number | undefined): number {
+  if (maxClock === undefined || !Number.isFinite(maxClock)) return 1
+  return Math.min(CLOCK_MAX, Math.max(0.01, maxClock))
+}
+
+function buildSolution(
+  model: ProductionModel,
+  result: LpResult,
+  tolerance: number,
+  maxClock: number,
+): Solution {
   const clean = (v: number): number => (Math.abs(v) < tolerance ? 0 : v)
   const produced = new Map<string, number>()
   const consumed = new Map<string, number>()
@@ -230,13 +253,23 @@ function buildSolution(model: ProductionModel, result: LpResult, tolerance: numb
   let totalPowerMW = 0
   let minPowerMW = 0
   let maxPowerMW = 0
+  let totalClockedPowerMW = 0
+  let minClockedPowerMW = 0
+  let maxClockedPowerMW = 0
   let totalMachineCount = 0
   let totalBuildingCount = 0
+  let totalPowerShards = 0
+  let totalSomersloops = 0
+  let totalFootprintAreaM2 = 0
 
-  for (const recipe of model.recipes) {
-    const machineCount = clean(result.values.get(recipeVarKey(recipe.id)) ?? 0)
-    if (machineCount <= 0) continue
+  /**
+   * 1レシピ1バリアントぶんのステップを作る。
+   * `somersloop` が true のとき産出だけ2倍、消費はそのまま、電力は倍率^指数ぶん増える。
+   */
+  const addStep = (recipe: Recipe, machineCount: number, somersloop: boolean): void => {
     const building = buildingsById.get(recipe.producedIn)!
+    const outputMultiplier = somersloop ? SOMERSLOOP_FULL_OUTPUT_MULTIPLIER : 1
+    const powerFactor = somersloop ? somersloopPowerFactor(building) : 1
 
     const inputs: ItemRate[] = recipe.ingredients.map((i) => {
       const rate = ratePerMin(i.amount, recipe.durationSec) * machineCount
@@ -244,27 +277,54 @@ function buildSolution(model: ProductionModel, result: LpResult, tolerance: numb
       return { item: i.item, ratePerMin: rate }
     })
     const outputs: ItemRate[] = recipe.products.map((p) => {
-      const rate = ratePerMin(p.amount, recipe.durationSec) * machineCount
+      const rate = ratePerMin(p.amount, recipe.durationSec) * machineCount * outputMultiplier
       accumulate(produced, p.item, rate)
       return { item: p.item, ratePerMin: rate }
     })
 
+    // 建てる台数はクロック上限で決まる（上限が高いほど少ない台数で足りる）
+    const builtCount = Math.max(1, Math.ceil(machineCount / maxClock - tolerance))
+    const clockSpeed = Math.min(maxClock, machineCount / builtCount)
+    const powerShards = builtCount * powerShardsForClock(clockSpeed)
+    const somersloops = somersloop ? builtCount * building.maxSomersloops : 0
+
+    // 100%換算（LP の目的関数と同じ基準）
     const range = variablePowerRange(recipe, building)
     const powerRangeMW = range
-      ? { minMW: range.minMW * machineCount, maxMW: range.maxMW * machineCount }
+      ? {
+          minMW: range.minMW * powerFactor * machineCount,
+          maxMW: range.maxMW * powerFactor * machineCount,
+        }
       : undefined
     const powerMW = powerRangeMW
       ? (powerRangeMW.minMW + powerRangeMW.maxMW) / 2
-      : building.powerConsumptionMW * machineCount
+      : building.powerConsumptionMW * powerFactor * machineCount
+
+    // クロック適用後（画面と Excel の主表示）。クロックに対して超線形（c^powerExponent）
+    const clockedFactor = clockedPowerMW(builtCount, clockSpeed, building.powerExponent)
+    const clockedPowerRangeMW = range
+      ? {
+          minMW: range.minMW * powerFactor * clockedFactor,
+          maxMW: range.maxMW * powerFactor * clockedFactor,
+        }
+      : undefined
+    const stepClockedPowerMW = clockedPowerRangeMW
+      ? (clockedPowerRangeMW.minMW + clockedPowerRangeMW.maxMW) / 2
+      : building.powerConsumptionMW * powerFactor * clockedFactor
 
     totalPowerMW += powerMW
     minPowerMW += powerRangeMW ? powerRangeMW.minMW : powerMW
     maxPowerMW += powerRangeMW ? powerRangeMW.maxMW : powerMW
+    totalClockedPowerMW += stepClockedPowerMW
+    minClockedPowerMW += clockedPowerRangeMW ? clockedPowerRangeMW.minMW : stepClockedPowerMW
+    maxClockedPowerMW += clockedPowerRangeMW ? clockedPowerRangeMW.maxMW : stepClockedPowerMW
     totalMachineCount += machineCount
-
-    // 建設コストは実際に建てる台数（切り上げ）で計算する
-    const builtCount = Math.max(1, Math.ceil(machineCount - tolerance))
     totalBuildingCount += builtCount
+    totalPowerShards += powerShards
+    totalSomersloops += somersloops
+    const footprintAreaM2 = builtCount * building.footprint.areaM2
+    totalFootprintAreaM2 += footprintAreaM2
+
     for (const cost of building.buildCost) {
       buildCost.set(cost.item, (buildCost.get(cost.item) ?? 0) + cost.amount * builtCount)
     }
@@ -275,15 +335,38 @@ function buildSolution(model: ProductionModel, result: LpResult, tolerance: numb
       buildingId: building.id,
       buildingName: building.name,
       machineCount,
-      clockSpeed: 1,
+      builtCount,
+      clockSpeed,
+      powerShards,
+      somersloops,
       powerMW,
       ...(powerRangeMW ? { powerRangeMW } : {}),
+      clockedPowerMW: stepClockedPowerMW,
+      ...(clockedPowerRangeMW ? { clockedPowerRangeMW } : {}),
+      footprintAreaM2,
       inputs,
       outputs,
     })
   }
 
-  steps.sort((a, b) => b.machineCount - a.machineCount || a.recipeId.localeCompare(b.recipeId))
+  for (const recipe of model.recipes) {
+    const machineCount = clean(result.values.get(recipeVarKey(recipe.id)) ?? 0)
+    if (machineCount <= 0) continue
+    addStep(recipe, machineCount, false)
+  }
+  // Somersloop バリアントは同じレシピの通常ステップと併存しうる（LP が分けて選ぶ）
+  for (const recipe of model.somersloopRecipes) {
+    const machineCount = clean(result.values.get(somersloopVarKey(recipe.id)) ?? 0)
+    if (machineCount <= 0) continue
+    addStep(recipe, machineCount, true)
+  }
+
+  steps.sort(
+    (a, b) =>
+      b.machineCount - a.machineCount ||
+      a.recipeId.localeCompare(b.recipeId) ||
+      a.somersloops - b.somersloops,
+  )
 
   // --- 外部供給（原料・持ち込み） -------------------------------------------
   const supplied = new Map<string, number>()
@@ -367,9 +450,16 @@ function buildSolution(model: ProductionModel, result: LpResult, tolerance: numb
     itemBalance,
     totalPowerMW,
     totalPowerRangeMW: { minMW: minPowerMW, maxMW: maxPowerMW },
+    totalClockedPowerMW,
+    totalClockedPowerRangeMW: { minMW: minClockedPowerMW, maxMW: maxClockedPowerMW },
     totalMachineCount,
     totalBuildingCount,
     totalBuildCost,
+    maxClock,
+    totalPowerShards,
+    totalSomersloops,
+    somersloopLimit: model.somersloopLimit,
+    totalFootprintAreaM2,
     sinkPointsPerMin,
     objectiveValue: result.objectiveValue,
   }

@@ -1,7 +1,22 @@
-/** サマリー: 総電力（幅表示＋製造/採掘内訳）・建物数・建設コスト・シンクポイント・副産物。 */
-import { mergeBuildCost } from '../plan/aggregate.ts'
+/**
+ * サマリー: 総電力（幅表示＋製造/採掘内訳）・建物数・パワーシャード・Somersloop・
+ * 概算床面積・建設コスト・シンクポイント・副産物。
+ *
+ * 電力の主表示は「クロック適用後」。LP の目的関数が使う100%換算の値も
+ * 内訳に並べる（クロックを変えたときにどれだけ増減したかが分かるように）。
+ */
+import { estimateFootprint, mergeBuildCost } from '../plan/aggregate.ts'
 import type { ExtractionPlan, Solution } from '../solver/index.ts'
-import { fmtCount, fmtInt, fmtPower, fmtPowerRange, fmtRate, itemName, itemUnit } from './format.ts'
+import {
+  fmtArea,
+  fmtCount,
+  fmtInt,
+  fmtPower,
+  fmtPowerRange,
+  fmtRate,
+  itemName,
+  itemUnit,
+} from './format.ts'
 import { T } from './text.ts'
 
 type Props = {
@@ -11,10 +26,13 @@ type Props = {
 
 export function SummaryPanel({ solution, extraction }: Props) {
   const extractionPowerMW = extraction?.totalPowerMW ?? 0
-  const totalMinMW = solution.totalPowerRangeMW.minMW + extractionPowerMW
-  const totalMaxMW = solution.totalPowerRangeMW.maxMW + extractionPowerMW
+  const totalMinMW = solution.totalClockedPowerRangeMW.minMW + extractionPowerMW
+  const totalMaxMW = solution.totalClockedPowerRangeMW.maxMW + extractionPowerMW
 
   const buildCost = mergeBuildCost(solution, extraction)
+  const footprint = estimateFootprint(solution, extraction)
+  const totalPowerShards = solution.totalPowerShards + (extraction?.totalPowerShards ?? 0)
+  const somersloopsOver = solution.totalSomersloops > solution.somersloopLimit
 
   return (
     <div className="cards">
@@ -63,6 +81,14 @@ export function SummaryPanel({ solution, extraction }: Props) {
         <dl className="kv">
           <dt>{T.summary.powerManufacturing}</dt>
           <dd className="num">
+            {fmtPowerRange(
+              solution.totalClockedPowerRangeMW.minMW,
+              solution.totalClockedPowerRangeMW.maxMW,
+            )}{' '}
+            {T.summary.unit.mw}
+          </dd>
+          <dt>{T.summary.powerManufacturingNominal}</dt>
+          <dd className="num">
             {fmtPowerRange(solution.totalPowerRangeMW.minMW, solution.totalPowerRangeMW.maxMW)}{' '}
             {T.summary.unit.mw}
           </dd>
@@ -70,7 +96,61 @@ export function SummaryPanel({ solution, extraction }: Props) {
           <dd className="num">
             {fmtPower(extractionPowerMW)} {T.summary.unit.mw}
           </dd>
+          <dt>{T.summary.powerShards}</dt>
+          <dd className="num">
+            {fmtInt(totalPowerShards)} {T.summary.powerShardsUnit}
+          </dd>
         </dl>
+      </section>
+
+      {solution.somersloopLimit > 0 && (
+        <section className="card">
+          <h3 className="card__title">{T.summary.somersloops}</h3>
+          <p className="bignum">
+            {fmtInt(solution.totalSomersloops)}{' '}
+            <span className="bignum__unit">{T.summary.somersloopsUnit}</span>
+          </p>
+          <dl className="kv">
+            <dt>{T.summary.somersloopsUsed}</dt>
+            <dd className="num">{fmtInt(solution.totalSomersloops)}</dd>
+            <dt>{T.summary.somersloopsLimit}</dt>
+            <dd className="num">{fmtInt(solution.somersloopLimit)}</dd>
+          </dl>
+          {/* 端数の台数を切り上げるので、フル装着に必要な数が上限を超えることがある */}
+          {somersloopsOver && (
+            <p className="callout callout--warn">
+              {T.sidebar.somersloopsOver(solution.totalSomersloops, solution.somersloopLimit)}
+            </p>
+          )}
+          {solution.totalSomersloops === 0 && (
+            <p className="hint">{T.summary.somersloopsUnused}</p>
+          )}
+        </section>
+      )}
+
+      <section className="card">
+        <h3 className="card__title">{T.summary.footprint}</h3>
+        <p className="bignum">
+          {fmtArea(footprint.totalAreaM2)}{' '}
+          <span className="bignum__unit">{T.summary.footprintUnit}</span>
+        </p>
+        <p className="hint">{T.summary.footprintFoundations(fmtInt(footprint.foundations))}</p>
+        <dl className="kv">
+          <dt>{T.summary.footprintManufacturing}</dt>
+          <dd className="num">
+            {fmtArea(footprint.manufacturingAreaM2)} {T.summary.footprintUnit}
+          </dd>
+          <dt>{T.summary.footprintExtraction}</dt>
+          <dd className="num">
+            {fmtArea(footprint.extractionAreaM2)} {T.summary.footprintUnit}
+          </dd>
+          <dt>{T.summary.footprintBuildings}</dt>
+          <dd className="num">
+            {fmtArea(footprint.buildingAreaM2)} {T.summary.footprintUnit}
+          </dd>
+        </dl>
+        <p className="hint">{T.summary.footprintAisle(String(footprint.aisleFactor))}</p>
+        <p className="hint">{T.summary.footprintNote}</p>
       </section>
 
       <section className="card">

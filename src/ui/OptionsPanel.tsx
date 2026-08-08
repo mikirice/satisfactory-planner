@@ -1,7 +1,13 @@
-/** 目的関数プリセット・採掘設備・搬送手段の選択。 */
+/** 目的関数プリセット・クロック / Somersloop・採掘設備・搬送手段の選択。 */
 import { belts, extractorsById, pipes } from '../data/index.ts'
+import {
+  CLOCK_MAX,
+  EXTRACTION_CLOCK_CHOICES,
+  MANUFACTURING_CLOCK_MIN,
+} from '../data/constants.ts'
 import { MINER_IDS } from '../solver/index.ts'
 import { OBJECTIVE_PRESETS, usePlanner } from '../store/planner.ts'
+import { fmtClock } from './format.ts'
 import { T } from './text.ts'
 
 export function ObjectivePanel() {
@@ -35,9 +41,59 @@ export function ObjectivePanel() {
   )
 }
 
+/**
+ * 製造クロックの上限と、使える Somersloop の数。
+ *
+ * クロック上限は LP を変えない（稼働台数は100%換算のまま）。
+ * 「建てる台数 = 稼働台数 ÷ 上限」の後処理だけが変わる。
+ * Somersloop は LP を変える（フル装着バリアントの変数が増える）。
+ */
+export function ClockPanel() {
+  const maxClock = usePlanner((s) => s.maxClock)
+  const somersloops = usePlanner((s) => s.somersloops)
+  const setMaxClock = usePlanner((s) => s.setMaxClock)
+  const setSomersloops = usePlanner((s) => s.setSomersloops)
+
+  return (
+    <section className="panel">
+      <h2 className="panel__title">{T.sidebar.clock}</h2>
+      <label className="field">
+        <span className="field__label">
+          {T.sidebar.clockMax}
+          <span className="field__value num">{fmtClock(maxClock)}</span>
+        </span>
+        <input
+          className="range"
+          type="range"
+          min={MANUFACTURING_CLOCK_MIN * 100}
+          max={CLOCK_MAX * 100}
+          step={10}
+          value={Math.round(maxClock * 100)}
+          onChange={(e) => setMaxClock(Number(e.target.value) / 100)}
+        />
+      </label>
+      <p className="hint">{T.sidebar.clockMaxHint}</p>
+      <label className="field">
+        <span className="field__label">{T.sidebar.somersloops}</span>
+        <input
+          className="input"
+          type="number"
+          min={0}
+          step={1}
+          value={somersloops}
+          onChange={(e) => setSomersloops(Number(e.target.value))}
+        />
+      </label>
+      <p className="hint">{T.sidebar.somersloopsHint}</p>
+    </section>
+  )
+}
+
 export function ExtractionPanel() {
   const minerId = usePlanner((s) => s.minerId)
+  const extractionClock = usePlanner((s) => s.extractionClock)
   const setMinerId = usePlanner((s) => s.setMinerId)
+  const setExtractionClock = usePlanner((s) => s.setExtractionClock)
 
   return (
     <section className="panel">
@@ -55,7 +111,22 @@ export function ExtractionPanel() {
           })}
         </select>
       </label>
+      <label className="field">
+        <span className="field__label">{T.sidebar.extractionClock}</span>
+        <select
+          className="input"
+          value={extractionClock}
+          onChange={(e) => setExtractionClock(Number(e.target.value))}
+        >
+          {EXTRACTION_CLOCK_CHOICES.map((clock) => (
+            <option key={clock} value={clock}>
+              {fmtClock(clock)}
+            </option>
+          ))}
+        </select>
+      </label>
       <p className="hint">{T.sidebar.minerHint}</p>
+      <p className="hint">{T.sidebar.extractionClockHint}</p>
     </section>
   )
 }

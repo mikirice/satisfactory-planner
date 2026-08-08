@@ -41,7 +41,20 @@ export const T = {
 
     extraction: '採掘設備',
     miner: '固体ノードの採掘機',
-    minerHint: 'クロック100%で計算します。端数の1台だけアンダークロック扱いです。',
+    minerHint: '端数の1台だけアンダークロック扱いで計算します。',
+    extractionClock: '採掘クロック',
+    extractionClockHint:
+      '100%を超えるとパワーシャードが要ります。電力はクロックに対して超線形に増えます。',
+
+    clock: 'クロックと Somersloop',
+    clockMax: '製造クロックの上限',
+    clockMaxHint:
+      '建てる台数 = 稼働台数 ÷ 上限クロック（切り上げ）。上げるほど台数は減り、電力は増えます。',
+    somersloops: '使える Somersloop の数',
+    somersloopsHint:
+      '0 なら使いません。1 以上にすると、対応する建物のレシピに「フル装着（産出2倍・電力4倍）」の選択肢が増えます。部分装着は扱いません。',
+    somersloopsOver: (used: number, limit: number): string =>
+      `建てる台数を切り上げた結果、必要数が ${used} 個になり上限 ${limit} 個を超えています`,
 
     alternates: '代替レシピ',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} 有効`,
@@ -122,6 +135,8 @@ export const T = {
     outputs: '産出',
     requested: (rate: string): string => `要求 ${rate}`,
     machines: (built: number, clock: string): string => `${built} 台 @ ${clock}`,
+    somersloops: (n: number): string => `Somersloop ${n} 個`,
+    shards: (n: number): string => `シャード ${n} 個`,
     legend: '凡例',
     legendSolid: '固体（ベルト）',
     legendLiquid: '液体（パイプ）',
@@ -145,7 +160,24 @@ export const T = {
       `${name} は最大 ${rate} ${unit} まで作れます`,
     power: '総消費電力',
     powerManufacturing: '製造',
+    powerManufacturingNominal: '製造（クロック100%換算）',
     powerExtraction: '採掘',
+    powerShards: 'パワーシャード',
+    powerShardsUnit: '個',
+    somersloops: 'Somersloop',
+    somersloopsUsed: '使用数',
+    somersloopsLimit: '使用可能数',
+    somersloopsUnit: '個',
+    somersloopsUnused: 'Somersloop は使っていません',
+    footprint: '概算床面積',
+    footprintUnit: 'm²',
+    footprintFoundations: (n: string): string => `ファウンデーション ${n} 枚（8m × 8m 換算）`,
+    footprintManufacturing: '製造建物',
+    footprintExtraction: '採掘設備',
+    footprintBuildings: '設置面積の合計',
+    footprintAisle: (factor: string): string => `通路・搬送スペース係数 ×${factor}`,
+    footprintNote:
+      '建物のクリアランス（Docs.json 由来）から出した概算です。実際の広さは配置や縦積みで変わります。',
     machines: '建物',
     machineCountRunning: '稼働台数（小数）',
     machineCountBuilt: '建てる台数',
@@ -174,12 +206,17 @@ export const T = {
     machineCount: '稼働台数',
     built: '建てる台数',
     clock: 'クロック案',
+    shards: 'シャード',
+    somersloops: 'Somersloop',
     power: '消費電力 (MW)',
     inputs: '投入',
     outputs: '産出',
     subtotal: '小計',
     groupCount: (n: number): string => `${n} レシピ`,
     variablePowerNote: '可変電力レシピは幅で表示しています（値は中央値）',
+    clockNote: (percent: string): string =>
+      `クロック上限 ${percent} で「建てる台数」を決め、消費電力はそのクロックで計算しています`,
+    somersloopBadge: (n: number): string => `${n} 個`,
   },
 
   resources: {
@@ -193,6 +230,8 @@ export const T = {
     machines: '台数',
     nodes: '必要ノード（純度別）',
     power: '採掘電力 (MW)',
+    shards: 'シャード',
+    clockNote: (percent: string): string => `採掘クロック ${percent} で計算しています`,
     pressurizer: '加圧機',
     shortfall: 'ノード不足',
     shortfallNote: (n: string): string => `マップのノードが足りず ${n} 分を賄えません`,

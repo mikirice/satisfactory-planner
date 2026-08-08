@@ -15,7 +15,7 @@ import { buildingsById, extractorsById, itemsById } from '../data/index.ts'
 import type { ExtractorCategory, ItemAmount, LocalizedName } from '../data/types.ts'
 import type { NodeCounts, ResourcePurity } from '../data/map-limits.ts'
 import { mapResourceLimitsByItem } from '../data/map-limits.ts'
-import { clockedPowerMW } from './overclock.ts'
+import { clockedPowerMW, powerShardsForClock } from './overclock.ts'
 import type { RawResourceUsage, Solution } from './types.ts'
 
 /** 固体ノード用の採掘機（遅い順）。UI の選択肢もこの順で出す。 */
@@ -78,6 +78,10 @@ export type ExtractorGroup = {
   clockSpeed: number
   /** 消費電力(MW)。端数の1台はアンダークロック分を割り引いて計算する */
   powerMW: number
+  /** 必要なパワーシャードの総数（クロック100%以下なら 0）。加圧機ぶんを含む */
+  powerShards: number
+  /** 建てる台数ぶんの設置面積(m²)。加圧機ぶんを含む */
+  footprintAreaM2: number
   /** 資源井戸のみ: 必要な加圧機の台数（概算・SATELLITES_PER_WELL 参照） */
   pressurizerCount?: number
   /** 資源井戸のみ: 加圧機の消費電力(MW) */
@@ -99,6 +103,10 @@ export type ResourceExtraction = {
   powerMW: number
   /** 建てる設備の台数合計。加圧機を含む */
   buildingCount: number
+  /** この原料に必要なパワーシャードの総数 */
+  powerShards: number
+  /** この原料の採掘設備の設置面積(m²) */
+  footprintAreaM2: number
 }
 
 export type ExtractionPlan = {
@@ -107,6 +115,12 @@ export type ExtractionPlan = {
   totalPowerMW: number
   /** 採掘設備の総台数（切り上げ・加圧機を含む） */
   totalBuildingCount: number
+  /** 採掘設備に必要なパワーシャードの総数 */
+  totalPowerShards: number
+  /** 採掘設備の設置面積の合計(m²)。通路係数は掛けていない */
+  totalFootprintAreaM2: number
+  /** 適用した採掘クロック（1 = 100%） */
+  clock: number
   /** 採掘設備の建設コスト合計 */
   totalBuildCost: ItemAmount[]
   /** ノード不足で賄えなかった原料（空なら全て充足） */
@@ -150,9 +164,13 @@ export function planExtraction(
   const buildCost = new Map<string, number>()
   let totalPowerMW = 0
   let totalBuildingCount = 0
+  let totalPowerShards = 0
+  let totalFootprintAreaM2 = 0
   for (const resource of resources) {
     totalPowerMW += resource.powerMW
     totalBuildingCount += resource.buildingCount
+    totalPowerShards += resource.powerShards
+    totalFootprintAreaM2 += resource.footprintAreaM2
     for (const group of resource.groups) {
       addBuildCost(buildCost, group.extractorId, group.buildingCount)
       if (group.pressurizerCount) {
@@ -165,6 +183,9 @@ export function planExtraction(
     resources,
     totalPowerMW,
     totalBuildingCount,
+    totalPowerShards,
+    totalFootprintAreaM2,
+    clock,
     totalBuildCost: [...buildCost]
       .map(([item, amount]) => ({ item, amount }))
       .sort((a, b) => b.amount - a.amount || a.item.localeCompare(b.item)),
@@ -220,7 +241,14 @@ function planResource(
     shortfallPerMin: Math.max(0, requiredRatePerMin - suppliedRatePerMin),
     powerMW,
     buildingCount,
+    powerShards: groups.reduce((n, g) => n + g.powerShards, 0),
+    footprintAreaM2: groups.reduce((a, g) => a + g.footprintAreaM2, 0),
   }
+}
+
+/** 設備1台の設置面積(m²)。建物データに無ければ 0（床面積の概算から外れるだけ）。 */
+function footprintAreaOf(buildingId: string): number {
+  return buildingsById.get(buildingId)?.footprint.areaM2 ?? 0
 }
 
 /** 純度別ノードに割り当てるグループ（採掘機・原油抽出機・資源井戸）。 */
@@ -237,16 +265,20 @@ function buildNodeGroup(
   if (assignments.length === 0) return null
 
   const machineCount = assignments.reduce((n, a) => n + a.nodes, 0)
+  const buildingCount = ceilCount(machineCount)
+  const shardsEach = powerShardsForClock(clock)
   const group: ExtractorGroup = {
     extractorId,
     extractorName: extractor.name,
     category: extractor.category,
     assignments,
     machineCount,
-    buildingCount: ceilCount(machineCount),
+    buildingCount,
     ratePerMin: assignments.reduce((r, a) => r + a.ratePerMin, 0),
     clockSpeed: clock,
     powerMW: groupPowerMW(assignments, extractor.powerConsumptionMW, extractor.powerExponent, clock),
+    powerShards: buildingCount * shardsEach,
+    footprintAreaM2: buildingCount * footprintAreaOf(extractorId),
   }
 
   if (extractor.category === 'wellExtractor' && wellItem) {
@@ -257,6 +289,9 @@ function buildNodeGroup(
     group.pressurizerPowerMW =
       group.pressurizerCount *
       clockedPowerMW(pressurizer.powerConsumptionMW, clock, pressurizer.powerExponent)
+    // 加圧機もサテライトと同じクロックで回す前提（シャードと面積を足す）
+    group.powerShards += group.pressurizerCount * shardsEach
+    group.footprintAreaM2 += group.pressurizerCount * footprintAreaOf(WELL_PRESSURIZER_ID)
   }
   return group
 }
@@ -280,16 +315,19 @@ function buildUnlimitedGroup(
       ratePerMin,
     },
   ]
+  const buildingCount = ceilCount(machineCount)
   return {
     extractorId,
     extractorName: extractor.name,
     category: extractor.category,
     assignments,
     machineCount,
-    buildingCount: ceilCount(machineCount),
+    buildingCount,
     ratePerMin,
     clockSpeed: clock,
     powerMW: groupPowerMW(assignments, extractor.powerConsumptionMW, extractor.powerExponent, clock),
+    powerShards: buildingCount * powerShardsForClock(clock),
+    footprintAreaM2: buildingCount * footprintAreaOf(extractorId),
   }
 }
 

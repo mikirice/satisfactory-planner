@@ -20,6 +20,7 @@
  * 一般には目的関数に現れない退化した循環がありうるため常に入れている。
  */
 import { buildingsById, itemsById, ratePerMin, recipes as allRecipes, recipesById } from '../data/index.ts'
+import { SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
 import type { Building, Recipe } from '../data/types.ts'
 import { DEFAULT_RESOURCE_LIMITS, MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { LpConstraint, LpModel, LpVariable } from './lp.ts'
@@ -42,6 +43,8 @@ export const DEFAULT_RESOURCE_WEIGHT_SPEC: ResourceWeightSpec = 'scarcity'
 
 /** LP 変数のキー命名（結果の読み戻しでも使う） */
 export const recipeVarKey = (recipeId: string): string => `x:${recipeId}`
+/** Somersloop をフル装着したレシピ r の稼働台数（産出2倍・消費同じ・電力4倍） */
+export const somersloopVarKey = (recipeId: string): string => `xs:${recipeId}`
 /** 原料（マップから採取）の供給変数 */
 export const supplyVarKey = (itemId: string): string => `s:${itemId}`
 /** ユーザーが持ち込むアイテムの供給変数 */
@@ -82,16 +85,32 @@ export function resolveResourceWeights(
   return out
 }
 
-/** レシピ1台あたりの、アイテム i の正味レート（産出 - 消費、個/分）。 */
-export function netRatePerMin(recipe: Recipe, itemId: string): number {
+/**
+ * レシピ1台あたりの、アイテム i の正味レート（産出 - 消費、個/分）。
+ * `outputMultiplier` は Somersloop の産出倍率（フル装着なら 2）。消費側には掛からない。
+ */
+export function netRatePerMin(recipe: Recipe, itemId: string, outputMultiplier = 1): number {
   let net = 0
   for (const p of recipe.products) {
-    if (p.item === itemId) net += ratePerMin(p.amount, recipe.durationSec)
+    if (p.item === itemId) net += ratePerMin(p.amount, recipe.durationSec) * outputMultiplier
   }
   for (const i of recipe.ingredients) {
     if (i.item === itemId) net -= ratePerMin(i.amount, recipe.durationSec)
   }
   return net
+}
+
+/**
+ * Somersloop をフル装着できるレシピか。
+ * 建物にスロットがあることが条件（製作機・組立機・製造機・製錬炉・精製所ほか）。
+ */
+export function supportsSomersloop(recipe: Recipe): boolean {
+  return (buildingsById.get(recipe.producedIn)?.maxSomersloops ?? 0) > 0
+}
+
+/** Somersloop をフル装着したときの消費電力倍率（既定の指数 2 なら 4倍）。 */
+export function somersloopPowerFactor(building: Building): number {
+  return Math.pow(SOMERSLOOP_FULL_OUTPUT_MULTIPLIER, building.somersloopPowerExponent)
 }
 
 /**
@@ -138,6 +157,10 @@ export type ProductionModel = {
   lp: LpModel
   /** 変数に含めたレシピ */
   recipes: Recipe[]
+  /** Somersloop フル装着バリアントの変数を持つレシピ（somersloops <= 0 なら空） */
+  somersloopRecipes: Recipe[]
+  /** 使用可能な Somersloop 数（0 = バリアントなし） */
+  somersloopLimit: number
   /** 外部供給変数（原料 + ユーザー投入） */
   supplies: SupplySource[]
   /** 原料の上限（ユーザー投入は含まない） */
@@ -239,11 +262,23 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     throw new Error(`unknown item id in maximize: ${maximize}`)
   }
 
+  // --- Somersloop ------------------------------------------------------------
+  const somersloopLimit = input.somersloops ?? 0
+  if (!(Number.isFinite(somersloopLimit) && somersloopLimit >= 0)) {
+    throw new Error(`somersloops must be a finite number >= 0: ${somersloopLimit}`)
+  }
+  // 0 のときはバリアント変数を1つも作らない（＝ 従来と完全に同じ LP になる）
+  const somersloopRecipes = somersloopLimit > 0 ? recipes.filter(supportsSomersloop) : []
+
   // --- 変数 -----------------------------------------------------------------
   const variables: LpVariable[] = []
-  for (const recipe of recipes) {
+  const buildingOf = (recipe: Recipe): Building => {
     const building = buildingsById.get(recipe.producedIn)
     if (!building) throw new Error(`recipe ${recipe.id} has unknown building ${recipe.producedIn}`)
+    return building
+  }
+  for (const recipe of recipes) {
+    const building = buildingOf(recipe)
     const objective =
       maximize !== undefined
         ? 0
@@ -251,6 +286,20 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
           ? epsilon
           : weights.power * recipePowerMW(recipe, building) + weights.buildings + epsilon
     variables.push({ key: recipeVarKey(recipe.id), objective })
+  }
+  for (const recipe of somersloopRecipes) {
+    const building = buildingOf(recipe)
+    // 建物1台であることは変わらないので buildings 項は通常変数と同じ。
+    // 電力だけがフル装着ぶん（倍率^指数、既定 4倍）跳ね上がる。
+    const objective =
+      maximize !== undefined
+        ? 0
+        : options.elastic
+          ? epsilon
+          : weights.power * recipePowerMW(recipe, building) * somersloopPowerFactor(building) +
+            weights.buildings +
+            epsilon
+    variables.push({ key: somersloopVarKey(recipe.id), objective })
   }
   for (const supply of supplies) {
     // ε を足すのは「コスト0の供給（無制限の水・持ち込み分）を必要以上に引き込む
@@ -291,6 +340,15 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
       rowFor(itemId).set(recipeVarKey(recipe.id), net)
     }
   }
+  for (const recipe of somersloopRecipes) {
+    const touched = new Set<string>()
+    for (const entry of [...recipe.products, ...recipe.ingredients]) touched.add(entry.item)
+    for (const itemId of touched) {
+      const net = netRatePerMin(recipe, itemId, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER)
+      if (net === 0) continue
+      rowFor(itemId).set(somersloopVarKey(recipe.id), net)
+    }
+  }
   for (const supply of supplies) {
     rowFor(supply.item).set(supply.key, 1)
     if (options.elastic && supply.limit !== null) {
@@ -309,9 +367,20 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     })
   }
 
+  // Somersloop の総数制限: Σ(バリアントの稼働台数 × その建物のスロット数) <= 使用可能数
+  if (somersloopRecipes.length > 0) {
+    const coefficients = new Map<string, number>()
+    for (const recipe of somersloopRecipes) {
+      coefficients.set(somersloopVarKey(recipe.id), buildingOf(recipe).maxSomersloops)
+    }
+    constraints.push({ key: 'somersloop:capacity', coefficients, upper: somersloopLimit })
+  }
+
   return {
     lp: { direction: maximize === undefined ? 'min' : 'max', variables, constraints },
     recipes,
+    somersloopRecipes,
+    somersloopLimit,
     supplies,
     limits,
     resourceWeights,

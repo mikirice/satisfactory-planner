@@ -30,6 +30,7 @@ import type {
   Belt,
   Building,
   BuildingCategory,
+  BuildingFootprint,
   DataMeta,
   Extractor,
   ExtractorCategory,
@@ -52,6 +53,7 @@ import type { DocsClass, DocsGroup } from './docs-parse.ts'
 import {
   decodeDocs,
   num,
+  parseClearanceBounds,
   parseItemAmounts,
   parseProducedIn,
   shortNativeClass,
@@ -182,6 +184,60 @@ const BUILDING_NATIVE_CLASSES: Record<string, BuildingCategory> = {
 function parseSomersloopSlots(cls: DocsClass): number {
   if (cls.mCanChangeProductionBoost !== 'True') return 0
   return Math.max(1, Math.round(num(cls.mProductionShardSlotSize)))
+}
+
+// ---------------------------------------------------------------------------
+// 外形（床面積の概算）
+// ---------------------------------------------------------------------------
+
+/** Unreal 単位(cm) → m。 */
+const UNREAL_CM_TO_M = 100
+
+/**
+ * mClearanceData から外形が取れなかった建物を補う既知値（幅m × 奥行m × 高さm）。
+ *
+ * 出典: https://satisfactory.wiki.gg/wiki/Category:Buildings の各建物ページ
+ * "Dimensions" 欄（2026-08-08 参照）。
+ * 1.1.x の Docs.json では全 23 建物にクリアランスが入っているのでこの表は空でよいが、
+ * ゲーム更新でクリアランスが消えた建物が出ても床面積が 0 にならないよう残しておく
+ * （build-data のログに WARNING を出すので、そのときここに追記する）。
+ */
+const FOOTPRINT_FALLBACKS: Readonly<Record<string, [number, number, number]>> = {
+  // 例: Build_ConstructorMk1_C: [7.9, 9.9, 8.3],
+}
+
+function resolveFootprint(cls: DocsClass, warnings: Warning[]): BuildingFootprint {
+  const bounds = parseClearanceBounds(cls.mClearanceData)
+  if (bounds) {
+    return makeFootprint(
+      (bounds.max.x - bounds.min.x) / UNREAL_CM_TO_M,
+      (bounds.max.y - bounds.min.y) / UNREAL_CM_TO_M,
+      (bounds.max.z - bounds.min.z) / UNREAL_CM_TO_M,
+      'docs',
+    )
+  }
+  const fallback = FOOTPRINT_FALLBACKS[cls.ClassName]
+  if (fallback) {
+    warnings.push(`footprint of ${cls.ClassName} came from the wiki fallback table`)
+    return makeFootprint(fallback[0], fallback[1], fallback[2], 'fallback')
+  }
+  warnings.push(
+    `footprint not found for ${cls.ClassName} (no mClearanceData, no fallback) — ` +
+      'add it to FOOTPRINT_FALLBACKS in scripts/build-data.ts',
+  )
+  return makeFootprint(0, 0, 0, 'fallback')
+}
+
+function makeFootprint(
+  widthM: number,
+  depthM: number,
+  heightM: number,
+  source: BuildingFootprint['source'],
+): BuildingFootprint {
+  const round = (n: number): number => Math.round(n * 100) / 100
+  const w = round(Math.max(0, widthM))
+  const d = round(Math.max(0, depthM))
+  return { widthM: w, depthM: d, heightM: round(Math.max(0, heightM)), areaM2: round(w * d), source }
 }
 
 /**
@@ -363,6 +419,7 @@ async function main(): Promise<void> {
           DEFAULT_SOMERSLOOP_POWER_EXPONENT,
         ),
         buildCost: buildCost ?? [],
+        footprint: resolveFootprint(cls, warnings),
         ...(powerProduction > 0 ? { powerProductionMW: powerProduction } : {}),
         ...(variablePower ? { variablePower } : {}),
       })
@@ -533,6 +590,11 @@ async function main(): Promise<void> {
   console.log(`[build-data] recipes      : ${recipes.length} (alternate: ${recipes.filter((r) => r.isAlternate).length})`)
   console.log(`[build-data] buildings    : ${buildingList.length}`)
   console.log(`[build-data] raw resources: ${itemList.filter((i) => i.isRawResource).length}`)
+  console.log(
+    `[build-data] footprints   : ${buildingList.filter((b) => b.footprint.areaM2 > 0).length}/` +
+      `${buildingList.length} resolved ` +
+      `(fallback: ${buildingList.filter((b) => b.footprint.source === 'fallback').length})`,
+  )
   console.log(
     `[build-data] extractors   : ${extractors.length} (${extractors
       .map((e) => `${e.name.en}=${e.baseRatePerMin}/min`)

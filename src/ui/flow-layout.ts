@@ -261,6 +261,10 @@ export function nodeRows(node: PlanGraphNode): NodeRow[] {
       title(node.recipeNameJa),
       { id: 'meta:building', height: m.metaLine, fontSize: m.metaFontSize },
       { id: 'meta:power', height: m.metaLine, fontSize: m.metaFontSize },
+      // Somersloop を挿すステップだけ1行増える（FlowChart.tsx の描画と同じ条件）
+      ...(node.somersloops > 0
+        ? [{ id: 'meta:somersloop', height: m.metaLine, fontSize: m.metaFontSize }]
+        : []),
       {
         id: 'io',
         // 上の余白＋区切り線＋見出し＋投入/産出の行（左右の多いほうに合わせる）
