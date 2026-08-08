@@ -25,6 +25,17 @@ export const T = {
     remove: '削除',
     noMatch: '一致するアイテムがありません',
     alreadyAdded: '追加済み',
+    maximize: '最大化',
+    maximizeHint: '原料上限まで作れるだけ作ります（最大化できるのは1つだけ）',
+    maximizeBadge: '作れるだけ',
+
+    stock: '既にあるアイテム',
+    stockSearch: 'アイテムを検索して追加',
+    stockSearchPlaceholder: 'アイテム名（例: 鉄インゴット）',
+    stockEmpty: 'まだありません。手持ちや別工場からの供給を入れると、その分だけ生産を省きます。',
+    stockListHeading: '追加済みの既保有',
+    stockRate: '投入レート',
+    stockHint: '原料の採掘より優先して使われます（使い切らないこともあります）。',
 
     objective: '目的関数',
 
@@ -104,7 +115,7 @@ export const T = {
     failed: 'フローチャートを描画できませんでした',
     /** ノードの種類 */
     source: '原料供給',
-    external: '持ち込み',
+    external: '既保有',
     target: '目標産出',
     byproduct: '副産物',
     inputs: '投入',
@@ -116,6 +127,7 @@ export const T = {
     legendLiquid: '液体（パイプ）',
     legendGas: '気体（パイプ）',
     legendBottleneck: '1本で運べない（赤・太線）',
+    legendExternal: '既保有（紫の破線枠）',
     stats: (nodes: number, edges: number): string => `${nodes} ノード / ${edges} フロー`,
     bottleneckCount: (n: number): string => `ボトルネック ${n} 本`,
     transportNote: (belt: string, pipe: string): string =>
@@ -128,6 +140,9 @@ export const T = {
     targets: '目標産出',
     requested: '要求',
     produced: '産出',
+    maximized: '最大化',
+    maximizedResult: (name: string, rate: string, unit: string): string =>
+      `${name} は最大 ${rate} ${unit} まで作れます`,
     power: '総消費電力',
     powerManufacturing: '製造',
     powerExtraction: '採掘',
@@ -142,7 +157,10 @@ export const T = {
     sinkPointsUnit: 'pt/分',
     byproducts: '副産物',
     byproductsEmpty: '副産物はありません',
-    externalInputs: '持ち込み',
+    externalInputs: '既保有アイテムの投入',
+    externalInputsAvailable: '投入',
+    externalInputsUsed: '使用',
+    externalInputsUnused: '未使用',
     unit: {
       mw: 'MW',
       count: '台',

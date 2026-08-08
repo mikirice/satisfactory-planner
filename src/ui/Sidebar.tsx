@@ -1,6 +1,7 @@
 /** 入力サイドバー。 */
 import { AlternatesPanel } from './AlternatesPanel.tsx'
 import { ExportPanel } from './ExportPanel.tsx'
+import { InputsPanel } from './InputsPanel.tsx'
 import { LimitsPanel } from './LimitsPanel.tsx'
 import { ExtractionPanel, LogisticsPanel, ObjectivePanel } from './OptionsPanel.tsx'
 import { PlansPanel } from './PlansPanel.tsx'
@@ -10,6 +11,7 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <TargetsPanel />
+      <InputsPanel />
       <ObjectivePanel />
       <ExtractionPanel />
       <AlternatesPanel />

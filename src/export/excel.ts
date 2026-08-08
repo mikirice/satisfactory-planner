@@ -180,18 +180,26 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
     addKeyValue(ws, '採掘機', buildingsById.get(input.minerId)?.name.ja ?? input.minerId)
   }
 
-  // 2) 目標産出
+  // 2) 目標産出（最大化した行は要求欄を「最大化」にする）
   addSection(ws, '目標産出')
   addSummaryHeader(ws, ['アイテム', '要求', '産出', '単位'])
   for (const target of solution.targets) {
     const row = ws.addRow([
       itemNameJa(target.item),
-      target.requestedPerMin,
+      target.maximized ? '最大化' : target.requestedPerMin,
       target.producedPerMin,
       itemUnitJa(target.item),
     ])
-    row.getCell(2).numFmt = NUM_FMT.rate
+    if (!target.maximized) row.getCell(2).numFmt = NUM_FMT.rate
     row.getCell(3).numFmt = NUM_FMT.rate
+  }
+  if (solution.maximizedOutput) {
+    addKeyValue(
+      ws,
+      `最大産出（${itemNameJa(solution.maximizedOutput.item)}）`,
+      solution.maximizedOutput.ratePerMin,
+      NUM_FMT.rate,
+    )
   }
 
   // 3) 電力（採掘電力を足した合計も出す）
@@ -226,6 +234,22 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
     row.getCell(2).numFmt = NUM_FMT.rate
     if (raw.limitPerMin !== null) row.getCell(4).numFmt = NUM_FMT.int
     if (raw.usageRatio !== null) row.getCell(5).numFmt = NUM_FMT.percent
+  }
+
+  // 5.5) 既保有アイテムの投入（全量が使われるとは限らないので投入と使用を並べる）
+  if (solution.externalInputs.length > 0) {
+    addSection(ws, '既保有アイテムの投入')
+    addSummaryHeader(ws, ['アイテム', '投入', '使用', '単位'])
+    for (const external of solution.externalInputs) {
+      const row = ws.addRow([
+        itemNameJa(external.item),
+        external.availablePerMin,
+        external.ratePerMin,
+        itemUnitJa(external.item),
+      ])
+      row.getCell(2).numFmt = NUM_FMT.rate
+      row.getCell(3).numFmt = NUM_FMT.rate
+    }
   }
 
   // 6) シンクポイント

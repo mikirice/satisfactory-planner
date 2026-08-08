@@ -10,11 +10,13 @@ import {
   DEFAULT_TOLERANCE,
   buildProductionModel,
   defaultEnabledRecipeIds,
+  maximizeVarKey,
   overflowVarKey,
   recipeVarKey,
   variablePowerRange,
 } from './model.ts'
 import type {
+  ExternalInputUsage,
   InfeasibleReason,
   InfeasibleResult,
   ItemBalance,
@@ -39,6 +41,12 @@ const round = (n: number): number => Math.round(n * 1000) / 1000
  * 目標産出から生産チェーンを求める。
  * 解けなければ status: 'infeasible' と原因ヒントを返す（例外は投げない。
  * ただし存在しない ID を渡した等の入力エラーは例外）。
+ *
+ * `input.maximize` があるときは2フェーズで解く:
+ *   1. そのアイテムの産出を最大化して最大レート y* を求める（他の目標は制約のまま）
+ *   2. y* を目標レートに足した通常の最小化モデルを解き、構成を決める
+ * こうすると「最大産出の中で最も資源効率のよい構成」が選ばれ、
+ * 結果の組み立て（Solution）も既存の経路をそのまま使える。
  */
 export async function solveProduction(
   input: SolveInput,
@@ -46,6 +54,16 @@ export async function solveProduction(
 ): Promise<SolveResult> {
   const backend = options.backend ?? glpkBackend
   const tolerance = input.tolerance ?? DEFAULT_TOLERANCE
+  if (input.maximize === undefined) return solveCost(input, backend, tolerance)
+  return solveMaximize(input, input.maximize, backend, tolerance)
+}
+
+/** レート指定の目標だけを満たす通常の解（従来の経路）。 */
+async function solveCost(
+  input: SolveInput,
+  backend: LpBackend,
+  tolerance: number,
+): Promise<SolveResult> {
   const model = buildProductionModel(input)
 
   const totalTarget = [...model.targets.values()].reduce((sum, v) => sum + v, 0)
@@ -90,6 +108,89 @@ export async function solveProduction(
       ])
     case 'infeasible':
       return infeasible(await diagnose(input, backend, tolerance))
+  }
+}
+
+/**
+ * 産出最大化モード。
+ *
+ * フェーズ1で「取り出し量 y の最大化」だけを解いて上限 y* を求め、
+ * フェーズ2で y* を目標レートに加えた通常のモデルを解く。
+ * 原料上限が実質の制約になるので、上限のない資源だけで作れるアイテムは
+ * フェーズ1が unbounded になる（＝最大化できない）。
+ */
+async function solveMaximize(
+  input: SolveInput,
+  item: string,
+  backend: LpBackend,
+  tolerance: number,
+): Promise<SolveResult> {
+  if (!itemsById.has(item)) throw new Error(`unknown item id in maximize: ${item}`)
+  // 同じアイテムのレート指定は最大化に吸収させる（二重に数えない）
+  const rateTargets = input.targets.filter((t) => t.item !== item)
+  const base: SolveInput = { ...input, targets: rateTargets, maximize: undefined }
+
+  const model = buildProductionModel(base, { maximize: item })
+
+  // 「そもそも作れない」は最大化対象も含めて先に弾く（LP は 0 を返すだけなので）
+  const unreachable = findUnreachableTargets(
+    { ...base, targets: [{ item, ratePerMin: 1 }, ...rateTargets] },
+    model.supplies,
+  )
+  if (unreachable.length > 0) return infeasible(unreachable)
+
+  const result = await backend.solve(model.lp)
+  switch (result.status) {
+    case 'unbounded':
+      return infeasible([
+        {
+          kind: 'unbounded',
+          item,
+          message:
+            `${jaName(item)} は原料上限が効いていないため最大化できません` +
+            '（上限のない資源だけでいくらでも作れる構成です）',
+          advice:
+            'サイドバーの「原料上限」で上限のない原料（水など）に上限を入れるか、レート指定に切り替えてください。',
+        },
+      ])
+    case 'error':
+      return infeasible([
+        { kind: 'solverError', message: `ソルバーが解を返しませんでした (${result.rawStatus})` },
+      ])
+    case 'infeasible':
+      // 最大化対象ではなく、他のレート指定の目標が満たせないケース
+      return infeasible(await diagnose(base, backend, tolerance))
+    case 'optimal':
+      break
+  }
+
+  const best = result.values.get(maximizeVarKey(item)) ?? 0
+  if (!(best > tolerance)) {
+    return infeasible([
+      {
+        kind: 'unproducibleItem',
+        item,
+        message: `${jaName(item)} はこの条件では生産できません（最大 0 /min）`,
+      },
+    ])
+  }
+
+  // フェーズ2。丸め誤差で実行不能にならないよう、ごくわずかに緩めた値を目標にする
+  const solved = await solveCost(
+    { ...base, targets: [...rateTargets, { item, ratePerMin: best * (1 - 1e-9) }] },
+    backend,
+    tolerance,
+  )
+  if (solved.status !== 'optimal') return solved
+
+  const produced = solved.targets.find((t) => t.item === item)?.producedPerMin ?? best
+  return {
+    ...solved,
+    // 要求レートは「最大化した結果の達成レート」に揃える（緩めた値を見せない）
+    targets: solved.targets.map((t) =>
+      t.item === item ? { ...t, requestedPerMin: t.producedPerMin, maximized: true } : t,
+    ),
+    maximizedOutput: { item, ratePerMin: produced },
   }
 }
 
@@ -187,15 +288,20 @@ function buildSolution(model: ProductionModel, result: LpResult, tolerance: numb
   // --- 外部供給（原料・持ち込み） -------------------------------------------
   const supplied = new Map<string, number>()
   const rawResources: RawResourceUsage[] = []
-  const externalInputs: ItemRate[] = []
+  const externalInputs: ExternalInputUsage[] = []
   for (const supply of model.supplies) {
     const rate = clean(result.values.get(supply.key) ?? 0)
     accumulate(supplied, supply.item, rate)
-    if (rate <= 0) continue
     if (supply.kind === 'input') {
-      externalInputs.push({ item: supply.item, ratePerMin: rate })
+      // 使われなかった持ち込み（0）も残す。「入れたのに使われていない」を見せるため
+      externalInputs.push({
+        item: supply.item,
+        ratePerMin: rate,
+        availablePerMin: supply.limit ?? 0,
+      })
       continue
     }
+    if (rate <= 0) continue
     rawResources.push({
       item: supply.item,
       ratePerMin: rate,

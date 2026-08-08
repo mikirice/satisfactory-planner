@@ -337,6 +337,43 @@ describe('サマリー', () => {
     expect(Number(labels.get('合計 (pt/分)'))).toBeCloseTo(plastic.solution.sinkPointsPerMin, 6)
     expect(labels.has('目標産出')).toBe(true)
   })
+
+  it('産出最大化と既保有アイテムの投入がサマリーに載る（シートは増やさない）', async () => {
+    // 鉄鉱石 90/min の上限で鉄板を最大化しつつ、鉄インゴットを 30/min 持ち込む
+    const solution = await solveOk({
+      targets: [],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: ['Recipe_IngotIron_C', 'Recipe_IronPlate_C'],
+      resourceLimits: { Desc_OreIron_C: 90 },
+      inputs: { Desc_IronIngot_C: 30, Desc_Cable_C: 10 },
+    })
+    const target = await makeCase({ solution, planName: '最大化ライン' })
+    expect(target.workbook.worksheets.map((w) => w.name)).toEqual([...SHEET_NAME_LIST])
+
+    const sheet = target.workbook.getWorksheet(SHEET_NAMES.summary)!
+    const rows: unknown[][] = []
+    for (let r = 1; r <= sheet.rowCount; r += 1) {
+      const row = sheet.getRow(r)
+      rows.push([row.getCell(1).value, row.getCell(2).value, row.getCell(3).value])
+    }
+
+    // 目標産出の行は「要求」欄が最大化のラベルになる
+    const targetRow = rows.find((r) => r[0] === '鉄板')!
+    expect(targetRow[1]).toBe('最大化')
+    expect(Number(targetRow[2])).toBeCloseTo(80, 4) // 鉄鉱石90 + インゴット30 → 鉄板80
+
+    const maxRow = rows.find((r) => typeof r[0] === 'string' && r[0].startsWith('最大産出'))!
+    expect(Number(maxRow[1])).toBeCloseTo(80, 4)
+
+    // 既保有は「投入」と「使用」を並べる（使い切らないものもある）
+    expect(rows.some((r) => r[0] === '既保有アイテムの投入')).toBe(true)
+    const ingot = rows.find((r) => r[0] === '鉄のインゴット')!
+    expect(Number(ingot[1])).toBe(30)
+    expect(Number(ingot[2])).toBeCloseTo(30, 4)
+    const cable = rows.find((r) => r[0] === 'ケーブル')!
+    expect(Number(cable[1])).toBe(10)
+    expect(Number(cable[2])).toBe(0)
+  })
 })
 
 describe('ファイル名と保存', () => {

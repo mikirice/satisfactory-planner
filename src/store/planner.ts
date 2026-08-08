@@ -25,11 +25,30 @@ import type {
 } from '../solver/index.ts'
 
 /**
+ * 目標産出の1行の指定方法。
+ * - `'rate'`（既定）… ratePerMin ちょうどを目標にする
+ * - `'max'`          … 産出を最大化する。**同時に1行だけ**（原料上限が実質の制約になる）
+ */
+export type TargetMode = 'rate' | 'max'
+
+/**
  * 目標産出の1行。1アイテム1行（同じアイテムを2行に分けても解は変わらず、
  * 「追加したのに何も起きない」ように見えるだけなので重複は作らせない）。
  * key は行の同一性（アイテムを入れ替えても入力欄が作り直されないように）。
  */
 export type TargetEntry = {
+  key: string
+  item: string
+  ratePerMin: number
+  /** 省略時は 'rate'。最大化中も ratePerMin は保持する（切り戻したとき元に戻る） */
+  mode?: TargetMode
+}
+
+/**
+ * 既に手元にある / 別工場から供給されるアイテムの1行。
+ * 目標産出と同じく1アイテム1行。ソルバーにはコスト0の外部供給として渡る。
+ */
+export type InputEntry = {
   key: string
   item: string
   ratePerMin: number
@@ -83,6 +102,8 @@ export type SolveStatus = 'idle' | 'solving' | 'done' | 'error'
 
 export type PlannerState = {
   targets: TargetEntry[]
+  /** 既に持っているアイテム（コスト0で投入できる） */
+  inputs: InputEntry[]
   /** 有効にした代替レシピID */
   enabledAlternates: Record<string, true>
   /** 原料上限の上書き（未指定の原料はマップ上限のまま）。null = 無制限 */
@@ -112,6 +133,15 @@ export type PlannerState = {
   addTarget: (item: string, ratePerMin?: number) => string
   updateTarget: (key: string, patch: Partial<Omit<TargetEntry, 'key'>>) => void
   removeTarget: (key: string) => void
+  /**
+   * 目標行の指定方法を切り替える。
+   * 'max' にできるのは1行だけなので、他の行は 'rate' に戻す。
+   */
+  setTargetMode: (key: string, mode: TargetMode) => void
+  /** 既保有アイテムを1行追加する（追加済みなら既存行の key を返す）。 */
+  addInput: (item: string, ratePerMin?: number) => string
+  updateInput: (key: string, patch: Partial<Omit<InputEntry, 'key'>>) => void
+  removeInput: (key: string) => void
   setAlternate: (recipeId: string, enabled: boolean) => void
   setAllAlternates: (enabled: boolean) => void
   setLimitOverride: (item: string, limit: number | null | undefined) => void
@@ -138,18 +168,34 @@ const nextKey = (): string => `t${++keySeq}`
  * 復元した目標産出を1アイテム1行に正規化する。
  * UI からは重複を作れないが、共有URL・保存プランには古いデータや手書きの
  * データが入りうる。後勝ちで捨てるとレートを取りこぼすので合算してまとめる。
+ * 最大化の指定も1行だけに絞る（先に出てきたものを採用）。
  */
 function mergeTargetEntries(
-  entries: readonly { item: string; ratePerMin: number }[],
+  entries: readonly { item: string; ratePerMin: number; mode?: TargetMode }[],
 ): TargetEntry[] {
   const byItem = new Map<string, TargetEntry>()
+  let maxTaken = false
   for (const t of entries) {
+    const mode: TargetMode = t.mode === 'max' && !maxTaken ? 'max' : 'rate'
+    if (mode === 'max') maxTaken = true
     const found = byItem.get(t.item)
     if (found === undefined) {
-      byItem.set(t.item, { key: nextKey(), item: t.item, ratePerMin: t.ratePerMin })
+      byItem.set(t.item, { key: nextKey(), item: t.item, ratePerMin: t.ratePerMin, mode })
     } else {
       found.ratePerMin += t.ratePerMin
+      if (mode === 'max') found.mode = 'max'
     }
+  }
+  return [...byItem.values()]
+}
+
+/** 既保有アイテムも1アイテム1行に正規化する（重複はレートを合算）。 */
+function mergeInputEntries(entries: readonly { item: string; ratePerMin: number }[]): InputEntry[] {
+  const byItem = new Map<string, InputEntry>()
+  for (const i of entries) {
+    const found = byItem.get(i.item)
+    if (found === undefined) byItem.set(i.item, { key: nextKey(), item: i.item, ratePerMin: i.ratePerMin })
+    else found.ratePerMin += i.ratePerMin
   }
   return [...byItem.values()]
 }
@@ -157,12 +203,20 @@ function mergeTargetEntries(
 /** 現在の入力から SolveInput を組み立てる（テストから検証できるよう export）。 */
 export function toSolveInput(state: PlannerState): SolveInput {
   const preset = objectivePresetById.get(state.objective) ?? OBJECTIVE_PRESETS[0]
+  const maximize = state.targets.find((t) => t.mode === 'max' && t.item)?.item
+  const inputs: Record<string, number> = {}
+  for (const i of state.inputs) {
+    if (!i.item || !(i.ratePerMin > 0)) continue
+    inputs[i.item] = (inputs[i.item] ?? 0) + i.ratePerMin
+  }
   return {
     targets: state.targets
-      .filter((t) => t.item && t.ratePerMin > 0)
+      .filter((t) => t.item && t.ratePerMin > 0 && t.mode !== 'max')
       .map((t) => ({ item: t.item, ratePerMin: t.ratePerMin })),
+    ...(maximize === undefined ? {} : { maximize }),
     enabledRecipes: [...baseRecipeIds, ...Object.keys(state.enabledAlternates)],
     resourceLimits: state.limitOverrides,
+    inputs,
     weights: preset.weights,
   }
 }
@@ -202,6 +256,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
 
   return {
     targets: [],
+    inputs: [],
     enabledAlternates: {},
     limitOverrides: {},
     objective: 'resources',
@@ -231,6 +286,27 @@ export const usePlanner = create<PlannerState>((set, get) => {
       }),
 
     removeTarget: (key) => change({ targets: get().targets.filter((t) => t.key !== key) }),
+
+    setTargetMode: (key, mode) =>
+      change({
+        targets: get().targets.map((t) =>
+          // 最大化は同時に1つだけ。他の行は自動でレート指定に戻す
+          t.key === key ? { ...t, mode } : mode === 'max' ? { ...t, mode: 'rate' } : t,
+        ),
+      }),
+
+    addInput: (item, ratePerMin = 60) => {
+      const existing = get().inputs.find((i) => i.item === item)
+      if (existing !== undefined) return existing.key
+      const key = nextKey()
+      change({ inputs: [...get().inputs, { key, item, ratePerMin }] })
+      return key
+    },
+
+    updateInput: (key, patch) =>
+      change({ inputs: get().inputs.map((i) => (i.key === key ? { ...i, ...patch } : i)) }),
+
+    removeInput: (key) => change({ inputs: get().inputs.filter((i) => i.key !== key) }),
 
     setAlternate: (recipeId, enabled) => {
       const next = { ...get().enabledAlternates }
@@ -267,6 +343,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
     applyPlan: (input) =>
       change({
         targets: mergeTargetEntries(input.targets),
+        inputs: mergeInputEntries(input.inputs ?? []),
         enabledAlternates: { ...input.enabledAlternates },
         limitOverrides: { ...input.limitOverrides },
         objective: input.objective,
@@ -279,7 +356,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
     recompute: async () => {
       const state = get()
       const input = toSolveInput(state)
-      if (input.targets.length === 0) {
+      if (input.targets.length === 0 && input.maximize === undefined) {
         set({ status: 'idle', result: null, extraction: null, error: null, elapsedMs: 0 })
         return
       }

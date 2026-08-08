@@ -60,6 +60,7 @@ afterEach(async () => {
   // 復元テストの入力を次のテストに残さない（残すと裏で求解が走る）
   usePlanner.setState({
     targets: [],
+    inputs: [],
     enabledAlternates: {},
     limitOverrides: {},
     objective: 'resources',
@@ -138,6 +139,33 @@ const solution: Solution = {
   totalBuildCost: [{ item: 'Desc_IronPlate_C', amount: 30 }],
   sinkPointsPerMin: 120,
   objectiveValue: 90,
+}
+
+/** 鉄板を最大化し、鉄インゴットを持ち込んだ解（表示だけを見るための最小フィクスチャ）。 */
+const maximized: Solution = {
+  ...solution,
+  targets: [
+    { item: 'Desc_IronPlate_C', requestedPerMin: 1234.56, producedPerMin: 1234.56, maximized: true },
+  ],
+  maximizedOutput: { item: 'Desc_IronPlate_C', ratePerMin: 1234.56 },
+  externalInputs: [
+    { item: 'Desc_IronIngot_C', ratePerMin: 90, availablePerMin: 200 },
+    { item: 'Desc_Cable_C', ratePerMin: 0, availablePerMin: 10 },
+  ],
+}
+
+const unboundedMaximize: InfeasibleResult = {
+  status: 'infeasible',
+  reasons: [
+    {
+      kind: 'unbounded',
+      item: 'Desc_Water_C',
+      message: '水 は原料上限が効いていないため最大化できません（上限のない資源だけでいくらでも作れる構成です）',
+      advice:
+        'サイドバーの「原料上限」で上限のない原料（水など）に上限を入れるか、レート指定に切り替えてください。',
+    },
+  ],
+  message: 'この条件では生産できません。',
 }
 
 const infeasible: InfeasibleResult = {
@@ -253,6 +281,55 @@ describe('画面の骨格', () => {
     // 検索欄はクリアされ、候補は閉じている
     expect(search.value).toBe('')
     expect(container.querySelector('.suggestions')).toBeNull()
+  })
+
+  it('目標行を最大化に切り替えるとレート入力が「作れるだけ」に変わる', async () => {
+    const container = await render(<App />)
+    const search = container.querySelectorAll<HTMLInputElement>('input[type="search"]')[0]!
+    await act(async () => {
+      typeInto(search, '鉄板')
+    })
+    const option = [...container.querySelectorAll<HTMLButtonElement>('.suggestions__item')].find(
+      (b) => b.querySelector('span')?.textContent === '鉄板',
+    )!
+    await act(async () => {
+      option.click()
+    })
+
+    const checkbox = container.querySelector<HTMLInputElement>('.target__mode input')!
+    expect(checkbox.checked).toBe(false)
+    await act(async () => {
+      checkbox.click()
+    })
+
+    expect(usePlanner.getState().targets[0].mode).toBe('max')
+    expect(container.querySelector('.target--max')).not.toBeNull()
+    // 数値入力は消えて「作れるだけ」の表示になる
+    expect(container.querySelector('.target .input--num')).toBeNull()
+    expect(container.textContent).toContain('作れるだけ')
+  })
+
+  it('サイドバーから既にあるアイテムを追加できる', async () => {
+    const container = await render(<App />)
+    expect(container.textContent).toContain('既にあるアイテム')
+
+    // 2つ目の検索欄が既保有アイテム用（1つ目は目標産出）
+    const searches = container.querySelectorAll<HTMLInputElement>('input[type="search"]')
+    expect(searches.length).toBeGreaterThanOrEqual(2)
+    await act(async () => {
+      typeInto(searches[1]!, '鉄のインゴット')
+    })
+    const option = [...container.querySelectorAll<HTMLButtonElement>('.suggestions__item')].find(
+      (b) => b.querySelector('span')?.textContent === '鉄のインゴット',
+    )!
+    await act(async () => {
+      option.click()
+    })
+
+    expect(usePlanner.getState().inputs.map((i) => i.item)).toEqual(['Desc_IronIngot_C'])
+    expect(container.querySelectorAll('.stock')).toHaveLength(1)
+    // 目標産出の行は増えない
+    expect(container.querySelectorAll('.target')).toHaveLength(0)
   })
 })
 
@@ -406,6 +483,33 @@ describe('結果テーブル', () => {
         extraction: previous.extraction,
       })
     }
+  })
+
+  it('最大化した目標はサマリーで達成レートが分かる', async () => {
+    const container = await render(<SummaryPanel solution={maximized} extraction={null} />)
+    const text = container.textContent ?? ''
+    // 「最大 1,234.56 個/分」相当の一文と、表の要求欄のラベル
+    expect(text).toContain('1,234.56')
+    expect(text).toContain('鉄板 は最大')
+    expect(text).toContain('最大化')
+  })
+
+  it('既保有アイテムは投入量と使用量が並び、未使用が分かる', async () => {
+    const container = await render(<SummaryPanel solution={maximized} extraction={null} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('既保有アイテムの投入')
+    expect(text).toContain('200.00') // 投入
+    expect(text).toContain('90.00') // 使用
+    expect(text).toContain('未使用') // 使われなかった行はラベルで示す
+  })
+
+  it('最大化が非有界のときは専用の対処が出る', async () => {
+    const container = await render(<InfeasiblePanel result={unboundedMaximize} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('最大化できません')
+    expect(text).toContain('原料上限')
+    // 汎用の「目的関数の重みを見直してください。」ではなく個別の対処に差し替わる
+    expect(text).not.toContain('重みを見直して')
   })
 
   it('実行不能のときは原因と対処が日本語で出る', async () => {

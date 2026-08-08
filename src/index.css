@@ -18,6 +18,9 @@
   --surplus-weak: rgba(111, 183, 242, 0.14);
   --shortage: #f0757f;
   --shortage-weak: rgba(240, 117, 127, 0.14);
+  /* 既保有アイテム（外部からの持ち込み）。原料供給の青と取り違えない色 */
+  --external: #a78bfa;
+  --external-weak: rgba(167, 139, 250, 0.14);
 
   --space: 8px;
   --radius: 6px;
@@ -231,4 +234,11 @@ ul {
 .tag.is-shortage {
   background: var(--shortage-weak);
   border-color: var(--shortage);
+}
+
+/* 産出最大化など「いま効いている指定」を示す */
+.tag.is-accent {
+  color: var(--accent);
+  background: var(--accent-weak);
+  border-color: var(--accent);
 }

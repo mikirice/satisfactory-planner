@@ -367,6 +367,143 @@ describe('原料上限と実行不能診断', () => {
     expect(rateOf(withInput.rawResources, 'Desc_OreIron_C')).toBeCloseTo(45, 6)
     expect(machines(withInput).get('Recipe_IngotIron_C')).toBeCloseTo(1.5, 6)
   })
+
+  it('既保有アイテムは「投入量」と「実際に使われた量」の両方が結果に出る', async () => {
+    const solution = await solveOk({
+      targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+      // 鉄インゴットは 90/min しか要らない。ケーブルはこの計画では使い道がない
+      inputs: { Desc_IronIngot_C: 200, Desc_Cable_C: 10 },
+    })
+
+    const ingot = solution.externalInputs.find((e) => e.item === 'Desc_IronIngot_C')!
+    expect(ingot.availablePerMin).toBe(200)
+    expect(ingot.ratePerMin).toBeCloseTo(90, 6) // 全量は使わない
+    // 鉄鉱石は 1 も要らなくなる
+    expect(rateOf(solution.rawResources, 'Desc_OreIron_C')).toBeCloseTo(0, 6)
+
+    // 使われなかった持ち込みも 0 として残す（入れたのに使われていないと分かるように）
+    const cable = solution.externalInputs.find((e) => e.item === 'Desc_Cable_C')!
+    expect(cable.availablePerMin).toBe(10)
+    expect(cable.ratePerMin).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 産出最大化モード
+// ---------------------------------------------------------------------------
+
+describe('産出最大化', () => {
+  /** 鉄鉱石だけから鉄板を作る最小構成（手計算しやすいようレシピを絞る） */
+  const IRON_PLATE_RECIPES = ['Recipe_IngotIron_C', 'Recipe_IronPlate_C']
+
+  it('鉄鉱石の上限が最大産出を決める（90/min の鉄鉱石 → 鉄板 60/min）', async () => {
+    // 鉄鉱石 90/min → 鉄インゴット 90/min → 鉄板 60/min（3 インゴット → 2 鉄板）
+    const solution = await solveOk({
+      targets: [],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: IRON_PLATE_RECIPES,
+      resourceLimits: { Desc_OreIron_C: 90 },
+    })
+
+    expect(solution.maximizedOutput).toBeDefined()
+    expect(solution.maximizedOutput!.item).toBe('Desc_IronPlate_C')
+    expect(solution.maximizedOutput!.ratePerMin).toBeCloseTo(60, 4)
+
+    const m = machines(solution)
+    expect(m.get('Recipe_IngotIron_C')).toBeCloseTo(3, 4)
+    expect(m.get('Recipe_IronPlate_C')).toBeCloseTo(3, 4)
+    expect(rateOf(solution.rawResources, 'Desc_OreIron_C')).toBeCloseTo(90, 4)
+
+    // 目標一覧では「最大化した行」と分かる
+    expect(solution.targets).toHaveLength(1)
+    expect(solution.targets[0].maximized).toBe(true)
+    expect(solution.targets[0].requestedPerMin).toBeCloseTo(60, 4)
+  })
+
+  it('上限を2倍にすると最大産出も2倍になる', async () => {
+    const doubled = await solveOk({
+      targets: [],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: IRON_PLATE_RECIPES,
+      resourceLimits: { Desc_OreIron_C: 180 },
+    })
+    expect(doubled.maximizedOutput!.ratePerMin).toBeCloseTo(120, 4)
+  })
+
+  it('他のレート指定の目標は制約として守られる（残りで最大化する）', async () => {
+    // 鉄鉱石 120 → インゴット 120。ロッド 30/min に 30 使い、残り 90 で鉄板 60/min
+    const solution = await solveOk({
+      targets: [{ item: 'Desc_IronRod_C', ratePerMin: 30 }],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: [...IRON_PLATE_RECIPES, 'Recipe_IronRod_C'],
+      resourceLimits: { Desc_OreIron_C: 120 },
+    })
+    expect(solution.maximizedOutput!.ratePerMin).toBeCloseTo(60, 4)
+    const rod = solution.targets.find((t) => t.item === 'Desc_IronRod_C')!
+    expect(rod.producedPerMin).toBeCloseTo(30, 4)
+    expect(rod.maximized).toBeUndefined()
+  })
+
+  it('同じアイテムのレート指定は最大化に吸収される（二重に数えない）', async () => {
+    const solution = await solveOk({
+      targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 10 }],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: IRON_PLATE_RECIPES,
+      resourceLimits: { Desc_OreIron_C: 90 },
+    })
+    expect(solution.targets).toHaveLength(1)
+    expect(solution.maximizedOutput!.ratePerMin).toBeCloseTo(60, 4)
+  })
+
+  it('上限のない資源だけで作れるものは非有界として弾く（水）', async () => {
+    const result = await solveProduction({ targets: [], maximize: 'Desc_Water_C' })
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.reasons).toHaveLength(1)
+    expect(result.reasons[0].kind).toBe('unbounded')
+    expect(result.reasons[0].message).toContain('最大化できません')
+    expect(result.message).toContain('水')
+  })
+
+  it('原料上限を入れれば非有界にならない（水 600/min → 600/min）', async () => {
+    const solution = await solveOk({
+      targets: [],
+      maximize: 'Desc_Water_C',
+      resourceLimits: { Desc_Water_C: 600 },
+    })
+    expect(solution.maximizedOutput!.ratePerMin).toBeCloseTo(600, 3)
+  })
+
+  it('他の目標が実行不能なら、その原因を返す（最大化の前に弾く）', async () => {
+    const result = await solveProduction({
+      targets: [{ item: 'Desc_IronRod_C', ratePerMin: 1000 }],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: [...IRON_PLATE_RECIPES, 'Recipe_IronRod_C'],
+      resourceLimits: { Desc_OreIron_C: 90 },
+    })
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.reasons.some((r) => r.kind === 'resourceLimit')).toBe(true)
+    expect(result.message).toContain('鉄鉱石')
+  })
+
+  it('1 も作れないなら実行不能として理由を返す', async () => {
+    const result = await solveProduction({
+      targets: [],
+      maximize: 'Desc_IronPlate_C',
+      enabledRecipes: IRON_PLATE_RECIPES,
+      resourceLimits: { Desc_OreIron_C: 0 },
+    })
+    expect(result.status).toBe('infeasible')
+    if (result.status !== 'infeasible') return
+    expect(result.reasons[0].kind).toBe('unproducibleItem')
+  })
+
+  it('存在しないアイテムの最大化は例外にする', async () => {
+    await expect(solveProduction({ targets: [], maximize: 'Desc_Nope_C' })).rejects.toThrow(
+      /unknown item/,
+    )
+  })
 })
 
 // ---------------------------------------------------------------------------

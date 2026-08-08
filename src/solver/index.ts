@@ -15,6 +15,7 @@ export {
   SCARCITY_REFERENCE_RATE,
   buildProductionModel,
   defaultEnabledRecipeIds,
+  maximizeVarKey,
   netRatePerMin,
   recipePowerMW,
   resolveResourceWeights,
@@ -58,6 +59,7 @@ export { writeLpFormat } from './lp.ts'
 export type { LpBackend, LpConstraint, LpModel, LpResult, LpStatus, LpVariable } from './lp.ts'
 
 export type {
+  ExternalInputUsage,
   InfeasibleReason,
   InfeasibleResult,
   ItemBalance,

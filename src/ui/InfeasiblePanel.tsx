@@ -17,7 +17,10 @@ export function InfeasiblePanel({ result }: Props) {
             <div className="reason__body">
               <p className="reason__message">{reason.message}</p>
               {detail(reason)}
-              <p className="reason__advice">{T.infeasible.advice[reason.kind]}</p>
+              {/* 原因ごとの個別の対処があればそれを優先する（例: 産出最大化が非有界） */}
+              <p className="reason__advice">
+                {('advice' in reason && reason.advice) || T.infeasible.advice[reason.kind]}
+              </p>
             </div>
           </li>
         ))}

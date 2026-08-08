@@ -148,6 +148,12 @@ export default function FlowChart({ solution, beltId, pipeId }: Props) {
               />
               {T.flow.legendBottleneck}
             </li>
+            {graph.nodes.some((n) => n.kind === 'source' && n.external) && (
+              <li>
+                <span className="flow-legend__swatch flow-legend__swatch--external" aria-hidden="true" />
+                {T.flow.legendExternal}
+              </li>
+            )}
           </ul>
         </Panel>
         <Panel position="top-right" className="flow-stats">
@@ -167,11 +173,12 @@ export default function FlowChart({ solution, beltId, pipeId }: Props) {
 // カスタムノード
 // ---------------------------------------------------------------------------
 
-/** 原料供給（採掘 / 持ち込み）。 */
+/** 原料供給（採掘 / 既保有アイテムの持ち込み）。 */
 function SourceNode({ data }: NodeProps<SourceFlowNode>) {
   const node = data.node
+  // 既保有は採掘と意味が違う（マップの上限に関係しない）ので枠の色と種別ラベルで分ける
   return (
-    <div className="flow-node flow-node--source">
+    <div className={`flow-node ${node.external ? 'flow-node--external' : 'flow-node--source'}`}>
       <p className="flow-node__kind">
         <ItemIcon id={node.item} name={node.itemNameJa} size={NODE_METRICS.iconSize} />
         <span>{node.external ? T.flow.external : T.flow.source}</span>

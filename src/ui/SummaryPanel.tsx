@@ -20,6 +20,15 @@ export function SummaryPanel({ solution, extraction }: Props) {
     <div className="cards">
       <section className="card">
         <h3 className="card__title">{T.summary.targets}</h3>
+        {solution.maximizedOutput && (
+          <p className="callout callout--accent">
+            {T.summary.maximizedResult(
+              itemName(solution.maximizedOutput.item),
+              fmtRate(solution.maximizedOutput.ratePerMin),
+              itemUnit(solution.maximizedOutput.item),
+            )}
+          </p>
+        )}
         <table className="table">
           <thead>
             <tr>
@@ -32,7 +41,13 @@ export function SummaryPanel({ solution, extraction }: Props) {
             {solution.targets.map((target) => (
               <tr key={target.item}>
                 <th scope="row">{itemName(target.item)}</th>
-                <td className="num">{fmtRate(target.requestedPerMin)}</td>
+                <td className="num">
+                  {target.maximized ? (
+                    <span className="tag is-accent">{T.summary.maximized}</span>
+                  ) : (
+                    fmtRate(target.requestedPerMin)
+                  )}
+                </td>
                 <td className="num">{fmtRate(target.producedPerMin)}</td>
               </tr>
             ))}
@@ -125,11 +140,28 @@ export function SummaryPanel({ solution, extraction }: Props) {
         <section className="card">
           <h3 className="card__title">{T.summary.externalInputs}</h3>
           <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">{T.balance.item}</th>
+                <th scope="col" className="num">{T.summary.externalInputsAvailable}</th>
+                <th scope="col" className="num">{T.summary.externalInputsUsed}</th>
+                <th scope="col">{T.balance.state}</th>
+              </tr>
+            </thead>
             <tbody>
+              {/* 全量が使われるとは限らないので「投入 / 使用」を並べて出す */}
               {solution.externalInputs.map((input) => (
                 <tr key={input.item}>
                   <th scope="row">{itemName(input.item)}</th>
+                  <td className="num">{fmtRate(input.availablePerMin)}</td>
                   <td className="num">{fmtRate(input.ratePerMin)}</td>
+                  <td>
+                    {input.ratePerMin <= 0 ? (
+                      <span className="tag is-balanced">{T.summary.externalInputsUnused}</span>
+                    ) : (
+                      <span className="unit-cell">{itemUnit(input.item)}</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

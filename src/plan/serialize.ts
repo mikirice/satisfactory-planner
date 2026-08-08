@@ -15,10 +15,20 @@ import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from
 
 import { belts, itemsById, pipes, recipesById } from '../data/index.ts'
 import { DEFAULT_MINER_ID, MINER_IDS } from '../solver/index.ts'
-import type { ObjectivePresetId, TargetEntry } from '../store/planner.ts'
+import type { InputEntry, ObjectivePresetId, TargetEntry, TargetMode } from '../store/planner.ts'
 
-/** スキーマ版。互換を壊す変更をしたら上げる（読み込み側は一致のみ受け入れる）。 */
-export const PLAN_SCHEMA_VERSION = 1
+/**
+ * スキーマ版。書き出しは常に最新版。
+ * v1 … 初版
+ * v2 … 産出最大化（x）と既保有アイテムの投入（i）を追加。どちらも省略可なので v1 も読める
+ */
+export const PLAN_SCHEMA_VERSION = 2
+
+/**
+ * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
+ * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
+ */
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -31,6 +41,10 @@ export type PlanSnapshot = {
   n: string
   /** targets: [itemId, ratePerMin][] */
   t: [string, number][]
+  /** maximize: 産出を最大化する itemId（v2〜。指定なしなら省略） */
+  x?: string
+  /** inputs: 既保有アイテム [itemId, ratePerMin][]（v2〜。空なら省略） */
+  i?: [string, number][]
   /** enabled alternate recipe ids */
   a: string[]
   /** resource limit overrides（null = 無制限） */
@@ -47,7 +61,8 @@ export type PlanSnapshot = {
 
 /** 復元して store に流し込む形（TargetEntry の key は store 側で採番する）。 */
 export type PlanInput = {
-  targets: { item: string; ratePerMin: number }[]
+  targets: { item: string; ratePerMin: number; mode?: TargetMode }[]
+  inputs: { item: string; ratePerMin: number }[]
   enabledAlternates: Record<string, true>
   limitOverrides: Record<string, number | null>
   objective: ObjectivePresetId
@@ -60,6 +75,8 @@ export type PlanInput = {
 /** シリアライズ対象になる store の部分集合（store 全体に依存しないための型）。 */
 export type PlanSource = {
   targets: TargetEntry[]
+  /** 既保有アイテム（v1 のデータには無いので省略可。key は保存に使わない） */
+  inputs?: readonly Omit<InputEntry, 'key'>[]
   enabledAlternates: Record<string, true>
   limitOverrides: Record<string, number | null>
   objective: ObjectivePresetId
@@ -84,12 +101,21 @@ const minerIds = new Set<string>(MINER_IDS)
 
 /** 現在の入力から保存形式を作る。 */
 export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
+  const maximize = state.targets.find((t) => t.mode === 'max' && t.item !== '')?.item
+  const inputs = (state.inputs ?? []).filter(
+    (i) => i.item !== '' && Number.isFinite(i.ratePerMin),
+  )
   return {
     v: PLAN_SCHEMA_VERSION,
     n: state.planName,
     t: state.targets
       .filter((t) => t.item !== '' && Number.isFinite(t.ratePerMin))
       .map((t) => [t.item, t.ratePerMin]),
+    // 既定（最大化なし・持ち込みなし）ならキーごと省略して共有URLを短く保つ
+    ...(maximize === undefined ? {} : { x: maximize }),
+    ...(inputs.length === 0
+      ? {}
+      : { i: inputs.map((i): [string, number] => [i.item, i.ratePerMin]) }),
     a: Object.keys(state.enabledAlternates).sort(),
     l: { ...state.limitOverrides },
     o: state.objective,
@@ -103,6 +129,7 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
 export function defaultPlanInput(): PlanInput {
   return {
     targets: [],
+    inputs: [],
     enabledAlternates: {},
     limitOverrides: {},
     objective: DEFAULT_OBJECTIVE,
@@ -127,7 +154,7 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
   if (typeof raw.v !== 'number' || !Number.isInteger(raw.v)) {
     return { ok: false, error: 'プランのバージョンがありません' }
   }
-  if (raw.v !== PLAN_SCHEMA_VERSION) {
+  if (!SUPPORTED_SCHEMA_VERSIONS.includes(raw.v)) {
     return {
       ok: false,
       error: `対応していないプランのバージョンです（v${raw.v} / 対応 v${PLAN_SCHEMA_VERSION}）`,
@@ -164,6 +191,46 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
       continue
     }
     input.targets.push({ item, ratePerMin: rate })
+  }
+
+  // 産出最大化（v2〜）。対象は目標一覧にある行でなければならない
+  if (typeof raw.x === 'string' && raw.x !== '') {
+    const row = input.targets.find((t) => t.item === raw.x)
+    if (row === undefined) {
+      warnings.push(`最大化の対象「${itemLabel(raw.x)}」が目標に無いので無視しました`)
+    } else {
+      row.mode = 'max'
+    }
+  } else if (raw.x !== undefined) {
+    warnings.push('最大化の対象が不正なので無視しました')
+  }
+
+  // 既保有アイテム（v2〜）
+  if (Array.isArray(raw.i)) {
+    for (const entry of raw.i) {
+      if (!Array.isArray(entry) || entry.length < 2) {
+        warnings.push('読み取れない既保有アイテムの行を1件無視しました')
+        continue
+      }
+      const [item, rate] = entry as [unknown, unknown]
+      if (typeof item !== 'string' || !itemsById.has(item)) {
+        warnings.push(`存在しないアイテム「${String(item)}」の既保有を無視しました`)
+        continue
+      }
+      if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0) {
+        warnings.push(`${itemLabel(item)} の既保有レートが不正なので無視しました`)
+        continue
+      }
+      const duplicate = input.inputs.find((i) => i.item === item)
+      if (duplicate !== undefined) {
+        duplicate.ratePerMin += rate
+        warnings.push(`${itemLabel(item)} の既保有が重複していたので合算しました`)
+        continue
+      }
+      input.inputs.push({ item, ratePerMin: rate })
+    }
+  } else if (raw.i !== undefined) {
+    warnings.push('既保有アイテムのデータが不正なので無視しました')
   }
 
   for (const id of raw.a) {

@@ -12,6 +12,9 @@
  *   目的関数（最小化）
  *     w_res·Σ_i (資源重み_i · s_i) + w_pow·Σ_r (電力_r · x_r) + w_bld·Σ_r x_r + ε·Σ_r x_r
  *
+ * 産出最大化モード（options.maximize）ではこの目的関数を差し替え、
+ * 「対象アイテムを系の外へ取り出す量 y」の最大化だけを解く（詳細は BuildModelOptions）。
+ *
  * 末尾の ε 項は「正味ゼロのまま無限に回り続ける循環」を潰すための保険。
  * リサイクル・プラスチック/ゴムのループは燃料を消費するので本来は有界だが、
  * 一般には目的関数に現れない退化した循環がありうるため常に入れている。
@@ -43,6 +46,8 @@ export const recipeVarKey = (recipeId: string): string => `x:${recipeId}`
 export const supplyVarKey = (itemId: string): string => `s:${itemId}`
 /** ユーザーが持ち込むアイテムの供給変数 */
 export const inputVarKey = (itemId: string): string => `i:${itemId}`
+/** 産出最大化モードで「取り出す量」を表す変数（これを最大化する） */
+export const maximizeVarKey = (itemId: string): string => `y:${itemId}`
 /** 実行不能診断で使う「上限を超えた分」の変数（供給変数キーから作る） */
 export const overflowVarKey = (supplyKey: string): string => `o:${supplyKey}`
 
@@ -149,6 +154,20 @@ export type BuildModelOptions = {
    * 目的関数をその合計の最小化に置き換える（元の目的は ε 項だけ残す）。
    */
   elastic?: boolean
+  /**
+   * 産出最大化モード（Item.id）。目的関数を
+   * 「そのアイテムの正味産出（取り出し変数 y）の最大化」だけに差し替える。
+   *
+   * - 他の重み・ε はすべて 0 にする。max 方向で ε を残すと「回すほど得」になり、
+   *   退化した循環が無限に伸びてしまうため（ε は min 方向でのみ意味がある）。
+   * - 目的関数が y だけなので、退化した循環があっても最適値 y* は正しく求まる。
+   *   実際の構成（どのレシピを何台回すか）は、y* を目標レートにした
+   *   通常の最小化モデルで解き直して決める（solve.ts の2フェーズ）。
+   *
+   * 入力側の `SolveInput.maximize` はここでは見ない（フェーズの切り替えは
+   * 呼び出し側が明示する）。
+   */
+  maximize?: string
 }
 
 export function buildProductionModel(input: SolveInput, options: BuildModelOptions = {}): ProductionModel {
@@ -214,14 +233,23 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     targets.set(t.item, (targets.get(t.item) ?? 0) + t.ratePerMin)
   }
 
+  // --- 最大化対象 -----------------------------------------------------------
+  const maximize = options.maximize
+  if (maximize !== undefined && !itemsById.has(maximize)) {
+    throw new Error(`unknown item id in maximize: ${maximize}`)
+  }
+
   // --- 変数 -----------------------------------------------------------------
   const variables: LpVariable[] = []
   for (const recipe of recipes) {
     const building = buildingsById.get(recipe.producedIn)
     if (!building) throw new Error(`recipe ${recipe.id} has unknown building ${recipe.producedIn}`)
-    const objective = options.elastic
-      ? epsilon
-      : weights.power * recipePowerMW(recipe, building) + weights.buildings + epsilon
+    const objective =
+      maximize !== undefined
+        ? 0
+        : options.elastic
+          ? epsilon
+          : weights.power * recipePowerMW(recipe, building) + weights.buildings + epsilon
     variables.push({ key: recipeVarKey(recipe.id), objective })
   }
   for (const supply of supplies) {
@@ -229,13 +257,18 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     // 退化解」を避けるため。重み1.0の鉄鉱石に対して 1e-6 なので解の選択には影響しない。
     variables.push({
       key: supply.key,
-      objective: (options.elastic ? 0 : weights.resources * supply.weight) + epsilon,
+      objective:
+        maximize !== undefined ? 0 : (options.elastic ? 0 : weights.resources * supply.weight) + epsilon,
       upper: supply.limit === null ? Number.POSITIVE_INFINITY : supply.limit,
     })
     if (options.elastic && supply.limit !== null) {
       // 上限を超えて供給できる「架空の」変数。これが正なら上限が原因で解けていない
       variables.push({ key: overflowVarKey(supply.key), objective: 1 })
     }
+  }
+  if (maximize !== undefined) {
+    // 「系の外へ取り出す量」。収支の行から引くので y <= 正味産出 になる
+    variables.push({ key: maximizeVarKey(maximize), objective: 1 })
   }
 
   // --- 制約（アイテムごとの収支） -------------------------------------------
@@ -265,6 +298,7 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     }
   }
   for (const itemId of targets.keys()) rowFor(itemId)
+  if (maximize !== undefined) rowFor(maximize).set(maximizeVarKey(maximize), -1)
 
   const constraints: LpConstraint[] = []
   for (const [itemId, coefficients] of [...rows].sort(([a], [b]) => a.localeCompare(b))) {
@@ -276,7 +310,7 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   }
 
   return {
-    lp: { direction: 'min', variables, constraints },
+    lp: { direction: maximize === undefined ? 'min' : 'max', variables, constraints },
     recipes,
     supplies,
     limits,

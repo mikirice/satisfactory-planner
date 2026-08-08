@@ -40,6 +40,15 @@ export type SolveInput = {
   /** 目標産出。複数指定可 */
   targets: readonly TargetRate[]
   /**
+   * 産出を最大化するアイテム（Item.id）。**同時に1つだけ**。
+   * targets の各レートは制約として満たしたうえで、このアイテムの産出を最大にする。
+   * 同じアイテムが targets にもあれば、そのレート指定は無視する（最大化が上位）。
+   *
+   * 上限のない資源（水など）だけで作れる構成を最大化すると解が無限大になるため、
+   * その場合は status:'infeasible' / kind:'unbounded' を返す。
+   */
+  maximize?: string
+  /**
    * 使用を許可するレシピID。
    * 未指定なら「代替レシピを除く全レシピ」（isAlternate === false）。
    */
@@ -125,14 +134,29 @@ export type TargetResult = {
   item: string
   requestedPerMin: number
   producedPerMin: number
+  /**
+   * 産出最大化モードで最大化したアイテムか。
+   * true のとき requestedPerMin は「達成できた最大レート」（＝ producedPerMin）を指す。
+   */
+  maximized?: boolean
+}
+
+/** SolveInput.inputs で持ち込んだアイテムの供給量と、そのうち実際に使われた量。 */
+export type ExternalInputUsage = ItemRate & {
+  /** 使えるものとして指定した量（SolveInput.inputs の値） */
+  availablePerMin: number
 }
 
 export type Solution = {
   status: 'optimal'
   steps: SolutionStep[]
   rawResources: RawResourceUsage[]
-  /** SolveInput.inputs で持ち込んだアイテムのうち、実際に使われた分 */
-  externalInputs: ItemRate[]
+  /**
+   * SolveInput.inputs で持ち込んだアイテム。ratePerMin は実際に使われた分で、
+   * availablePerMin が指定量。**使われなかった（0 の）行も残す**
+   * （「入れたのに使われていない」ことが分かるようにするため）。
+   */
+  externalInputs: ExternalInputUsage[]
   /** 目標産出ではないが余っているアイテム（原料・持ち込み分の余りは含まない） */
   byproducts: ItemRate[]
   targets: TargetResult[]
@@ -149,6 +173,11 @@ export type Solution = {
   sinkPointsPerMin: number
   /** 目的関数値（重み次第で意味が変わるのでデバッグ用） */
   objectiveValue: number
+  /**
+   * 産出最大化モードのときだけ入る。最大化したアイテムと、その達成レート。
+   * 通常のレート指定だけの解では undefined。
+   */
+  maximizedOutput?: ItemRate
 }
 
 export type InfeasibleReason =
@@ -167,7 +196,11 @@ export type InfeasibleReason =
     }
   | {
       kind: 'unbounded'
+      /** 最大化しようとしたアイテム（産出最大化モードのとき） */
+      item?: string
       message: string
+      /** この原因に固有の対処。未指定なら UI 側の既定文を使う */
+      advice?: string
     }
   | {
       kind: 'solverError'

@@ -106,6 +106,29 @@ describe('鉄板ケース', () => {
   })
 })
 
+describe('既保有アイテムの持ち込み', () => {
+  it('原料供給とは別のノードになり、使われなかった分はノードを作らない', async () => {
+    const solution = await solveOk({
+      targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+      inputs: { Desc_IronIngot_C: 200, Desc_Cable_C: 10 },
+    })
+    const graph = buildPlanGraph(solution)
+    const sources = graph.nodes.filter((n) => n.kind === 'source')
+
+    // 鉄インゴットは持ち込みでまかなえるので、原料（鉄鉱石）の採掘ノードは出ない
+    expect(sources.map((n) => n.id)).toEqual(['external:Desc_IronIngot_C'])
+    expect(sources[0]?.kind === 'source' && sources[0].external).toBe(true)
+    expect(sources[0]?.kind === 'source' && sources[0].ratePerMin).toBeCloseTo(90, 6)
+
+    // 使われなかったケーブルは図に出さない
+    expect(graph.nodes.some((n) => n.id === 'external:Desc_Cable_C')).toBe(false)
+
+    const ingot = edgesOf(graph, 'Desc_IronIngot_C')[0]!
+    expect(ingot.source).toBe('external:Desc_IronIngot_C')
+    expect(ingot.target).toBe('recipe:Recipe_IronPlate_C')
+  })
+})
+
 describe('循環プラスチックケース', () => {
   const graph = buildPlanGraph(cycle)
 

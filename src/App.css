@@ -261,6 +261,40 @@
   gap: 4px;
 }
 
+/* レート指定の代わりに「作れるだけ」を出す（数値入力は出さない） */
+.target__rate--max {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+/* レート指定 / 最大化 の切り替え。行の2段目に置く（サイドバーが狭いため） */
+.target__mode {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.target--max {
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
+  margin-left: -10px;
+}
+
+.target--max .target__mode {
+  color: var(--accent);
+}
+
+/* 既にあるアイテムの行（目標と同じ組み方だが、最大化の段は持たない） */
+.stock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
 /* --- 目的関数 ------------------------------------------------------------ */
 
 .radio-list {
@@ -755,6 +789,13 @@
   background: linear-gradient(180deg, var(--surplus-weak), transparent 60%), var(--bg-raised);
 }
 
+/* 既保有からの供給。採掘の原料供給と混ざらないよう枠色を変える（ラベルも「既保有」） */
+.flow-node--external {
+  border-color: var(--external);
+  border-style: dashed;
+  background: linear-gradient(180deg, var(--external-weak), transparent 60%), var(--bg-raised);
+}
+
 .flow-node--output {
   border-color: var(--border-strong);
 }
@@ -851,6 +892,19 @@
   border-top-width: 3px;
 }
 
+/* 線ではなくノードの枠色を示す凡例（既保有） */
+.flow-legend__swatch {
+  display: inline-block;
+  width: 24px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.flow-legend__swatch--external {
+  border: 1px dashed var(--external);
+  background: var(--external-weak);
+}
+
 .flow-stats {
   text-align: right;
   max-width: 24em;
@@ -879,6 +933,12 @@
 .callout--warn {
   border-color: var(--shortage);
   background: var(--shortage-weak);
+  color: var(--text-strong);
+}
+
+.callout--accent {
+  border-color: var(--accent);
+  background: var(--accent-weak);
   color: var(--text-strong);
 }
 

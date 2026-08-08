@@ -28,7 +28,7 @@ import {
 import type { PlanSnapshot, PlanSource } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import type { PlanStorage } from '../src/plan/storage.ts'
-import { DEFAULT_BELT_ID, DEFAULT_PIPE_ID, usePlanner } from '../src/store/planner.ts'
+import { DEFAULT_BELT_ID, DEFAULT_PIPE_ID, toSolveInput, usePlanner } from '../src/store/planner.ts'
 import { DEFAULT_MINER_ID } from '../src/solver/index.ts'
 
 const ALT_RECIPE = 'Recipe_Alternate_AdheredIronPlate_C'
@@ -51,6 +51,7 @@ const source: PlanSource = {
 function resetStore(): void {
   usePlanner.setState({
     targets: [],
+    inputs: [],
     enabledAlternates: {},
     limitOverrides: {},
     objective: 'resources',
@@ -80,6 +81,7 @@ describe('プランのシリアライズ', () => {
         { item: 'Desc_IronPlate_C', ratePerMin: 60 },
         { item: 'Desc_IronPlateReinforced_C', ratePerMin: 12.5 },
       ],
+      inputs: [],
       enabledAlternates: { [ALT_RECIPE]: true },
       limitOverrides: { Desc_OreIron_C: 480, Desc_Water_C: null },
       objective: 'power',
@@ -170,6 +172,79 @@ describe('プランのシリアライズ', () => {
     expect(parsed.warnings.join('\n')).toContain('合算')
   })
 
+  it('産出最大化と既保有アイテムを保存・復元できる', () => {
+    const snapshot = toPlanSnapshot({
+      ...source,
+      targets: [
+        { key: 't1', item: 'Desc_IronPlate_C', ratePerMin: 60, mode: 'max' },
+        { key: 't2', item: 'Desc_IronRod_C', ratePerMin: 30 },
+      ],
+      inputs: [{ item: 'Desc_IronIngot_C', ratePerMin: 45 }],
+    })
+    expect(snapshot.v).toBe(2)
+    expect(snapshot.x).toBe('Desc_IronPlate_C')
+    expect(snapshot.i).toEqual([['Desc_IronIngot_C', 45]])
+
+    const parsed = parsePlanSnapshot(snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.targets).toEqual([
+      { item: 'Desc_IronPlate_C', ratePerMin: 60, mode: 'max' },
+      { item: 'Desc_IronRod_C', ratePerMin: 30 },
+    ])
+    expect(parsed.input.inputs).toEqual([{ item: 'Desc_IronIngot_C', ratePerMin: 45 }])
+  })
+
+  it('最大化・既保有が無ければキーごと省略する（共有URLを短く保つ）', () => {
+    const snapshot = toPlanSnapshot(source) as unknown as Record<string, unknown>
+    expect('x' in snapshot).toBe(false)
+    expect('i' in snapshot).toBe(false)
+  })
+
+  it('壊れた最大化・既保有は警告にして残りを活かす', () => {
+    const parsed = parsePlanSnapshot({
+      ...toPlanSnapshot(source),
+      x: 'Desc_RemovedItem_C', // 目標に無いアイテム
+      i: [['Desc_IronIngot_C', 45], ['Desc_RemovedItem_C', 10], ['Desc_IronIngot_C', 5], 'x'],
+    })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.input.targets.every((t) => t.mode === undefined)).toBe(true)
+    expect(parsed.input.inputs).toEqual([{ item: 'Desc_IronIngot_C', ratePerMin: 50 }])
+    const joined = parsed.warnings.join('\n')
+    expect(joined).toContain('最大化')
+    expect(joined).toContain('既保有')
+  })
+
+  it('v1 のプラン（最大化・既保有が無い時代のデータ）もそのまま読める', () => {
+    // 実際に v1 で書き出された形。x / i を持たない
+    const v1 = {
+      v: 1,
+      n: '旧バージョンのプラン',
+      t: [['Desc_IronPlate_C', 60]],
+      a: [ALT_RECIPE],
+      l: { Desc_OreIron_C: 480 },
+      o: 'power',
+      m: 'Build_MinerMk2_C',
+      b: 'Build_ConveyorBeltMk1_C',
+      p: DEFAULT_PIPE_ID,
+    }
+    const parsed = parsePlanSnapshot(v1)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.targets).toEqual([{ item: 'Desc_IronPlate_C', ratePerMin: 60 }])
+    expect(parsed.input.inputs).toEqual([])
+    expect(parsed.input.objective).toBe('power')
+    expect(parsed.input.planName).toBe('旧バージョンのプラン')
+
+    // 共有URL（v1）も同じく読める
+    const decoded = decodePlan(encodePlan(v1 as unknown as PlanSnapshot))
+    expect(decoded.ok).toBe(true)
+    if (decoded.ok) expect(decoded.input.targets).toHaveLength(1)
+  })
+
   it('applyPlan は重複した目標を1行にまとめて取り込む', () => {
     resetStore()
     usePlanner.getState().applyPlan({
@@ -194,6 +269,74 @@ describe('プランのシリアライズ', () => {
     expect(usePlanner.getState().targets).toEqual([
       { key, item: 'Desc_IronPlate_C', ratePerMin: 60 },
     ])
+    resetStore()
+  })
+
+  it('addInput も1アイテム1行（既保有の二重追加を作らない）', () => {
+    resetStore()
+    const key = usePlanner.getState().addInput('Desc_IronIngot_C', 45)
+    expect(usePlanner.getState().addInput('Desc_IronIngot_C', 999)).toBe(key)
+    expect(usePlanner.getState().inputs).toEqual([
+      { key, item: 'Desc_IronIngot_C', ratePerMin: 45 },
+    ])
+    resetStore()
+  })
+
+  it('最大化にできるのは1行だけ（2つ目を最大化にすると先の行はレート指定に戻る）', () => {
+    resetStore()
+    const a = usePlanner.getState().addTarget('Desc_IronPlate_C', 60)
+    const b = usePlanner.getState().addTarget('Desc_IronRod_C', 30)
+
+    usePlanner.getState().setTargetMode(a, 'max')
+    expect(usePlanner.getState().targets.map((t) => t.mode)).toEqual(['max', 'rate'])
+
+    usePlanner.getState().setTargetMode(b, 'max')
+    expect(usePlanner.getState().targets.map((t) => t.mode)).toEqual(['rate', 'max'])
+
+    // SolveInput では最大化の行はレート目標から外れる
+    const input = toSolveInput(usePlanner.getState())
+    expect(input.maximize).toBe('Desc_IronRod_C')
+    expect(input.targets).toEqual([{ item: 'Desc_IronPlate_C', ratePerMin: 60 }])
+
+    usePlanner.getState().setTargetMode(b, 'rate')
+    expect(toSolveInput(usePlanner.getState()).maximize).toBeUndefined()
+    resetStore()
+  })
+
+  it('既保有アイテムは SolveInput の inputs に入る（レート0は無視）', () => {
+    resetStore()
+    usePlanner.getState().addTarget('Desc_IronPlate_C', 60)
+    usePlanner.getState().addInput('Desc_IronIngot_C', 45)
+    const zero = usePlanner.getState().addInput('Desc_Cable_C', 0)
+    expect(toSolveInput(usePlanner.getState()).inputs).toEqual({ Desc_IronIngot_C: 45 })
+
+    usePlanner.getState().updateInput(zero, { ratePerMin: 10 })
+    expect(toSolveInput(usePlanner.getState()).inputs).toEqual({
+      Desc_IronIngot_C: 45,
+      Desc_Cable_C: 10,
+    })
+
+    usePlanner.getState().removeInput(zero)
+    expect(usePlanner.getState().inputs).toHaveLength(1)
+    resetStore()
+  })
+
+  it('applyPlan は最大化を1行に絞り、既保有の重複は合算する', () => {
+    resetStore()
+    usePlanner.getState().applyPlan({
+      ...defaultPlanInput(),
+      targets: [
+        { item: 'Desc_IronPlate_C', ratePerMin: 60, mode: 'max' },
+        { item: 'Desc_IronRod_C', ratePerMin: 30, mode: 'max' },
+      ],
+      inputs: [
+        { item: 'Desc_IronIngot_C', ratePerMin: 45 },
+        { item: 'Desc_IronIngot_C', ratePerMin: 5 },
+      ],
+    })
+    expect(usePlanner.getState().targets.map((t) => t.mode)).toEqual(['max', 'rate'])
+    expect(usePlanner.getState().inputs).toHaveLength(1)
+    expect(usePlanner.getState().inputs[0].ratePerMin).toBe(50)
     resetStore()
   })
 })
