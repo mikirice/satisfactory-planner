@@ -31,6 +31,8 @@ export function ResultView() {
   const beltId = usePlanner((s) => s.beltId)
   const pipeId = usePlanner((s) => s.pipeId)
   const [tab, setTab] = useState<TabId>('summary')
+  // 「発電を隠す」は生産ステップ表とフローチャートで共有する（表示だけ・保存しない）
+  const [hidePower, setHidePower] = useState(false)
 
   if (status === 'error') {
     return (
@@ -82,12 +84,24 @@ export function ResultView() {
         aria-labelledby={`tab-${tab}`}
       >
         {tab === 'summary' && <SummaryPanel solution={result} extraction={extraction} />}
-        {tab === 'steps' && <StepsTable solution={result} />}
+        {tab === 'steps' && (
+          <StepsTable
+            solution={result}
+            hidePower={hidePower}
+            onHidePowerChange={setHidePower}
+          />
+        )}
         {tab === 'resources' && <ResourcesTable solution={result} extraction={extraction} />}
         {tab === 'balance' && <BalanceTable solution={result} />}
         {tab === 'flow' && (
           <Suspense fallback={<p className="hint">{T.flow.loading}</p>}>
-            <FlowChart solution={result} beltId={beltId} pipeId={pipeId} />
+            <FlowChart
+              solution={result}
+              beltId={beltId}
+              pipeId={pipeId}
+              hidePower={hidePower}
+              onHidePowerChange={setHidePower}
+            />
           </Suspense>
         )}
       </div>

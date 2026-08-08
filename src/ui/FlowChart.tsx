@@ -9,6 +9,7 @@
  * レイアウト計算は Worker（elk-layout.ts）に逃がし、終わるまでは待機表示を出す。
  */
 import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -25,6 +26,7 @@ import type { EdgeProps, EdgeTypes, NodeProps, NodeTypes } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
 import { buildPlanGraph } from '../plan/graph.ts'
+import { filterPowerFromGraph, findPowerOnlySteps } from '../plan/power-filter.ts'
 import type { Solution } from '../solver/index.ts'
 import {
   EDGE_COLORS,
@@ -52,6 +54,7 @@ import {
   recipeMainItem,
 } from './format.ts'
 import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
+import { PowerFilterToggle } from './PowerFilterToggle.tsx'
 import { T } from './text.ts'
 
 type Props = {
@@ -60,13 +63,26 @@ type Props = {
   beltId?: string
   /** 物流の本数換算に使うパイプ（Pipe.id） */
   pipeId?: string
+  /** 発電関連を表示から外すか（表示だけの絞り込み。既定 false） */
+  hidePower?: boolean
+  onHidePowerChange?: (next: boolean) => void
 }
 
-export default function FlowChart({ solution, beltId, pipeId }: Props) {
-  const graph = useMemo(
-    () => buildPlanGraph(solution, { beltId, pipeId }),
-    [solution, beltId, pipeId],
-  )
+export default function FlowChart({
+  solution,
+  beltId,
+  pipeId,
+  hidePower = false,
+  onHidePowerChange,
+}: Props) {
+  // 発電計画が無効な解ではトグルそのものを出さない
+  const canFilterPower = solution.powerGeneration !== undefined
+  const filter = useMemo(() => findPowerOnlySteps(solution), [solution])
+  const hiding = hidePower && canFilterPower
+  const graph = useMemo(() => {
+    const full = buildPlanGraph(solution, { beltId, pipeId })
+    return hiding ? filterPowerFromGraph(full, filter) : full
+  }, [solution, beltId, pipeId, hiding, filter])
   const [layout, setLayout] = useState<PlanFlowLayout | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
 
@@ -86,20 +102,34 @@ export default function FlowChart({ solution, beltId, pipeId }: Props) {
     }
   }, [graph])
 
-  if (graph.nodes.length === 0) return <p className="hint">{T.flow.empty}</p>
+  // トグルは待機中・空・失敗のときも出したままにする（隠したまま戻せなくなるので）
+  const frame = (body: ReactNode) => (
+    <div className="stack">
+      {canFilterPower && (
+        <PowerFilterToggle
+          hidePower={hidePower}
+          hiddenStepCount={filter.hiddenStepCount}
+          onChange={onHidePowerChange}
+        />
+      )}
+      {body}
+    </div>
+  )
+
+  if (graph.nodes.length === 0) return frame(<p className="hint">{T.flow.empty}</p>)
   if (failed !== null) {
-    return (
+    return frame(
       <p className="callout callout--warn">
         {T.flow.failed}: {failed}
-      </p>
+      </p>,
     )
   }
-  if (!layout) return <p className="hint">{T.flow.loading}</p>
+  if (!layout) return frame(<p className="hint">{T.flow.loading}</p>)
 
   const transport = graph.edges.find((e) => e.transport === 'belt')?.transportNameJa ?? '—'
   const pipe = graph.edges.find((e) => e.transport === 'pipe')?.transportNameJa ?? '—'
 
-  return (
+  return frame(
     <div className="flowchart">
       <ReactFlow
         nodes={layout.nodes}
@@ -167,7 +197,7 @@ export default function FlowChart({ solution, beltId, pipeId }: Props) {
           <p className="flow-stats__note">{T.flow.readOnly}</p>
         </Panel>
       </ReactFlow>
-    </div>
+    </div>,
   )
 }
 

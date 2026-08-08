@@ -143,6 +143,13 @@ export const T = {
     flow: 'フローチャート',
   },
 
+  /** 生産ステップ表 / フローチャートの「発電を隠す」（表示だけの絞り込み） */
+  powerFilter: {
+    hideLabel: '発電を隠す',
+    hideHint: '発電機と発電専用の燃料チェーンを表示から外します（計算は変わりません）',
+    hiddenNote: (n: number): string => `${n} ステップ（発電関連）を非表示中`,
+  },
+
   flow: {
     heading: 'フローチャート',
     loading: 'レイアウトを計算しています…',

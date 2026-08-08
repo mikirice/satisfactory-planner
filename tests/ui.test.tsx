@@ -866,6 +866,50 @@ describe('発電計画', () => {
   })
 })
 
+describe('発電を隠す（表示だけの絞り込み）', () => {
+  it('発電計画のある解ではトグルが出て、既定（オフ）では発電機の行も出す', async () => {
+    const container = await render(<StepsTable solution={powered} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('発電を隠す')
+    expect(text).toContain('石炭発電機')
+    expect(text).not.toContain('非表示中')
+    const box = container.querySelector<HTMLInputElement>('.power-filter input[type="checkbox"]')
+    expect(box).not.toBeNull()
+    expect(box!.checked).toBe(false)
+  })
+
+  it('オンにすると発電機の行と発電量の列が消え、非表示中の注記が出る', async () => {
+    const container = await render(<StepsTable solution={powered} hidePower />)
+    const text = container.textContent ?? ''
+    expect(text).not.toContain('石炭発電機')
+    expect(text).not.toContain('発電量')
+    expect(text).toContain('1 ステップ（発電関連）を非表示中')
+    // 戻せるようにトグル自体は残す
+    expect(text).toContain('発電を隠す')
+    // 工場側の行はそのまま
+    expect(text).toContain('鉄インゴット')
+    expect(text).toContain('鉄板')
+  })
+
+  it('チェックすると onHidePowerChange(true) を呼ぶ', async () => {
+    const onChange = vi.fn()
+    const container = await render(
+      <StepsTable solution={powered} onHidePowerChange={onChange} />,
+    )
+    const box = container.querySelector<HTMLInputElement>('.power-filter input[type="checkbox"]')!
+    await act(async () => {
+      box.click()
+    })
+    expect(onChange).toHaveBeenCalledWith(true)
+  })
+
+  it('発電計画が無効な解ではトグルを出さない', async () => {
+    const container = await render(<StepsTable solution={solution} />)
+    expect(container.textContent ?? '').not.toContain('発電を隠す')
+    expect(container.querySelector('.power-filter')).toBeNull()
+  })
+})
+
 describe('床面積の概算', () => {
   it('サマリーに概算床面積とファウンデーション枚数が出る', async () => {
     const container = await render(<SummaryPanel solution={solution} extraction={null} />)
