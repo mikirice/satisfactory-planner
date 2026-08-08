@@ -156,6 +156,13 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
       warnings.push(`${itemLabel(item)} のレートが不正なので無視しました`)
       continue
     }
+    // 目標産出は1アイテム1行。古いデータや手書きの重複はレートを合算してまとめる
+    const duplicate = input.targets.find((t) => t.item === item)
+    if (duplicate !== undefined) {
+      duplicate.ratePerMin += rate
+      warnings.push(`${itemLabel(item)} の目標が重複していたので合算しました`)
+      continue
+    }
     input.targets.push({ item, ratePerMin: rate })
   }
 

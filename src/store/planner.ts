@@ -24,7 +24,11 @@ import type {
   SolveResult,
 } from '../solver/index.ts'
 
-/** 目標産出の1行。key は行の同一性（同じアイテムを2行に出せるように） */
+/**
+ * 目標産出の1行。1アイテム1行（同じアイテムを2行に分けても解は変わらず、
+ * 「追加したのに何も起きない」ように見えるだけなので重複は作らせない）。
+ * key は行の同一性（アイテムを入れ替えても入力欄が作り直されないように）。
+ */
 export type TargetEntry = {
   key: string
   item: string
@@ -101,7 +105,11 @@ export type PlannerState = {
   /** 直近の求解にかかった時間(ms) */
   elapsedMs: number
 
-  addTarget: (item: string, ratePerMin?: number) => void
+  /**
+   * 目標産出を1行追加する。追加済みのアイテムなら行は増やさず既存行の key を返す
+   * （UI はその行のレート入力へフォーカスを移す）。
+   */
+  addTarget: (item: string, ratePerMin?: number) => string
   updateTarget: (key: string, patch: Partial<Omit<TargetEntry, 'key'>>) => void
   removeTarget: (key: string) => void
   setAlternate: (recipeId: string, enabled: boolean) => void
@@ -125,6 +133,26 @@ let runId = 0
 let keySeq = 0
 
 const nextKey = (): string => `t${++keySeq}`
+
+/**
+ * 復元した目標産出を1アイテム1行に正規化する。
+ * UI からは重複を作れないが、共有URL・保存プランには古いデータや手書きの
+ * データが入りうる。後勝ちで捨てるとレートを取りこぼすので合算してまとめる。
+ */
+function mergeTargetEntries(
+  entries: readonly { item: string; ratePerMin: number }[],
+): TargetEntry[] {
+  const byItem = new Map<string, TargetEntry>()
+  for (const t of entries) {
+    const found = byItem.get(t.item)
+    if (found === undefined) {
+      byItem.set(t.item, { key: nextKey(), item: t.item, ratePerMin: t.ratePerMin })
+    } else {
+      found.ratePerMin += t.ratePerMin
+    }
+  }
+  return [...byItem.values()]
+}
 
 /** 現在の入力から SolveInput を組み立てる（テストから検証できるよう export）。 */
 export function toSolveInput(state: PlannerState): SolveInput {
@@ -188,8 +216,14 @@ export const usePlanner = create<PlannerState>((set, get) => {
     error: null,
     elapsedMs: 0,
 
-    addTarget: (item, ratePerMin = 60) =>
-      change({ targets: [...get().targets, { key: nextKey(), item, ratePerMin }] }),
+    addTarget: (item, ratePerMin = 60) => {
+      // 二重追加は行を増やさない（既存行を返して、そこを直してもらう）
+      const existing = get().targets.find((t) => t.item === item)
+      if (existing !== undefined) return existing.key
+      const key = nextKey()
+      change({ targets: [...get().targets, { key, item, ratePerMin }] })
+      return key
+    },
 
     updateTarget: (key, patch) =>
       change({
@@ -232,11 +266,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
 
     applyPlan: (input) =>
       change({
-        targets: input.targets.map((t) => ({
-          key: nextKey(),
-          item: t.item,
-          ratePerMin: t.ratePerMin,
-        })),
+        targets: mergeTargetEntries(input.targets),
         enabledAlternates: { ...input.enabledAlternates },
         limitOverrides: { ...input.limitOverrides },
         objective: input.objective,

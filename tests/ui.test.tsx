@@ -218,6 +218,42 @@ describe('画面の骨格', () => {
     expect(options.length).toBeGreaterThan(0)
     expect(options.every((label) => label?.includes('鉄板'))).toBe(true)
   })
+
+  it('同じアイテムは二重に追加されず、既存行のレート入力にフォーカスが移る', async () => {
+    const container = await render(<App />)
+    const search = container.querySelector<HTMLInputElement>('input[type="search"]')!
+
+    /** 候補から「鉄板」ちょうどのものを選ぶ（強化鉄板などと混ざらないように） */
+    const pickIronPlate = async (): Promise<void> => {
+      await act(async () => {
+        typeInto(search, '鉄板')
+      })
+      const option = [...container.querySelectorAll<HTMLButtonElement>('.suggestions__item')].find(
+        (b) => b.querySelector('span')?.textContent === '鉄板',
+      )!
+      await act(async () => {
+        option.click()
+      })
+    }
+
+    await pickIronPlate()
+    expect(usePlanner.getState().targets).toHaveLength(1)
+    const rate = container.querySelector<HTMLInputElement>('.target .input--num')!
+    await act(async () => {
+      typeInto(rate, '120')
+    })
+
+    await pickIronPlate()
+    // 行は増えず、既に入れたレートも保たれる
+    expect(usePlanner.getState().targets).toHaveLength(1)
+    expect(usePlanner.getState().targets[0].ratePerMin).toBe(120)
+    expect(container.querySelectorAll('.target')).toHaveLength(1)
+    // どこへ行ったか分かるように既存行のレート入力へ移動する
+    expect(document.activeElement).toBe(container.querySelector('.target .input--num'))
+    // 検索欄はクリアされ、候補は閉じている
+    expect(search.value).toBe('')
+    expect(container.querySelector('.suggestions')).toBeNull()
+  })
 })
 
 describe('プランの保存・共有', () => {

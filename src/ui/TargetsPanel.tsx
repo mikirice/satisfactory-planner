@@ -33,6 +33,8 @@ export function TargetsPanel() {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+  // 行の key → レート入力欄。追加済みアイテムを選んだときに移動先として使う
+  const rateInputs = useRef(new Map<string, HTMLInputElement>())
 
   const suggestions = useMemo(() => {
     if (query.trim() === '') return []
@@ -93,10 +95,13 @@ export function TargetsPanel() {
                   type="button"
                   className="suggestions__item"
                   onClick={() => {
-                    addTarget(item.id)
+                    const key = addTarget(item.id)
                     // 追加したら候補は閉じる（続けて足したいときは入力し直す）
                     setQuery('')
                     setOpen(false)
+                    // 追加済みなら行は増えない。黙って何も起きないように見えるので、
+                    // 既にある行のレート入力へフォーカスを移して所在を示す
+                    rateInputs.current.get(key)?.focus()
                   }}
                 >
                   <span>{item.name.ja}</span>
@@ -127,6 +132,13 @@ export function TargetsPanel() {
                     step={1}
                     value={target.ratePerMin}
                     aria-label={T.sidebar.targetRate}
+                    ref={(el) => {
+                      if (el === null) return
+                      rateInputs.current.set(target.key, el)
+                      return () => {
+                        rateInputs.current.delete(target.key)
+                      }
+                    }}
                     onChange={(e) =>
                       updateTarget(target.key, { ratePerMin: Number(e.target.value) || 0 })
                     }

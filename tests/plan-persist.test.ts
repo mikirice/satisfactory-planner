@@ -149,6 +149,53 @@ describe('プランのシリアライズ', () => {
     expect(joined).toContain('採掘機')
     expect(joined).toContain('ベルト')
   })
+
+  it('同じアイテムの目標が重複していたらレートを合算して1行にする', () => {
+    const snapshot: PlanSnapshot = {
+      ...toPlanSnapshot(source),
+      t: [
+        ['Desc_IronPlate_C', 60],
+        ['Desc_IronPlateReinforced_C', 12.5],
+        ['Desc_IronPlate_C', 30],
+      ],
+    }
+    const parsed = parsePlanSnapshot(snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+
+    expect(parsed.input.targets).toEqual([
+      { item: 'Desc_IronPlate_C', ratePerMin: 90 },
+      { item: 'Desc_IronPlateReinforced_C', ratePerMin: 12.5 },
+    ])
+    expect(parsed.warnings.join('\n')).toContain('合算')
+  })
+
+  it('applyPlan は重複した目標を1行にまとめて取り込む', () => {
+    resetStore()
+    usePlanner.getState().applyPlan({
+      ...defaultPlanInput(),
+      targets: [
+        { item: 'Desc_IronPlate_C', ratePerMin: 60 },
+        { item: 'Desc_IronPlate_C', ratePerMin: 30 },
+      ],
+    })
+    const targets = usePlanner.getState().targets
+    expect(targets).toHaveLength(1)
+    expect(targets[0].item).toBe('Desc_IronPlate_C')
+    expect(targets[0].ratePerMin).toBe(90)
+    resetStore()
+  })
+
+  it('addTarget は追加済みのアイテムでは行を増やさず既存の key を返す', () => {
+    resetStore()
+    const key = usePlanner.getState().addTarget('Desc_IronPlate_C', 60)
+    const again = usePlanner.getState().addTarget('Desc_IronPlate_C', 999)
+    expect(again).toBe(key)
+    expect(usePlanner.getState().targets).toEqual([
+      { key, item: 'Desc_IronPlate_C', ratePerMin: 60 },
+    ])
+    resetStore()
+  })
 })
 
 describe('URL共有', () => {
