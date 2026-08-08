@@ -26,3 +26,4 @@ dist-ssr
 # Docs.json のミラー（大容量・再取得可能・ゲームデータ再配布を避ける）
 data-source/*.json
 .claude/
+.vercel
