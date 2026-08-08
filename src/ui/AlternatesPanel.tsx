@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 
 import { alternateRecipes, usePlanner } from '../store/planner.ts'
+import { AlternateIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 export function AlternatesPanel() {
@@ -55,6 +56,7 @@ export function AlternatesPanel() {
                     checked={enabled[recipe.id] === true}
                     onChange={(e) => setAlternate(recipe.id, e.target.checked)}
                   />
+                  <AlternateIcon />
                   <span>{recipe.name.ja}</span>
                 </label>
               </li>

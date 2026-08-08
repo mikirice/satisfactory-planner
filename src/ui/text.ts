@@ -46,11 +46,11 @@ export const T = {
     extractionClockHint:
       '100%を超えるとパワーシャードが要ります。電力はクロックに対して超線形に増えます。',
 
-    clock: 'クロックと Somersloop',
+    clock: 'クロックとサマースループ',
     clockMax: '製造クロックの上限',
     clockMaxHint:
       '建てる台数 = 稼働台数 ÷ 上限クロック（切り上げ）。上げるほど台数は減り、電力は増えます。',
-    somersloops: '使える Somersloop の数',
+    somersloops: '使えるサマースループの数',
     somersloopsHint:
       '0 なら使いません。1 以上にすると、対応する建物のレシピに「フル装着（産出2倍・電力4倍）」の選択肢が増えます。部分装着は扱いません。',
     somersloopsOver: (used: number, limit: number): string =>
@@ -141,7 +141,7 @@ export const T = {
     outputs: '産出',
     requested: (rate: string): string => `要求 ${rate}`,
     machines: (built: number, clock: string): string => `${built} 台 @ ${clock}`,
-    somersloops: (n: number): string => `Somersloop ${n} 個`,
+    somersloops: (n: number): string => `サマースループ ${n} 個`,
     shards: (n: number): string => `シャード ${n} 個`,
     legend: '凡例',
     legendSolid: '固体（ベルト）',
@@ -170,11 +170,11 @@ export const T = {
     powerExtraction: '採掘',
     powerShards: 'パワーシャード',
     powerShardsUnit: '個',
-    somersloops: 'Somersloop',
+    somersloops: 'サマースループ',
     somersloopsUsed: '使用数',
     somersloopsLimit: '使用可能数',
     somersloopsUnit: '個',
-    somersloopsUnused: 'Somersloop は使っていません',
+    somersloopsUnused: 'サマースループは使っていません',
     footprint: '概算床面積',
     footprintUnit: 'm²',
     footprintFoundations: (n: string): string => `ファウンデーション ${n} 枚（8m × 8m 換算）`,
@@ -213,7 +213,7 @@ export const T = {
     built: '建てる台数',
     clock: 'クロック案',
     shards: 'シャード',
-    somersloops: 'Somersloop',
+    somersloops: 'サマースループ',
     power: '消費電力 (MW)',
     inputs: '投入',
     outputs: '産出',

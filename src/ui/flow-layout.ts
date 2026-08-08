@@ -28,7 +28,7 @@ import type {
   SourceGraphNode,
 } from '../plan/graph.ts'
 import { runElkLayout } from './elk-layout.ts'
-import { fmtRate } from './format.ts'
+import { fmtRate, isAlternateRecipe } from './format.ts'
 
 // ---------------------------------------------------------------------------
 // 型
@@ -114,6 +114,12 @@ export const NODE_METRICS = {
   titleFontSize: 13,
   titleLine: 18,
   titleMaxLines: 3,
+  /**
+   * 代替レシピのレシピ名の先頭に置くハードドライブのアイコン（16px＋余白）。
+   * 1行目がそのぶん狭くなるので、折り返し行数の計算にも入れる（titleLeadingWidth）。
+   */
+  titleIconSize: 16,
+  titleIconGap: 4,
   /** 太字ぶんの割り増し（em 推定に掛ける） */
   titleBoldFactor: 1.06,
   /** .flow-node__rate（15px） */
@@ -162,6 +168,10 @@ export const LABEL_STYLE = {
   lineHeight: 15,
   paddingX: 6,
   paddingY: 3,
+  /** 先頭に置くアイテムアイコン（.flow-edge-label .item-icon）。文字があるときだけ場所を取る */
+  iconSize: 16,
+  /** アイコンと文字の間隔（CSS の gap と一致させること） */
+  iconGap: 4,
   /** 全角1文字あたりの幅（em）。実測より少し大きめに取って文字切れを防ぐ */
   emFullWidth: 1.02,
   /** 半角1文字あたりの幅（em） */
@@ -186,8 +196,18 @@ function isFullWidth(codePoint: number): boolean {
   )
 }
 
-/** ラベル1つ分の外形（背景プレート込み）。 */
+/**
+ * ラベル1つ分の外形（背景プレート込み）。
+ *
+ * 先頭にアイテムアイコンを置くので、その幅（アイコン＋間隔）も**常に**足す。
+ * アイコンが無いアイテム（撤去された場合も含む）はそこが空くだけで、文字は欠けない。
+ * 文言が空のときはアイコンも描かないので、余白だけの最小の箱を返す
+ * （elk に 0 幅の矩形を渡さないための保険。実際のエッジは必ず文言を持つ）。
+ */
 export function measureEdgeLabel(text: string): { width: number; height: number } {
+  const height = LABEL_STYLE.lineHeight + LABEL_STYLE.paddingY * 2
+  if (text === '') return { width: LABEL_STYLE.paddingX * 2, height }
+
   let em = 0
   for (const char of text) {
     em += isFullWidth(char.codePointAt(0) ?? 0)
@@ -195,8 +215,12 @@ export function measureEdgeLabel(text: string): { width: number; height: number 
       : LABEL_STYLE.emHalfWidth
   }
   return {
-    width: Math.ceil(em * LABEL_STYLE.fontSize) + LABEL_STYLE.paddingX * 2,
-    height: LABEL_STYLE.lineHeight + LABEL_STYLE.paddingY * 2,
+    width:
+      Math.ceil(em * LABEL_STYLE.fontSize) +
+      LABEL_STYLE.paddingX * 2 +
+      LABEL_STYLE.iconSize +
+      LABEL_STYLE.iconGap,
+    height,
   }
 }
 
@@ -219,17 +243,26 @@ export function nodeInnerWidth(width: number): number {
 /**
  * 見出し（アイテム名 / レシピ名）の行数。
  * 名前は「読めること」を優先して折り返す（…で切らない）。上限は titleMaxLines。
+ *
+ * `leadingWidth` は名前の前に置く記号の幅（代替レシピのハードドライブアイコン）。
+ * 文字と同じ行に並ぶので、折り返しの計算では文字幅に足して見積もる。
  */
-export function titleLineCount(text: string, width: number): number {
+export function titleLineCount(text: string, width: number, leadingWidth = 0): number {
   const available = nodeInnerWidth(width)
   if (available <= 0) return 1
-  const textWidth = measureTextWidth(
-    text,
-    NODE_METRICS.titleFontSize,
-    NODE_METRICS.titleBoldFactor,
-  )
+  const textWidth =
+    measureTextWidth(text, NODE_METRICS.titleFontSize, NODE_METRICS.titleBoldFactor) + leadingWidth
   const lines = Math.ceil(textWidth / available)
   return Math.min(Math.max(lines, 1), NODE_METRICS.titleMaxLines)
+}
+
+/**
+ * 見出しの前に置く記号の幅（px）。代替レシピはハードドライブのアイコンが1つ付く。
+ * FlowChart.tsx の描画と条件を必ず揃えること。
+ */
+export function titleLeadingWidth(node: PlanGraphNode): number {
+  if (node.kind !== 'recipe' || !isAlternateRecipe(node.recipeId)) return 0
+  return NODE_METRICS.titleIconSize + NODE_METRICS.titleIconGap
 }
 
 /** ノードの横幅（種別ごと）。 */
@@ -246,9 +279,10 @@ export function nodeWidth(node: PlanGraphNode): number {
 export function nodeRows(node: PlanGraphNode): NodeRow[] {
   const m = NODE_METRICS
   const width = nodeWidth(node)
+  const leading = titleLeadingWidth(node)
   const title = (text: string): NodeRow => ({
     id: 'title',
-    height: m.titleLine * titleLineCount(text, width),
+    height: m.titleLine * titleLineCount(text, width, leading),
     fontSize: m.titleFontSize,
   })
 

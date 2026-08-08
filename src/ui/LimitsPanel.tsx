@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import { usePlanner } from '../store/planner.ts'
 import { fmtInt, itemName, itemUnit } from './format.ts'
+import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 export function LimitsPanel() {
@@ -35,7 +36,10 @@ export function LimitsPanel() {
                 limit.maxRatePerMin === null ? T.sidebar.unlimited : fmtInt(limit.maxRatePerMin)
               return (
                 <li key={limit.item} className="limit">
-                  <span className="limit__name">{itemName(limit.item)}</span>
+                  <span className="limit__name">
+                    <ItemIcon id={limit.item} name={itemName(limit.item)} size={CELL_ICON} />
+                    {itemName(limit.item)}
+                  </span>
                   <input
                     type="number"
                     className="input input--num"

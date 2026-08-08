@@ -367,7 +367,12 @@
   gap: 6px;
 }
 
+/* アイコン＋原料名。アイコンが無ければ名前だけが残る（場所は gap で確保する） */
 .limit__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   font-size: 13px;
 }
 
@@ -758,6 +763,12 @@
   overflow-wrap: anywhere;
 }
 
+/* 代替レシピの目印。幅は flow-layout.ts の titleIconSize / titleIconGap と揃える */
+.flow-node__title .item-icon {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
 .flow-node__meta {
   color: var(--text-muted);
   font-size: 11px;
@@ -861,6 +872,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* アイコンと文字の間隔。flow-layout.ts の LABEL_STYLE.iconGap と揃える */
+  gap: 4px;
   padding: 3px 6px;
   border-radius: 4px;
   background: rgba(23, 27, 34, 0.92);

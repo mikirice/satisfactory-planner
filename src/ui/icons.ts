@@ -17,6 +17,18 @@ import iconIds from '../data/icons.json'
 const ICON_IDS: ReadonlySet<string> = new Set(iconIds as string[])
 
 /**
+ * アイテム / 建物ではないが画面で**記号として**使うアイコン
+ * （scripts/fetch-icons.ts の EXTRA_ICONS と同じ ID を並べること）。
+ *
+ * icons.json は「アイテム/建物の一覧と一致していること」を担保しているので、
+ * ここに混ぜずに別集合として持つ。画像が消えれば `<img>` の onError で個別に消える。
+ */
+const EXTRA_ICON_IDS: ReadonlySet<string> = new Set(['Desc_HardDrive_C'])
+
+/** 代替レシピの目印に使うハードドライブのアイコンID。 */
+export const HARD_DRIVE_ICON_ID = 'Desc_HardDrive_C'
+
+/**
  * 公開ディレクトリの基準URL。GitHub Pages のようなサブパス配信でも壊れないように
  * Vite の BASE_URL を使う（テスト・SSR 環境で未定義でも '/' に落とす）。
  */
@@ -26,13 +38,13 @@ function baseUrl(): string {
   return base.endsWith('/') ? base : `${base}/`
 }
 
-/** アイコンを持つIDか。 */
+/** アイコンを持つIDか（icons.json の一覧＝アイテム/建物のみ）。 */
 export const hasIcon = (id: string): boolean => ICON_IDS.has(id)
 
 /** アイテム/建物IDのアイコンURL。無ければ null（＝テキスト表示にフォールバック）。 */
 export function iconPath(id: string): string | null {
-  return ICON_IDS.has(id) ? `${baseUrl()}icons/${id}.png` : null
+  return ICON_IDS.has(id) || EXTRA_ICON_IDS.has(id) ? `${baseUrl()}icons/${id}.png` : null
 }
 
-/** 収録数（テスト・デバッグ用）。 */
+/** 収録数（テスト・デバッグ用）。icons.json 由来の件数だけを数える。 */
 export const iconCount = (): number => ICON_IDS.size

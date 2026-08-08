@@ -213,8 +213,8 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
   addKeyValue(ws, '合計（下限）', solution.totalPowerRangeMW.minMW + extractionPowerMW, NUM_FMT.power)
   addKeyValue(ws, '合計（上限）', solution.totalPowerRangeMW.maxMW + extractionPowerMW, NUM_FMT.power)
 
-  // 3.5) クロックと Somersloop（クロックを適用した実消費電力はこちら）
-  addSection(ws, 'クロックと Somersloop')
+  // 3.5) クロックとサマースループ（クロックを適用した実消費電力はこちら）
+  addSection(ws, 'クロックとサマースループ')
   addKeyValue(ws, '製造クロック上限', solution.maxClock, NUM_FMT.percent)
   addKeyValue(ws, '採掘クロック', extraction?.clock ?? 1, NUM_FMT.percent)
   addKeyValue(
@@ -247,8 +247,8 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
     solution.totalPowerShards + (extraction?.totalPowerShards ?? 0),
     NUM_FMT.int,
   )
-  addKeyValue(ws, 'Somersloop 使用数（個）', solution.totalSomersloops, NUM_FMT.int)
-  addKeyValue(ws, 'Somersloop 使用可能数（個）', solution.somersloopLimit, NUM_FMT.int)
+  addKeyValue(ws, 'サマースループ 使用数（個）', solution.totalSomersloops, NUM_FMT.int)
+  addKeyValue(ws, 'サマースループ 使用可能数（個）', solution.somersloopLimit, NUM_FMT.int)
 
   // 4) 建物
   addSection(ws, '建物')
@@ -346,7 +346,7 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
     '建てる台数',
     'クロック',
     'パワーシャード',
-    'Somersloop',
+    'サマースループ',
     '消費電力(MW)',
     '電力下限(MW)',
     '電力上限(MW)',

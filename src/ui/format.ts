@@ -58,6 +58,13 @@ export const itemName = (id: string): string => itemsById.get(id)?.name.ja ?? id
 export const recipeMainItem = (recipeId: string): string | null =>
   recipesById.get(recipeId)?.products[0]?.item ?? null
 
+/**
+ * 代替レシピか（名前が「代替: 」で始まるもの）。
+ * ハードドライブのアイコンを名前の先頭に添えるかの判定に使う。
+ */
+export const isAlternateRecipe = (recipeId: string): boolean =>
+  recipesById.get(recipeId)?.isAlternate ?? false
+
 /** アイテムの単位（固体=個/分、液体・気体=m³/min） */
 export const itemUnit = (id: string): string =>
   itemsById.get(id)?.form === 'solid' ? '個/分' : 'm³/min'

@@ -8,7 +8,7 @@
     <title>Satisfactory 生産計画ツール — 日本語ソルバー＆Excel出力</title>
     <meta
       name="description"
-      content="Satisfactory の生産ラインを日本語で計算する非公式ツール。目標レートを入れるだけで必要なレシピ・建物数・電力・原料を最適化し、Excel（6シート）とフローチャートで出力します。代替レシピ・クロック・Somersloop にも対応。インストール不要・ブラウザだけで動きます。"
+      content="Satisfactory の生産ラインを日本語で計算する非公式ツール。目標レートを入れるだけで必要なレシピ・建物数・電力・原料を最適化し、Excel（6シート）とフローチャートで出力します。代替レシピ・クロック・サマースループにも対応。インストール不要・ブラウザだけで動きます。"
     />
     <meta name="theme-color" content="#101318" />
 
@@ -36,6 +36,20 @@
       content="目標レートを入れるだけで、必要なレシピ・建物数・電力・原料を最適化。Excel出力とフローチャート付きの非公式ファンツールです。"
     />
     <meta name="twitter:image" content="https://satisfactory-planner-gray.vercel.app/ogp.png" />
+
+    <!--
+      テスト用URL（Vercel のプレビュー等、*.vercel.app のホスト）だけ検索避けする。
+      同じ内容のページが複数のURLで拾われると本番ドメインの評価が割れるため。
+      本番ドメインでは何もしない（この <meta> 自体が入らない）。
+    -->
+    <script>
+      if (location.hostname.endsWith('.vercel.app')) {
+        var robots = document.createElement('meta')
+        robots.name = 'robots'
+        robots.content = 'noindex'
+        document.head.appendChild(robots)
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

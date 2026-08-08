@@ -172,12 +172,12 @@ describe('建物リスト', () => {
     expect(row.getCell(col.get('設置面積合計(m²)')!).numFmt).toBe(NUM_FMT.area)
   })
 
-  it('パワーシャードと Somersloop の列が入る（既定はどちらも 0）', () => {
+  it('パワーシャードとサマースループの列が入る（既定はどちらも 0）', () => {
     const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
     const col = columns(sheet)
     const row = findRow(sheet, col.get('レシピ')!, '鉄板')!
     expect(row.getCell(col.get('パワーシャード')!).value).toBe(0)
-    expect(row.getCell(col.get('Somersloop')!).value).toBe(0)
+    expect(row.getCell(col.get('サマースループ')!).value).toBe(0)
   })
 
   it('合計行が解の総台数・総電力と一致する', () => {
@@ -400,7 +400,7 @@ describe('サマリー', () => {
     expect(Number(cable[2])).toBe(0)
   })
 
-  it('クロック・Somersloop・床面積のブロックが載る', async () => {
+  it('クロック・サマースループ・床面積のブロックが載る', async () => {
     const solution = await solveOk({
       targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }],
       maxClock: 2.5,
@@ -427,8 +427,8 @@ describe('サマリー', () => {
     expect(Number(labels.get('パワーシャード（個）'))).toBe(
       solution.totalPowerShards + target.input.extraction!.totalPowerShards,
     )
-    expect(Number(labels.get('Somersloop 使用数（個）'))).toBe(solution.totalSomersloops)
-    expect(Number(labels.get('Somersloop 使用可能数（個）'))).toBe(4)
+    expect(Number(labels.get('サマースループ 使用数（個）'))).toBe(solution.totalSomersloops)
+    expect(Number(labels.get('サマースループ 使用可能数（個）'))).toBe(4)
 
     // 床面積（概算）
     expect(Number(labels.get('製造建物の設置面積 (m²)'))).toBeCloseTo(

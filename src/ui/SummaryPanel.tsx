@@ -17,6 +17,7 @@ import {
   itemName,
   itemUnit,
 } from './format.ts'
+import { ItemLabel } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = {
@@ -58,7 +59,9 @@ export function SummaryPanel({ solution, extraction }: Props) {
           <tbody>
             {solution.targets.map((target) => (
               <tr key={target.item}>
-                <th scope="row">{itemName(target.item)}</th>
+                <th scope="row">
+                  <ItemLabel id={target.item} name={itemName(target.item)} />
+                </th>
                 <td className="num">
                   {target.maximized ? (
                     <span className="tag is-accent">{T.summary.maximized}</span>
@@ -182,7 +185,9 @@ export function SummaryPanel({ solution, extraction }: Props) {
             <tbody>
               {solution.byproducts.map((b) => (
                 <tr key={b.item}>
-                  <th scope="row">{itemName(b.item)}</th>
+                  <th scope="row">
+                    <ItemLabel id={b.item} name={itemName(b.item)} />
+                  </th>
                   <td className="num">{fmtRate(b.ratePerMin)}</td>
                   <td className="unit-cell">{itemUnit(b.item)}</td>
                 </tr>
@@ -206,7 +211,9 @@ export function SummaryPanel({ solution, extraction }: Props) {
           <tbody>
             {buildCost.map((row) => (
               <tr key={row.item}>
-                <th scope="row">{itemName(row.item)}</th>
+                <th scope="row">
+                  <ItemLabel id={row.item} name={itemName(row.item)} />
+                </th>
                 <td className="num">{fmtInt(row.manufacturing)}</td>
                 <td className="num">{fmtInt(row.extraction)}</td>
                 <td className="num strong">{fmtInt(row.total)}</td>
@@ -232,7 +239,9 @@ export function SummaryPanel({ solution, extraction }: Props) {
               {/* 全量が使われるとは限らないので「投入 / 使用」を並べて出す */}
               {solution.externalInputs.map((input) => (
                 <tr key={input.item}>
-                  <th scope="row">{itemName(input.item)}</th>
+                  <th scope="row">
+                    <ItemLabel id={input.item} name={itemName(input.item)} />
+                  </th>
                   <td className="num">{fmtRate(input.availablePerMin)}</td>
                   <td className="num">{fmtRate(input.ratePerMin)}</td>
                   <td>

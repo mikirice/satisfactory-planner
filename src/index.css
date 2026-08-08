@@ -205,6 +205,18 @@ ul {
   background: rgba(255, 255, 255, 0.03);
 }
 
+/*
+ * 表のセルの「アイコン＋アイテム名」（src/ui/ItemIcon.tsx の ItemLabel）。
+ * 場所は gap で作るので、アイコンが無い/撤去されたアイテムでも名前だけが残る。
+ */
+.cell-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .num {
   text-align: right;
   font-variant-numeric: tabular-nums;

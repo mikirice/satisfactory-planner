@@ -28,6 +28,7 @@ import { buildPlanGraph } from '../plan/graph.ts'
 import type { Solution } from '../solver/index.ts'
 import {
   EDGE_COLORS,
+  LABEL_STYLE,
   NODE_METRICS,
   NODE_TYPE,
   elkEdgePath,
@@ -46,10 +47,11 @@ import {
   fmtPower,
   fmtPowerRange,
   fmtRate,
+  isAlternateRecipe,
   itemName,
   recipeMainItem,
 } from './format.ts'
-import { ItemIcon } from './ItemIcon.tsx'
+import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = {
@@ -204,7 +206,12 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
         <ItemIcon id={mainItem} name={itemName(mainItem)} size={NODE_METRICS.iconSize} />
         <span className="flow-node__headname">{itemName(mainItem)}</span>
       </p>
-      <p className="flow-node__title">{node.recipeNameJa}</p>
+      {/* 代替レシピはハードドライブのアイコンを名前の先頭に置く。
+          1行目が狭くなるぶんは flow-layout.ts の titleLeadingWidth が高さに織り込む */}
+      <p className="flow-node__title">
+        {isAlternateRecipe(node.recipeId) && <AlternateIcon size={NODE_METRICS.titleIconSize} />}
+        {node.recipeNameJa}
+      </p>
       <p className="flow-node__meta">
         {node.buildingNameJa}・{T.flow.machines(node.buildingCount, fmtPercent(node.clock))}
       </p>
@@ -318,7 +325,9 @@ function PlanEdge({ id, data, style, markerEnd }: EdgeProps<PlanFlowEdge>) {
             height: label.height,
           }}
         >
-          {label.text}
+          {/* アイコンの場所は measureEdgeLabel が幅に入れてある（無ければ空くだけ） */}
+          <ItemIcon id={data.item} name={itemName(data.item)} size={LABEL_STYLE.iconSize} />
+          <span>{label.text}</span>
         </div>
       </EdgeLabelRenderer>
     </>

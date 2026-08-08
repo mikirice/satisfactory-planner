@@ -24,6 +24,7 @@ import {
   nodeInnerWidth,
   nodeRows,
   nodeWidth,
+  titleLeadingWidth,
   titleLineCount,
 } from '../src/ui/flow-layout.ts'
 
@@ -77,12 +78,11 @@ describe('ノードの高さ', () => {
     for (const node of allNodes) {
       const text = node.kind === 'recipe' ? node.recipeNameJa : node.itemNameJa
       const width = nodeWidth(node)
-      const lines = titleLineCount(text, width)
-      const textWidth = measureTextWidth(
-        text,
-        NODE_METRICS.titleFontSize,
-        NODE_METRICS.titleBoldFactor,
-      )
+      // 代替レシピは名前の前にハードドライブのアイコンが入るぶんだけ1行目が狭くなる
+      const leading = titleLeadingWidth(node)
+      const lines = titleLineCount(text, width, leading)
+      const textWidth =
+        measureTextWidth(text, NODE_METRICS.titleFontSize, NODE_METRICS.titleBoldFactor) + leading
       expect(lines, node.id).toBeLessThanOrEqual(NODE_METRICS.titleMaxLines)
       expect(textWidth, `${node.id}: ${text}`).toBeLessThanOrEqual(lines * nodeInnerWidth(width))
 

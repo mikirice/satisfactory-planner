@@ -6,8 +6,12 @@
  * ここは常に「描けなければ null を返す」だけにして、名前などの文字は呼び出し側が持つ。
  */
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
-import { iconPath } from './icons.ts'
+import { HARD_DRIVE_ICON_ID, iconPath } from './icons.ts'
+
+/** 表・一覧の1行に置くアイコンの大きさ(px)。行送り（13px文字）を押し広げない大きさ。 */
+export const CELL_ICON = 16
 
 type Props = {
   /** アイテムID（Desc_*）または建物ID（Build_*） */
@@ -36,5 +40,42 @@ export function ItemIcon({ id, name, size = 20, className }: Props) {
       decoding="async"
       onError={() => setBroken(true)}
     />
+  )
+}
+
+/**
+ * 代替レシピの目印（ハードドライブ）。レシピ名の**先頭**に置く補助記号で、
+ * 名前の「代替: 」という文字は消さない（アイコンが撤去されても意味が伝わるように）。
+ */
+export function AlternateIcon({ size = CELL_ICON }: { size?: number }) {
+  return <ItemIcon id={HARD_DRIVE_ICON_ID} name="代替レシピ" size={size} />
+}
+
+type LabelProps = {
+  /** アイテムID（Desc_*） */
+  id: string
+  /** 表示するアイテム名（アイコンの alt にも使う） */
+  name: string
+  /** アイコンの表示サイズ(px) */
+  size?: number
+  /** 名前のうしろに足すもの（単位など） */
+  children?: ReactNode
+}
+
+/**
+ * 「アイコン＋アイテム名」の1組（表のセル・一覧の行で使う）。
+ *
+ * 場所は gap で確保する側（.cell-name の flex）なので、アイコンが無い・撤去された
+ * アイテムでも名前だけがそのまま残る。
+ */
+export function ItemLabel({ id, name, size = CELL_ICON, children }: LabelProps) {
+  return (
+    <span className="cell-name">
+      <ItemIcon id={id} name={name} size={size} />
+      <span>
+        {name}
+        {children}
+      </span>
+    </span>
   )
 }

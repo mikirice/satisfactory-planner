@@ -14,7 +14,14 @@
 - ファイル名: **Docs.json の ClassName**（例 `Desc_IronPlate_C.png` / `Build_ConstructorMk1_C.png`）
   - Wiki 側のファイル名は英語表示名なので、`src/data/items.json` / `buildings.json` の
     `name.en` から `File:<Name>.png` を組み立てて解決している
-- 収録数: 218 / 221 件・合計 1.42 MB
+- 収録数: 218 / 221 件・合計 1.43 MB
+
+### アイテム/建物以外の追加アイコン（画面の記号として使う）
+
+- `Desc_HardDrive_C.png`（ハードドライブ / Hard Drive）… 代替レシピの目印
+
+Docs.json に生産物としてのエントリが無いので `src/data/icons.json` には載せていない
+（解決は `src/ui/icons.ts` の EXTRA_ICON_IDS 側）。撤去手順は下と同じで、消えても画面は文字だけに戻る。
 
 ### 採用しなかったもの（アイコン無し＝画面では文字だけ表示）
 

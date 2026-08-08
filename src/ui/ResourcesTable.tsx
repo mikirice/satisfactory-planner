@@ -10,6 +10,7 @@ import {
   itemName,
   itemUnit,
 } from './format.ts'
+import { ItemLabel } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = {
@@ -99,8 +100,9 @@ function ResourceRows({
   const head = (
     <>
       <th scope="row" rowSpan={span}>
-        {itemName(item)}
-        <span className="unit"> {itemUnit(item)}</span>
+        <ItemLabel id={item} name={itemName(item)}>
+          <span className="unit"> {itemUnit(item)}</span>
+        </ItemLabel>
       </th>
       <td className="num" rowSpan={span}>
         {fmtRate(ratePerMin)}

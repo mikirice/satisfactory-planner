@@ -57,6 +57,20 @@ const PLACEHOLDER_TITLES = new Set([
 
 type NamedEntity = { id: string; name: { ja: string; en: string } }
 
+/**
+ * アイテム / 建物ではないが、画面で**記号として**使うアイコン。
+ *
+ * - `Desc_HardDrive_C` … 代替レシピの目印（代替レシピはハードドライブの解析で手に入る）。
+ *   Docs.json には生産物としてのエントリが無いので `items.json` からは引けない。
+ *   ClassName は他と同じ命名（`Desc_<英語名>_C`）に合わせて手で決めている。
+ *
+ * ここのIDは **`src/data/icons.json` には載せない**（あの一覧は「アイテム/建物の一覧と
+ * 一致していること」をテストで担保しているため）。解決は src/ui/icons.ts の EXTRA_ICON_IDS 側で行う。
+ */
+export const EXTRA_ICONS: NamedEntity[] = [
+  { id: 'Desc_HardDrive_C', name: { ja: 'ハードドライブ', en: 'Hard Drive' } },
+]
+
 /** ID → Wiki のファイル名（`File:...png`）。 */
 export function wikiFileTitle(nameEn: string): string {
   return `File:${nameEn.replace(/ /g, '_')}.png`
@@ -172,9 +186,13 @@ async function inPool<T>(jobs: (() => Promise<T>)[], limit: number): Promise<T[]
 export async function fetchIcons(force = false): Promise<void> {
   await mkdir(ICON_DIR, { recursive: true })
   const targets = await loadTargets()
-  console.log(`[fetch-icons] targets: ${targets.length} (items + buildings)`)
+  // 取得対象はアイテム/建物＋記号用の追加分（追加分は icons.json には載せない）
+  const downloadable = [...targets, ...EXTRA_ICONS]
+  console.log(
+    `[fetch-icons] targets: ${targets.length} (items + buildings) + ${EXTRA_ICONS.length} extra`,
+  )
 
-  const wanted = targets.filter((t) => force || !existsSync(join(ICON_DIR, `${t.id}.png`)))
+  const wanted = downloadable.filter((t) => force || !existsSync(join(ICON_DIR, `${t.id}.png`)))
   console.log(`[fetch-icons] to download: ${wanted.length} (skip existing: ${targets.length - wanted.length})`)
 
   const missing: string[] = []
@@ -204,7 +222,7 @@ export async function fetchIcons(force = false): Promise<void> {
   const files = (await readdir(ICON_DIR)).filter((f) => f.endsWith('.png'))
   const present = new Set(files.map((f) => f.replace(/\.png$/, '')))
   const ids = targets.map((t) => t.id).filter((id) => present.has(id)).sort()
-  const orphans = [...present].filter((id) => !targets.some((t) => t.id === id))
+  const orphans = [...present].filter((id) => !downloadable.some((t) => t.id === id))
 
   let totalBytes = 0
   for (const file of files) totalBytes += (await stat(join(ICON_DIR, file))).size
@@ -252,6 +270,13 @@ function sourcesDoc(
   - Wiki 側のファイル名は英語表示名なので、\`src/data/items.json\` / \`buildings.json\` の
     \`name.en\` から \`File:<Name>.png\` を組み立てて解決している
 - 収録数: ${count} / ${total} 件・合計 ${(bytes / 1024 / 1024).toFixed(2)} MB
+
+### アイテム/建物以外の追加アイコン（画面の記号として使う）
+
+${EXTRA_ICONS.map((e) => `- \`${e.id}.png\`（${e.name.ja} / ${e.name.en}）… 代替レシピの目印`).join('\n')}
+
+Docs.json に生産物としてのエントリが無いので \`src/data/icons.json\` には載せていない
+（解決は \`src/ui/icons.ts\` の EXTRA_ICON_IDS 側）。撤去手順は下と同じで、消えても画面は文字だけに戻る。
 
 ### 採用しなかったもの（アイコン無し＝画面では文字だけ表示）
 

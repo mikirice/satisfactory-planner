@@ -620,8 +620,8 @@ const overclocked: Solution = {
   totalFootprintAreaM2: 2 * constructor_.footprint.areaM2,
 }
 
-describe('クロックと Somersloop', () => {
-  it('サイドバーでクロック上限と Somersloop 数を変えられる', async () => {
+describe('クロックとサマースループ', () => {
+  it('サイドバーでクロック上限とサマースループ数を変えられる', async () => {
     const container = await render(<App />)
     const range = container.querySelector<HTMLInputElement>('.range')!
     expect(range.value).toBe('100')
@@ -642,32 +642,32 @@ describe('クロックと Somersloop', () => {
 
     // 採掘クロックのプルダウンも出ている
     expect(container.textContent).toContain('採掘クロック')
-    expect(container.textContent).toContain('クロックと Somersloop')
+    expect(container.textContent).toContain('クロックとサマースループ')
 
     usePlanner.setState({ maxClock: 1, somersloops: 0, extractionClock: 1 })
   })
 
-  it('生産ステップ表にクロック・シャード・Somersloop の列が出る', async () => {
+  it('生産ステップ表にクロック・シャード・サマースループの列が出る', async () => {
     const container = await render(<StepsTable solution={overclocked} />)
     const text = container.textContent ?? ''
     expect(text).toContain('2 台 @ 150.0%')
     expect(text).toContain('シャード')
-    expect(text).toContain('Somersloop')
+    expect(text).toContain('サマースループ')
     expect(text).toContain('2 個')
     expect(text).toContain('クロック上限 250.0%')
   })
 
-  it('Somersloop を使わない解では列を出さない（表を細く保つ）', async () => {
+  it('サマースループを使わない解では列を出さない（表を細く保つ）', async () => {
     const container = await render(<StepsTable solution={solution} />)
     const text = container.textContent ?? ''
-    expect(text).not.toContain('Somersloop')
+    expect(text).not.toContain('サマースループ')
     expect(text).not.toContain('シャード')
   })
 
-  it('サマリーに Somersloop の使用数と上限が出る', async () => {
+  it('サマリーにサマースループの使用数と上限が出る', async () => {
     const container = await render(<SummaryPanel solution={overclocked} extraction={null} />)
     const text = container.textContent ?? ''
-    expect(text).toContain('Somersloop')
+    expect(text).toContain('サマースループ')
     expect(text).toContain('使用数')
     expect(text).toContain('使用可能数')
     expect(text).toContain('パワーシャード')

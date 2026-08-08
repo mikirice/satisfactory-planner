@@ -1,8 +1,17 @@
 /** 生産ステップ表（機械種別でグルーピング）。 */
 import { groupByBuilding, stepKey } from '../plan/aggregate.ts'
 import type { Solution } from '../solver/index.ts'
-import { fmtClock, fmtCount, fmtInt, fmtPower, fmtPowerRange, fmtRate, itemName } from './format.ts'
-import { ItemIcon } from './ItemIcon.tsx'
+import {
+  fmtClock,
+  fmtCount,
+  fmtInt,
+  fmtPower,
+  fmtPowerRange,
+  fmtRate,
+  isAlternateRecipe,
+  itemName,
+} from './format.ts'
+import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = { solution: Solution }
@@ -45,7 +54,13 @@ export function StepsTable({ solution }: Props) {
             <tbody>
               {group.steps.map((step) => (
                 <tr key={stepKey(step)}>
-                  <th scope="row">{step.recipeName.ja}</th>
+                  <th scope="row">
+                    {/* 代替レシピはハードドライブのアイコンを先頭に添える（文字の「代替: 」は残す） */}
+                    <span className="cell-name">
+                      {isAlternateRecipe(step.recipeId) && <AlternateIcon size={CELL_ICON} />}
+                      <span>{step.recipeName.ja}</span>
+                    </span>
+                  </th>
                   <td className="num">{fmtCount(step.machineCount)}</td>
                   <td className="num">
                     {step.builtCount} 台 @ {fmtClock(step.clockSpeed)}

@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import type { ItemBalance, Solution } from '../solver/index.ts'
 import { fmtRate, itemName, itemUnit } from './format.ts'
+import { ItemLabel } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = { solution: Solution }
@@ -44,8 +45,9 @@ export function BalanceTable({ solution }: Props) {
             {rows.map((balance) => (
               <tr key={balance.item}>
                 <th scope="row">
-                  {itemName(balance.item)}
-                  <span className="unit"> {itemUnit(balance.item)}</span>
+                  <ItemLabel id={balance.item} name={itemName(balance.item)}>
+                    <span className="unit"> {itemUnit(balance.item)}</span>
+                  </ItemLabel>
                 </th>
                 <td className="num">{fmtRate(balance.producedPerMin)}</td>
                 <td className="num">{fmtRate(balance.consumedPerMin)}</td>
