@@ -153,16 +153,35 @@
 
 /* --- 目標産出 ------------------------------------------------------------ */
 
+/*
+ * 検索候補は検索欄にぶら下がるドロップダウン（重ねて出す）。
+ * 通常の流れに置くと、追加済みの目標一覧と地続きに見えて「候補なのか目標なのか」が
+ * 分からなくなる（オーナー報告の症状）。位置と影で層を分ける。
+ */
+.target-search {
+  position: relative;
+}
+
 .suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin-top: 4px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   max-height: 220px;
   overflow-y: auto;
   background: var(--bg-panel);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
 }
 
 .suggestions__item {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
   text-align: left;
   background: none;
@@ -179,10 +198,30 @@
   color: var(--text-strong);
 }
 
+.suggestions__added {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .suggestions__empty {
   padding: 6px 10px;
   color: var(--text-muted);
   font-size: 12px;
+}
+
+/* 追加済みの目標は見出し付きの別ブロックにして、候補と混ざらないようにする */
+.target-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.target-group__head {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .target-list {
@@ -522,7 +561,25 @@
   font-size: 10px;
 }
 
-/* ノード共通 */
+/*
+ * ノード共通。
+ *
+ * 寸法は flow-layout.ts の NODE_METRICS と **1px単位で一致させること**（行の高さを
+ * px で固定し、その積み上げがノードの高さになる）。ズレると行が縮んで文字が重なる。
+ *
+ * 既定ノードの見た目を打ち消しておく。React Flow は種別名から
+ * `.react-flow__node-<種別>` を付けるので、将来 `output` 等と衝突しても
+ * padding や幅が勝手に入らないようにするための保険。
+ */
+.flowchart .react-flow__node {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  width: auto;
+  text-align: left;
+}
+
 .flow-node {
   width: 100%;
   height: 100%;
@@ -531,31 +588,42 @@
   background: var(--bg-raised);
   padding: 8px 10px;
   font-size: 12px;
-  line-height: 1.4;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+}
+
+/* 行は絶対に縮ませない（縮むと文字が隣の行に重なる） */
+.flow-node > * {
+  flex: 0 0 auto;
 }
 
 .flow-node__kind {
   font-size: 10px;
+  line-height: 14px;
   letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
+/* 名前は読めることを優先（…で切らずに折り返す。上限3行＝高さ計算と同じ） */
 .flow-node__title {
   color: var(--text-strong);
   font-weight: 600;
   font-size: 13px;
-  line-height: 1.3;
-  max-height: 2.6em;
+  line-height: 18px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .flow-node__meta {
   color: var(--text-muted);
   font-size: 11px;
+  line-height: 16px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
@@ -565,6 +633,8 @@
 .flow-node__rate {
   color: var(--text-strong);
   font-size: 15px;
+  line-height: 22px;
+  white-space: nowrap;
 }
 
 .flow-node__unit {
@@ -602,19 +672,24 @@
   justify-content: flex-end;
 }
 
-.flow-node__colhead {
+.flow-node__col .flow-node__colhead {
   color: var(--text-muted);
   font-size: 10px;
+  line-height: 14px;
 }
 
 .flow-node__item {
   color: var(--text-muted);
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .flow-node__num {
   color: var(--text);
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .flow-node--source {

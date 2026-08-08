@@ -3,7 +3,9 @@
  *
  * 座標は elkjs の layered（左→右）に任せる。ノードの大きさは描画前に決まらないと
  * レイアウトがズレるので、**ここで計算した固定サイズを CSS 側にもそのまま渡す**
- * （FlowChart.tsx のノードは width/height 指定。中身がはみ出すときは省略表示）。
+ * （FlowChart.tsx のノードは width/height 指定）。高さは「実際に描く行」を積み上げて
+ * 出す（NODE_METRICS / nodeRows）。行数と合わない固定値にすると中身が縮められて
+ * 文字が重なる・見切れるので、CSS の line-height と必ず揃えること。
  *
  * エッジのラベル（「水 66.67 m³/min」など）も **elk に寸法を渡して位置まで決めさせる**。
  * React Flow 既定のラベル（線の中点に置く）は隣の線やノードと重なって読めなくなるため、
@@ -32,9 +34,23 @@ import { fmtRate } from './format.ts'
 // 型
 // ---------------------------------------------------------------------------
 
-export type SourceFlowNode = Node<{ node: SourceGraphNode }, 'source'>
-export type RecipeFlowNode = Node<{ node: RecipeGraphNode }, 'recipe'>
-export type OutputFlowNode = Node<{ node: OutputGraphNode }, 'output'>
+/**
+ * React Flow のノード種別名。
+ *
+ * **`plan` を必ず前置きする**。React Flow は種別名から `react-flow__node-<種別>` という
+ * クラスを付けるので、`output` / `default` / `input` / `group` を種別名にすると
+ * 既定ノードの見た目（padding 10px・border・width 150px・中央寄せ）が当たってしまい、
+ * 中身の高さが 22px 削られて文字が重なる。前置きでその衝突を避ける。
+ */
+export const NODE_TYPE = {
+  source: 'planSource',
+  recipe: 'planRecipe',
+  output: 'planOutput',
+} as const
+
+export type SourceFlowNode = Node<{ node: SourceGraphNode }, 'planSource'>
+export type RecipeFlowNode = Node<{ node: RecipeGraphNode }, 'planRecipe'>
+export type OutputFlowNode = Node<{ node: OutputGraphNode }, 'planOutput'>
 export type PlanFlowNode = SourceFlowNode | RecipeFlowNode | OutputFlowNode
 
 /** 矩形（左上原点。重なり判定・テスト用）。 */
@@ -68,16 +84,49 @@ export type PlanFlowLayout = {
 // 見た目の寸法（CSS と一致させること）
 // ---------------------------------------------------------------------------
 
-export const NODE_SIZE = {
-  recipeWidth: 268,
-  /** 見出し＋メタ2行＋投入/産出の見出し分 */
-  recipeBase: 104,
-  recipeRow: 17,
-  sourceWidth: 184,
-  sourceHeight: 84,
-  outputWidth: 184,
-  outputHeight: 92,
+/**
+ * ノードの中身の寸法（**App.css の .flow-node* と1px単位で一致させること**）。
+ *
+ * ノードの高さは描画前に決めないと elk のレイアウトがズレるので、ここで
+ * 「実際に描く行」を積み上げて算出する。CSS 側は行ごとに px の line-height を固定し、
+ * `.flow-node > *` を縮ませない（flex-shrink: 0）。数値がズレると行が潰れて
+ * 文字同士が重なるので、変更するときは CSS と tests/flow-node-size.test.ts も直す。
+ */
+export const NODE_METRICS = {
+  paddingX: 10,
+  paddingY: 8,
+  border: 1,
+  rowGap: 2,
+  /** .flow-node__kind（10px） */
+  kindFontSize: 10,
+  kindLine: 14,
+  /** .flow-node__title（13px semibold） */
+  titleFontSize: 13,
+  titleLine: 18,
+  titleMaxLines: 3,
+  /** 太字ぶんの割り増し（em 推定に掛ける） */
+  titleBoldFactor: 1.06,
+  /** .flow-node__rate（15px） */
+  rateFontSize: 15,
+  rateLine: 22,
+  /** .flow-node__meta（11px） */
+  metaFontSize: 11,
+  metaLine: 16,
+  /** .flow-node__io（投入/産出の枠） */
+  ioMarginTop: 4,
+  ioBorder: 1,
+  ioPaddingTop: 3,
+  ioHeadFontSize: 10,
+  ioHeadLine: 14,
+  ioRowFontSize: 11,
+  ioRowLine: 17,
+  recipeWidth: 300,
+  sourceWidth: 200,
+  outputWidth: 200,
 } as const
+
+/** ノード1行ぶんの見た目（テストが「潰れていないか」を見るのに使う）。 */
+export type NodeRow = { id: string; height: number; fontSize: number }
 
 /** 線の色（ダークテーマ）。 */
 export const EDGE_COLORS = {
@@ -141,18 +190,99 @@ export function measureEdgeLabel(text: string): { width: number; height: number 
   }
 }
 
-function nodeSize(node: PlanGraphNode): { width: number; height: number } {
+/** 文字列の推定幅（px）。ラベルと同じ全角/半角の em 換算を使う。 */
+export function measureTextWidth(text: string, fontSize: number, boldFactor = 1): number {
+  let em = 0
+  for (const char of text) {
+    em += isFullWidth(char.codePointAt(0) ?? 0)
+      ? LABEL_STYLE.emFullWidth
+      : LABEL_STYLE.emHalfWidth
+  }
+  return em * fontSize * boldFactor
+}
+
+/** ノードの横幅から、文字を置ける幅（padding・border を引いたもの）。 */
+export function nodeInnerWidth(width: number): number {
+  return width - NODE_METRICS.paddingX * 2 - NODE_METRICS.border * 2
+}
+
+/**
+ * 見出し（アイテム名 / レシピ名）の行数。
+ * 名前は「読めること」を優先して折り返す（…で切らない）。上限は titleMaxLines。
+ */
+export function titleLineCount(text: string, width: number): number {
+  const available = nodeInnerWidth(width)
+  if (available <= 0) return 1
+  const textWidth = measureTextWidth(
+    text,
+    NODE_METRICS.titleFontSize,
+    NODE_METRICS.titleBoldFactor,
+  )
+  const lines = Math.ceil(textWidth / available)
+  return Math.min(Math.max(lines, 1), NODE_METRICS.titleMaxLines)
+}
+
+/** ノードの横幅（種別ごと）。 */
+export function nodeWidth(node: PlanGraphNode): number {
+  if (node.kind === 'recipe') return NODE_METRICS.recipeWidth
+  if (node.kind === 'source') return NODE_METRICS.sourceWidth
+  return NODE_METRICS.outputWidth
+}
+
+/**
+ * ノードの中に実際に積まれる行（FlowChart.tsx のマークアップと同じ順・同じ数）。
+ * 高さはこの合計から出す＝行が入りきらずに潰れる（＝文字が重なる）ことがない。
+ */
+export function nodeRows(node: PlanGraphNode): NodeRow[] {
+  const m = NODE_METRICS
+  const width = nodeWidth(node)
+  const title = (text: string): NodeRow => ({
+    id: 'title',
+    height: m.titleLine * titleLineCount(text, width),
+    fontSize: m.titleFontSize,
+  })
+
   if (node.kind === 'recipe') {
-    const rows = Math.max(node.inputs.length, node.outputs.length, 1)
-    return {
-      width: NODE_SIZE.recipeWidth,
-      height: NODE_SIZE.recipeBase + rows * NODE_SIZE.recipeRow,
-    }
+    const ioRows = Math.max(node.inputs.length, node.outputs.length, 1)
+    return [
+      title(node.recipeNameJa),
+      { id: 'meta:building', height: m.metaLine, fontSize: m.metaFontSize },
+      { id: 'meta:power', height: m.metaLine, fontSize: m.metaFontSize },
+      {
+        id: 'io',
+        // 上の余白＋区切り線＋見出し＋投入/産出の行（左右の多いほうに合わせる）
+        height:
+          m.ioMarginTop +
+          m.ioBorder +
+          m.ioPaddingTop +
+          m.ioHeadLine +
+          ioRows * m.ioRowLine,
+        fontSize: m.ioRowFontSize,
+      },
+    ]
   }
-  if (node.kind === 'source') {
-    return { width: NODE_SIZE.sourceWidth, height: NODE_SIZE.sourceHeight }
+
+  const rows: NodeRow[] = [
+    { id: 'kind', height: m.kindLine, fontSize: m.kindFontSize },
+    title(node.itemNameJa),
+    { id: 'rate', height: m.rateLine, fontSize: m.rateFontSize },
+  ]
+  if (node.kind === 'output' && node.requestedPerMin !== undefined) {
+    rows.push({ id: 'meta:requested', height: m.metaLine, fontSize: m.metaFontSize })
   }
-  return { width: NODE_SIZE.outputWidth, height: NODE_SIZE.outputHeight }
+  return rows
+}
+
+/** 行の積み上げから決まるノードの外形（elk・React Flow・CSS が共有する唯一の寸法）。 */
+export function measureNodeSize(node: PlanGraphNode): { width: number; height: number } {
+  const m = NODE_METRICS
+  const rows = nodeRows(node)
+  const content = rows.reduce((sum, row) => sum + row.height, 0)
+  const gaps = m.rowGap * Math.max(rows.length - 1, 0)
+  return {
+    width: nodeWidth(node),
+    height: m.paddingY * 2 + m.border * 2 + content + gaps,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -190,7 +320,7 @@ const ELK_OPTIONS: Record<string, string> = {
 export async function layoutPlanGraph(graph: PlanGraph): Promise<PlanFlowLayout> {
   const children: ElkNode[] = graph.nodes.map((node) => ({
     id: node.id,
-    ...nodeSize(node),
+    ...measureNodeSize(node),
   }))
   const edges: ElkExtendedEdge[] = graph.edges.map((edge) => {
     const text = edgeLabel(edge)
@@ -329,7 +459,7 @@ export function overlapArea(a: Rect, b: Rect): number {
 }
 
 function toFlowNode(node: PlanGraphNode, position: { x: number; y: number } | undefined): PlanFlowNode {
-  const size = nodeSize(node)
+  const size = measureNodeSize(node)
   const base = {
     id: node.id,
     position: position ?? { x: 0, y: 0 },
@@ -341,11 +471,11 @@ function toFlowNode(node: PlanGraphNode, position: { x: number; y: number } | un
   }
   switch (node.kind) {
     case 'source':
-      return { ...base, type: 'source', data: { node } }
+      return { ...base, type: NODE_TYPE.source, data: { node } }
     case 'recipe':
-      return { ...base, type: 'recipe', data: { node } }
+      return { ...base, type: NODE_TYPE.recipe, data: { node } }
     default:
-      return { ...base, type: 'output', data: { node } }
+      return { ...base, type: NODE_TYPE.output, data: { node } }
   }
 }
 

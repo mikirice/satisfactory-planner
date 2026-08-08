@@ -1,5 +1,13 @@
-/** 目標産出の編集（アイテム検索＋レート入力）。 */
-import { useMemo, useState } from 'react'
+/**
+ * 目標産出の編集（アイテム検索＋レート入力）。
+ *
+ * 検索候補は **検索欄に紐づいたドロップダウン**（重ねて出す）。以前は候補を通常の
+ * 流れの中に置いていたため、追加した後も候補が目標一覧のすぐ上に残り、
+ * 「候補」と「追加済みの目標」の区別が付かなかった（例: 強化鉄板を追加したのに
+ * 「鉄板」も目標に入っていると誤解する）。選んだら閉じる・Escape / 外側クリックでも
+ * 閉じる・目標一覧は見出し付きの別ブロックにする、の3点で切り分ける。
+ */
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { items } from '../data/index.ts'
 import { usePlanner } from '../store/planner.ts'
@@ -23,6 +31,8 @@ export function TargetsPanel() {
   const updateTarget = usePlanner((s) => s.updateTarget)
   const removeTarget = usePlanner((s) => s.removeTarget)
   const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
 
   const suggestions = useMemo(() => {
     if (query.trim() === '') return []
@@ -31,73 +41,110 @@ export function TargetsPanel() {
       .slice(0, MAX_SUGGESTIONS)
   }, [query])
 
+  const addedItems = useMemo(() => new Set(targets.map((t) => t.item)), [targets])
+  const showSuggestions = open && query.trim() !== ''
+
+  // 外側をクリックしたら閉じる（候補が出しっぱなしにならないように）
+  useEffect(() => {
+    if (!showSuggestions) return
+    const onPointerDown = (event: PointerEvent) => {
+      const box = searchRef.current
+      if (box && event.target instanceof Node && !box.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [showSuggestions])
+
   return (
     <section className="panel">
       <h2 className="panel__title">{T.sidebar.targets}</h2>
 
-      <label className="field">
-        <span className="field__label">{T.sidebar.targetSearch}</span>
-        <input
-          type="search"
-          className="input"
-          value={query}
-          placeholder={T.sidebar.targetSearchPlaceholder}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </label>
+      <div className="target-search" ref={searchRef}>
+        <label className="field">
+          <span className="field__label">{T.sidebar.targetSearch}</span>
+          <input
+            type="search"
+            className="input"
+            value={query}
+            placeholder={T.sidebar.targetSearchPlaceholder}
+            aria-expanded={showSuggestions}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setOpen(true)
+            }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setQuery('')
+                setOpen(false)
+              }
+            }}
+          />
+        </label>
 
-      {query.trim() !== '' && (
-        <ul className="suggestions">
-          {suggestions.length === 0 && <li className="suggestions__empty">{T.sidebar.noMatch}</li>}
-          {suggestions.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                className="suggestions__item"
-                onClick={() => {
-                  addTarget(item.id)
-                  setQuery('')
-                }}
-              >
-                {item.name.ja}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        {showSuggestions && (
+          <ul className="suggestions">
+            {suggestions.length === 0 && (
+              <li className="suggestions__empty">{T.sidebar.noMatch}</li>
+            )}
+            {suggestions.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className="suggestions__item"
+                  onClick={() => {
+                    addTarget(item.id)
+                    // 追加したら候補は閉じる（続けて足したいときは入力し直す）
+                    setQuery('')
+                    setOpen(false)
+                  }}
+                >
+                  <span>{item.name.ja}</span>
+                  {addedItems.has(item.id) && (
+                    <span className="suggestions__added">{T.sidebar.alreadyAdded}</span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-      {targets.length === 0 ? (
-        <p className="hint">{T.sidebar.targetEmpty}</p>
-      ) : (
-        <ul className="target-list">
-          {targets.map((target) => (
-            <li key={target.key} className="target">
-              <span className="target__name">{itemName(target.item)}</span>
-              <span className="target__rate">
-                <input
-                  type="number"
-                  className="input input--num"
-                  min={0}
-                  step={1}
-                  value={target.ratePerMin}
-                  aria-label={T.sidebar.targetRate}
-                  onChange={(e) =>
-                    updateTarget(target.key, { ratePerMin: Number(e.target.value) || 0 })
-                  }
-                />
-                <span className="unit">{itemUnit(target.item)}</span>
-              </span>
-              <button
-                type="button"
-                className="button button--quiet"
-                onClick={() => removeTarget(target.key)}
-              >
-                {T.sidebar.remove}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="target-group">
+        <p className="target-group__head">{T.sidebar.targetListHeading}</p>
+        {targets.length === 0 ? (
+          <p className="hint">{T.sidebar.targetEmpty}</p>
+        ) : (
+          <ul className="target-list">
+            {targets.map((target) => (
+              <li key={target.key} className="target">
+                <span className="target__name">{itemName(target.item)}</span>
+                <span className="target__rate">
+                  <input
+                    type="number"
+                    className="input input--num"
+                    min={0}
+                    step={1}
+                    value={target.ratePerMin}
+                    aria-label={T.sidebar.targetRate}
+                    onChange={(e) =>
+                      updateTarget(target.key, { ratePerMin: Number(e.target.value) || 0 })
+                    }
+                  />
+                  <span className="unit">{itemUnit(target.item)}</span>
+                </span>
+                <button
+                  type="button"
+                  className="button button--quiet"
+                  onClick={() => removeTarget(target.key)}
+                >
+                  {T.sidebar.remove}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   )
 }

@@ -26,7 +26,7 @@ import '@xyflow/react/dist/style.css'
 
 import { buildPlanGraph } from '../plan/graph.ts'
 import type { Solution } from '../solver/index.ts'
-import { EDGE_COLORS, elkEdgePath, layoutPlanGraph } from './flow-layout.ts'
+import { EDGE_COLORS, NODE_TYPE, elkEdgePath, layoutPlanGraph } from './flow-layout.ts'
 import type {
   OutputFlowNode,
   PlanFlowEdge,
@@ -234,10 +234,12 @@ function FlowRate({ item, ratePerMin }: { item: string; ratePerMin: number }) {
   )
 }
 
+// 種別名は NODE_TYPE（plan 前置き）を使う。'output' 等をそのまま使うと
+// React Flow 既定ノードの CSS（padding 10px 等）が当たって中身が潰れる。
 const NODE_TYPES: NodeTypes = {
-  source: SourceNode,
-  recipe: RecipeNode,
-  output: OutputNode,
+  [NODE_TYPE.source]: SourceNode,
+  [NODE_TYPE.recipe]: RecipeNode,
+  [NODE_TYPE.output]: OutputNode,
 }
 
 // ---------------------------------------------------------------------------
@@ -286,9 +288,9 @@ const EDGE_TYPES: EdgeTypes = { plan: PlanEdge }
 /** ミニマップの色（種別で塗り分ける）。 */
 function miniMapColor(node: { type?: string }): string {
   switch (node.type) {
-    case 'source':
+    case NODE_TYPE.source:
       return EDGE_COLORS.solid
-    case 'output':
+    case NODE_TYPE.output:
       return '#f0a13c'
     default:
       return '#3a434f'

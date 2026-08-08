@@ -20,9 +20,11 @@ export const T = {
     targetSearch: 'アイテムを検索して追加',
     targetSearchPlaceholder: 'アイテム名（例: 鉄板）',
     targetEmpty: 'まだ目標がありません。上の検索から追加してください。',
+    targetListHeading: '追加済みの目標',
     targetRate: 'レート',
     remove: '削除',
     noMatch: '一致するアイテムがありません',
+    alreadyAdded: '追加済み',
 
     objective: '目的関数',
 
