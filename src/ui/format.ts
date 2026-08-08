@@ -2,7 +2,7 @@
  * 表示用の数値フォーマット。
  * 丸めの粒度は仕様書 v1 §8 に合わせる（レート小数2位・台数小数4位）。
  */
-import { itemsById } from '../data/index.ts'
+import { itemsById, recipesById } from '../data/index.ts'
 
 const fixed = (digits: number): Intl.NumberFormat =>
   new Intl.NumberFormat('ja-JP', {
@@ -44,6 +44,13 @@ export function fmtPowerRange(minMW: number, maxMW: number): string {
 
 /** アイテムIDの日本語名。未知IDはIDのまま返す */
 export const itemName = (id: string): string => itemsById.get(id)?.name.ja ?? id
+
+/**
+ * レシピの主産物（products の先頭）のアイテムID。未知のレシピは null。
+ * フローチャートでレシピノードに「何を作るノードか」のアイコンを出すのに使う。
+ */
+export const recipeMainItem = (recipeId: string): string | null =>
+  recipesById.get(recipeId)?.products[0]?.item ?? null
 
 /** アイテムの単位（固体=個/分、液体・気体=m³/min） */
 export const itemUnit = (id: string): string =>

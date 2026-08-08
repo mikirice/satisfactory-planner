@@ -26,7 +26,13 @@ import '@xyflow/react/dist/style.css'
 
 import { buildPlanGraph } from '../plan/graph.ts'
 import type { Solution } from '../solver/index.ts'
-import { EDGE_COLORS, NODE_TYPE, elkEdgePath, layoutPlanGraph } from './flow-layout.ts'
+import {
+  EDGE_COLORS,
+  NODE_METRICS,
+  NODE_TYPE,
+  elkEdgePath,
+  layoutPlanGraph,
+} from './flow-layout.ts'
 import type {
   OutputFlowNode,
   PlanFlowEdge,
@@ -34,7 +40,16 @@ import type {
   RecipeFlowNode,
   SourceFlowNode,
 } from './flow-layout.ts'
-import { fmtCount, fmtPercent, fmtPower, fmtPowerRange, fmtRate, itemName } from './format.ts'
+import {
+  fmtCount,
+  fmtPercent,
+  fmtPower,
+  fmtPowerRange,
+  fmtRate,
+  itemName,
+  recipeMainItem,
+} from './format.ts'
+import { ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = {
@@ -157,7 +172,10 @@ function SourceNode({ data }: NodeProps<SourceFlowNode>) {
   const node = data.node
   return (
     <div className="flow-node flow-node--source">
-      <p className="flow-node__kind">{node.external ? T.flow.external : T.flow.source}</p>
+      <p className="flow-node__kind">
+        <ItemIcon id={node.item} name={node.itemNameJa} size={NODE_METRICS.iconSize} />
+        <span>{node.external ? T.flow.external : T.flow.source}</span>
+      </p>
       <p className="flow-node__title">{node.itemNameJa}</p>
       <p className="flow-node__rate num">
         {fmtRate(node.ratePerMin)} <span className="flow-node__unit">{node.unitJa}</span>
@@ -170,8 +188,15 @@ function SourceNode({ data }: NodeProps<SourceFlowNode>) {
 /** 生産ステップ（レシピ1つ）。 */
 function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
   const node = data.node
+  // 「何を作るノードか」。レシピ名＝主産物名とは限らない（代替レシピ・副産物つき）ので
+  // レシピ定義の先頭の産物を見出しに出す。
+  const mainItem = recipeMainItem(node.recipeId) ?? node.outputs[0]?.item ?? ''
   return (
     <div className="flow-node flow-node--recipe">
+      <p className="flow-node__head">
+        <ItemIcon id={mainItem} name={itemName(mainItem)} size={NODE_METRICS.iconSize} />
+        <span className="flow-node__headname">{itemName(mainItem)}</span>
+      </p>
       <p className="flow-node__title">{node.recipeNameJa}</p>
       <p className="flow-node__meta">
         {node.buildingNameJa}・{T.flow.machines(node.buildingCount, fmtPercent(node.clock))}
@@ -212,7 +237,10 @@ function OutputNode({ data }: NodeProps<OutputFlowNode>) {
   const node = data.node
   return (
     <div className={`flow-node flow-node--output${node.isTarget ? ' flow-node--target' : ''}`}>
-      <p className="flow-node__kind">{node.isTarget ? T.flow.target : T.flow.byproduct}</p>
+      <p className="flow-node__kind">
+        <ItemIcon id={node.item} name={node.itemNameJa} size={NODE_METRICS.iconSize} />
+        <span>{node.isTarget ? T.flow.target : T.flow.byproduct}</span>
+      </p>
       <p className="flow-node__title">{node.itemNameJa}</p>
       <p className="flow-node__rate num">
         {fmtRate(node.ratePerMin)} <span className="flow-node__unit">{node.unitJa}</span>

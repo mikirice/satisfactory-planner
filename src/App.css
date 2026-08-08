@@ -179,7 +179,7 @@
 
 .suggestions__item {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
@@ -196,6 +196,15 @@
 .suggestions__item:focus-visible {
   background: var(--accent-weak);
   color: var(--text-strong);
+}
+
+/* アイコン＋アイテム名。アイコンが無ければ名前だけが残る */
+.suggestions__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .suggestions__added {
@@ -238,6 +247,10 @@
 }
 
 .target__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   color: var(--text-strong);
   overflow-wrap: anywhere;
 }
@@ -495,6 +508,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* --- アイテムアイコン ----------------------------------------------------- */
+
+/*
+ * public/icons のゲームアイコン（src/ui/ItemIcon.tsx）。
+ * 画像が無いときは <img> 自体が描かれないので、置き場所は必ず gap で確保する側
+ * （flex + gap）にして、文字だけになってもレイアウトが崩れないようにする。
+ */
+.item-icon {
+  flex: 0 0 auto;
+  object-fit: contain;
+  /* 読み込み前・欠落時に枠が出ないように */
+  border: 0;
+}
+
 /* --- 入出力の内訳 -------------------------------------------------------- */
 
 .flow-list {
@@ -512,6 +539,10 @@
 }
 
 .flow__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   color: var(--text-muted);
 }
 
@@ -599,11 +630,38 @@
   flex: 0 0 auto;
 }
 
+/*
+ * 種別の行。アイコン（24px）と並ぶので高さは flow-layout.ts の kindLine と一致させる。
+ * アイコンが無い（public/icons を消した）場合は文字だけが左に寄るだけで崩れない。
+ */
 .flow-node__kind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
   font-size: 10px;
   line-height: 14px;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+}
+
+/* レシピノードの見出し行（主産物アイコン＋主産物名）。高さは headLine と一致させる */
+.flow-node__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+
+.flow-node__headname {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* 名前は読めることを優先（…で切らずに折り返す。上限3行＝高さ計算と同じ） */

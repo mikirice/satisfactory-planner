@@ -29,6 +29,7 @@ npm run build-data   # 初回は data-source/ の Docs を自動ダウンロー�
 | --- | --- |
 | `npm run fetch-docs` | 公式 Docs のミラーを `data-source/` に取得（`-- --force` で再取得） |
 | `npm run build-data` | `data-source/*.json` → `src/data/{items,recipes,buildings,extractors,logistics,meta}.json` を生成 |
+| `npm run fetch-icons` | アイテム/建物のアイコンを `public/icons/` に取得（`-- --force` で再取得）。出典と撤去手順は `public/icons/SOURCES.md` |
 | `npm test` | vitest（スキーマ整合性・既知値・日本語名の検証） |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run dev` | Vite 開発サーバ |
@@ -41,8 +42,10 @@ npm run build-data   # 初回は data-source/ の Docs を自動ダウンロー�
 
 ```
 data-source/          Docs.json のミラー（gitignore。DATA_SOURCES.md だけコミット）
+public/icons/         アイテム/建物のアイコン（ゲームアセット。SOURCES.md に出典と撤去手順）
 scripts/
   fetch-docs.ts       Docs のダウンロード
+  fetch-icons.ts      アイコンのダウンロード（公式Wiki。無くてもアプリは動く）
   docs-parse.ts       エンコーディング判定・Unreal文字列パース（単体テスト対象）
   build-data.ts       正規化パイプライン本体
 src/data/
@@ -71,6 +74,8 @@ src/store/
 src/ui/
   text.ts             UI 文言（日本語）を集約
   format.ts           数値フォーマット（レート小数2位・台数小数4位）
+  icons.ts            ID → アイコン画像パスの解決（無ければ null＝文字だけ表示）
+  ItemIcon.tsx        アイコン1つ分の <img>（欠落・読み込み失敗時は何も描かない）
   Sidebar.tsx         入力（目標 / 目的関数 / 採掘設備 / 代替レシピ / 原料上限 / 物流 / Excel出力）
   ResultView.tsx      結果タブ（サマリー / 生産ステップ / 原料 / アイテム収支 / フローチャート）
   ExportPanel.tsx     プラン名の入力とExcelダウンロード（exceljsはクリック時に動的import）

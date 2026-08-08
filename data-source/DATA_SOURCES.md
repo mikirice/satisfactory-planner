@@ -59,5 +59,18 @@ Phase 6 で en 以外の i18n が必要になったら同じ仕組みで追加�
 ## 権利について
 
 Docs のデータは Coffee Stain Studios の著作物。本ツールは非商用のファンツールとして
-計算目的でのみ利用する。アイコン画像などのゲームアセットは同梱しない
-（`Item.icon` はアセット名の文字列のみ）。
+計算目的でのみ利用する。
+
+### アイコン画像（2026-08-08 追加）
+
+当初は「ゲームアセットは同梱しない」方針だったが、画面の可読性のため
+**アイコン画像を `public/icons/` に同梱する**方針に変更した（オーナー判断）。
+
+- 入手元・取得日・撤去手順は **`public/icons/SOURCES.md`** が正典
+- 取得スクリプトは `scripts/fetch-icons.ts`（`npm run fetch-icons`）。入手元は公式 Wiki
+  （satisfactory.wiki.gg）で、`Item.name.en` / `Building.name.en` から
+  `File:<Name>.png` を解決して 64px サムネイルを落とす
+- `Item.icon`（Docs 由来のアセット名）は**画像の参照には使っていない**。
+  ファイル名は ClassName にそろえてある（`public/icons/<ClassName>.png`）
+- 権利者からの要請があればフォルダごと削除できる作り
+  （`src/ui/icons.ts` が null を返し、画面はテキスト表示に戻る）

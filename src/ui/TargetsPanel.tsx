@@ -12,7 +12,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { items } from '../data/index.ts'
 import { usePlanner } from '../store/planner.ts'
 import { itemName, itemUnit } from './format.ts'
+import { ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
+
+/** 候補・目標一覧のアイコンサイズ(px)。文字（13〜14px）に対して主張しすぎない大きさ */
+const ROW_ICON = 20
 
 /** 候補の表示上限。多すぎると選びにくいので絞る */
 const MAX_SUGGESTIONS = 12
@@ -104,7 +108,10 @@ export function TargetsPanel() {
                     rateInputs.current.get(key)?.focus()
                   }}
                 >
-                  <span>{item.name.ja}</span>
+                  <span className="suggestions__label">
+                    <ItemIcon id={item.id} name={item.name.ja} size={ROW_ICON} />
+                    {item.name.ja}
+                  </span>
                   {addedItems.has(item.id) && (
                     <span className="suggestions__added">{T.sidebar.alreadyAdded}</span>
                   )}
@@ -123,7 +130,10 @@ export function TargetsPanel() {
           <ul className="target-list">
             {targets.map((target) => (
               <li key={target.key} className="target">
-                <span className="target__name">{itemName(target.item)}</span>
+                <span className="target__name">
+                  <ItemIcon id={target.item} name={itemName(target.item)} size={ROW_ICON} />
+                  {itemName(target.item)}
+                </span>
                 <span className="target__rate">
                   <input
                     type="number"

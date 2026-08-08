@@ -2,9 +2,13 @@
 import { builtCount, groupByBuilding } from '../plan/aggregate.ts'
 import type { Solution } from '../solver/index.ts'
 import { fmtCount, fmtPower, fmtPowerRange, fmtRate, itemName } from './format.ts'
+import { ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = { solution: Solution }
+
+/** 表の中のアイコン(px)。行送り（13px文字）を押し広げない大きさに留める */
+const CELL_ICON = 16
 
 export function StepsTable({ solution }: Props) {
   if (solution.steps.length === 0) return <p className="hint">{T.steps.empty}</p>
@@ -74,7 +78,10 @@ function flowList(rates: { item: string; ratePerMin: number }[]) {
     <ul className="flow-list">
       {rates.map((rate) => (
         <li key={rate.item}>
-          <span className="flow__name">{itemName(rate.item)}</span>
+          <span className="flow__name">
+            <ItemIcon id={rate.item} name={itemName(rate.item)} size={CELL_ICON} />
+            {itemName(rate.item)}
+          </span>
           <span className="flow__rate num">{fmtRate(rate.ratePerMin)}</span>
         </li>
       ))}

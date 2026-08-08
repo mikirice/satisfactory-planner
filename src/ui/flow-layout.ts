@@ -97,9 +97,19 @@ export const NODE_METRICS = {
   paddingY: 8,
   border: 1,
   rowGap: 2,
-  /** .flow-node__kind（10px） */
+  /**
+   * アイコン（public/icons）の表示サイズ。**アイコンを置く行はこの高さで場所を取る**。
+   * アイコンが無い/撤去された場合は空きになるだけで、行が縮んで文字が重なることはない。
+   */
+  iconSize: 24,
+  /** アイコンと文字の間隔 */
+  iconGap: 6,
+  /** .flow-node__kind（10px・アイコン24px と同じ行に並ぶので行送りは 24 以上） */
   kindFontSize: 10,
-  kindLine: 14,
+  kindLine: 28,
+  /** .flow-node__head（レシピノードの「主産物アイコン＋主産物名」の行） */
+  headFontSize: 11,
+  headLine: 28,
   /** .flow-node__title（13px semibold） */
   titleFontSize: 13,
   titleLine: 18,
@@ -245,6 +255,9 @@ export function nodeRows(node: PlanGraphNode): NodeRow[] {
   if (node.kind === 'recipe') {
     const ioRows = Math.max(node.inputs.length, node.outputs.length, 1)
     return [
+      // 「何を作るノードか」を一目で分かるようにする行（主産物アイコン＋主産物名）。
+      // レシピ名と主産物名は一致しない（例: 代替レシピ）ので、名前とは別の行にする。
+      { id: 'head', height: m.headLine, fontSize: m.headFontSize },
       title(node.recipeNameJa),
       { id: 'meta:building', height: m.metaLine, fontSize: m.metaFontSize },
       { id: 'meta:power', height: m.metaLine, fontSize: m.metaFontSize },
