@@ -12,21 +12,24 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
+  BaseEdge,
   Controls,
+  EdgeLabelRenderer,
   Handle,
   MiniMap,
   Panel,
   Position,
   ReactFlow,
 } from '@xyflow/react'
-import type { NodeProps, NodeTypes } from '@xyflow/react'
+import type { EdgeProps, EdgeTypes, NodeProps, NodeTypes } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
 import { buildPlanGraph } from '../plan/graph.ts'
 import type { Solution } from '../solver/index.ts'
-import { EDGE_COLORS, layoutPlanGraph } from './flow-layout.ts'
+import { EDGE_COLORS, elkEdgePath, layoutPlanGraph } from './flow-layout.ts'
 import type {
   OutputFlowNode,
+  PlanFlowEdge,
   PlanFlowLayout,
   RecipeFlowNode,
   SourceFlowNode,
@@ -85,6 +88,7 @@ export default function FlowChart({ solution, beltId, pipeId }: Props) {
         nodes={layout.nodes}
         edges={layout.edges}
         nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         colorMode="dark"
         fitView
         fitViewOptions={{ padding: 0.12 }}
@@ -235,6 +239,49 @@ const NODE_TYPES: NodeTypes = {
   recipe: RecipeNode,
   output: OutputNode,
 }
+
+// ---------------------------------------------------------------------------
+// カスタムエッジ
+// ---------------------------------------------------------------------------
+
+/**
+ * elk が引いた経路とラベル位置をそのまま描くエッジ。
+ *
+ * 既定の smoothstep ＋ 線の中点ラベルだと、ラベル同士・ラベルとノードが重なって
+ * 読めなくなる（elk はラベルを知らないので場所を空けてくれない）。ここでは
+ * flow-layout.ts が elk に寸法を渡して決めさせた座標に置く。
+ * ラベルは背景プレート付き（他の線と交差しても文字が読める）。
+ */
+function PlanEdge({ id, data, style, markerEnd }: EdgeProps<PlanFlowEdge>) {
+  if (!data) return null
+  const { label } = data
+  return (
+    <>
+      {/* 閲覧専用なので当たり判定は要らない（線の上でもパンできるようにする） */}
+      <BaseEdge
+        id={id}
+        path={elkEdgePath(data.points)}
+        style={style}
+        markerEnd={markerEnd}
+        interactionWidth={0}
+      />
+      <EdgeLabelRenderer>
+        <div
+          className={`flow-edge-label${data.bottleneck ? ' flow-edge-label--bottleneck' : ''}`}
+          style={{
+            transform: `translate(${label.x}px, ${label.y}px)`,
+            width: label.width,
+            height: label.height,
+          }}
+        >
+          {label.text}
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  )
+}
+
+const EDGE_TYPES: EdgeTypes = { plan: PlanEdge }
 
 /** ミニマップの色（種別で塗り分ける）。 */
 function miniMapColor(node: { type?: string }): string {

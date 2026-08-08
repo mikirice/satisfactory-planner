@@ -579,6 +579,31 @@
   background: linear-gradient(180deg, var(--accent-weak), transparent 60%), var(--bg-raised);
 }
 
+/*
+ * エッジラベル。位置と大きさは elk が決めた値をそのまま使う（flow-layout.ts の
+ * LABEL_STYLE と必ず揃えること。ズレるとレイアウトの重なり回避が効かなくなる）。
+ * 背景プレートは、別の線がラベルを横切ったときでも文字を読ませるため。
+ */
+.flow-edge-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(23, 27, 34, 0.92);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 15px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.flow-edge-label--bottleneck {
+  color: var(--shortage);
+}
+
 /* 接続点は閲覧専用なので目立たせない */
 .flowchart .react-flow__handle {
   width: 6px;
