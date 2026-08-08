@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react'
 
 import { alternateRecipes, usePlanner } from '../store/planner.ts'
-import { AlternateIcon } from './ItemIcon.tsx'
+import { stripAlternatePrefix } from './format.ts'
 import { T } from './text.ts'
 
 export function AlternatesPanel() {
@@ -12,13 +12,27 @@ export function AlternatesPanel() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
 
+  // このパネルは全行が代替レシピなので、行頭の目印（ハードドライブ）と「代替: 」は
+  // 冗長なだけ。表示名からは落とし、検索は落とす前後どちらの文字列にも当てる。
+  const rows = useMemo(
+    () =>
+      alternateRecipes.map((recipe) => {
+        const ja = stripAlternatePrefix(recipe.name.ja)
+        const en = stripAlternatePrefix(recipe.name.en)
+        return {
+          recipe,
+          label: ja,
+          haystack: [recipe.name.ja, recipe.name.en, ja, en].join('\n').toLowerCase(),
+        }
+      }),
+    [],
+  )
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (q === '') return alternateRecipes
-    return alternateRecipes.filter(
-      (r) => r.name.ja.toLowerCase().includes(q) || r.name.en.toLowerCase().includes(q),
-    )
-  }, [query])
+    if (q === '') return rows
+    return rows.filter((row) => row.haystack.includes(q))
+  }, [query, rows])
 
   const onCount = Object.keys(enabled).length
 
@@ -48,7 +62,7 @@ export function AlternatesPanel() {
             onChange={(e) => setQuery(e.target.value)}
           />
           <ul className="check-list">
-            {visible.map((recipe) => (
+            {visible.map(({ recipe, label }) => (
               <li key={recipe.id}>
                 <label className="check">
                   <input
@@ -56,8 +70,7 @@ export function AlternatesPanel() {
                     checked={enabled[recipe.id] === true}
                     onChange={(e) => setAlternate(recipe.id, e.target.checked)}
                   />
-                  <AlternateIcon />
-                  <span>{recipe.name.ja}</span>
+                  <span>{label}</span>
                 </label>
               </li>
             ))}

@@ -65,6 +65,15 @@ export const recipeMainItem = (recipeId: string): string | null =>
 export const isAlternateRecipe = (recipeId: string): boolean =>
   recipesById.get(recipeId)?.isAlternate ?? false
 
+/**
+ * レシピ名の先頭の「代替: 」（全角コロンの表記ゆれ・英語の "Alternate: " を含む）を落とす。
+ * 全行が代替レシピと分かっている一覧（代替レシピ選択パネル）でだけ使う**表示専用**の加工で、
+ * データ自体の名前は変えない。
+ */
+const ALTERNATE_PREFIX = /^(?:代替\s*[:：]\s*|Alternate\s*[:：]\s*)/i
+
+export const stripAlternatePrefix = (name: string): string => name.replace(ALTERNATE_PREFIX, '')
+
 /** アイテムの単位（固体=個/分、液体・気体=m³/min） */
 export const itemUnit = (id: string): string =>
   itemsById.get(id)?.form === 'solid' ? '個/分' : 'm³/min'
