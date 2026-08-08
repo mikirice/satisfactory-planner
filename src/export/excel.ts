@@ -250,6 +250,26 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
   addKeyValue(ws, 'サマースループ 使用数（個）', solution.totalSomersloops, NUM_FMT.int)
   addKeyValue(ws, 'サマースループ 使用可能数（個）', solution.somersloopLimit, NUM_FMT.int)
 
+  // 3.7) 発電計画（発電機を使う設定のときだけ）
+  const power = solution.powerGeneration
+  if (power) {
+    addSection(ws, '発電計画')
+    addKeyValue(ws, '総発電量 (MW)', power.totalMW, NUM_FMT.power)
+    addKeyValue(ws, '目標発電量 (MW)', power.targetMW, NUM_FMT.power)
+    addKeyValue(ws, '工場の消費電力を賄う', power.coverFactoryPower ? 'はい' : 'いいえ')
+    addKeyValue(ws, '製造の消費電力（クロック100%換算・MW）', power.factoryPowerMW, NUM_FMT.power)
+    addKeyValue(ws, '差引 (MW)', power.netMW, NUM_FMT.power)
+    addKeyValue(ws, '発電機（建てる台数）', power.totalGeneratorCount, NUM_FMT.int)
+    addKeyValue(ws, '発電機（稼働台数）', power.totalGeneratorMachineCount, NUM_FMT.count)
+    addSummaryHeader(ws, ['燃料', '消費レート', '単位'])
+    if (power.fuelUsage.length === 0) ws.addRow(['燃料を使っていません'])
+    for (const fuel of power.fuelUsage) {
+      const row = ws.addRow([itemNameJa(fuel.item), fuel.ratePerMin, itemUnitJa(fuel.item)])
+      row.getCell(2).numFmt = NUM_FMT.rate
+    }
+    ws.addRow(['※ 発電機のクロックは100%固定です。採掘設備の電力は発電計画に含めていません。'])
+  }
+
   // 4) 建物
   addSection(ws, '建物')
   addKeyValue(ws, '稼働台数（小数）', solution.totalMachineCount, NUM_FMT.count)
@@ -350,6 +370,7 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
     '消費電力(MW)',
     '電力下限(MW)',
     '電力上限(MW)',
+    '発電量(MW)',
     '幅(m)',
     '奥行(m)',
     '高さ(m)',
@@ -376,6 +397,8 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
         step.clockedPowerMW,
         step.clockedPowerRangeMW?.minMW ?? step.clockedPowerMW,
         step.clockedPowerRangeMW?.maxMW ?? step.clockedPowerMW,
+        // 発電機の行だけ発電量が入る（製造建物は 0）
+        step.powerProductionMW ?? 0,
         footprint?.widthM ?? PLACEHOLDER,
         footprint?.depthM ?? PLACEHOLDER,
         footprint?.heightM ?? PLACEHOLDER,
@@ -388,9 +411,9 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
       row.getCell(4).numFmt = NUM_FMT.int
       row.getCell(5).numFmt = NUM_FMT.percent
       for (const col of [6, 7]) row.getCell(col).numFmt = NUM_FMT.int
-      for (const col of [8, 9, 10]) row.getCell(col).numFmt = NUM_FMT.power
-      if (footprint) for (const col of [11, 12, 13, 14]) row.getCell(col).numFmt = NUM_FMT.area
-      row.getCell(15).numFmt = NUM_FMT.area
+      for (const col of [8, 9, 10, 11]) row.getCell(col).numFmt = NUM_FMT.power
+      if (footprint) for (const col of [12, 13, 14, 15]) row.getCell(col).numFmt = NUM_FMT.area
+      row.getCell(16).numFmt = NUM_FMT.area
     }
   }
 
@@ -409,6 +432,7 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
     input.solution.totalClockedPowerMW,
     input.solution.totalClockedPowerRangeMW.minMW,
     input.solution.totalClockedPowerRangeMW.maxMW,
+    input.solution.powerGeneration?.totalMW ?? 0,
     '',
     '',
     '',
@@ -419,8 +443,8 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
   totals.getCell(3).numFmt = NUM_FMT.count
   totals.getCell(4).numFmt = NUM_FMT.int
   for (const col of [6, 7]) totals.getCell(col).numFmt = NUM_FMT.int
-  for (const col of [8, 9, 10]) totals.getCell(col).numFmt = NUM_FMT.power
-  totals.getCell(15).numFmt = NUM_FMT.area
+  for (const col of [8, 9, 10, 11]) totals.getCell(col).numFmt = NUM_FMT.power
+  totals.getCell(16).numFmt = NUM_FMT.area
 
   autoFitColumns(ws)
 }

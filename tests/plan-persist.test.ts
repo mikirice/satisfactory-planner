@@ -86,10 +86,13 @@ describe('プランのシリアライズ', () => {
       limitOverrides: { Desc_OreIron_C: 480, Desc_Water_C: null },
       objective: 'power',
       minerId: 'Build_MinerMk2_C',
-      // v3 のキーは既定値なので保存形式には出ないが、復元結果には既定が入る
+      // v3 / v4 のキーは既定値なので保存形式には出ないが、復元結果には既定が入る
       maxClock: 1,
       extractionClock: 1,
       somersloops: 0,
+      enabledGenerators: {},
+      powerTargetMW: 0,
+      coverFactoryPower: false,
       planName: '鉄板ライン',
       beltId: 'Build_ConveyorBeltMk1_C',
       pipeId: DEFAULT_PIPE_ID,
@@ -331,6 +334,63 @@ describe('プランのシリアライズ', () => {
     expect(parsed.input.maxClock).toBe(1)
     expect(parsed.input.extractionClock).toBe(1)
     expect(parsed.input.somersloops).toBe(0)
+    expect(parsed.warnings).toHaveLength(3)
+  })
+
+  it('発電計画を保存して復元できる（v4）', () => {
+    const snapshot = toPlanSnapshot({
+      ...source,
+      enabledGenerators: { Build_GeneratorCoal_C: true, Build_GeneratorFuel_C: true },
+      powerTargetMW: 1500,
+      coverFactoryPower: true,
+    })
+    expect(snapshot.v).toBe(PLAN_SCHEMA_VERSION)
+    expect(snapshot.g).toEqual(['Build_GeneratorCoal_C', 'Build_GeneratorFuel_C'])
+    expect(snapshot.w).toBe(1500)
+    expect(snapshot.f).toBe(true)
+
+    const parsed = parsePlanSnapshot(snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.enabledGenerators).toEqual({
+      Build_GeneratorCoal_C: true,
+      Build_GeneratorFuel_C: true,
+    })
+    expect(parsed.input.powerTargetMW).toBe(1500)
+    expect(parsed.input.coverFactoryPower).toBe(true)
+  })
+
+  it('発電計画が既定（なし）ならキーごと省略する＝ v3 までと同じ長さで済む', () => {
+    const snapshot = toPlanSnapshot(source) as unknown as Record<string, unknown>
+    expect('g' in snapshot).toBe(false)
+    expect('w' in snapshot).toBe(false)
+    expect('f' in snapshot).toBe(false)
+  })
+
+  it('v3 以前のデータを読むと発電計画は既定（なし）になる', () => {
+    const v3 = { ...toPlanSnapshot(source), v: 3 }
+    const parsed = parsePlanSnapshot(v3)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.input.enabledGenerators).toEqual({})
+    expect(parsed.input.powerTargetMW).toBe(0)
+    expect(parsed.input.coverFactoryPower).toBe(false)
+  })
+
+  it('不正な発電計画は既定に戻して警告する', () => {
+    const parsed = parsePlanSnapshot({
+      ...toPlanSnapshot(source),
+      g: ['Build_GeneratorCoal_C', 'Build_Nope_C'],
+      w: -5,
+      f: 'yes',
+    })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.input.enabledGenerators).toEqual({ Build_GeneratorCoal_C: true })
+    expect(parsed.input.powerTargetMW).toBe(0)
+    expect(parsed.input.coverFactoryPower).toBe(false)
     expect(parsed.warnings).toHaveLength(3)
   })
 

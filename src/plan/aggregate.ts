@@ -33,6 +33,8 @@ export type BuildingGroup = {
   buildingCount: number
   /** クロック適用後の消費電力(MW) */
   powerMW: number
+  /** 発電量(MW)。発電機のグループだけ正の値になる */
+  powerProductionMW: number
   powerShards: number
   somersloops: number
   footprintAreaM2: number
@@ -51,6 +53,7 @@ export function groupByBuilding(steps: readonly SolutionStep[]): BuildingGroup[]
         machineCount: 0,
         buildingCount: 0,
         powerMW: 0,
+        powerProductionMW: 0,
         powerShards: 0,
         somersloops: 0,
         footprintAreaM2: 0,
@@ -61,6 +64,7 @@ export function groupByBuilding(steps: readonly SolutionStep[]): BuildingGroup[]
     group.machineCount += step.machineCount
     group.buildingCount += step.builtCount
     group.powerMW += step.clockedPowerMW
+    group.powerProductionMW += step.powerProductionMW ?? 0
     group.powerShards += step.powerShards
     group.somersloops += step.somersloops
     group.footprintAreaM2 += step.footprintAreaM2

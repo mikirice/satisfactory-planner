@@ -4,7 +4,13 @@
  *   const result = await solveProduction({ targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }] })
  *   if (result.status === 'optimal') { ... }
  */
-export { solveProduction, findUnreachableTargets, resolveMaxClock } from './solve.ts'
+export {
+  solveProduction,
+  findUnreachableTargets,
+  findUnusableGenerators,
+  generatorStepId,
+  resolveMaxClock,
+} from './solve.ts'
 export type { SolveOptions } from './solve.ts'
 
 export {
@@ -12,19 +18,28 @@ export {
   DEFAULT_RESOURCE_WEIGHT_SPEC,
   DEFAULT_TOLERANCE,
   DEFAULT_WEIGHTS,
+  POWER_COVER_ROW,
+  POWER_TARGET_ROW,
   SCARCITY_REFERENCE_RATE,
   buildProductionModel,
   defaultEnabledRecipeIds,
+  generatorVarKey,
   maximizeVarKey,
   netRatePerMin,
   recipePowerMW,
+  resolvePowerPlan,
   resolveResourceWeights,
   somersloopPowerFactor,
   somersloopVarKey,
   supportsSomersloop,
   variablePowerRange,
 } from './model.ts'
-export type { ProductionModel, SupplySource } from './model.ts'
+export type {
+  GeneratorVariant,
+  ProductionModel,
+  ResolvedPowerPlan,
+  SupplySource,
+} from './model.ts'
 
 export {
   clockedPowerMW,
@@ -68,6 +83,8 @@ export type {
   ItemBalance,
   ItemRate,
   ObjectiveWeights,
+  PowerGenerationSummary,
+  PowerPlanInput,
   PowerRangeMW,
   RawResourceUsage,
   ResourceWeightSpec,

@@ -62,6 +62,13 @@ export type RecipeGraphNode = NodeBase & {
   powerShards: number
   /** 使用する Somersloop の総数（0 なら表示しない） */
   somersloops: number
+  /**
+   * 発電量(MW)。発電機のノードだけ正の値になる。
+   * **電力はエッジにしない**（ゲーム内の電力網は1本にまとまっていて、
+   * どの発電機がどの建物へ、という線を引く意味がないため）。
+   * 燃料フローだけを線で描き、発電量はこの値としてノードの中に「→ N MW」と出す。
+   */
+  powerProductionMW: number
   inputs: ItemRate[]
   outputs: ItemRate[]
 }
@@ -273,6 +280,7 @@ function recipeNode(id: string, step: SolutionStep): RecipeGraphNode {
     ...(step.clockedPowerRangeMW ? { powerRangeMW: step.clockedPowerRangeMW } : {}),
     powerShards: step.powerShards,
     somersloops: step.somersloops,
+    powerProductionMW: step.powerProductionMW ?? 0,
     inputs: step.inputs,
     outputs: step.outputs,
   }

@@ -56,6 +56,21 @@ export const T = {
     somersloopsOver: (used: number, limit: number): string =>
       `建てる台数を切り上げた結果、必要数が ${used} 個になり上限 ${limit} 個を超えています`,
 
+    power: '発電計画',
+    powerTarget: '目標発電量',
+    powerTargetUnit: 'MW',
+    powerCover: '工場の消費電力ぶんを賄う',
+    powerCoverHint:
+      '発電のために増える建物（燃料の精製・ウラン加工など）の消費も含めて自給できる台数を求めます。採掘設備の電力は含みません。',
+    powerMethods: '発電方式',
+    powerMethodsHint:
+      '許可した方式の中から、いちばん資源効率のよい組み合わせをソルバーが選びます。すべてオフなら発電計画は行いません。',
+    powerFuels: (fuels: string): string => `燃料: ${fuels}`,
+    powerGeneratorSpec: (mw: string): string => `${mw} MW/台`,
+    powerIdle: '目標発電量を入れるか「工場の消費電力ぶんを賄う」をオンにすると計算します。',
+    powerNoMethod: '発電方式を1つ以上選んでください。',
+    powerClockNote: '発電機のクロックは100%固定です（発電側のオーバークロックは未対応）。',
+
     alternates: '代替レシピ',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} 有効`,
     alternatesSearchPlaceholder: 'レシピ名で絞り込み',
@@ -141,6 +156,8 @@ export const T = {
     outputs: '産出',
     requested: (rate: string): string => `要求 ${rate}`,
     machines: (built: number, clock: string): string => `${built} 台 @ ${clock}`,
+    /** 発電機ノードの発電量。電力のエッジは張らないので、ここに矢印付きで書く */
+    powerProduction: (mw: string): string => `発電 → ${mw} MW`,
     somersloops: (n: number): string => `サマースループ ${n} 個`,
     shards: (n: number): string => `シャード ${n} 個`,
     legend: '凡例',
@@ -170,6 +187,20 @@ export const T = {
     powerExtraction: '採掘',
     powerShards: 'パワーシャード',
     powerShardsUnit: '個',
+    powerGeneration: '総発電量',
+    powerGenerationTarget: '目標',
+    powerGenerationNoTarget: '指定なし',
+    powerGenerationCount: '発電機（建てる台数）',
+    powerGenerationCountUnit: '台',
+    powerGenerationFactory: '製造の消費（クロック100%換算）',
+    powerGenerationNet: '差引',
+    powerGenerationFuel: '燃料の消費',
+    powerGenerationCover: '工場の消費電力ぶんを賄う設定です',
+    powerGenerationShort: (short: string): string =>
+      `製造の消費に対して ${short} MW 足りません（採掘設備の電力は含みません）`,
+    powerGenerationExtractionNote:
+      '採掘設備の電力は発電計画に含めていません（LP の外で計算しているため）。',
+
     somersloops: 'サマースループ',
     somersloopsUsed: '使用数',
     somersloopsLimit: '使用可能数',
@@ -215,6 +246,7 @@ export const T = {
     shards: 'シャード',
     somersloops: 'サマースループ',
     power: '消費電力 (MW)',
+    powerProductionHead: '発電量 (MW)',
     inputs: '投入',
     outputs: '産出',
     subtotal: '小計',
@@ -223,6 +255,8 @@ export const T = {
     clockNote: (percent: string): string =>
       `クロック上限 ${percent} で「建てる台数」を決め、消費電力はそのクロックで計算しています`,
     somersloopBadge: (n: number): string => `${n} 個`,
+    powerProduction: (mw: string): string => `+${mw}`,
+    powerGroupNote: '発電機はクロック100%固定です（端数の台数は部分負荷）',
   },
 
   resources: {

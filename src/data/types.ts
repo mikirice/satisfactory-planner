@@ -151,6 +151,60 @@ export type Extractor = {
 }
 
 // ---------------------------------------------------------------------------
+// 発電（generators.json）
+// ---------------------------------------------------------------------------
+
+/**
+ * 発電機が1種類の燃料を燃やすときの消費・産出（クロック100%・1台あたり）。
+ *
+ * ゲームは「燃料のエネルギー量(MJ) ÷ 発電量(MW)」で燃焼時間を決めるので、
+ * 消費レートは `発電量MW × 60 ÷ 燃料のエネルギー量MJ` になる（build-data.ts で算出）。
+ */
+export type GeneratorFuel = {
+  /** 燃料の Item.id（例: "Desc_Coal_C"） */
+  item: string
+  /** 燃料の消費レート（個/分 または m³/min） */
+  ratePerMin: number
+  /** 補助資源の Item.id（石炭発電機・原子力発電所の水）。不要な発電機では undefined */
+  supplementalItem?: string
+  /** 補助資源の消費レート（m³/min）。不要なら 0 */
+  supplementalRatePerMin: number
+  /** 副産物（核廃棄物）。出ない燃料では undefined */
+  byproduct?: ItemAmount & { ratePerMin: number }
+}
+
+/** 発電機の分類（UI の許可チェックの単位）。 */
+export type GeneratorCategory =
+  /** 石炭発電機（固体燃料 + 水） */
+  | 'coal'
+  /** 燃料式発電機（液体・気体燃料） */
+  | 'fuel'
+  /** 原子力発電所（核燃料棒 + 水 → 核廃棄物） */
+  | 'nuclear'
+
+/**
+ * 発電機の発電パラメータ。
+ *
+ * レシピには含まれないため Building とは別ファイル（generators.json）に出力する。
+ * id は Building.id と同じなので buildingsById で建設コスト・外形（寸法）を引ける
+ * （extractors.json と同じ方針。二重に持たせない）。
+ *
+ * 収録するのは自動供給できる発電機だけ:
+ * - バイオマスバーナーは燃料を手動投入する前提なので**除外**
+ * - 地熱発電機は出力が間欠変動する（mVariablePowerProductionFactor）ので初期スコープ外
+ */
+export type Generator = {
+  /** Building.id。例: "Build_GeneratorCoal_C" */
+  id: string
+  name: LocalizedName
+  category: GeneratorCategory
+  /** クロック100%・1台あたりの発電量(MW) */
+  powerProductionMW: number
+  /** 使える燃料（Docs.json の mFuel 由来） */
+  fuels: GeneratorFuel[]
+}
+
+// ---------------------------------------------------------------------------
 // 物流（logistics.json）
 // ---------------------------------------------------------------------------
 

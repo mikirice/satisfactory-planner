@@ -34,6 +34,9 @@ import type {
   DataMeta,
   Extractor,
   ExtractorCategory,
+  Generator,
+  GeneratorCategory,
+  GeneratorFuel,
   Item,
   ItemAmount,
   ItemForm,
@@ -289,6 +292,59 @@ function parseAllowedForms(raw: string | undefined): ItemForm[] {
   return [...new Set(forms)]
 }
 
+// ---------------------------------------------------------------------------
+// 発電機
+// ---------------------------------------------------------------------------
+
+/**
+ * 発電機の NativeClass → 収録するか（カテゴリ）。
+ *
+ * FGBuildableGeneratorFuel には石炭発電機・燃料式発電機・バイオマスバーナーが同居するので、
+ * ClassName で振り分ける（GENERATOR_CATEGORIES）。
+ * FGBuildableGeneratorGeoThermal（地熱発電機）はここに含めない
+ * ＝ 出力が mVariablePowerProductionFactor で間欠変動し、定常レートの LP に載せられないため。
+ */
+const GENERATOR_NATIVE_CLASSES = new Set(['FGBuildableGeneratorFuel', 'FGBuildableGeneratorNuclear'])
+
+/**
+ * 収録する発電機と、その分類（UI の許可チェックの単位）。
+ *
+ * ここに無い発電機は意図的に除外する:
+ * - `Build_GeneratorBiomass_Automated_C`（バイオマスバーナー）… 燃料の葉・木材・菌糸は
+ *   マップから手で拾う前提で、生産チェーンとして自動供給できないため
+ * - `Build_GeneratorGeoThermal_C`（地熱発電機）… 出力が間欠変動するため（初期スコープ外）
+ */
+const GENERATOR_CATEGORIES: Readonly<Record<string, GeneratorCategory>> = {
+  Build_GeneratorCoal_C: 'coal',
+  Build_GeneratorFuel_C: 'fuel',
+  Build_GeneratorNuclear_C: 'nuclear',
+}
+
+/** mFuel の1要素（Docs.json では文字列ではなくオブジェクトの配列で入っている）。 */
+type DocsFuelEntry = {
+  mFuelClass?: string
+  mSupplementalResourceClass?: string
+  mByproduct?: string
+  mByproductAmount?: string
+}
+
+/** "…/Desc_Coal.Desc_Coal_C" でも "Desc_Coal_C" でも最後の ClassName トークンを返す。 */
+function lastClassToken(raw: string | undefined): string {
+  if (!raw) return ''
+  const tokens = [...raw.matchAll(/(?<![A-Za-z0-9_])([A-Za-z0-9_]+_C)(?![A-Za-z0-9_])/g)]
+  return tokens.at(-1)?.[1] ?? ''
+}
+
+/**
+ * アイテム1単位あたりのエネルギー量(MJ)。
+ * 液体・気体の mEnergyValue は内部単位（mL）あたりなので m³ に揃えるため 1000倍する
+ * （個数側の 1/1000 と逆向き。例: 燃料 0.75 MJ/mL = 750 MJ/m³）。
+ */
+function energyMJPerUnit(item: Item, rawEnergyValue: string | undefined): number {
+  const value = num(rawEnergyValue)
+  return item.form === 'solid' ? value : value * FLUID_INTERNAL_UNIT_SCALE
+}
+
 /**
  * アイテム判定: mForm を持ち、表示名が空でないクラスをアイテムとみなす。
  * これにより FGItemDescriptor / FGResourceDescriptor / バイオマス / 核燃料 /
@@ -352,6 +408,8 @@ async function main(): Promise<void> {
   }
 
   const items = new Map<string, Item>()
+  /** Item.id → 1単位あたりのエネルギー量(MJ)。発電機の燃料消費レートの算出だけに使う */
+  const energyMJ = new Map<string, number>()
   for (const group of en) {
     for (const cls of group.Classes) {
       if (!isItemClass(cls)) continue
@@ -364,6 +422,7 @@ async function main(): Promise<void> {
         isRawResource: rawResourceIds.has(cls.ClassName),
         icon: parseIcon(cls.mPersistentBigIcon || cls.mSmallIcon),
       })
+      energyMJ.set(cls.ClassName, energyMJPerUnit(items.get(cls.ClassName)!, cls.mEnergyValue))
     }
   }
 
@@ -528,6 +587,97 @@ async function main(): Promise<void> {
     }
   }
 
+  // --- generators（発電機） -------------------------------------------------
+  // 発電もレシピとして定義されていないので、建物クラスの mPowerProduction と
+  // mFuel（燃料候補の配列）から「燃料(+水) → 電力MW」のレートを組み立てる。
+  //   燃料の消費レート  = 発電量MW × 60 ÷ 燃料のエネルギー量MJ
+  //   補助資源(水)      = 発電量MW × mSupplementalToPowerRatio × 60 ÷ 1000（m³/min）
+  //   副産物(核廃棄物)  = 燃料の消費レート × mByproductAmount
+  const generators: Generator[] = []
+  for (const group of en) {
+    if (!GENERATOR_NATIVE_CLASSES.has(shortNativeClass(group.NativeClass))) continue
+    for (const cls of group.Classes) {
+      const category = GENERATOR_CATEGORIES[cls.ClassName]
+      if (!category) continue // バイオマスバーナー等は意図的に除外（GENERATOR_CATEGORIES 参照）
+      if (!buildings.has(cls.ClassName)) {
+        warnings.push(`generator ${cls.ClassName} has no matching building entry`)
+        continue
+      }
+      const powerProductionMW = num(cls.mPowerProduction)
+      if (!(powerProductionMW > 0)) {
+        warnings.push(`generator ${cls.ClassName} skipped: mPowerProduction=${cls.mPowerProduction}`)
+        continue
+      }
+
+      // 補助資源（水）は発電量に比例する。1台あたりの必要量は燃料の種類によらず一定
+      const requiresSupplemental = cls.mRequiresSupplementalResource === 'True'
+      const supplementalPerMW =
+        (num(cls.mSupplementalToPowerRatio) * SECONDS_PER_MINUTE) / FLUID_INTERNAL_UNIT_SCALE
+
+      const rawFuels: DocsFuelEntry[] = Array.isArray(cls.mFuel)
+        ? (cls.mFuel as unknown as DocsFuelEntry[])
+        : []
+      if (rawFuels.length === 0) warnings.push(`generator ${cls.ClassName}: mFuel is empty`)
+
+      const fuels: GeneratorFuel[] = []
+      for (const entry of rawFuels) {
+        const fuelId = lastClassToken(entry.mFuelClass)
+        const fuel = items.get(fuelId)
+        if (!fuel) {
+          warnings.push(`generator ${cls.ClassName}: unknown fuel ${entry.mFuelClass ?? ''}`)
+          continue
+        }
+        const energy = energyMJ.get(fuelId) ?? 0
+        if (!(energy > 0)) {
+          warnings.push(`generator ${cls.ClassName}: fuel ${fuelId} has no mEnergyValue`)
+          continue
+        }
+        const ratePerMin = (powerProductionMW * SECONDS_PER_MINUTE) / energy
+
+        const supplementalId = lastClassToken(entry.mSupplementalResourceClass)
+        const supplemental = requiresSupplemental && supplementalId ? items.get(supplementalId) : undefined
+        if (requiresSupplemental && supplementalId && !supplemental) {
+          warnings.push(`generator ${cls.ClassName}: unknown supplemental ${supplementalId}`)
+        }
+
+        const byproductId = lastClassToken(entry.mByproduct)
+        const byproductAmount = num(entry.mByproductAmount)
+        const byproduct = items.get(byproductId)
+        if (byproductId && !byproduct) {
+          warnings.push(`generator ${cls.ClassName}: unknown byproduct ${byproductId}`)
+        }
+
+        fuels.push({
+          item: fuelId,
+          ratePerMin,
+          ...(supplemental ? { supplementalItem: supplemental.id } : {}),
+          supplementalRatePerMin: supplemental ? powerProductionMW * supplementalPerMW : 0,
+          ...(byproduct && byproductAmount > 0
+            ? {
+                byproduct: {
+                  item: byproduct.id,
+                  amount: byproductAmount,
+                  ratePerMin: ratePerMin * byproductAmount,
+                },
+              }
+            : {}),
+        })
+      }
+
+      generators.push({
+        id: cls.ClassName,
+        name: localized(cls.ClassName, cls.mDisplayName ?? cls.ClassName),
+        category,
+        powerProductionMW,
+        fuels: fuels.sort((a, b) => a.item.localeCompare(b.item)),
+      })
+    }
+  }
+  generators.sort((a, b) => a.id.localeCompare(b.id))
+  for (const id of Object.keys(GENERATOR_CATEGORIES)) {
+    if (!generators.some((g) => g.id === id)) warnings.push(`generator ${id} was not found in Docs`)
+  }
+
   // --- logistics（ベルト / パイプ） ----------------------------------------
   // "Clean ..." 系（*_NoIndicator_C）は見た目違いの同性能品なので除外する。
   const belts: Belt[] = []
@@ -581,6 +731,7 @@ async function main(): Promise<void> {
   await write('recipes.json', recipes)
   await write('buildings.json', buildingList)
   await write('extractors.json', extractors)
+  await write('generators.json', generators)
   await write('logistics.json', logistics)
   await write('meta.json', meta)
 
@@ -600,6 +751,25 @@ async function main(): Promise<void> {
       .map((e) => `${e.name.en}=${e.baseRatePerMin}/min`)
       .join(', ')})`,
   )
+  console.log(
+    `[build-data] generators   : ${generators.length} (${generators
+      .map((g) => `${g.name.en}=${g.powerProductionMW}MW/${g.fuels.length}fuels`)
+      .join(', ')})`,
+  )
+  for (const generator of generators) {
+    console.log(
+      `[build-data]   ${generator.name.en} (${generator.category}): ${generator.fuels
+        .map(
+          (f) =>
+            `${items.get(f.item)?.name.en ?? f.item} ${round4(f.ratePerMin)}/min` +
+            (f.supplementalItem ? ` + ${round4(f.supplementalRatePerMin)} m³/min water` : '') +
+            (f.byproduct
+              ? ` → ${items.get(f.byproduct.item)?.name.en ?? f.byproduct.item} ${round4(f.byproduct.ratePerMin)}/min`
+              : ''),
+        )
+        .join(' | ')}`,
+    )
+  }
   console.log(
     `[build-data] logistics    : belts ${belts.length} (max ${belts.at(-1)?.itemsPerMin}/min) / ` +
       `pipes ${pipes.length} (max ${pipes.at(-1)?.m3PerMin} m³/min)`,
@@ -632,8 +802,11 @@ async function main(): Promise<void> {
   }
   console.log(
     '[build-data] wrote items.json / recipes.json / buildings.json / extractors.json / ' +
-      'logistics.json / meta.json to src/data/',
+      'generators.json / logistics.json / meta.json to src/data/',
   )
 }
+
+/** ログ表示用の丸め（小数4位）。 */
+const round4 = (n: number): number => Math.round(n * 10000) / 10000
 
 await main()

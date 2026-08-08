@@ -1,0 +1,106 @@
+[
+  {
+    "id": "Build_GeneratorCoal_C",
+    "name": {
+      "ja": "石炭発電機",
+      "en": "Coal-Powered Generator"
+    },
+    "category": "coal",
+    "powerProductionMW": 75,
+    "fuels": [
+      {
+        "item": "Desc_Coal_C",
+        "ratePerMin": 15,
+        "supplementalItem": "Desc_Water_C",
+        "supplementalRatePerMin": 45
+      },
+      {
+        "item": "Desc_CompactedCoal_C",
+        "ratePerMin": 7.142857142857143,
+        "supplementalItem": "Desc_Water_C",
+        "supplementalRatePerMin": 45
+      },
+      {
+        "item": "Desc_PetroleumCoke_C",
+        "ratePerMin": 25,
+        "supplementalItem": "Desc_Water_C",
+        "supplementalRatePerMin": 45
+      }
+    ]
+  },
+  {
+    "id": "Build_GeneratorFuel_C",
+    "name": {
+      "ja": "燃料式発電機",
+      "en": "Fuel-Powered Generator"
+    },
+    "category": "fuel",
+    "powerProductionMW": 250,
+    "fuels": [
+      {
+        "item": "Desc_IonizedFuel_C",
+        "ratePerMin": 3,
+        "supplementalRatePerMin": 0
+      },
+      {
+        "item": "Desc_LiquidBiofuel_C",
+        "ratePerMin": 20,
+        "supplementalRatePerMin": 0
+      },
+      {
+        "item": "Desc_LiquidFuel_C",
+        "ratePerMin": 20,
+        "supplementalRatePerMin": 0
+      },
+      {
+        "item": "Desc_LiquidTurboFuel_C",
+        "ratePerMin": 7.5,
+        "supplementalRatePerMin": 0
+      },
+      {
+        "item": "Desc_RocketFuel_C",
+        "ratePerMin": 4.166666666666667,
+        "supplementalRatePerMin": 0
+      }
+    ]
+  },
+  {
+    "id": "Build_GeneratorNuclear_C",
+    "name": {
+      "ja": "原子力発電所",
+      "en": "Nuclear Power Plant"
+    },
+    "category": "nuclear",
+    "powerProductionMW": 2500,
+    "fuels": [
+      {
+        "item": "Desc_FicsoniumFuelRod_C",
+        "ratePerMin": 1,
+        "supplementalItem": "Desc_Water_C",
+        "supplementalRatePerMin": 240
+      },
+      {
+        "item": "Desc_NuclearFuelRod_C",
+        "ratePerMin": 0.2,
+        "supplementalItem": "Desc_Water_C",
+        "supplementalRatePerMin": 240,
+        "byproduct": {
+          "item": "Desc_NuclearWaste_C",
+          "amount": 50,
+          "ratePerMin": 10
+        }
+      },
+      {
+        "item": "Desc_PlutoniumFuelRod_C",
+        "ratePerMin": 0.1,
+        "supplementalItem": "Desc_Water_C",
+        "supplementalRatePerMin": 240,
+        "byproduct": {
+          "item": "Desc_PlutoniumWaste_C",
+          "amount": 10,
+          "ratePerMin": 1
+        }
+      }
+    ]
+  }
+]

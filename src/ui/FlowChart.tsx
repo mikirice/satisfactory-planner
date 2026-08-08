@@ -199,7 +199,9 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
   const node = data.node
   // 「何を作るノードか」。レシピ名＝主産物名とは限らない（代替レシピ・副産物つき）ので
   // レシピ定義の先頭の産物を見出しに出す。
-  const mainItem = recipeMainItem(node.recipeId) ?? node.outputs[0]?.item ?? ''
+  // 発電機は疑似レシピ（産物なし・核廃棄物だけ）なので、燃料＝先頭の投入を見出しにする。
+  const mainItem =
+    recipeMainItem(node.recipeId) ?? node.outputs[0]?.item ?? node.inputs[0]?.item ?? ''
   return (
     <div className="flow-node flow-node--recipe">
       <p className="flow-node__head">
@@ -217,10 +219,17 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
       </p>
       <p className="flow-node__meta">
         {fmtCount(node.machineCount)} 台相当 ・{' '}
-        {node.powerRangeMW
-          ? fmtPowerRange(node.powerRangeMW.minMW, node.powerRangeMW.maxMW)
-          : fmtPower(node.powerMW)}{' '}
-        MW
+        {/* 発電機は電力を消費しない。代わりに発電量を出す（電力のエッジは張らない） */}
+        {node.powerProductionMW > 0 ? (
+          T.flow.powerProduction(fmtPower(node.powerProductionMW))
+        ) : (
+          <>
+            {node.powerRangeMW
+              ? fmtPowerRange(node.powerRangeMW.minMW, node.powerRangeMW.maxMW)
+              : fmtPower(node.powerMW)}{' '}
+            MW
+          </>
+        )}
       </p>
       {/* 行が1つ増えるので flow-layout.ts の nodeRows と条件を必ず揃えること */}
       {node.somersloops > 0 && (

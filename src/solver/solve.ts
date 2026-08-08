@@ -6,7 +6,7 @@ import { CLOCK_MAX, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.
 import type { ItemAmount, Recipe } from '../data/types.ts'
 import type { LpBackend, LpResult } from './lp.ts'
 import { glpkBackend } from './glpk-backend.ts'
-import type { ProductionModel, SupplySource } from './model.ts'
+import type { GeneratorVariant, ProductionModel, SupplySource } from './model.ts'
 import {
   DEFAULT_TOLERANCE,
   buildProductionModel,
@@ -25,6 +25,7 @@ import type {
   InfeasibleResult,
   ItemBalance,
   ItemRate,
+  PowerGenerationSummary,
   RawResourceUsage,
   Solution,
   SolutionStep,
@@ -72,11 +73,14 @@ async function solveCost(
   const maxClock = resolveMaxClock(input.maxClock)
 
   const totalTarget = [...model.targets.values()].reduce((sum, v) => sum + v, 0)
-  if (totalTarget <= 0) return emptySolution(input)
+  // 目標アイテムが無くても「発電だけ」の計画は成り立つ（目標電力300MW → 石炭発電機4台 など）
+  if (totalTarget <= 0 && !model.powerPlan.active) return emptySolution(input)
 
   // 先に「そもそも作れないアイテム」を弾く。LP を回すより原因が明確に出せる。
   const unreachable = findUnreachableTargets(input, model.supplies)
   if (unreachable.length > 0) return infeasible(unreachable)
+  const fuelless = findUnusableGenerators(input, model)
+  if (fuelless.length > 0) return infeasible(fuelless)
 
   const result = await backend.solve(model.lp)
 
@@ -143,6 +147,8 @@ async function solveMaximize(
     model.supplies,
   )
   if (unreachable.length > 0) return infeasible(unreachable)
+  const fuelless = findUnusableGenerators(base, model)
+  if (fuelless.length > 0) return infeasible(fuelless)
 
   const result = await backend.solve(model.lp)
   switch (result.status) {
@@ -349,6 +355,76 @@ function buildSolution(
     })
   }
 
+  /**
+   * 発電機1台種ぶんのステップ。**クロックは100%固定**（発電側のオーバークロックは
+   * 初期スコープ外）なので、端数の台数はそのまま部分負荷（clockSpeed < 1）になる。
+   * 消費電力は 0、代わりに powerProductionMW に発電量を入れる。
+   */
+  let totalPowerProductionMW = 0
+  let generatorMachineCount = 0
+  let generatorBuildingCount = 0
+  const fuelUsed = new Map<string, number>()
+  const addGeneratorStep = (variant: GeneratorVariant, machineCount: number): void => {
+    const { generator, fuel } = variant
+    const building = buildingsById.get(generator.id)
+    const fuelName = itemsById.get(fuel.item)?.name ?? { ja: fuel.item, en: fuel.item }
+
+    const inputs: ItemRate[] = [{ item: fuel.item, ratePerMin: fuel.ratePerMin * machineCount }]
+    if (fuel.supplementalItem && fuel.supplementalRatePerMin > 0) {
+      inputs.push({
+        item: fuel.supplementalItem,
+        ratePerMin: fuel.supplementalRatePerMin * machineCount,
+      })
+    }
+    for (const flow of inputs) accumulate(consumed, flow.item, flow.ratePerMin)
+    accumulate(fuelUsed, fuel.item, fuel.ratePerMin * machineCount)
+
+    const outputs: ItemRate[] = []
+    if (fuel.byproduct && fuel.byproduct.ratePerMin > 0) {
+      outputs.push({
+        item: fuel.byproduct.item,
+        ratePerMin: fuel.byproduct.ratePerMin * machineCount,
+      })
+    }
+    for (const flow of outputs) accumulate(produced, flow.item, flow.ratePerMin)
+
+    const builtCount = Math.max(1, Math.ceil(machineCount - tolerance))
+    const powerProductionMW = generator.powerProductionMW * machineCount
+    const footprintAreaM2 = builtCount * (building?.footprint.areaM2 ?? 0)
+
+    totalPowerProductionMW += powerProductionMW
+    generatorMachineCount += machineCount
+    generatorBuildingCount += builtCount
+    totalMachineCount += machineCount
+    totalBuildingCount += builtCount
+    totalFootprintAreaM2 += footprintAreaM2
+    for (const cost of building?.buildCost ?? []) {
+      buildCost.set(cost.item, (buildCost.get(cost.item) ?? 0) + cost.amount * builtCount)
+    }
+
+    steps.push({
+      recipeId: generatorStepId(generator.id, fuel.item),
+      recipeName: {
+        ja: `${generator.name.ja}（${fuelName.ja}）`,
+        en: `${generator.name.en} (${fuelName.en})`,
+      },
+      buildingId: generator.id,
+      buildingName: generator.name,
+      machineCount,
+      builtCount,
+      clockSpeed: machineCount / builtCount,
+      powerShards: 0,
+      somersloops: 0,
+      powerMW: 0,
+      clockedPowerMW: 0,
+      footprintAreaM2,
+      inputs,
+      outputs,
+      powerProductionMW,
+      fuelItem: fuel.item,
+    })
+  }
+
   for (const recipe of model.recipes) {
     const machineCount = clean(result.values.get(recipeVarKey(recipe.id)) ?? 0)
     if (machineCount <= 0) continue
@@ -359,6 +435,11 @@ function buildSolution(
     const machineCount = clean(result.values.get(somersloopVarKey(recipe.id)) ?? 0)
     if (machineCount <= 0) continue
     addStep(recipe, machineCount, true)
+  }
+  for (const variant of model.generatorVariants) {
+    const machineCount = clean(result.values.get(variant.key) ?? 0)
+    if (machineCount <= 0) continue
+    addGeneratorStep(variant, machineCount)
   }
 
   steps.sort(
@@ -440,6 +521,22 @@ function buildSolution(
     .map(([item, amount]) => ({ item, amount }))
     .sort((a, b) => b.amount - a.amount || a.item.localeCompare(b.item))
 
+  // 発電計画のサマリー（発電機を LP に入れたときだけ）
+  const powerGeneration: PowerGenerationSummary | undefined = model.powerPlan.active
+    ? {
+        targetMW: model.powerPlan.targetMW,
+        coverFactoryPower: model.powerPlan.coverFactoryPower,
+        totalMW: totalPowerProductionMW,
+        totalGeneratorCount: generatorBuildingCount,
+        totalGeneratorMachineCount: generatorMachineCount,
+        fuelUsage: [...fuelUsed]
+          .map(([item, ratePerMin]) => ({ item, ratePerMin }))
+          .sort((a, b) => b.ratePerMin - a.ratePerMin || a.item.localeCompare(b.item)),
+        factoryPowerMW: totalPowerMW,
+        netMW: totalPowerProductionMW - totalPowerMW,
+      }
+    : undefined
+
   return {
     status: 'optimal',
     steps,
@@ -462,8 +559,17 @@ function buildSolution(
     totalFootprintAreaM2,
     sinkPointsPerMin,
     objectiveValue: result.objectiveValue,
+    ...(powerGeneration ? { powerGeneration } : {}),
   }
 }
+
+/**
+ * 発電機ステップの疑似レシピID。
+ * `Solution.steps` は表・グラフ・Excel が recipeId をキーに扱うので、
+ * 実在のレシピIDとぶつからない前置き（`power:`）を付けて一意にする。
+ */
+export const generatorStepId = (generatorId: string, fuelItem: string): string =>
+  `power:${generatorId}:${fuelItem}`
 
 // ---------------------------------------------------------------------------
 // 実行不能の原因ヒント
@@ -489,6 +595,23 @@ export function findUnreachableTargets(
   input: SolveInput,
   supplies: readonly SupplySource[],
 ): InfeasibleReason[] {
+  const available = reachableItems(input, supplies)
+
+  const reasons: InfeasibleReason[] = []
+  for (const target of input.targets) {
+    if (target.ratePerMin <= 0) continue
+    if (available.has(target.item)) continue
+    reasons.push({
+      kind: 'unproducibleItem',
+      item: target.item,
+      message: `${jaName(target.item)} は有効なレシピと利用できる原料からは生産できません`,
+    })
+  }
+  return reasons
+}
+
+/** 有効レシピと供給可能な原料だけから到達できるアイテム集合（前方到達可能性）。 */
+function reachableItems(input: SolveInput, supplies: readonly SupplySource[]): Set<string> {
   const enabledIds = input.enabledRecipes
     ? [...new Set(input.enabledRecipes)]
     : defaultEnabledRecipeIds()
@@ -515,18 +638,34 @@ export function findUnreachableTargets(
       }
     }
   }
+  return available
+}
 
-  const reasons: InfeasibleReason[] = []
-  for (const target of input.targets) {
-    if (target.ratePerMin <= 0) continue
-    if (available.has(target.item)) continue
-    reasons.push({
-      kind: 'unproducibleItem',
-      item: target.item,
-      message: `${jaName(target.item)} は有効なレシピと利用できる原料からは生産できません`,
-    })
-  }
-  return reasons
+/**
+ * 発電計画を有効にしたのに、許可した発電機の燃料（と水）が1つも作れないケースを弾く。
+ * LP に任せると「原料上限を無視しても解が無い」という漠然としたメッセージになるので、
+ * どの発電機の何が足りないかを先に出す。
+ */
+export function findUnusableGenerators(
+  input: SolveInput,
+  model: ProductionModel,
+): InfeasibleReason[] {
+  if (!model.powerPlan.active) return []
+  const available = reachableItems(input, model.supplies)
+  const usable = model.generatorVariants.filter(
+    (v) =>
+      available.has(v.fuel.item) &&
+      (!v.fuel.supplementalItem || available.has(v.fuel.supplementalItem)),
+  )
+  if (usable.length > 0) return []
+  return model.powerPlan.generators.map((generator) => ({
+    kind: 'unproducibleItem' as const,
+    item: generator.fuels[0]?.item ?? generator.id,
+    message:
+      `${generator.name.ja} の燃料（${generator.fuels
+        .map((f) => jaName(f.item))
+        .join(' / ')}）を、有効なレシピと利用できる原料からは用意できません`,
+  }))
 }
 
 /**

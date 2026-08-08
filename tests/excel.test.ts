@@ -80,6 +80,7 @@ function fillArgb(cell: ExcelJS.Cell): string | undefined {
 
 let ironPlate: Case
 let plastic: Case
+let powered: Case
 
 beforeAll(async () => {
   // A: 鉄板 60/min（基本レシピのみ）
@@ -100,6 +101,18 @@ beforeAll(async () => {
     planName: '循環プラスチック',
     objectiveLabel: '資源効率',
     enabledAlternateIds: recipes.filter((r) => r.isAlternate).map((r) => r.id),
+  })
+
+  // C: 石炭発電 300MW だけ（レシピなし＝手計算できる発電計画）
+  powered = await makeCase({
+    solution: await solveOk({
+      targets: [],
+      enabledRecipes: [],
+      power: { generators: ['Build_GeneratorCoal_C'], targetMW: 300 },
+    }),
+    planName: '石炭発電所',
+    objectiveLabel: '資源効率',
+    enabledAlternateIds: [],
   })
 }, 60_000)
 
@@ -190,6 +203,60 @@ describe('建物リスト', () => {
       ironPlate.solution.totalClockedPowerMW,
       6,
     )
+  })
+})
+
+describe('発電計画', () => {
+  it('サマリーに総発電量・目標・燃料の消費が入る', () => {
+    const sheet = powered.workbook.getWorksheet(SHEET_NAMES.summary)!
+    const labels = new Map<string, ExcelJS.Cell>()
+    for (let r = 1; r <= sheet.rowCount; r += 1) {
+      const key = sheet.getRow(r).getCell(1).value
+      if (typeof key === 'string') labels.set(key, sheet.getRow(r).getCell(2))
+    }
+    expect(labels.get('総発電量 (MW)')!.value).toBeCloseTo(300, 6)
+    expect(labels.get('総発電量 (MW)')!.numFmt).toBe(NUM_FMT.power)
+    expect(labels.get('目標発電量 (MW)')!.value).toBeCloseTo(300, 6)
+    expect(labels.get('工場の消費電力を賄う')!.value).toBe('いいえ')
+    expect(labels.get('発電機（建てる台数）')!.value).toBe(4)
+    // 燃料の表（石炭 60/min）
+    expect(labels.get('石炭')!.value).toBeCloseTo(60, 6)
+  })
+
+  it('発電を使わないプランにはサマリーの発電セクションを出さない', () => {
+    const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.summary)!
+    const labels: unknown[] = []
+    for (let r = 1; r <= sheet.rowCount; r += 1) labels.push(sheet.getRow(r).getCell(1).value)
+    expect(labels).not.toContain('発電計画')
+  })
+
+  it('建物リストに発電機の行と発電量の列が入る', () => {
+    const sheet = powered.workbook.getWorksheet(SHEET_NAMES.buildings)!
+    const col = columns(sheet)
+    const row = findRow(sheet, col.get('機械種別')!, '石炭発電機')!
+    expect(row.getCell(col.get('建てる台数')!).value).toBe(4)
+    expect(row.getCell(col.get('消費電力(MW)')!).value).toBe(0)
+    expect(row.getCell(col.get('発電量(MW)')!).value).toBeCloseTo(300, 6)
+    expect(row.getCell(col.get('発電量(MW)')!).numFmt).toBe(NUM_FMT.power)
+    expect(row.getCell(col.get('投入')!).value).toBe('石炭 60.00 個/分 / 水 180.00 m³/min')
+
+    const total = findRow(sheet, 1, '合計')!
+    expect(total.getCell(col.get('発電量(MW)')!).value).toBeCloseTo(300, 6)
+  })
+
+  it('製造だけのプランでは発電量の列がすべて 0 になる', () => {
+    const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
+    const col = columns(sheet)
+    const row = findRow(sheet, col.get('レシピ')!, '鉄板')!
+    expect(row.getCell(col.get('発電量(MW)')!).value).toBe(0)
+  })
+
+  it('建設コストに発電機ぶんが入る', () => {
+    const sheet = powered.workbook.getWorksheet(SHEET_NAMES.buildCost)!
+    const col = columns(sheet)
+    // 石炭発電機は 鉄骨・回転子・コンクリート で建つ（4台ぶん）
+    const total = findRow(sheet, 1, '合計')!
+    expect(Number(total.getCell(col.get('合計')!).value)).toBeGreaterThan(0)
   })
 })
 

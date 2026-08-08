@@ -22,14 +22,16 @@ const CELL_ICON = 16
 export function StepsTable({ solution }: Props) {
   if (solution.steps.length === 0) return <p className="hint">{T.steps.empty}</p>
   const groups = groupByBuilding(solution.steps)
-  // シャード列・Somersloop 列は使うときだけ出す（既定では表を細くしておく）
+  // シャード列・Somersloop 列・発電量列は使うときだけ出す（既定では表を細くしておく）
   const showShards = solution.totalPowerShards > 0
   const showSomersloops = solution.totalSomersloops > 0
+  const showPowerProduction = solution.steps.some((s) => (s.powerProductionMW ?? 0) > 0)
 
   return (
     <div className="stack">
       <p className="hint">{T.steps.clockNote(fmtClock(solution.maxClock))}</p>
       <p className="hint">{T.steps.variablePowerNote}</p>
+      {showPowerProduction && <p className="hint">{T.steps.powerGroupNote}</p>}
       {groups.map((group) => (
         <section className="card card--wide" key={group.buildingId}>
           <h3 className="card__title">
@@ -47,6 +49,9 @@ export function StepsTable({ solution }: Props) {
                   <th scope="col" className="num">{T.steps.somersloops}</th>
                 )}
                 <th scope="col" className="num">{T.steps.power}</th>
+                {showPowerProduction && (
+                  <th scope="col" className="num">{T.steps.powerProductionHead}</th>
+                )}
                 <th scope="col">{T.steps.inputs}</th>
                 <th scope="col">{T.steps.outputs}</th>
               </tr>
@@ -85,6 +90,17 @@ export function StepsTable({ solution }: Props) {
                         )
                       : fmtPower(step.clockedPowerMW)}
                   </td>
+                  {showPowerProduction && (
+                    <td className="num">
+                      {(step.powerProductionMW ?? 0) > 0 ? (
+                        <span className="tag is-accent">
+                          {T.steps.powerProduction(fmtPower(step.powerProductionMW ?? 0))}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  )}
                   <td className="flows">{flowList(step.inputs)}</td>
                   <td className="flows">{flowList(step.outputs)}</td>
                 </tr>
@@ -98,6 +114,13 @@ export function StepsTable({ solution }: Props) {
                 {showShards && <td className="num">{fmtInt(group.powerShards)}</td>}
                 {showSomersloops && <td className="num">{fmtInt(group.somersloops)}</td>}
                 <td className="num">{fmtPower(group.powerMW)}</td>
+                {showPowerProduction && (
+                  <td className="num">
+                    {group.powerProductionMW > 0
+                      ? T.steps.powerProduction(fmtPower(group.powerProductionMW))
+                      : '—'}
+                  </td>
+                )}
                 <td />
                 <td />
               </tr>

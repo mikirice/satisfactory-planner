@@ -5,6 +5,7 @@ import { InputsPanel } from './InputsPanel.tsx'
 import { LimitsPanel } from './LimitsPanel.tsx'
 import { ClockPanel, ExtractionPanel, LogisticsPanel, ObjectivePanel } from './OptionsPanel.tsx'
 import { PlansPanel } from './PlansPanel.tsx'
+import { PowerPanel } from './PowerPanel.tsx'
 import { TargetsPanel } from './TargetsPanel.tsx'
 
 export function Sidebar() {
@@ -13,6 +14,7 @@ export function Sidebar() {
       <TargetsPanel />
       <InputsPanel />
       <ObjectivePanel />
+      <PowerPanel />
       <ClockPanel />
       <ExtractionPanel />
       <AlternatesPanel />

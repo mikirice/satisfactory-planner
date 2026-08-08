@@ -682,6 +682,116 @@ describe('クロックとサマースループ', () => {
   })
 })
 
+/**
+ * 石炭発電機4台（300MW・石炭 60/min・水 180 m³/min）を足した解。
+ * 数値は tests/power.test.ts の手計算ケースと同じ。
+ */
+const coalGenerator = buildingsById.get('Build_GeneratorCoal_C')!
+const powered: Solution = {
+  ...solution,
+  steps: [
+    ...solution.steps,
+    {
+      recipeId: 'power:Build_GeneratorCoal_C:Desc_Coal_C',
+      recipeName: { ja: '石炭発電機（石炭）', en: 'Coal-Powered Generator (Coal)' },
+      buildingId: 'Build_GeneratorCoal_C',
+      buildingName: coalGenerator.name,
+      machineCount: 4,
+      builtCount: 4,
+      clockSpeed: 1,
+      powerShards: 0,
+      somersloops: 0,
+      powerMW: 0,
+      clockedPowerMW: 0,
+      footprintAreaM2: 4 * coalGenerator.footprint.areaM2,
+      inputs: [
+        { item: 'Desc_Coal_C', ratePerMin: 60 },
+        { item: 'Desc_Water_C', ratePerMin: 180 },
+      ],
+      outputs: [],
+      powerProductionMW: 300,
+      fuelItem: 'Desc_Coal_C',
+    },
+  ],
+  powerGeneration: {
+    targetMW: 300,
+    coverFactoryPower: true,
+    totalMW: 300,
+    totalGeneratorCount: 4,
+    totalGeneratorMachineCount: 4,
+    fuelUsage: [{ item: 'Desc_Coal_C', ratePerMin: 60 }],
+    factoryPowerMW: 26,
+    netMW: 274,
+  },
+}
+
+describe('発電計画', () => {
+  it('サイドバーに発電方式・目標発電量・自給の入力が出て、store に反映される', async () => {
+    const container = await render(<App />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('発電計画')
+    expect(text).toContain('石炭発電機')
+    expect(text).toContain('燃料式発電機')
+    expect(text).toContain('原子力発電所')
+    expect(text).toContain('工場の消費電力ぶんを賄う')
+
+    // 既定は「発電方式すべてオフ」＝ 発電計画なし（従来と同じ挙動）
+    expect(usePlanner.getState().enabledGenerators).toEqual({})
+    expect(usePlanner.getState().powerTargetMW).toBe(0)
+    expect(usePlanner.getState().coverFactoryPower).toBe(false)
+
+    const checkboxes = [...container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
+    const coal = checkboxes[0]!
+    await act(async () => {
+      coal.click()
+    })
+    expect(usePlanner.getState().enabledGenerators).toEqual({ Build_GeneratorCoal_C: true })
+
+    const numberInputs = [...container.querySelectorAll<HTMLInputElement>('input[type="number"]')]
+    // 発電計画パネルの数値入力は目標発電量だけ
+    const targetInput = numberInputs.find((i) => i.step === '100')!
+    await act(async () => {
+      typeInto(targetInput, '300')
+    })
+    expect(usePlanner.getState().powerTargetMW).toBe(300)
+
+    usePlanner.setState({ enabledGenerators: {}, powerTargetMW: 0, coverFactoryPower: false })
+  })
+
+  it('サマリーに総発電量・目標・燃料の消費が出る', async () => {
+    const container = await render(<SummaryPanel solution={powered} extraction={null} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('総発電量')
+    expect(text).toContain('300.00')
+    expect(text).toContain('目標')
+    expect(text).toContain('発電機（建てる台数）')
+    expect(text).toContain('燃料の消費')
+    expect(text).toContain('石炭')
+    expect(text).toContain('60.00')
+  })
+
+  it('発電しない解ではサマリーに発電のカードを出さない', async () => {
+    const container = await render(<SummaryPanel solution={solution} extraction={null} />)
+    expect(container.textContent ?? '').not.toContain('総発電量')
+  })
+
+  it('生産ステップ表に発電機の行と発電量の列が出る', async () => {
+    const container = await render(<StepsTable solution={powered} />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('石炭発電機')
+    expect(text).toContain('発電量 (MW)')
+    expect(text).toContain('+300.00')
+    // 燃料と水が投入として並ぶ
+    expect(text).toContain('石炭')
+    expect(text).toContain('水')
+  })
+
+  it('発電しない解では発電量の列を出さない（表を細く保つ）', async () => {
+    const container = await render(<StepsTable solution={solution} />)
+    expect(container.textContent ?? '').not.toContain('発電量')
+  })
+})
+
 describe('床面積の概算', () => {
   it('サマリーに概算床面積とファウンデーション枚数が出る', async () => {
     const container = await render(<SummaryPanel solution={solution} extraction={null} />)

@@ -36,6 +36,38 @@ export type ObjectiveWeights = {
  */
 export type ResourceWeightSpec = 'uniform' | 'scarcity' | Readonly<Record<string, number>>
 
+/**
+ * 発電計画の指定（`SolveInput.power`）。
+ *
+ * 発電機は「燃料(+水) を消費して電力(MW)を産出する変数」として LP に足す。
+ * 燃料もアイテム収支の制約に入るので、石炭発電なら石炭の採掘、燃料式なら原油チェーン、
+ * 原子力ならウラン燃料棒の製造までが同じ LP で同時に解ける。
+ *
+ * **無効時は LP を1変数も変えない**（`generators` が空、または目標も自給もオフのとき）。
+ * これは既存プランの解が発電機能の追加で変わらないための約束（tests/power.test.ts）。
+ */
+export type PowerPlanInput = {
+  /**
+   * 使ってよい発電機の Building.id（例: `Build_GeneratorCoal_C`）。
+   * 未指定・空なら発電計画そのものを行わない（既定）。
+   */
+  generators?: readonly string[]
+  /**
+   * 目標発電量(MW)。総発電量がこの値以上になるよう制約を張る。
+   * 0 / 未指定なら「発電量そのもの」への要求はしない。
+   */
+  targetMW?: number
+  /**
+   * true なら「総発電量 >= 製造建物の総消費電力」を制約に足す。
+   * 発電のために増えた建物（燃料精製・ウラン加工など）の消費も右辺に含まれるので、
+   * 自己消費の循環は LP が同時に解く。
+   *
+   * 消費側はクロック100%換算の値（LP の目的関数と同じ基準）。
+   * 採掘設備の電力は LP の外（後処理の planExtraction）なので**含まない**。
+   */
+  coverFactoryPower?: boolean
+}
+
 export type SolveInput = {
   /** 目標産出。複数指定可 */
   targets: readonly TargetRate[]
@@ -81,6 +113,11 @@ export type SolveInput = {
    * 部分装着（フル未満）は扱わない（README「Somersloop の扱い」参照）。
    */
   somersloops?: number
+  /**
+   * 発電計画。未指定なら発電機を LP に入れない（従来と完全に同じ解）。
+   * 発電機のクロックは100%固定（オーバークロックは初期スコープ外・README 参照）。
+   */
+  power?: PowerPlanInput
   /** 目的関数の重み。省略した項は既定値 */
   weights?: Partial<ObjectiveWeights>
   /** 原料の相対コスト。既定 'scarcity'（DEFAULT_RESOURCE_WEIGHT_SPEC） */
@@ -146,6 +183,13 @@ export type SolutionStep = {
   footprintAreaM2: number
   inputs: ItemRate[]
   outputs: ItemRate[]
+  /**
+   * 発電機のステップだけ入る発電量(MW)（稼働台数ぶんの合計）。
+   * 製造レシピのステップでは undefined。`powerMW` は**消費**電力なので発電機では 0。
+   */
+  powerProductionMW?: number
+  /** 発電機のステップだけ入る燃料の Item.id（同じ発電機でも燃料ごとに行を分ける） */
+  fuelItem?: string
 }
 
 export type RawResourceUsage = {
@@ -184,6 +228,32 @@ export type TargetResult = {
 export type ExternalInputUsage = ItemRate & {
   /** 使えるものとして指定した量（SolveInput.inputs の値） */
   availablePerMin: number
+}
+
+/**
+ * 発電計画の集計（`SolveInput.power` を有効にしたときだけ Solution に入る）。
+ * 発電機の内訳そのものは `Solution.steps` の中に（`powerProductionMW` を持つ行として）並ぶ。
+ */
+export type PowerGenerationSummary = {
+  /** 指定した目標発電量(MW)。0 = 指定なし */
+  targetMW: number
+  /** 「工場の消費電力ぶんを賄う」を有効にしたか */
+  coverFactoryPower: boolean
+  /** 総発電量(MW)。稼働台数ベース（＝ LP が決めた値。建てる台数の切り上げ分は含まない） */
+  totalMW: number
+  /** 建てる発電機の台数合計（各ステップを切り上げ） */
+  totalGeneratorCount: number
+  /** 発電機の稼働台数合計（小数） */
+  totalGeneratorMachineCount: number
+  /** 発電機が消費する燃料（アイテム別の合計・多い順）。補助資源の水は含まない */
+  fuelUsage: ItemRate[]
+  /**
+   * 発電で賄う対象の消費電力(MW)。製造建物のみ・クロック100%換算
+   * （＝ `Solution.totalPowerMW`。採掘設備の電力は LP の外なので含まない）。
+   */
+  factoryPowerMW: number
+  /** `totalMW - factoryPowerMW`。0 以上なら製造ぶんは自給できている */
+  netMW: number
 }
 
 export type Solution = {
@@ -231,6 +301,11 @@ export type Solution = {
    * 通常のレート指定だけの解では undefined。
    */
   maximizedOutput?: ItemRate
+  /**
+   * 発電計画を有効にしたときだけ入る（`SolveInput.power`）。
+   * 発電機を LP に入れていない従来どおりの解では undefined。
+   */
+  powerGeneration?: PowerGenerationSummary
 }
 
 export type InfeasibleReason =

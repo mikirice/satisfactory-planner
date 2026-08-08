@@ -331,6 +331,54 @@
   color: var(--text-muted);
 }
 
+/* --- 発電計画（発電方式の許可） ------------------------------------------ */
+
+/* 目的関数のラジオと同じ見た目。複数選べる（＝チェックボックス）ぶんだけ別クラスにする */
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.checkbox {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.checkbox--on {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+}
+
+.checkbox__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.checkbox__label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text-strong);
+}
+
+.checkbox__meta {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkbox__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
 /* --- チェックリスト（代替レシピ） ---------------------------------------- */
 
 .check-list {

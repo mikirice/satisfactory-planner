@@ -19,12 +19,24 @@
  * リサイクル・プラスチック/ゴムのループは燃料を消費するので本来は有界だが、
  * 一般には目的関数に現れない退化した循環がありうるため常に入れている。
  */
-import { buildingsById, itemsById, ratePerMin, recipes as allRecipes, recipesById } from '../data/index.ts'
+import {
+  buildingsById,
+  generatorsById,
+  itemsById,
+  ratePerMin,
+  recipes as allRecipes,
+  recipesById,
+} from '../data/index.ts'
 import { SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
-import type { Building, Recipe } from '../data/types.ts'
+import type { Building, Generator, GeneratorFuel, Recipe } from '../data/types.ts'
 import { DEFAULT_RESOURCE_LIMITS, MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { LpConstraint, LpModel, LpVariable } from './lp.ts'
-import type { ObjectiveWeights, ResourceWeightSpec, SolveInput } from './types.ts'
+import type {
+  ObjectiveWeights,
+  PowerPlanInput,
+  ResourceWeightSpec,
+  SolveInput,
+} from './types.ts'
 
 export const DEFAULT_WEIGHTS: ObjectiveWeights = { resources: 1, power: 0, buildings: 0 }
 export const DEFAULT_EPSILON = 1e-6
@@ -53,6 +65,14 @@ export const inputVarKey = (itemId: string): string => `i:${itemId}`
 export const maximizeVarKey = (itemId: string): string => `y:${itemId}`
 /** 実行不能診断で使う「上限を超えた分」の変数（供給変数キーから作る） */
 export const overflowVarKey = (supplyKey: string): string => `o:${supplyKey}`
+/** 発電機 g を燃料 f で回す稼働台数（クロック100%固定） */
+export const generatorVarKey = (generatorId: string, fuelItem: string): string =>
+  `g:${generatorId}:${fuelItem}`
+
+/** 目標発電量の制約行（総発電量 >= 目標MW） */
+export const POWER_TARGET_ROW = 'power:target'
+/** 自給の制約行（総発電量 - 製造建物の総消費電力 >= 0） */
+export const POWER_COVER_ROW = 'power:cover'
 
 /** 資源の希少度重み（'scarcity'）の基準となる最大上限。鉄鉱石の 92,100/min。 */
 export const SCARCITY_REFERENCE_RATE = Math.max(
@@ -153,6 +173,56 @@ export type SupplySource = {
   weight: number
 }
 
+/**
+ * 発電機の変数1本ぶん（発電機 × 燃料の組み合わせ）。
+ * 同じ発電機でも燃料ごとに別変数にして、LP に「どの燃料で回すか」を選ばせる。
+ */
+export type GeneratorVariant = {
+  generator: Generator
+  fuel: GeneratorFuel
+  /** LP 変数キー */
+  key: string
+}
+
+/** 解決済みの発電計画（LP に実際に反映される形）。 */
+export type ResolvedPowerPlan = {
+  /** 変数を作る発電機 */
+  generators: Generator[]
+  /** 目標発電量(MW)。0 = 指定なし */
+  targetMW: number
+  coverFactoryPower: boolean
+  /** LP に発電機の変数と制約を足すか（false なら発電機能を使わない従来の LP） */
+  active: boolean
+}
+
+/**
+ * `SolveInput.power` を検証して解決する。
+ *
+ * 「発電機が1つ以上あり、かつ目標発電量か自給のどちらかが指定されている」ときだけ有効。
+ * どちらも無いと発電機を建てる理由が無く、変数を足しても必ず 0 になるので、
+ * LP を従来と1変数も変えないほうが安全（回帰の担保）。
+ */
+export function resolvePowerPlan(power: PowerPlanInput | undefined): ResolvedPowerPlan {
+  const targetMW = power?.targetMW ?? 0
+  if (!(Number.isFinite(targetMW) && targetMW >= 0)) {
+    throw new Error(`power.targetMW must be a finite number >= 0: ${targetMW}`)
+  }
+  const coverFactoryPower = power?.coverFactoryPower === true
+  const generators: Generator[] = []
+  for (const id of new Set(power?.generators ?? [])) {
+    const generator = generatorsById.get(id)
+    if (!generator) throw new Error(`unknown generator id: ${id}`)
+    generators.push(generator)
+  }
+  generators.sort((a, b) => a.id.localeCompare(b.id))
+  return {
+    generators,
+    targetMW,
+    coverFactoryPower,
+    active: generators.length > 0 && (targetMW > 0 || coverFactoryPower),
+  }
+}
+
 export type ProductionModel = {
   lp: LpModel
   /** 変数に含めたレシピ */
@@ -161,6 +231,10 @@ export type ProductionModel = {
   somersloopRecipes: Recipe[]
   /** 使用可能な Somersloop 数（0 = バリアントなし） */
   somersloopLimit: number
+  /** 発電機の変数（発電計画が無効なら空） */
+  generatorVariants: GeneratorVariant[]
+  /** 解決済みの発電計画 */
+  powerPlan: ResolvedPowerPlan
   /** 外部供給変数（原料 + ユーザー投入） */
   supplies: SupplySource[]
   /** 原料の上限（ユーザー投入は含まない） */
@@ -270,6 +344,19 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   // 0 のときはバリアント変数を1つも作らない（＝ 従来と完全に同じ LP になる）
   const somersloopRecipes = somersloopLimit > 0 ? recipes.filter(supportsSomersloop) : []
 
+  // --- 発電計画 --------------------------------------------------------------
+  // 無効なら変数も制約も作らない（＝ 従来と完全に同じ LP になる）
+  const powerPlan = resolvePowerPlan(input.power)
+  const generatorVariants: GeneratorVariant[] = powerPlan.active
+    ? powerPlan.generators.flatMap((generator) =>
+        generator.fuels.map((fuel) => ({
+          generator,
+          fuel,
+          key: generatorVarKey(generator.id, fuel.item),
+        })),
+      )
+    : []
+
   // --- 変数 -----------------------------------------------------------------
   const variables: LpVariable[] = []
   const buildingOf = (recipe: Recipe): Building => {
@@ -300,6 +387,13 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
             weights.buildings +
             epsilon
     variables.push({ key: somersloopVarKey(recipe.id), objective })
+  }
+  for (const variant of generatorVariants) {
+    // 発電機は電力を消費しないので power 項は 0。建物ではあるので buildings 項は 1台ぶん。
+    // ε で「意味のない発電機を建てる」退化解を潰す（燃料コストがあるので本来は有界）。
+    const objective =
+      maximize !== undefined ? 0 : options.elastic ? epsilon : weights.buildings + epsilon
+    variables.push({ key: variant.key, objective })
   }
   for (const supply of supplies) {
     // ε を足すのは「コスト0の供給（無制限の水・持ち込み分）を必要以上に引き込む
@@ -349,6 +443,22 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
       rowFor(itemId).set(somersloopVarKey(recipe.id), net)
     }
   }
+  // 発電機は燃料（+補助資源の水）を消費し、副産物（核廃棄物）を産出する。
+  // 同じ行に載るので、燃料の生産チェーンまで1つの LP で同時に解ける。
+  for (const variant of generatorVariants) {
+    const { fuel, key } = variant
+    const add = (item: string, coefficient: number): void => {
+      const row = rowFor(item)
+      row.set(key, (row.get(key) ?? 0) + coefficient)
+    }
+    add(fuel.item, -fuel.ratePerMin)
+    if (fuel.supplementalItem && fuel.supplementalRatePerMin > 0) {
+      add(fuel.supplementalItem, -fuel.supplementalRatePerMin)
+    }
+    if (fuel.byproduct && fuel.byproduct.ratePerMin > 0) {
+      add(fuel.byproduct.item, fuel.byproduct.ratePerMin)
+    }
+  }
   for (const supply of supplies) {
     rowFor(supply.item).set(supply.key, 1)
     if (options.elastic && supply.limit !== null) {
@@ -367,6 +477,39 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     })
   }
 
+  // --- 電力の制約 -----------------------------------------------------------
+  // 電力は疑似アイテムにせず専用の行にする（アイテムIDを偽装しないため）。
+  //   目標: Σ(発電量_g × g) >= 目標MW
+  //   自給: Σ(発電量_g × g) - Σ(消費電力_r × x_r) >= 0
+  // 自給側は「発電のために増えた建物の消費」も左辺に入るので、循環は LP が同時に解く。
+  if (generatorVariants.length > 0) {
+    const production = new Map<string, number>()
+    for (const variant of generatorVariants) {
+      production.set(variant.key, variant.generator.powerProductionMW)
+    }
+    if (powerPlan.targetMW > 0) {
+      constraints.push({
+        key: POWER_TARGET_ROW,
+        coefficients: new Map(production),
+        lower: powerPlan.targetMW,
+      })
+    }
+    if (powerPlan.coverFactoryPower) {
+      const coefficients = new Map(production)
+      for (const recipe of recipes) {
+        coefficients.set(recipeVarKey(recipe.id), -recipePowerMW(recipe, buildingOf(recipe)))
+      }
+      for (const recipe of somersloopRecipes) {
+        const building = buildingOf(recipe)
+        coefficients.set(
+          somersloopVarKey(recipe.id),
+          -recipePowerMW(recipe, building) * somersloopPowerFactor(building),
+        )
+      }
+      constraints.push({ key: POWER_COVER_ROW, coefficients, lower: 0 })
+    }
+  }
+
   // Somersloop の総数制限: Σ(バリアントの稼働台数 × その建物のスロット数) <= 使用可能数
   if (somersloopRecipes.length > 0) {
     const coefficients = new Map<string, number>()
@@ -381,6 +524,8 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     recipes,
     somersloopRecipes,
     somersloopLimit,
+    generatorVariants,
+    powerPlan,
     supplies,
     limits,
     resourceWeights,

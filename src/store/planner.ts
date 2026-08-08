@@ -7,16 +7,19 @@
  */
 import { create } from 'zustand'
 
-import { belts, pipes, recipes } from '../data/index.ts'
+import { belts, generators, pipes, recipes } from '../data/index.ts'
 import { DEFAULT_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { ExcelExportInput } from '../export/excel.ts'
 // クロック / Somersloop の既定値と丸めは保存形式と共有する（store → serialize の一方向）
 import {
+  DEFAULT_COVER_FACTORY_POWER,
   DEFAULT_EXTRACTION_CLOCK,
   DEFAULT_MAX_CLOCK,
+  DEFAULT_POWER_TARGET_MW,
   DEFAULT_SOMERSLOOPS,
   clampExtractionClock,
   clampMaxClock,
+  clampPowerTargetMW,
   clampSomersloops,
 } from '../plan/serialize.ts'
 import type { PlanInput } from '../plan/serialize.ts'
@@ -99,6 +102,14 @@ export const OBJECTIVE_PRESETS: readonly ObjectivePreset[] = [
 
 export const objectivePresetById = new Map(OBJECTIVE_PRESETS.map((p) => [p.id, p]))
 
+/**
+ * 発電計画で選べる発電機（発電量の小さい順）。
+ * 石炭発電機 / 燃料式発電機 / 原子力発電所の3種（generators.json）。
+ */
+export const powerGenerators = [...generators].sort(
+  (a, b) => a.powerProductionMW - b.powerProductionMW || a.id.localeCompare(b.id),
+)
+
 /** 代替レシピの一覧（日本語名の五十音順）。 */
 export const alternateRecipes = recipes
   .filter((r) => r.isAlternate)
@@ -127,6 +138,14 @@ export type PlannerState = {
   extractionClock: number
   /** 使える Somersloop の総数。0 = 使わない */
   somersloops: number
+  /**
+   * 発電に使ってよい発電機（Building.id）。既定は空 = 発電計画なし（従来と同じ挙動）。
+   */
+  enabledGenerators: Record<string, true>
+  /** 目標発電量(MW)。0 = 指定なし */
+  powerTargetMW: number
+  /** 工場（製造建物）の消費電力ぶんを発電で賄うか */
+  coverFactoryPower: boolean
   /** Excel のファイル名に使うプラン名。空なら 'plan' */
   planName: string
   /** 物流の本数換算に使うベルト（Belt.id） */
@@ -170,6 +189,12 @@ export type PlannerState = {
   setExtractionClock: (clock: number) => void
   /** 使える Somersloop 数（負数・非数は 0 に丸める） */
   setSomersloops: (count: number) => void
+  /** 発電方式の許可を切り替える（Building.id） */
+  setGenerator: (generatorId: string, enabled: boolean) => void
+  /** 目標発電量(MW)。負数・非数は 0 に丸める */
+  setPowerTargetMW: (mw: number) => void
+  /** 「工場の消費電力ぶんを賄う」の切り替え */
+  setCoverFactoryPower: (cover: boolean) => void
   setPlanName: (name: string) => void
   setBeltId: (id: string) => void
   setPipeId: (id: string) => void
@@ -223,6 +248,22 @@ function mergeInputEntries(entries: readonly { item: string; ratePerMin: number 
 }
 
 /** 現在の入力から SolveInput を組み立てる（テストから検証できるよう export）。 */
+/**
+ * 発電計画が実際に LP を動かす状態か。
+ * 発電機が1つ以上許可され、かつ目標発電量か自給のどちらかが指定されているとき。
+ * （solver 側の `resolvePowerPlan().active` と同じ判定。画面の「解くかどうか」に使う）
+ */
+export function isPowerPlanActive(state: {
+  enabledGenerators: Record<string, true>
+  powerTargetMW: number
+  coverFactoryPower: boolean
+}): boolean {
+  return (
+    Object.keys(state.enabledGenerators).length > 0 &&
+    (state.powerTargetMW > 0 || state.coverFactoryPower)
+  )
+}
+
 export function toSolveInput(state: PlannerState): SolveInput {
   const preset = objectivePresetById.get(state.objective) ?? OBJECTIVE_PRESETS[0]
   const maximize = state.targets.find((t) => t.mode === 'max' && t.item)?.item
@@ -242,6 +283,11 @@ export function toSolveInput(state: PlannerState): SolveInput {
     weights: preset.weights,
     maxClock: state.maxClock,
     somersloops: state.somersloops,
+    power: {
+      generators: Object.keys(state.enabledGenerators),
+      targetMW: state.powerTargetMW,
+      coverFactoryPower: state.coverFactoryPower,
+    },
   }
 }
 
@@ -288,6 +334,9 @@ export const usePlanner = create<PlannerState>((set, get) => {
     maxClock: DEFAULT_MAX_CLOCK,
     extractionClock: DEFAULT_EXTRACTION_CLOCK,
     somersloops: DEFAULT_SOMERSLOOPS,
+    enabledGenerators: {},
+    powerTargetMW: DEFAULT_POWER_TARGET_MW,
+    coverFactoryPower: DEFAULT_COVER_FACTORY_POWER,
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
@@ -368,6 +417,17 @@ export const usePlanner = create<PlannerState>((set, get) => {
 
     setSomersloops: (count) => change({ somersloops: clampSomersloops(count) }),
 
+    setGenerator: (generatorId, enabled) => {
+      const next = { ...get().enabledGenerators }
+      if (enabled) next[generatorId] = true
+      else delete next[generatorId]
+      change({ enabledGenerators: next })
+    },
+
+    setPowerTargetMW: (mw) => change({ powerTargetMW: clampPowerTargetMW(mw) }),
+
+    setCoverFactoryPower: (cover) => change({ coverFactoryPower: cover }),
+
     // プラン名・搬送手段は解に影響しないので再計算しない（set のまま）
     setPlanName: (name) => set({ planName: name }),
     setBeltId: (id) => set({ beltId: id }),
@@ -384,6 +444,9 @@ export const usePlanner = create<PlannerState>((set, get) => {
         maxClock: clampMaxClock(input.maxClock),
         extractionClock: clampExtractionClock(input.extractionClock),
         somersloops: clampSomersloops(input.somersloops),
+        enabledGenerators: { ...input.enabledGenerators },
+        powerTargetMW: clampPowerTargetMW(input.powerTargetMW),
+        coverFactoryPower: input.coverFactoryPower,
         planName: input.planName,
         beltId: input.beltId,
         pipeId: input.pipeId,
@@ -392,7 +455,12 @@ export const usePlanner = create<PlannerState>((set, get) => {
     recompute: async () => {
       const state = get()
       const input = toSolveInput(state)
-      if (input.targets.length === 0 && input.maximize === undefined) {
+      // 発電計画だけ（目標アイテムなし）でも解く価値がある: 目標電力から発電所を組む使い方
+      if (
+        input.targets.length === 0 &&
+        input.maximize === undefined &&
+        !isPowerPlanActive(state)
+      ) {
         set({ status: 'idle', result: null, extraction: null, error: null, elapsedMs: 0 })
         return
       }

@@ -106,6 +106,61 @@ export function SummaryPanel({ solution, extraction }: Props) {
         </dl>
       </section>
 
+      {solution.powerGeneration && (
+        <section className="card">
+          <h3 className="card__title">{T.summary.powerGeneration}</h3>
+          <p className="bignum">
+            {fmtPower(solution.powerGeneration.totalMW)}{' '}
+            <span className="bignum__unit">{T.summary.unit.mw}</span>
+          </p>
+          <dl className="kv">
+            <dt>{T.summary.powerGenerationTarget}</dt>
+            <dd className="num">
+              {solution.powerGeneration.targetMW > 0
+                ? `${fmtPower(solution.powerGeneration.targetMW)} ${T.summary.unit.mw}`
+                : T.summary.powerGenerationNoTarget}
+            </dd>
+            <dt>{T.summary.powerGenerationCount}</dt>
+            <dd className="num">
+              {fmtInt(solution.powerGeneration.totalGeneratorCount)}{' '}
+              {T.summary.powerGenerationCountUnit}
+            </dd>
+            <dt>{T.summary.powerGenerationFactory}</dt>
+            <dd className="num">
+              {fmtPower(solution.powerGeneration.factoryPowerMW)} {T.summary.unit.mw}
+            </dd>
+            <dt>{T.summary.powerGenerationNet}</dt>
+            <dd className="num">
+              {fmtPower(solution.powerGeneration.netMW)} {T.summary.unit.mw}
+            </dd>
+          </dl>
+          {solution.powerGeneration.coverFactoryPower && (
+            <p className="hint">{T.summary.powerGenerationCover}</p>
+          )}
+          {/* 発電機は建てる台数を切り上げるので、通常はここに落ちない（目標未達の保険） */}
+          {solution.powerGeneration.netMW < -1e-6 && (
+            <p className="callout callout--warn">
+              {T.summary.powerGenerationShort(fmtPower(-solution.powerGeneration.netMW))}
+            </p>
+          )}
+          <h4 className="card__subtitle">{T.summary.powerGenerationFuel}</h4>
+          <table className="table">
+            <tbody>
+              {solution.powerGeneration.fuelUsage.map((fuel) => (
+                <tr key={fuel.item}>
+                  <th scope="row">
+                    <ItemLabel id={fuel.item} name={itemName(fuel.item)} />
+                  </th>
+                  <td className="num">{fmtRate(fuel.ratePerMin)}</td>
+                  <td className="unit-cell">{itemUnit(fuel.item)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="hint">{T.summary.powerGenerationExtractionNote}</p>
+        </section>
+      )}
+
       {solution.somersloopLimit > 0 && (
         <section className="card">
           <h3 className="card__title">{T.summary.somersloops}</h3>

@@ -13,7 +13,7 @@
  */
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
 
-import { belts, itemsById, pipes, recipesById } from '../data/index.ts'
+import { belts, generatorsById, itemsById, pipes, recipesById } from '../data/index.ts'
 import {
   CLOCK_MAX,
   EXTRACTION_CLOCK_CHOICES,
@@ -33,6 +33,10 @@ export const DEFAULT_MAX_CLOCK = 1
 export const DEFAULT_EXTRACTION_CLOCK = 1
 /** 使える Somersloop 数の既定（0 = 使わない）。 */
 export const DEFAULT_SOMERSLOOPS = 0
+/** 目標発電量の既定（0 = 指定なし）。 */
+export const DEFAULT_POWER_TARGET_MW = 0
+/** 「工場の消費電力ぶんを賄う」の既定（オフ）。 */
+export const DEFAULT_COVER_FACTORY_POWER = false
 
 /** 製造クロック上限を UI で選べる範囲（10%〜250%）に丸める。 */
 export function clampMaxClock(clock: number | undefined): number {
@@ -52,20 +56,28 @@ export function clampSomersloops(count: number | undefined): number {
   return Math.max(0, Math.floor(count))
 }
 
+/** 目標発電量(MW)を 0 以上の有限値に丸める。 */
+export function clampPowerTargetMW(mw: number | undefined): number {
+  if (mw === undefined || !Number.isFinite(mw)) return DEFAULT_POWER_TARGET_MW
+  return Math.max(0, mw)
+}
+
 /**
  * スキーマ版。書き出しは常に最新版。
  * v1 … 初版
  * v2 … 産出最大化（x）と既保有アイテムの投入（i）を追加。どちらも省略可なので v1 も読める
  * v3 … 製造クロック上限（c）・採掘クロック（e）・Somersloop 数（s）を追加。
  *       いずれも既定値なら省略するので v1 / v2 もそのまま読める
+ * v4 … 発電計画（g: 許可する発電機・w: 目標発電量MW・f: 工場消費を賄う）を追加。
+ *       いずれも既定値（発電計画なし）なら省略するので v1〜v3 もそのまま読める
  */
-export const PLAN_SCHEMA_VERSION = 3
+export const PLAN_SCHEMA_VERSION = 4
 
 /**
  * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
  * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
  */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3]
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -100,6 +112,12 @@ export type PlanSnapshot = {
   e?: number
   /** 使える Somersloop 数。v3〜。既定 0 なら省略 */
   s?: number
+  /** 発電に許可した発電機の Building.id。v4〜。空なら省略 */
+  g?: string[]
+  /** 目標発電量(MW)。v4〜。既定 0 なら省略 */
+  w?: number
+  /** 工場の消費電力ぶんを賄うか。v4〜。既定 false なら省略 */
+  f?: boolean
 }
 
 /** 復元して store に流し込む形（TargetEntry の key は store 側で採番する）。 */
@@ -116,6 +134,12 @@ export type PlanInput = {
   extractionClock: number
   /** 使える Somersloop 数 */
   somersloops: number
+  /** 発電に許可した発電機（Building.id） */
+  enabledGenerators: Record<string, true>
+  /** 目標発電量(MW) */
+  powerTargetMW: number
+  /** 工場の消費電力ぶんを賄うか */
+  coverFactoryPower: boolean
   planName: string
   beltId: string
   pipeId: string
@@ -136,6 +160,12 @@ export type PlanSource = {
   extractionClock?: number
   /** 使える Somersloop 数（省略時 0） */
   somersloops?: number
+  /** 発電に許可した発電機（v3 以前のデータには無いので省略可） */
+  enabledGenerators?: Record<string, true>
+  /** 目標発電量(MW)（省略時 0） */
+  powerTargetMW?: number
+  /** 工場の消費電力ぶんを賄うか（省略時 false） */
+  coverFactoryPower?: boolean
   planName: string
   beltId: string
   pipeId: string
@@ -163,6 +193,9 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
   const maxClock = clampMaxClock(state.maxClock ?? DEFAULT_MAX_CLOCK)
   const extractionClock = clampExtractionClock(state.extractionClock ?? DEFAULT_EXTRACTION_CLOCK)
   const somersloops = clampSomersloops(state.somersloops ?? DEFAULT_SOMERSLOOPS)
+  const enabledGenerators = Object.keys(state.enabledGenerators ?? {}).sort()
+  const powerTargetMW = clampPowerTargetMW(state.powerTargetMW ?? DEFAULT_POWER_TARGET_MW)
+  const coverFactoryPower = state.coverFactoryPower ?? DEFAULT_COVER_FACTORY_POWER
   return {
     v: PLAN_SCHEMA_VERSION,
     n: state.planName,
@@ -184,6 +217,9 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
     ...(maxClock === DEFAULT_MAX_CLOCK ? {} : { c: maxClock }),
     ...(extractionClock === DEFAULT_EXTRACTION_CLOCK ? {} : { e: extractionClock }),
     ...(somersloops === DEFAULT_SOMERSLOOPS ? {} : { s: somersloops }),
+    ...(enabledGenerators.length === 0 ? {} : { g: enabledGenerators }),
+    ...(powerTargetMW === DEFAULT_POWER_TARGET_MW ? {} : { w: powerTargetMW }),
+    ...(coverFactoryPower === DEFAULT_COVER_FACTORY_POWER ? {} : { f: coverFactoryPower }),
   }
 }
 
@@ -199,6 +235,9 @@ export function defaultPlanInput(): PlanInput {
     maxClock: DEFAULT_MAX_CLOCK,
     extractionClock: DEFAULT_EXTRACTION_CLOCK,
     somersloops: DEFAULT_SOMERSLOOPS,
+    enabledGenerators: {},
+    powerTargetMW: DEFAULT_POWER_TARGET_MW,
+    coverFactoryPower: DEFAULT_COVER_FACTORY_POWER,
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
@@ -360,6 +399,31 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
     } else {
       warnings.push('Somersloop の数が不正なので 0 に戻しました')
     }
+  }
+
+  // --- 発電計画（v4〜。無ければ既定＝発電計画なしのまま） ---------------------
+  if (Array.isArray(raw.g)) {
+    for (const id of raw.g) {
+      if (typeof id !== 'string') continue
+      if (!generatorsById.has(id)) {
+        warnings.push(`存在しない発電機「${id}」を無視しました`)
+        continue
+      }
+      input.enabledGenerators[id] = true
+    }
+  } else if (raw.g !== undefined) {
+    warnings.push('発電機のデータが不正なので無視しました')
+  }
+  if (raw.w !== undefined) {
+    if (typeof raw.w === 'number' && Number.isFinite(raw.w) && raw.w >= 0) {
+      input.powerTargetMW = clampPowerTargetMW(raw.w)
+    } else {
+      warnings.push('目標発電量が不正なので 0 に戻しました')
+    }
+  }
+  if (raw.f !== undefined) {
+    if (typeof raw.f === 'boolean') input.coverFactoryPower = raw.f
+    else warnings.push('発電計画の設定が不正なので既定に戻しました')
   }
 
   return { ok: true, input, warnings }
