@@ -2,6 +2,7 @@
 import { Suspense, lazy, useState } from 'react'
 
 import { usePlanner } from '../store/planner.ts'
+import { AdSlot } from './AdSlot.tsx'
 import { BalanceTable } from './BalanceTable.tsx'
 import { InfeasiblePanel } from './InfeasiblePanel.tsx'
 import { ResourcesTable } from './ResourcesTable.tsx'
@@ -105,6 +106,8 @@ export function ResultView() {
           </Suspense>
         )}
       </div>
+
+      <AdSlot slot="banner" />
     </>
   )
 }

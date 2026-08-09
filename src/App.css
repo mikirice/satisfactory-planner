@@ -69,6 +69,42 @@
   min-width: 0;
 }
 
+/* --- 広告枠 -------------------------------------------------------------- */
+
+.ad-slot {
+  flex: 0 0 auto;
+  align-self: center;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+.ad-slot--banner {
+  margin: 20px auto 0;
+}
+
+/* --- フッター ------------------------------------------------------------ */
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  font-size: 11px;
+}
+
+.site-footer a {
+  color: var(--text-muted);
+}
+
+.site-footer a:hover {
+  color: var(--text-strong);
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);

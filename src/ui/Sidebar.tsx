@@ -1,4 +1,5 @@
 /** 入力サイドバー。 */
+import { AdSlot } from './AdSlot.tsx'
 import { AlternatesPanel } from './AlternatesPanel.tsx'
 import { ExportPanel } from './ExportPanel.tsx'
 import { InputsPanel } from './InputsPanel.tsx'
@@ -22,6 +23,7 @@ export function Sidebar() {
       <LogisticsPanel />
       <PlansPanel />
       <ExportPanel />
+      <AdSlot slot="rect" />
     </aside>
   )
 }

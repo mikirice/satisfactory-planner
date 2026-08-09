@@ -5,6 +5,7 @@ import { disposeGlpk } from './solver/index.ts'
 import { usePlanner } from './store/planner.ts'
 import { ResultView } from './ui/ResultView.tsx'
 import { Sidebar } from './ui/Sidebar.tsx'
+import { SiteFooter } from './ui/SiteFooter.tsx'
 import { T } from './ui/text.ts'
 import './App.css'
 
@@ -37,6 +38,8 @@ function App() {
           <ResultView />
         </main>
       </div>
+
+      <SiteFooter />
     </div>
   )
 }

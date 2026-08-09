@@ -6,6 +6,15 @@ export const T = {
   appTitle: 'Satisfactory 生産計画ツール',
   dataVersion: 'ゲームデータ',
 
+  ads: {
+    label: '広告',
+  },
+
+  footer: {
+    disclaimer: '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
+    privacy: 'プライバシーポリシー',
+  },
+
   status: {
     idle: '目標を追加すると計算します',
     solving: '計算中',

@@ -1,0 +1,75 @@
+// @vitest-environment jsdom
+import { act } from 'react'
+import type { ReactNode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { AdSlot } from '../src/ui/AdSlot.tsx'
+import { SiteFooter } from '../src/ui/SiteFooter.tsx'
+
+;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+
+const mounted: { unmount: () => void }[] = []
+
+async function render(node: ReactNode): Promise<HTMLElement> {
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  await act(async () => {
+    root.render(node)
+  })
+  mounted.push({ unmount: () => root.unmount() })
+  return container
+}
+
+afterEach(async () => {
+  await act(async () => {
+    for (const entry of mounted.splice(0)) entry.unmount()
+  })
+  document.body.innerHTML = ''
+  vi.doUnmock('../src/config/ads.ts')
+})
+
+describe('サイトフッター', () => {
+  it('免責文と別タブで開くプライバシーポリシーへのリンクを表示する', async () => {
+    const container = await render(<SiteFooter />)
+    const link = container.querySelector<HTMLAnchorElement>('a')
+
+    expect(container.textContent).toContain(
+      '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
+    )
+    expect(link?.textContent).toBe('プライバシーポリシー')
+    expect(link?.getAttribute('href')).toBe('/privacy.html')
+    expect(link?.target).toBe('_blank')
+  })
+})
+
+describe('広告枠', () => {
+  it('広告が無効なときはマークアップを一切描画しない', async () => {
+    const container = await render(<AdSlot slot="rect" />)
+
+    expect(container.childElementCount).toBe(0)
+  })
+
+  it('広告が有効なときはスロットごとの固定寸法を設定する', async () => {
+    vi.resetModules()
+    vi.doMock('../src/config/ads.ts', () => ({
+      ADS_ENABLED: true,
+      AD_SLOT_SIZES: {
+        rect: { width: 300, height: 250 },
+        banner: { width: 728, height: 90 },
+      },
+    }))
+    const { AdSlot: EnabledAdSlot } = await import('../src/ui/AdSlot.tsx')
+
+    const rectContainer = await render(<EnabledAdSlot slot="rect" />)
+    const bannerContainer = await render(<EnabledAdSlot slot="banner" />)
+    const rect = rectContainer.querySelector<HTMLElement>('.ad-slot--rect')
+    const banner = bannerContainer.querySelector<HTMLElement>('.ad-slot--banner')
+
+    expect(rect?.style.width).toBe('300px')
+    expect(rect?.style.height).toBe('250px')
+    expect(banner?.style.width).toBe('728px')
+    expect(banner?.style.height).toBe('90px')
+  })
+})
