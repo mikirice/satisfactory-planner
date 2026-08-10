@@ -79,6 +79,12 @@
   background: var(--bg-raised);
 }
 
+.ad-slot__label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
 .ad-slot--banner {
   margin: 20px auto 0;
 }

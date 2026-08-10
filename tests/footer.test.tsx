@@ -55,6 +55,9 @@ describe('広告枠', () => {
     vi.resetModules()
     vi.doMock('../src/config/ads.ts', () => ({
       ADS_ENABLED: true,
+      ADSENSE_CLIENT: 'ca-pub-test',
+      SLOT_SIDEBAR_RECT: 'sidebar-test',
+      SLOT_RESULT_BANNER: 'banner-test',
       AD_SLOT_SIZES: {
         rect: { width: 300, height: 250 },
         banner: { width: 728, height: 90 },
@@ -64,8 +67,8 @@ describe('広告枠', () => {
 
     const rectContainer = await render(<EnabledAdSlot slot="rect" />)
     const bannerContainer = await render(<EnabledAdSlot slot="banner" />)
-    const rect = rectContainer.querySelector<HTMLElement>('.ad-slot--rect')
-    const banner = bannerContainer.querySelector<HTMLElement>('.ad-slot--banner')
+    const rect = rectContainer.querySelector<HTMLElement>('ins.adsbygoogle')
+    const banner = bannerContainer.querySelector<HTMLElement>('ins.adsbygoogle')
 
     expect(rect?.style.width).toBe('300px')
     expect(rect?.style.height).toBe('250px')
