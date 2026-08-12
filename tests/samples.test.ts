@@ -66,6 +66,9 @@ describe('サンプルプランのスキーマ', () => {
     expect(TEMPLATE_CATEGORIES.every((c) => SAMPLE_PLANS.some((s) => s.category === c.id))).toBe(
       true,
     )
+    expect(TEMPLATE_CATEGORIES.map((category) => category.id)).toEqual(['basic', 'special'])
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'basic')).toHaveLength(3)
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(5)
   })
 
   it.each(SAMPLE_PLANS)('$id: 警告ゼロで復元できる', (sample) => {

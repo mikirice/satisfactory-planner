@@ -6,6 +6,12 @@ export const T = {
   appTitle: 'Satisfactory 生産計画ツール',
   dataVersion: 'ゲームデータ',
 
+  viewMode: {
+    label: '表示モード',
+    normal: '通常レシピ',
+    loop: 'ループ',
+  },
+
   ads: {
     label: '広告',
   },
@@ -101,9 +107,10 @@ export const T = {
   /** 空状態の「例から始める」。各サンプルの名前と説明は src/plan/samples.ts が持つ */
   samples: {
     heading: '例から始める',
-    sidebarHeading: 'テンプレート',
-    count: (n: number): string => `${n} 件`,
     hint: '押すと入力が入り、そのまま結果が出ます。中身はあとから自由に変えられます。',
+    loopHeading: 'ループテンプレート',
+    loopHint: 'テンプレートを選ぶと入力を置き換えて計算します。',
+    editHint: '編集するには「通常レシピ」に切り替えてください',
     confirmReplace: (name: string): string =>
       `現在の入力を「${name}」で置き換えます。よろしいですか？`,
   },

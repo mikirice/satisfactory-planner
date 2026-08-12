@@ -1,15 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { meta } from './data/index.ts'
 import { disposeGlpk } from './solver/index.ts'
 import { usePlanner } from './store/planner.ts'
 import { ResultView } from './ui/ResultView.tsx'
+import { SamplesPanel } from './ui/SamplesPanel.tsx'
 import { Sidebar } from './ui/Sidebar.tsx'
 import { SiteFooter } from './ui/SiteFooter.tsx'
 import { T } from './ui/text.ts'
 import './App.css'
 
 function App() {
+  const [viewMode, setViewMode] = useState<'normal' | 'loop'>('normal')
   const status = usePlanner((s) => s.status)
   const result = usePlanner((s) => s.result)
   const elapsedMs = usePlanner((s) => s.elapsedMs)
@@ -27,13 +29,37 @@ function App() {
           </span>
           {status === 'done' && <span className="header__elapsed">{T.status.elapsed(elapsedMs)}</span>}
         </p>
+        <div className="header__mode" role="group" aria-label={T.viewMode.label}>
+          <button
+            type="button"
+            className="header__mode-button"
+            aria-pressed={viewMode === 'normal'}
+            onClick={() => setViewMode('normal')}
+          >
+            {T.viewMode.normal}
+          </button>
+          <button
+            type="button"
+            className="header__mode-button"
+            aria-pressed={viewMode === 'loop'}
+            onClick={() => setViewMode('loop')}
+          >
+            {T.viewMode.loop}
+          </button>
+        </div>
         <p className="header__meta">
           {T.dataVersion} {meta.gameVersion}
         </p>
       </header>
 
       <div className="layout">
-        <Sidebar />
+        {viewMode === 'normal' ? (
+          <Sidebar />
+        ) : (
+          <aside className="sidebar sidebar--loop">
+            <SamplesPanel variant="loop" />
+          </aside>
+        )}
         <main className="main">
           <ResultView />
         </main>

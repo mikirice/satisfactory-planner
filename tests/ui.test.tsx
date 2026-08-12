@@ -365,15 +365,21 @@ describe('画面の骨格', () => {
 })
 
 describe('空状態のサンプル', () => {
-  it('何も入力していないときだけ「例から始める」が出る', async () => {
+  it('何も入力していないときだけ基本カテゴリの「例から始める」が出る', async () => {
     const container = await render(<App />)
     const text = container.textContent ?? ''
+    const basicSamples = SAMPLE_PLANS.filter((sample) => sample.category === 'basic')
+    const specialSamples = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
     expect(text).toContain('例から始める')
-    for (const sample of SAMPLE_PLANS) {
+    for (const sample of basicSamples) {
       expect(text).toContain(sample.title)
       expect(text).toContain(sample.description)
     }
-    expect(container.querySelectorAll('.sample')).toHaveLength(SAMPLE_PLANS.length)
+    for (const sample of specialSamples) {
+      expect(text).not.toContain(sample.title)
+      expect(text).not.toContain(sample.description)
+    }
+    expect(container.querySelectorAll('.sample')).toHaveLength(basicSamples.length)
   })
 
   it('サンプルを押すと目標と代替レシピが入る', async () => {
@@ -403,22 +409,70 @@ describe('空状態のサンプル', () => {
     expect(container.querySelector('.sample')).toBeNull()
   })
 
-  it('作業中もサイドバーから開け、置き換え前に確認する', async () => {
+  it('ヘッダーでループに切り替えると特殊テンプレートだけを表示する', async () => {
+    const container = await render(<App />)
+    const normalButton = buttonByText(container, '通常レシピ')
+    const loopButton = buttonByText(container, 'ループ')
+    expect(normalButton.getAttribute('aria-pressed')).toBe('true')
+    expect(loopButton.getAttribute('aria-pressed')).toBe('false')
+    expect(container.textContent).toContain('目標産出')
+    expect(container.querySelector('.samples--loop')).toBeNull()
+
+    await act(async () => {
+      loopButton.click()
+    })
+
+    expect(normalButton.getAttribute('aria-pressed')).toBe('false')
+    expect(loopButton.getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('.sidebar')?.textContent).not.toContain('目標産出')
+    expect(container.querySelectorAll('.samples--loop .sample')).toHaveLength(
+      SAMPLE_PLANS.filter((sample) => sample.category === 'special').length,
+    )
+    for (const sample of SAMPLE_PLANS) {
+      const sidebarText = container.querySelector('.sidebar')?.textContent ?? ''
+      expect(sidebarText.includes(sample.title)).toBe(sample.category === 'special')
+    }
+    expect(container.querySelector('.sidebar')?.textContent).toContain(
+      '編集するには「通常レシピ」に切り替えてください',
+    )
+  })
+
+  it('ループメニューから読み込むとプランを適用し、ループ表示に留まる', async () => {
+    const container = await render(<App />)
+    await act(async () => {
+      buttonByText(container, 'ループ').click()
+    })
+
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'oil-loop-complete')!
+    const load = [...container.querySelectorAll<HTMLButtonElement>('.samples--loop .sample')].find(
+      (button) => button.textContent?.includes(sample.title),
+    )!
+    await act(async () => {
+      load.click()
+    })
+
+    const state = usePlanner.getState()
+    expect(state.targets.map((target) => [target.item, target.ratePerMin])).toEqual(
+      sample.snapshot.t,
+    )
+    expect(Object.keys(state.enabledAlternates).sort()).toEqual([...sample.snapshot.a].sort())
+    expect(state.planName).toBe(sample.title)
+    expect(state.status).toBe('solving')
+    expect(buttonByText(container, 'ループ').getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('.samples--loop')).not.toBeNull()
+  })
+
+  it('作業中のループテンプレート読み込みは置き換え前に確認する', async () => {
     usePlanner.setState({
       targets: [{ key: 'sample-test', item: 'Desc_IronPlate_C', ratePerMin: 60 }],
     })
     const container = await render(<App />)
-    const toggle = container.querySelector<HTMLButtonElement>('.samples--sidebar .panel__toggle')!
-
     await act(async () => {
-      toggle.click()
+      buttonByText(container, 'ループ').click()
     })
-    expect(container.querySelectorAll('.samples--sidebar .sample')).toHaveLength(
-      SAMPLE_PLANS.length,
-    )
 
     const sample = SAMPLE_PLANS.find((s) => s.id === 'oil-loop-complete')!
-    const load = [...container.querySelectorAll<HTMLButtonElement>('.samples--sidebar .sample')].find(
+    const load = [...container.querySelectorAll<HTMLButtonElement>('.samples--loop .sample')].find(
       (button) => button.textContent?.includes(sample.title),
     )!
     const confirmMock = vi.fn(() => false)
@@ -440,7 +494,7 @@ describe('空状態のサンプル', () => {
     expect(usePlanner.getState().targets.map((target) => [target.item, target.ratePerMin])).toEqual(
       sample.snapshot.t,
     )
-    expect(container.querySelector('.samples--sidebar .sample')).toBeNull()
+    expect(container.querySelector('.samples--loop .sample')).not.toBeNull()
   })
 })
 

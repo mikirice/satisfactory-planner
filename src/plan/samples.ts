@@ -19,8 +19,7 @@ import type { PlanSnapshot } from './serialize.ts'
 
 export const TEMPLATE_CATEGORIES = [
   { id: 'basic', title: '基本ライン' },
-  { id: 'loop', title: '循環生産' },
-  { id: 'power', title: '発電' },
+  { id: 'special', title: 'ループテンプレート' },
 ] as const
 
 export type TemplateCategoryId = (typeof TEMPLATE_CATEGORIES)[number]['id']
@@ -67,7 +66,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'recycled-plastic',
-    category: 'loop',
+    category: 'basic',
     title: 'リサイクルでプラスチック増産',
     description:
       'プラスチック 300/min。循環レシピを使うと原油 450/min が 100/min まで下がる。',
@@ -103,7 +102,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'oil-loop-complete',
-    category: 'loop',
+    category: 'special',
     title: '石油ループ完全版',
     description:
       'プラスチックとゴムを各 300/min。燃料を相互に回す完全なリサイクル循環を学べる。',
@@ -126,7 +125,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'diluted-fuel-power',
-    category: 'power',
+    category: 'special',
     title: '希釈燃料発電',
     description: '2,500 MW。原油から廃重油と希釈燃料を経て燃料式発電機へつなぐ流れを学べる。',
     icon: 'Desc_LiquidFuel_C',
@@ -143,7 +142,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'turbofuel-power',
-    category: 'power',
+    category: 'special',
     title: 'ターボ燃料発電',
     description: '2,000 MW。圧縮石炭と燃料からターボ燃料を作る発電チェーンを学べる。',
     icon: 'Desc_LiquidTurboFuel_C',
@@ -159,7 +158,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'aluminum-water-loop',
-    category: 'loop',
+    category: 'special',
     title: 'アルミ精錬（水循環）',
     description: 'アルミのインゴット 120/min。スクラップ工程の副産物の水を上流で再利用する。',
     icon: 'Desc_AluminumIngot_C',
@@ -173,7 +172,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'nuclear-reprocessing',
-    category: 'power',
+    category: 'special',
     title: '原子力と再処理',
     description:
       '5,000 MWとFICSONIUM燃料棒 0.1/min。核廃棄物から続く再処理の全段をたどれる。',
