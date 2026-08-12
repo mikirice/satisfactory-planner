@@ -71,6 +71,7 @@ afterEach(async () => {
     limitOverrides: {},
     objective: 'resources',
     planName: '',
+    loadedTemplateId: null,
   })
 })
 
@@ -457,9 +458,42 @@ describe('空状態のサンプル', () => {
     )
     expect(Object.keys(state.enabledAlternates).sort()).toEqual([...sample.snapshot.a].sort())
     expect(state.planName).toBe(sample.title)
+    expect(state.loadedTemplateId).toBe(sample.id)
     expect(state.status).toBe('solving')
     expect(buttonByText(container, 'ループ').getAttribute('aria-pressed')).toBe('true')
     expect(container.querySelector('.samples--loop')).not.toBeNull()
+  })
+
+  it('ループモードでは読み込んだ構成の解説を結果タブの上に出し、編集後は隠す', async () => {
+    const container = await render(<App />)
+    await act(async () => {
+      buttonByText(container, 'ループ').click()
+    })
+
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'aluminum-water-loop')!
+    const load = [...container.querySelectorAll<HTMLButtonElement>('.samples--loop .sample')].find(
+      (button) => button.textContent?.includes(sample.title),
+    )!
+    await act(async () => {
+      load.click()
+      usePlanner.setState({ status: 'done', result: solution, extraction: null })
+    })
+
+    const guide = container.querySelector('.loop-explanation')
+    expect(guide?.textContent).toContain('この構成の解説')
+    expect(guide?.textContent).toContain('仕組み')
+    expect(guide?.textContent).toContain('循環の意味')
+    expect(
+      guide!.compareDocumentPosition(container.querySelector('.tabs')!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+
+    await act(async () => {
+      const target = usePlanner.getState().targets[0]!
+      usePlanner.getState().updateTarget(target.key, { ratePerMin: target.ratePerMin + 1 })
+    })
+    expect(usePlanner.getState().loadedTemplateId).toBeNull()
+    expect(container.querySelector('.loop-explanation')).toBeNull()
   })
 
   it('作業中のループテンプレート読み込みは置き換え前に確認する', async () => {

@@ -173,6 +173,20 @@ export const T = {
     flow: 'フローチャート',
   },
 
+  loopGuide: {
+    heading: 'この構成の解説',
+    mechanism: '仕組み',
+    savings: '節約効果',
+    circulation: '循環の意味',
+    tips: 'ゲーム内のコツ',
+    calculating: 'ループなしの構成を計算しています…',
+    failed: 'ループなしの比較を計算できませんでした。',
+    baselineInfeasible: 'ループなしではこの目標は作れません（上限内で成立しない）。',
+    noSavings: '比較できる原料・電力の差はありません。',
+    power: '消費電力',
+    reusedWater: '再利用している水',
+  },
+
   /** 生産ステップ表 / フローチャートの「発電を隠す」（表示だけの絞り込み） */
   powerFilter: {
     hideLabel: '発電を隠す',

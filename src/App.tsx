@@ -61,7 +61,7 @@ function App() {
           </aside>
         )}
         <main className="main">
-          <ResultView />
+          <ResultView viewMode={viewMode} />
         </main>
       </div>
 

@@ -176,6 +176,8 @@ export type PlannerState = {
   beltId: string
   /** 物流の本数換算に使うパイプ（Pipe.id） */
   pipeId: string
+  /** 現在の入力一式を作ったサンプル。入力を編集した時点で null に戻る。 */
+  loadedTemplateId: string | null
 
   status: SolveStatus
   result: SolveResult | null
@@ -225,7 +227,7 @@ export type PlannerState = {
   setBeltId: (id: string) => void
   setPipeId: (id: string) => void
   /** 保存/共有から復元した入力をまとめて反映する（解は保存しないので解き直す） */
-  applyPlan: (input: PlanInput) => void
+  applyPlan: (input: PlanInput, templateId?: string) => void
   /** 即時に解き直す（デバウンスなし。テストや初期化用） */
   recompute: () => Promise<void>
 }
@@ -377,8 +379,8 @@ export function toExcelInput(state: PlannerState): ExcelExportInput | null {
 
 export const usePlanner = create<PlannerState>((set, get) => {
   /** 入力を変えたときの共通処理: 反映してデバウンス再計算 */
-  const change = (patch: Partial<PlannerState>): void => {
-    set({ ...patch, status: 'solving' })
+  const change = (patch: Partial<PlannerState>, loadedTemplateId: string | null = null): void => {
+    set({ ...patch, loadedTemplateId, status: 'solving' })
     if (debounceTimer !== undefined) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
       debounceTimer = undefined
@@ -403,6 +405,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
+    loadedTemplateId: null,
 
     status: 'idle',
     result: null,
@@ -517,7 +520,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
     setBeltId: (id) => set({ beltId: id }),
     setPipeId: (id) => set({ pipeId: id }),
 
-    applyPlan: (input) =>
+    applyPlan: (input, templateId) =>
       change({
         targets: mergeTargetEntries(input.targets),
         inputs: mergeInputEntries(input.inputs ?? []),
@@ -537,7 +540,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
         planName: input.planName,
         beltId: input.beltId,
         pipeId: input.pipeId,
-      }),
+      }, templateId ?? null),
 
     recompute: async () => {
       const state = get()

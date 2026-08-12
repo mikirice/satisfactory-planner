@@ -1,10 +1,12 @@
 /** 結果表示（タブ切り替え）。 */
 import { Suspense, lazy, useState } from 'react'
 
+import { SAMPLE_PLANS } from '../plan/samples.ts'
 import { usePlanner } from '../store/planner.ts'
 import { AdSlot } from './AdSlot.tsx'
 import { BalanceTable } from './BalanceTable.tsx'
 import { InfeasiblePanel } from './InfeasiblePanel.tsx'
+import { LoopGuidePanel } from './LoopGuidePanel.tsx'
 import { ResourcesTable } from './ResourcesTable.tsx'
 import { SamplesPanel } from './SamplesPanel.tsx'
 import { StepsTable } from './StepsTable.tsx'
@@ -24,13 +26,18 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'flow', label: T.tabs.flow },
 ]
 
-export function ResultView() {
+type ResultViewProps = {
+  viewMode?: 'normal' | 'loop'
+}
+
+export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
   const status = usePlanner((s) => s.status)
   const result = usePlanner((s) => s.result)
   const extraction = usePlanner((s) => s.extraction)
   const error = usePlanner((s) => s.error)
   const beltId = usePlanner((s) => s.beltId)
   const pipeId = usePlanner((s) => s.pipeId)
+  const loadedTemplateId = usePlanner((s) => s.loadedTemplateId)
   const [tab, setTab] = useState<TabId>('summary')
   // 「発電を隠す」は生産ステップ表とフローチャートで共有する（表示だけ・保存しない）
   const [hidePower, setHidePower] = useState(false)
@@ -58,8 +65,19 @@ export function ResultView() {
     return <InfeasiblePanel result={result} />
   }
 
+  const loadedTemplate =
+    viewMode === 'loop'
+      ? SAMPLE_PLANS.find(
+          (sample) =>
+            sample.id === loadedTemplateId && sample.category === 'special' && sample.guide !== undefined,
+        )
+      : undefined
+
   return (
     <>
+      {loadedTemplate !== undefined && (
+        <LoopGuidePanel key={loadedTemplate.id} sample={loadedTemplate} solution={result} />
+      )}
       <div className="tabs" role="tablist">
         {TABS.map((entry) => (
           <button

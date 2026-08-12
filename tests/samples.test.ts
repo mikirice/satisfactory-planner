@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 
 import { generatorsById, itemsById, recipes, recipesById } from '../src/data/index.ts'
 import { buildPlanGraph } from '../src/plan/graph.ts'
+import { getLoopBaseline } from '../src/plan/loop-baseline.ts'
 import { SAMPLE_PLANS, TEMPLATE_CATEGORIES } from '../src/plan/samples.ts'
 import { PLAN_SCHEMA_VERSION, parsePlanSnapshot } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
@@ -86,6 +87,17 @@ describe('サンプルプランのスキーマ', () => {
     expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(7)
     expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special').every((s) => s.highlight))
       .toBe(true)
+  })
+
+  it('7つの特殊テンプレートすべてに構造化された解説がある', () => {
+    const special = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
+    expect(special).toHaveLength(7)
+    for (const sample of special) {
+      expect(sample.guide?.sections.mechanism.length).toBeGreaterThanOrEqual(3)
+      expect(sample.guide?.sections.mechanism.length).toBeLessThanOrEqual(6)
+      expect(sample.guide?.sections.tips.length).toBeGreaterThanOrEqual(2)
+      expect(sample.guide?.sections.tips.length).toBeLessThanOrEqual(4)
+    }
   })
 
   it.each(SAMPLE_PLANS)('$id: 警告ゼロで復元できる', (sample) => {
@@ -204,5 +216,16 @@ describe('サンプルプランの求解', () => {
     const oil = (r: Solution): number =>
       r.rawResources.find((x) => x.item === 'Desc_LiquidOil_C')?.ratePerMin ?? 0
     expect(oil(withoutAlts)).toBeGreaterThan(oil(withAlts) * 2)
+  })
+
+  it('石油ループ完全版はループなしの比較より原油を節約する', async () => {
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'oil-loop-complete')!
+    const withLoop = await solveSample(sample)
+    const baseline = await getLoopBaseline(sample)
+    if (baseline.status !== 'optimal') throw new Error(`比較が実行不能: ${baseline.message}`)
+
+    const crude = (result: Solution): number =>
+      result.rawResources.find((raw) => raw.item === 'Desc_LiquidOil_C')?.ratePerMin ?? 0
+    expect(crude(withLoop)).toBeLessThan(crude(baseline))
   })
 })

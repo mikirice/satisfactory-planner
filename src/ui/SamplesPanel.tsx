@@ -41,7 +41,7 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
     const parsed = parsePlanSnapshot(sample.snapshot)
     // ゲームデータ更新でIDが消えた場合。壊れた入力を流し込むより何もしないほうが安全
     if (!parsed.ok) return
-    applyPlan(parsed.input)
+    applyPlan(parsed.input, sample.id)
     if (variant === 'loop') {
       sessionStorage.setItem(LOOP_GUIDE_SEEN_KEY, '1')
       setGuideOpen(false)

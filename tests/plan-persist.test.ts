@@ -66,6 +66,7 @@ function resetStore(): void {
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
+    loadedTemplateId: null,
     status: 'idle',
     result: null,
     extraction: null,
@@ -528,6 +529,33 @@ describe('プランのシリアライズ', () => {
     expect(targets).toHaveLength(1)
     expect(targets[0].item).toBe('Desc_IronPlate_C')
     expect(targets[0].ratePerMin).toBe(90)
+    resetStore()
+  })
+
+  it('テンプレートIDを保持し、入力を編集すると解除する', () => {
+    resetStore()
+    const input = {
+      ...defaultPlanInput(),
+      targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+    }
+    const load = (): void => usePlanner.getState().applyPlan(input, 'iron-plate')
+
+    load()
+    expect(usePlanner.getState().loadedTemplateId).toBe('iron-plate')
+    usePlanner.getState().updateTarget(usePlanner.getState().targets[0]!.key, { ratePerMin: 90 })
+    expect(usePlanner.getState().loadedTemplateId).toBeNull()
+
+    load()
+    usePlanner.getState().addInput('Desc_IronIngot_C', 30)
+    expect(usePlanner.getState().loadedTemplateId).toBeNull()
+
+    load()
+    usePlanner.getState().setAlternate(ALT_RECIPE, true)
+    expect(usePlanner.getState().loadedTemplateId).toBeNull()
+
+    load()
+    usePlanner.getState().setPowerTargetMW(100)
+    expect(usePlanner.getState().loadedTemplateId).toBeNull()
     resetStore()
   })
 
