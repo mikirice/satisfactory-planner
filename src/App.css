@@ -727,9 +727,37 @@
 
 .samples--loop .sample__desc {
   width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+}
+
+.loop-guide {
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.loop-guide summary {
+  color: var(--text-strong);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.loop-guide ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.sample__highlight {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.sample__highlight-label {
+  font-weight: 600;
 }
 
 .sample {

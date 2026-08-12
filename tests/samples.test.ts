@@ -49,16 +49,31 @@ async function solveSample(sample: (typeof SAMPLE_PLANS)[number]): Promise<Solut
   return result
 }
 
-function hasReciprocalEdgePair(solution: Solution): boolean {
+function hasDirectedCycle(solution: Solution): boolean {
   const graph = buildPlanGraph(solution)
-  return graph.edges.some((edge) =>
-    graph.edges.some((other) => other.source === edge.target && other.target === edge.source),
-  )
+  const targets = new Map<string, string[]>()
+  for (const edge of graph.edges) {
+    const next = targets.get(edge.source) ?? []
+    next.push(edge.target)
+    targets.set(edge.source, next)
+  }
+  const visiting = new Set<string>()
+  const visited = new Set<string>()
+  const visit = (node: string): boolean => {
+    if (visiting.has(node)) return true
+    if (visited.has(node)) return false
+    visiting.add(node)
+    for (const target of targets.get(node) ?? []) if (visit(target)) return true
+    visiting.delete(node)
+    visited.add(node)
+    return false
+  }
+  return graph.nodes.some((node) => visit(node.id))
 }
 
 describe('サンプルプランのスキーマ', () => {
-  it('8種類あり、IDと名前が重複せず、すべて有効なカテゴリに属する', () => {
-    expect(SAMPLE_PLANS).toHaveLength(8)
+  it('10種類あり、IDと名前が重複せず、すべて有効なカテゴリに属する', () => {
+    expect(SAMPLE_PLANS).toHaveLength(10)
     expect(new Set(SAMPLE_PLANS.map((s) => s.id)).size).toBe(SAMPLE_PLANS.length)
     expect(new Set(SAMPLE_PLANS.map((s) => s.title)).size).toBe(SAMPLE_PLANS.length)
     const categories = new Set(TEMPLATE_CATEGORIES.map((c) => c.id))
@@ -68,7 +83,9 @@ describe('サンプルプランのスキーマ', () => {
     )
     expect(TEMPLATE_CATEGORIES.map((category) => category.id)).toEqual(['basic', 'special'])
     expect(SAMPLE_PLANS.filter((sample) => sample.category === 'basic')).toHaveLength(3)
-    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(5)
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(7)
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special').every((s) => s.highlight))
+      .toBe(true)
   })
 
   it.each(SAMPLE_PLANS)('$id: 警告ゼロで復元できる', (sample) => {
@@ -126,14 +143,33 @@ describe('サンプルプランの求解', () => {
   })
 
   it.each(SAMPLE_PLANS.filter((sample) => sample.hasCycle))(
-    '$id: フローチャートに相互エッジの循環がある',
+    '$id: フローチャートに有向循環がある',
     async (sample) => {
-      expect(hasReciprocalEdgePair(await solveSample(sample))).toBe(true)
+      expect(hasDirectedCycle(await solveSample(sample))).toBe(true)
     },
   )
 
   it('アルミ精錬は副産物の水を上流工程で再利用する', async () => {
     const sample = SAMPLE_PLANS.find((s) => s.id === 'aluminum-water-loop')!
+    const solution = await solveSample(sample)
+    const water = solution.itemBalance.find((balance) => balance.item === 'Desc_Water_C')!
+    expect(water.producedPerMin).toBeGreaterThan(0)
+    expect(water.consumedPerMin).toBeGreaterThan(water.producedPerMin)
+  })
+
+  it('容器ループは空の容器を回収し、有効な代替レシピをすべて使う', async () => {
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'packaged-diluted-fuel-loop')!
+    const solution = await solveSample(sample)
+    const used = new Set(solution.steps.map((step) => step.recipeId))
+    expect(used).toContain('Recipe_PackagedWater_C')
+    expect(used).toContain('Recipe_UnpackageFuel_C')
+    const canister = solution.itemBalance.find((balance) => balance.item === 'Desc_FluidCanister_C')!
+    expect(canister.producedPerMin).toBeGreaterThan(0)
+    expect(canister.consumedPerMin).toBeGreaterThan(0)
+  })
+
+  it('バッテリーループは副産物の水をアルミナ溶液で再利用する', async () => {
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'battery-water-loop')!
     const solution = await solveSample(sample)
     const water = solution.itemBalance.find((balance) => balance.item === 'Desc_Water_C')!
     expect(water.producedPerMin).toBeGreaterThan(0)

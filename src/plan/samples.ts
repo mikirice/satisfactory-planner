@@ -32,6 +32,8 @@ export type SamplePlan = {
   title: string
   /** ボタンに添える1行説明 */
   description: string
+  /** ループテンプレートのフローチャートで注目する箇所 */
+  highlight?: string
   /** ボタンに出すアイコンのアイテムID（画像が無ければ何も出ない） */
   icon: string
   /** フローチャートに循環が現れることをテストするテンプレート */
@@ -106,6 +108,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     title: '石油ループ完全版',
     description:
       'プラスチックとゴムを各 300/min。燃料を相互に回す完全なリサイクル循環を学べる。',
+    highlight: 'プラスチックとゴムが互いの材料に戻る往復の線に注目。',
     icon: 'Desc_Rubber_C',
     hasCycle: true,
     snapshot: {
@@ -128,6 +131,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: '希釈燃料発電',
     description: '2,500 MW。原油から廃重油と希釈燃料を経て燃料式発電機へつなぐ流れを学べる。',
+    highlight: '廃重油に水を加え、燃料として発電機へ送る線に注目。',
     icon: 'Desc_LiquidFuel_C',
     snapshot: {
       ...DEFAULTS,
@@ -145,6 +149,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: 'ターボ燃料発電',
     description: '2,000 MW。圧縮石炭と燃料からターボ燃料を作る発電チェーンを学べる。',
+    highlight: '燃料と圧縮石炭がターボ燃料へ合流する線に注目。',
     icon: 'Desc_LiquidTurboFuel_C',
     snapshot: {
       ...DEFAULTS,
@@ -161,6 +166,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: 'アルミ精錬（水循環）',
     description: 'アルミのインゴット 120/min。スクラップ工程の副産物の水を上流で再利用する。',
+    highlight: 'アルミのスクラップから出た水がアルミナ溶液へ戻る線に注目。',
     icon: 'Desc_AluminumIngot_C',
     hasCycle: true,
     snapshot: {
@@ -171,11 +177,42 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     },
   },
   {
+    id: 'packaged-diluted-fuel-loop',
+    category: 'special',
+    title: 'パッケージ希釈燃料の容器ループ',
+    description: '燃料 120/min。水を容器に詰め、希釈後に空容器を回収して再利用する。',
+    highlight: '空の容器が水の包装工程へ戻る線に注目。',
+    icon: 'Desc_Fuel_C',
+    hasCycle: true,
+    snapshot: {
+      ...DEFAULTS,
+      n: 'パッケージ希釈燃料の容器ループ',
+      t: [['Desc_LiquidFuel_C', 120]],
+      a: ['Recipe_Alternate_HeavyOilResidue_C', 'Recipe_Alternate_DilutedPackagedFuel_C'],
+    },
+  },
+  {
+    id: 'battery-water-loop',
+    category: 'special',
+    title: 'バッテリー製造（水循環）',
+    description: 'バッテリー 60/min。製造時に出る水をアルミナ溶液の工程へ戻して再利用する。',
+    highlight: 'バッテリーから出た水がアルミナ溶液へ戻る線に注目。',
+    icon: 'Desc_Battery_C',
+    hasCycle: true,
+    snapshot: {
+      ...DEFAULTS,
+      n: 'バッテリー製造（水循環）',
+      t: [['Desc_Battery_C', 60]],
+      a: [],
+    },
+  },
+  {
     id: 'nuclear-reprocessing',
     category: 'special',
     title: '原子力と再処理',
     description:
       '5,000 MWとFICSONIUM燃料棒 0.1/min。核廃棄物から続く再処理の全段をたどれる。',
+    highlight: 'ウラン廃棄物からFICSONIUM燃料棒まで続く再処理の線に注目。',
     icon: 'Desc_NuclearFuelRod_C',
     snapshot: {
       ...DEFAULTS,

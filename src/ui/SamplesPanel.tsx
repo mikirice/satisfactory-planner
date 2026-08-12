@@ -7,6 +7,8 @@
  * 読み込みは保存/共有と同じ経路（parsePlanSnapshot → applyPlan）を通す。
  * サンプル専用の投入口を作らないので、ここが壊れるときは保存/共有も壊れている。
  */
+import { useState } from 'react'
+
 import { SAMPLE_PLANS, TEMPLATE_CATEGORIES } from '../plan/samples.ts'
 import type { SamplePlan } from '../plan/samples.ts'
 import { parsePlanSnapshot } from '../plan/serialize.ts'
@@ -20,7 +22,12 @@ type SamplesPanelProps = {
   variant?: 'empty' | 'loop'
 }
 
+const LOOP_GUIDE_SEEN_KEY = 'satisfactory-planner:loop-guide-seen'
+
 export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
+  const [guideOpen, setGuideOpen] = useState(
+    () => variant === 'loop' && sessionStorage.getItem(LOOP_GUIDE_SEEN_KEY) !== '1',
+  )
   const applyPlan = usePlanner((s) => s.applyPlan)
   const hasWork = usePlanner(hasAnyInput)
   const planName = usePlanner((s) => s.planName)
@@ -35,6 +42,10 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
     // ゲームデータ更新でIDが消えた場合。壊れた入力を流し込むより何もしないほうが安全
     if (!parsed.ok) return
     applyPlan(parsed.input)
+    if (variant === 'loop') {
+      sessionStorage.setItem(LOOP_GUIDE_SEEN_KEY, '1')
+      setGuideOpen(false)
+    }
   }
 
   const categoryId = variant === 'loop' ? 'special' : 'basic'
@@ -54,6 +65,12 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
                   {sample.title}
                 </span>
                 <span className="sample__desc">{sample.description}</span>
+                {sample.highlight && (
+                  <span className="sample__highlight">
+                    <span className="sample__highlight-label">{T.samples.highlight}:</span>{' '}
+                    {sample.highlight}
+                  </span>
+                )}
               </button>
             </li>
           ))}
@@ -66,6 +83,18 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
     return (
       <section className="panel samples samples--loop">
         <h2 className="panel__title">{T.samples.loopHeading}</h2>
+        <details
+          className="loop-guide"
+          open={guideOpen}
+          onToggle={(event) => setGuideOpen(event.currentTarget.open)}
+        >
+          <summary>{T.samples.guideHeading}</summary>
+          <ul>
+            {T.samples.guideLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </details>
         {gallery}
         <p className="hint">{T.samples.editHint}</p>
       </section>
