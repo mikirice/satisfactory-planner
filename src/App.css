@@ -680,6 +680,18 @@
   gap: 8px;
 }
 
+.samples__category + .samples__category {
+  margin-top: 12px;
+}
+
+.samples__category .card__subtitle {
+  margin-top: 8px;
+}
+
+.samples--sidebar .samples__list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sample {
   display: flex;
   flex-direction: column;

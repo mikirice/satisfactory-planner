@@ -64,6 +64,10 @@ afterEach(async () => {
     targets: [],
     inputs: [],
     enabledAlternates: {},
+    enabledGenerators: {},
+    enabledFuels: {},
+    powerTargetMW: 0,
+    coverFactoryPower: false,
     limitOverrides: {},
     objective: 'resources',
     planName: '',
@@ -397,6 +401,46 @@ describe('空状態のサンプル', () => {
     const container = await render(<App />)
     expect(container.textContent).not.toContain('例から始める')
     expect(container.querySelector('.sample')).toBeNull()
+  })
+
+  it('作業中もサイドバーから開け、置き換え前に確認する', async () => {
+    usePlanner.setState({
+      targets: [{ key: 'sample-test', item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+    })
+    const container = await render(<App />)
+    const toggle = container.querySelector<HTMLButtonElement>('.samples--sidebar .panel__toggle')!
+
+    await act(async () => {
+      toggle.click()
+    })
+    expect(container.querySelectorAll('.samples--sidebar .sample')).toHaveLength(
+      SAMPLE_PLANS.length,
+    )
+
+    const sample = SAMPLE_PLANS.find((s) => s.id === 'oil-loop-complete')!
+    const load = [...container.querySelectorAll<HTMLButtonElement>('.samples--sidebar .sample')].find(
+      (button) => button.textContent?.includes(sample.title),
+    )!
+    const confirmMock = vi.fn(() => false)
+    vi.stubGlobal('confirm', confirmMock)
+    await act(async () => {
+      load.click()
+    })
+    expect(confirmMock).toHaveBeenCalledWith(
+      `現在の入力を「${sample.title}」で置き換えます。よろしいですか？`,
+    )
+    expect(usePlanner.getState().targets.map((target) => target.item)).toEqual([
+      'Desc_IronPlate_C',
+    ])
+
+    vi.stubGlobal('confirm', () => true)
+    await act(async () => {
+      load.click()
+    })
+    expect(usePlanner.getState().targets.map((target) => [target.item, target.ratePerMin])).toEqual(
+      sample.snapshot.t,
+    )
+    expect(container.querySelector('.samples--sidebar .sample')).toBeNull()
   })
 })
 

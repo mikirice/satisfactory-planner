@@ -101,7 +101,11 @@ export const T = {
   /** 空状態の「例から始める」。各サンプルの名前と説明は src/plan/samples.ts が持つ */
   samples: {
     heading: '例から始める',
+    sidebarHeading: 'テンプレート',
+    count: (n: number): string => `${n} 件`,
     hint: '押すと入力が入り、そのまま結果が出ます。中身はあとから自由に変えられます。',
+    confirmReplace: (name: string): string =>
+      `現在の入力を「${name}」で置き換えます。よろしいですか？`,
   },
 
   plans: {

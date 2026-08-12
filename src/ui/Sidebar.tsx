@@ -7,6 +7,7 @@ import { LimitsPanel } from './LimitsPanel.tsx'
 import { ClockPanel, ExtractionPanel, LogisticsPanel, ObjectivePanel } from './OptionsPanel.tsx'
 import { PlansPanel } from './PlansPanel.tsx'
 import { PowerPanel } from './PowerPanel.tsx'
+import { SamplesPanel } from './SamplesPanel.tsx'
 import { TargetsPanel } from './TargetsPanel.tsx'
 
 export function Sidebar() {
@@ -21,6 +22,7 @@ export function Sidebar() {
       <AlternatesPanel />
       <LimitsPanel />
       <LogisticsPanel />
+      <SamplesPanel variant="sidebar" />
       <PlansPanel />
       <ExportPanel />
       <AdSlot slot="rect" />

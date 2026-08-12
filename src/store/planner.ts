@@ -295,6 +295,28 @@ export function isPowerPlanActive(state: {
   return usable && (state.powerTargetMW > 0 || state.coverFactoryPower)
 }
 
+/** テンプレート読込で上書き確認が必要な入力を持っているか。 */
+export function hasAnyInput(state: Pick<
+  PlannerState,
+  | 'targets'
+  | 'inputs'
+  | 'enabledAlternates'
+  | 'enabledGenerators'
+  | 'enabledFuels'
+  | 'powerTargetMW'
+  | 'coverFactoryPower'
+>): boolean {
+  return (
+    state.targets.length > 0 ||
+    state.inputs.length > 0 ||
+    Object.keys(state.enabledAlternates).length > 0 ||
+    Object.keys(state.enabledGenerators).length > 0 ||
+    Object.keys(state.enabledFuels).length > 0 ||
+    state.powerTargetMW > 0 ||
+    state.coverFactoryPower
+  )
+}
+
 export function toSolveInput(state: PlannerState): SolveInput {
   const preset = objectivePresetById.get(state.objective) ?? OBJECTIVE_PRESETS[0]
   // 燃料を絞っている方式だけ渡す。1つも絞っていなければキーごと省略して、
