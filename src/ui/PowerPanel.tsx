@@ -16,6 +16,7 @@ import {
 } from '../store/planner.ts'
 import { fmtPower } from './format.ts'
 import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
+import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
 
 export function PowerPanel() {
@@ -96,13 +97,12 @@ export function PowerPanel() {
       <label className="field">
         <span className="field__label">{T.sidebar.powerTarget}</span>
         <span className="target__rate">
-          <input
+          <NumberField
             className="input input--num"
-            type="number"
             min={0}
             step={100}
             value={powerTargetMW}
-            onChange={(e) => setPowerTargetMW(Number(e.target.value) || 0)}
+            onValueChange={setPowerTargetMW}
           />
           <span className="unit">{T.sidebar.powerTargetUnit}</span>
         </span>

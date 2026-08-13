@@ -11,6 +11,7 @@ import { usePlanner } from '../store/planner.ts'
 import { itemName, itemUnit } from './format.ts'
 import { ItemIcon } from './ItemIcon.tsx'
 import { ItemSearchBox, ROW_ICON } from './ItemSearchBox.tsx'
+import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
 
 export function InputsPanel() {
@@ -50,8 +51,7 @@ export function InputsPanel() {
                     {itemName(input.item)}
                   </span>
                   <span className="target__rate">
-                    <input
-                      type="number"
+                    <NumberField
                       className="input input--num"
                       min={0}
                       step={1}
@@ -64,8 +64,8 @@ export function InputsPanel() {
                           rateInputs.current.delete(input.key)
                         }
                       }}
-                      onChange={(e) =>
-                        updateInput(input.key, { ratePerMin: Number(e.target.value) || 0 })
+                      onValueChange={(ratePerMin) =>
+                        updateInput(input.key, { ratePerMin })
                       }
                     />
                     <span className="unit">{itemUnit(input.item)}</span>

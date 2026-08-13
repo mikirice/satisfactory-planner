@@ -5,6 +5,7 @@ import { MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import { usePlanner } from '../store/planner.ts'
 import { fmtInt, itemName, itemUnit } from './format.ts'
 import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
+import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
 
 export function LimitsPanel() {
@@ -40,20 +41,15 @@ export function LimitsPanel() {
                     <ItemIcon id={limit.item} name={itemName(limit.item)} size={CELL_ICON} />
                     {itemName(limit.item)}
                   </span>
-                  <input
-                    type="number"
+                  <NumberField
                     className="input input--num"
                     min={0}
                     step={1}
-                    value={override === undefined || override === null ? '' : override}
+                    value={override}
                     placeholder={placeholder}
                     aria-label={`${itemName(limit.item)} ${T.sidebar.limits}`}
-                    onChange={(e) =>
-                      setLimitOverride(
-                        limit.item,
-                        e.target.value === '' ? undefined : Number(e.target.value),
-                      )
-                    }
+                    onValueChange={(value) => setLimitOverride(limit.item, value)}
+                    onEmpty={() => setLimitOverride(limit.item, undefined)}
                   />
                   <span className="unit">{itemUnit(limit.item)}</span>
                 </li>

@@ -21,6 +21,7 @@ import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
 import { usePlanner } from '../src/store/planner.ts'
 import { BalanceTable } from '../src/ui/BalanceTable.tsx'
 import { InfeasiblePanel } from '../src/ui/InfeasiblePanel.tsx'
+import { NumberField } from '../src/ui/NumberField.tsx'
 import { ResourcesTable } from '../src/ui/ResourcesTable.tsx'
 import { ResultView } from '../src/ui/ResultView.tsx'
 import { StepsTable } from '../src/ui/StepsTable.tsx'
@@ -50,6 +51,23 @@ function typeInto(input: HTMLInputElement, value: string): void {
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
   setter?.call(input, value)
   input.dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+async function pressKey(
+  input: HTMLInputElement,
+  key: string,
+  init: KeyboardEventInit = {},
+): Promise<KeyboardEvent> {
+  const event = new KeyboardEvent('keydown', {
+    key,
+    bubbles: true,
+    cancelable: true,
+    ...init,
+  })
+  await act(async () => {
+    input.dispatchEvent(event)
+  })
+  return event
 }
 
 afterEach(async () => {
@@ -258,7 +276,7 @@ describe('画面の骨格', () => {
 
   it('プラン名の入力がストアに入る（ファイル名に使われる）', async () => {
     const container = await render(<App />)
-    const input = container.querySelector<HTMLInputElement>('input[type="text"]')!
+    const input = container.querySelector<HTMLInputElement>('input[placeholder="未入力なら plan"]')!
     await act(async () => {
       typeInto(input, '鉄板ライン')
     })
@@ -310,6 +328,8 @@ describe('画面の骨格', () => {
     expect(container.querySelectorAll('.target')).toHaveLength(1)
     // どこへ行ったか分かるように既存行のレート入力へ移動する
     expect(document.activeElement).toBe(container.querySelector('.target .input--num'))
+    expect(rate.selectionStart).toBe(0)
+    expect(rate.selectionEnd).toBe(rate.value.length)
     // 検索欄はクリアされ、候補は閉じている
     expect(search.value).toBe('')
     expect(container.querySelector('.suggestions')).toBeNull()
@@ -362,6 +382,174 @@ describe('画面の骨格', () => {
     expect(container.querySelectorAll('.stock')).toHaveLength(1)
     // 目標産出の行は増えない
     expect(container.querySelectorAll('.target')).toHaveLength(0)
+  })
+})
+
+describe('数値入力', () => {
+  it('全角数字を半角へ直して目標レートに反映する', async () => {
+    usePlanner.setState({
+      targets: [{ key: 'zenkaku-target', item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+    })
+    const container = await render(<App />)
+    const input = container.querySelector<HTMLInputElement>('.target .input--num')!
+
+    await act(async () => {
+      typeInto(input, '３００')
+    })
+
+    expect(input.value).toBe('300')
+    expect(usePlanner.getState().targets[0]!.ratePerMin).toBe(300)
+  })
+
+  it('フォーカスとクリックで現在値を全選択する', async () => {
+    usePlanner.setState({
+      targets: [{ key: 'select-target', item: 'Desc_IronPlate_C', ratePerMin: 120 }],
+    })
+    const container = await render(<App />)
+    const input = container.querySelector<HTMLInputElement>('.target .input--num')!
+
+    await act(async () => {
+      input.focus()
+    })
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(input.value.length)
+
+    input.setSelectionRange(1, 1)
+    await act(async () => {
+      input.click()
+    })
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(input.value.length)
+  })
+
+  it('keydown を親へ伝えず、既定動作は妨げない', async () => {
+    const parentKeyDown = vi.fn()
+    const container = await render(
+      <div onKeyDown={parentKeyDown}>
+        <NumberField value={60} onValueChange={() => undefined} />
+      </div>,
+    )
+    const input = container.querySelector('input')!
+    const event = new KeyboardEvent('keydown', {
+      key: '3',
+      bubbles: true,
+      cancelable: true,
+    })
+
+    await act(async () => {
+      input.dispatchEvent(event)
+    })
+
+    expect(parentKeyDown).not.toHaveBeenCalled()
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('ArrowUp で step 分だけ増やして全選択する', async () => {
+    const onValueChange = vi.fn()
+    const container = await render(
+      <NumberField value={60} step={1} onValueChange={onValueChange} />,
+    )
+    const input = container.querySelector<HTMLInputElement>('input')!
+    input.setSelectionRange(1, 1)
+
+    const event = await pressKey(input, 'ArrowUp')
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(onValueChange).toHaveBeenCalledOnce()
+    expect(onValueChange).toHaveBeenCalledWith(61)
+    expect(input.value).toBe('61')
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(input.value.length)
+  })
+
+  it('ArrowDown は min で clamp する', async () => {
+    const onValueChange = vi.fn()
+    const container = await render(
+      <NumberField value={0.5} min={0} step={1} onValueChange={onValueChange} />,
+    )
+    const input = container.querySelector<HTMLInputElement>('input')!
+
+    const event = await pressKey(input, 'ArrowDown')
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(onValueChange).toHaveBeenCalledOnce()
+    expect(onValueChange).toHaveBeenCalledWith(0)
+    expect(input.value).toBe('0')
+  })
+
+  it('Shift+ArrowUp は step の10倍だけ増やす', async () => {
+    const onValueChange = vi.fn()
+    const container = await render(<NumberField value={60} onValueChange={onValueChange} />)
+    const input = container.querySelector<HTMLInputElement>('input')!
+
+    const event = await pressKey(input, 'ArrowUp', { shiftKey: true })
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(onValueChange).toHaveBeenCalledOnce()
+    expect(onValueChange).toHaveBeenCalledWith(70)
+    expect(input.value).toBe('70')
+  })
+
+  it('解釈できない入力からの step は直近の確定値を使う', async () => {
+    const onValueChange = vi.fn()
+    const container = await render(
+      <NumberField value={60} step={1} onValueChange={onValueChange} />,
+    )
+    const input = container.querySelector<HTMLInputElement>('input')!
+
+    await act(async () => {
+      typeInto(input, '-')
+    })
+    expect(input.value).toBe('-')
+    expect(onValueChange).not.toHaveBeenCalled()
+
+    const event = await pressKey(input, 'ArrowUp')
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(onValueChange).toHaveBeenCalledOnce()
+    expect(onValueChange).toHaveBeenCalledWith(61)
+    expect(input.value).toBe('61')
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(input.value.length)
+  })
+
+  it('不完全な文字列は store に入れず、blur で直近の値へ戻す', async () => {
+    usePlanner.setState({
+      targets: [{ key: 'invalid-target', item: 'Desc_IronPlate_C', ratePerMin: 60 }],
+    })
+    const container = await render(<App />)
+    const input = container.querySelector<HTMLInputElement>('.target .input--num')!
+
+    await act(async () => {
+      input.focus()
+      typeInto(input, '-')
+    })
+    expect(input.value).toBe('-')
+    expect(usePlanner.getState().targets[0]!.ratePerMin).toBe(60)
+
+    await act(async () => {
+      input.blur()
+    })
+    expect(input.value).toBe('60')
+    expect(usePlanner.getState().targets[0]!.ratePerMin).toBe(60)
+  })
+
+  it('store で clamp された値は blur で確定表示へ戻す', async () => {
+    const container = await render(<App />)
+    const input = container.querySelector<HTMLInputElement>('.input--num[step="100"]')!
+
+    await act(async () => {
+      input.focus()
+      typeInto(input, '-1')
+    })
+    expect(input.value).toBe('-1')
+    expect(usePlanner.getState().powerTargetMW).toBe(0)
+
+    await act(async () => {
+      input.blur()
+    })
+    expect(input.value).toBe('0')
+    expect(usePlanner.getState().powerTargetMW).toBe(0)
   })
 })
 
@@ -537,7 +725,9 @@ describe('プランの保存・共有', () => {
     setPlanStorage(createMemoryPlanStorage())
     const container = await render(<App />)
 
-    const nameInput = container.querySelector<HTMLInputElement>('input[type="text"]')!
+    const nameInput = container.querySelector<HTMLInputElement>(
+      'input[placeholder="未入力なら plan"]',
+    )!
     await act(async () => {
       typeInto(nameInput, '鉄板ライン')
     })
@@ -765,8 +955,7 @@ describe('クロックとサマースループ', () => {
     })
     expect(usePlanner.getState().maxClock).toBe(2.5)
 
-    const numberInputs = [...container.querySelectorAll<HTMLInputElement>('input[type="number"]')]
-    const sloopInput = numberInputs.at(-1)!
+    const sloopInput = container.querySelector<HTMLInputElement>('.field input[step="1"]')!
     await act(async () => {
       typeInto(sloopInput, '8')
     })
@@ -879,9 +1068,8 @@ describe('発電計画', () => {
     })
     expect(usePlanner.getState().enabledGenerators).toEqual({ Build_GeneratorCoal_C: true })
 
-    const numberInputs = [...container.querySelectorAll<HTMLInputElement>('input[type="number"]')]
     // 発電計画パネルの数値入力は目標発電量だけ
-    const targetInput = numberInputs.find((i) => i.step === '100')!
+    const targetInput = container.querySelector<HTMLInputElement>('.input--num[step="100"]')!
     await act(async () => {
       typeInto(targetInput, '300')
     })
@@ -911,6 +1099,26 @@ describe('発電計画', () => {
     expect(container.textContent ?? '').toContain('燃料が選ばれていません')
 
     usePlanner.setState({ enabledGenerators: {}, enabledFuels: {}, powerTargetMW: 0 })
+  })
+
+  it('IME 確定時に全角の目標発電量を store に反映する', async () => {
+    const container = await render(<App />)
+    const targetInput = container.querySelector<HTMLInputElement>('.input--num[step="100"]')!
+
+    await act(async () => {
+      targetInput.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
+      typeInto(targetInput, '３００')
+    })
+    expect(targetInput.value).toBe('３００')
+    expect(usePlanner.getState().powerTargetMW).toBe(0)
+
+    await act(async () => {
+      targetInput.dispatchEvent(
+        new CompositionEvent('compositionend', { bubbles: true, data: '３００' }),
+      )
+    })
+    expect(targetInput.value).toBe('300')
+    expect(usePlanner.getState().powerTargetMW).toBe(300)
   })
 
   it('燃料を選んでから全部オフに戻すと、その方式は使わない旨を出す', async () => {

@@ -8,6 +8,7 @@ import {
 import { MINER_IDS } from '../solver/index.ts'
 import { OBJECTIVE_PRESETS, usePlanner } from '../store/planner.ts'
 import { fmtClock } from './format.ts'
+import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
 
 export function ObjectivePanel() {
@@ -75,13 +76,12 @@ export function ClockPanel() {
       <p className="hint">{T.sidebar.clockMaxHint}</p>
       <label className="field">
         <span className="field__label">{T.sidebar.somersloops}</span>
-        <input
+        <NumberField
           className="input"
-          type="number"
           min={0}
           step={1}
           value={somersloops}
-          onChange={(e) => setSomersloops(Number(e.target.value))}
+          onValueChange={setSomersloops}
         />
       </label>
       <p className="hint">{T.sidebar.somersloopsHint}</p>
