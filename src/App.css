@@ -382,7 +382,7 @@
 /* 通常と代替を同じ列幅で並べ、数値の比較単位をカード内で固定する。 */
 .recipe-browser__producing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   align-items: stretch;
   gap: 14px;
 }
@@ -451,7 +451,7 @@
 
 .recipe-browser__flows {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -475,11 +475,22 @@
 }
 
 .recipe-browser__flows .flow-list li {
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.recipe-browser__flow-item-name {
+  min-width: 0;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .recipe-browser__flows .flow__rate {
-  white-space: normal;
+  justify-self: end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .recipe-browser__comparison {

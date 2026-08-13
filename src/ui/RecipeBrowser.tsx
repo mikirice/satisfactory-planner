@@ -413,7 +413,7 @@ function RecipeRateList({ heading, rates }: { heading: string; rates: readonly R
           <li key={entry.item}>
             <span className="flow__name">
               <ItemIcon id={entry.item} name={itemName(entry.item)} size={16} />
-              {itemName(entry.item)}
+              <span className="recipe-browser__flow-item-name">{itemName(entry.item)}</span>
             </span>
             <span className="flow__rate num">
               {fmtRate(entry.ratePerMin)} {itemUnit(entry.item)}
