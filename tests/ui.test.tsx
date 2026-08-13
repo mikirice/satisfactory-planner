@@ -401,7 +401,7 @@ describe('数値入力', () => {
     expect(usePlanner.getState().targets[0]!.ratePerMin).toBe(300)
   })
 
-  it('フォーカスとクリックで現在値を全選択する', async () => {
+  it('キーボードフォーカスで現在値を全選択する', async () => {
     usePlanner.setState({
       targets: [{ key: 'select-target', item: 'Desc_IronPlate_C', ratePerMin: 120 }],
     })
@@ -413,13 +413,41 @@ describe('数値入力', () => {
     })
     expect(input.selectionStart).toBe(0)
     expect(input.selectionEnd).toBe(input.value.length)
+  })
 
-    input.setSelectionRange(1, 1)
+  it('未フォーカス時の mouseup だけ現在値を全選択する', async () => {
+    const container = await render(<NumberField value={300} onValueChange={() => undefined} />)
+    const input = container.querySelector<HTMLInputElement>('input')!
+    const select = vi.spyOn(input, 'select')
+    const firstMouseUp = new MouseEvent('mouseup', { bubbles: true, cancelable: true })
+    expect(document.activeElement).not.toBe(input)
+
     await act(async () => {
-      input.click()
+      input.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+      // jsdom は mousedown の既定動作で focus しないため、ブラウザのイベント順を再現する。
+      input.focus()
+      select.mockClear()
+      input.setSelectionRange(0, 0)
+      input.dispatchEvent(firstMouseUp)
     })
+
+    expect(firstMouseUp.defaultPrevented).toBe(true)
+    expect(select).toHaveBeenCalledOnce()
     expect(input.selectionStart).toBe(0)
     expect(input.selectionEnd).toBe(input.value.length)
+
+    select.mockClear()
+    input.setSelectionRange(1, 1)
+    const secondMouseUp = new MouseEvent('mouseup', { bubbles: true, cancelable: true })
+    await act(async () => {
+      input.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+      input.dispatchEvent(secondMouseUp)
+    })
+
+    expect(secondMouseUp.defaultPrevented).toBe(false)
+    expect(select).not.toHaveBeenCalled()
+    expect(input.selectionStart).toBe(1)
+    expect(input.selectionEnd).toBe(1)
   })
 
   it('keydown を親へ伝えず、既定動作は妨げない', async () => {

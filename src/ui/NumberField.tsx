@@ -39,6 +39,8 @@ export type NumberFieldProps = Omit<
   | 'onBlur'
   | 'onFocus'
   | 'onClick'
+  | 'onMouseDown'
+  | 'onMouseUp'
   | 'onKeyDown'
   | 'onKeyPress'
   | 'onCompositionStart'
@@ -70,6 +72,7 @@ export function NumberField({
   const dirty = useRef(false)
   const valueRef = useRef(value)
   const steppedInput = useRef<HTMLInputElement>(null)
+  const selectOnMouseUp = useRef(false)
   const lastSubmitted = useRef<SubmittedValue>(
     typeof value === 'number' ? { text: formatValue(value), value } : null,
   )
@@ -167,7 +170,17 @@ export function NumberField({
         dirty.current = false
       }}
       onFocus={(event) => event.currentTarget.select()}
-      onClick={(event) => event.currentTarget.select()}
+      onMouseDown={(event) => {
+        selectOnMouseUp.current = document.activeElement !== event.currentTarget
+      }}
+      onMouseUp={(event) => {
+        const shouldSelect = selectOnMouseUp.current
+        selectOnMouseUp.current = false
+        if (!shouldSelect) return
+
+        event.preventDefault()
+        event.currentTarget.select()
+      }}
       onKeyDown={(event) => {
         event.stopPropagation()
         if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
