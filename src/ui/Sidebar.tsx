@@ -9,9 +9,9 @@ import { PlansPanel } from './PlansPanel.tsx'
 import { PowerPanel } from './PowerPanel.tsx'
 import { TargetsPanel } from './TargetsPanel.tsx'
 
-export function Sidebar() {
+export function Sidebar({ hidden = false }: { hidden?: boolean }) {
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" hidden={hidden}>
       <TargetsPanel />
       <InputsPanel />
       <ObjectivePanel />

@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react'
 
 import { meta } from './data/index.ts'
+import { saveAutosaveNow } from './plan/persist.ts'
+import { defaultPlanInput } from './plan/serialize.ts'
 import { disposeGlpk } from './solver/index.ts'
-import { usePlanner } from './store/planner.ts'
+import { hasAnyInput, usePlanner } from './store/planner.ts'
+import { itemName } from './ui/format.ts'
+import { RecipeBrowser } from './ui/RecipeBrowser.tsx'
+import type { RecipePlanRequest } from './ui/RecipeBrowser.tsx'
 import { ResultView } from './ui/ResultView.tsx'
 import { SamplesPanel } from './ui/SamplesPanel.tsx'
 import { Sidebar } from './ui/Sidebar.tsx'
@@ -11,13 +16,33 @@ import { T } from './ui/text.ts'
 import './App.css'
 
 function App() {
-  const [viewMode, setViewMode] = useState<'normal' | 'loop'>('normal')
+  const [viewMode, setViewMode] = useState<'normal' | 'loop' | 'recipe'>('normal')
   const status = usePlanner((s) => s.status)
   const result = usePlanner((s) => s.result)
   const elapsedMs = usePlanner((s) => s.elapsedMs)
+  const applyPlan = usePlanner((s) => s.applyPlan)
+  const hasWork = usePlanner(hasAnyInput)
 
   // ブラウザ版 glpk.js は Web Worker で動くので、アンマウント時に止める
   useEffect(() => () => void disposeGlpk(), [])
+
+  const createPlanFromRecipe = async (request: RecipePlanRequest): Promise<void> => {
+    if (hasWork && !window.confirm(T.recipeBrowser.confirmReplace(itemName(request.itemId)))) {
+      return
+    }
+
+    applyPlan({
+      ...defaultPlanInput(),
+      targets: [{ item: request.itemId, ratePerMin: request.ratePerMin }],
+      enabledAlternates:
+        request.alternateRecipeId === undefined
+          ? {}
+          : { [request.alternateRecipeId]: true },
+    })
+    // 明示操作で作った計画は、通常の800msデバウンスを待たず確実に自動保存へ反映する。
+    await saveAutosaveNow()
+    setViewMode('normal')
+  }
 
   return (
     <div className="app">
@@ -46,22 +71,36 @@ function App() {
           >
             {T.viewMode.loop}
           </button>
+          <button
+            type="button"
+            className="header__mode-button"
+            aria-pressed={viewMode === 'recipe'}
+            onClick={() => setViewMode('recipe')}
+          >
+            {T.viewMode.recipe}
+          </button>
         </div>
         <p className="header__meta">
           {T.dataVersion} {meta.gameVersion}
         </p>
       </header>
 
-      <div className="layout">
-        {viewMode === 'normal' ? (
-          <Sidebar />
-        ) : (
+      {viewMode === 'recipe' && (
+        <RecipeBrowser onCreatePlan={(request) => void createPlanFromRecipe(request)} />
+      )}
+      {/*
+       * PlansPanel が持つ復元・自動保存の購読をモード切替で切らないため、通常レイアウトは
+       * 非表示でもマウントしたままにする。レシピ閲覧だけでプランが古い保存内容へ戻るのを防ぐ。
+      */}
+      <div className="layout" hidden={viewMode === 'recipe'}>
+        {viewMode === 'loop' && (
           <aside className="sidebar sidebar--loop">
             <SamplesPanel variant="loop" />
           </aside>
         )}
+        <Sidebar hidden={viewMode !== 'normal'} />
         <main className="main">
-          <ResultView viewMode={viewMode} />
+          <ResultView viewMode={viewMode === 'loop' ? 'loop' : 'normal'} />
         </main>
       </div>
 

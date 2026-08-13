@@ -45,6 +45,7 @@
 .header__mode {
   display: inline-flex;
   align-items: stretch;
+  flex: 0 0 auto;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   overflow: hidden;
@@ -82,6 +83,12 @@
   grid-template-columns: 340px minmax(0, 1fr);
   align-items: start;
   flex: 1;
+}
+
+/* 非表示モードもマウントして永続化の購読を保つ。author CSS で hidden を確実に優先する。 */
+.layout[hidden],
+.layout > [hidden] {
+  display: none;
 }
 
 .sidebar {
@@ -154,6 +161,498 @@
     max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+}
+
+/* --- アイテム別レシピブラウザ ------------------------------------------- */
+
+/*
+ * 左の全件索引と右の比較台帳。通常モードの入力サイドバーとは状態も役割も別なので、
+ * RecipeBrowser 自身をページ全幅の2ペインにする。
+ */
+.recipe-browser {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  align-items: start;
+  flex: 1;
+  min-width: 0;
+}
+
+.recipe-browser__picker {
+  position: sticky;
+  top: 53px;
+  height: calc(100svh - 53px);
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-browser__search {
+  flex: 0 0 auto;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  z-index: 2;
+}
+
+.recipe-browser__search .suggestions {
+  max-height: 300px;
+}
+
+.recipe-browser__catalog {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 10px 20px;
+  scrollbar-gutter: stable;
+}
+
+.recipe-browser__item-group + .recipe-browser__item-group {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.recipe-browser__item-group-title,
+.recipe-browser__section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.recipe-browser__item-group-title {
+  padding: 2px 8px 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.recipe-browser__count {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.recipe-browser__item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recipe-browser__item-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 5px 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipe-browser__item-button span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.recipe-browser__item-button:hover,
+.recipe-browser__item-button:focus-visible {
+  border-color: var(--border-strong);
+  background: var(--bg-raised);
+  color: var(--text-strong);
+}
+
+.recipe-browser__item-button:focus-visible,
+.recipe-browser__use-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.recipe-browser__item-button--selected {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  box-shadow: inset 3px 0 0 var(--accent);
+  color: var(--text-strong);
+}
+
+.recipe-browser__detail {
+  min-width: 0;
+  padding: 20px clamp(16px, 2.5vw, 32px) 32px;
+}
+
+.recipe-browser__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 760px;
+  margin: clamp(24px, 8vh, 96px) auto;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: clamp(20px, 4vw, 40px);
+  background: var(--bg-panel);
+}
+
+.recipe-browser__suggestions {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.recipe-browser__suggestions h3 {
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.recipe-browser__suggestions ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.recipe-browser__suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  text-align: left;
+}
+
+.recipe-browser__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.recipe-browser__item-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-strong);
+  padding-bottom: 16px;
+}
+
+.recipe-browser__back {
+  align-self: flex-start;
+  font-size: 12px;
+}
+
+.recipe-browser__item-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.recipe-browser__item-heading h2 {
+  font-size: clamp(20px, 2.2vw, 28px);
+}
+
+.recipe-browser__item-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.recipe-browser__section {
+  min-width: 0;
+}
+
+.recipe-browser__section-title {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+/* 通常と代替を同じ列幅で並べ、数値の比較単位をカード内で固定する。 */
+.recipe-browser__producing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  align-items: stretch;
+  gap: 14px;
+}
+
+.recipe-browser__recipe-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  border-top: 3px solid var(--border-strong);
+  overflow: hidden;
+}
+
+.recipe-browser__recipe-card--alternate {
+  border-top-color: var(--accent);
+  background:
+    linear-gradient(180deg, var(--accent-weak), transparent 92px),
+    var(--bg-panel);
+}
+
+.recipe-browser__recipe-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recipe-browser__recipe-header .card__title {
+  align-items: flex-start;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.recipe-browser__recipe-facts,
+.recipe-browser__comparison dl {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.recipe-browser__recipe-facts > div,
+.recipe-browser__comparison dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.recipe-browser__recipe-facts dt,
+.recipe-browser__comparison dt {
+  color: var(--text-muted);
+}
+
+.recipe-browser__recipe-facts dd,
+.recipe-browser__comparison dd {
+  margin: 0;
+  text-align: right;
+}
+
+.recipe-browser__recipe-facts .cell-name {
+  justify-content: flex-end;
+}
+
+.recipe-browser__flows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.recipe-browser__flows > section {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  background: var(--bg-raised);
+}
+
+.recipe-browser__flows h4,
+.recipe-browser__comparison h4 {
+  margin-bottom: 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.recipe-browser__flows .flow-list {
+  min-width: 0;
+}
+
+.recipe-browser__flows .flow-list li {
+  align-items: flex-start;
+}
+
+.recipe-browser__flows .flow__rate {
+  white-space: normal;
+}
+
+.recipe-browser__comparison {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 9px 10px;
+  background: var(--bg-raised);
+}
+
+.recipe-browser__comparison h4:not(:first-child) {
+  margin-top: 10px;
+}
+
+.recipe-browser__comparison dt .hint {
+  margin-left: 3px;
+  font-size: 10px;
+}
+
+.recipe-browser__ingredient-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recipe-browser__ingredient-metrics li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.recipe-browser__ingredient-metrics .num {
+  flex: 0 0 auto;
+}
+
+.recipe-browser__create-plan {
+  margin-top: auto;
+}
+
+.recipe-browser__uses {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+}
+
+.recipe-browser__uses li + li {
+  border-top: 1px solid var(--border);
+}
+
+.recipe-browser__use-button {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.1fr) minmax(150px, 0.65fr) minmax(240px, 1.4fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 9px 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipe-browser__use-button:hover {
+  background: var(--accent-weak);
+}
+
+.recipe-browser__use-recipe {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--text-strong);
+  font-size: 13px;
+}
+
+.recipe-browser__use-building {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.recipe-browser__use-rate {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.recipe-browser__use-products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  min-width: 0;
+}
+
+.recipe-browser__use-product {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.recipe-browser__use-product .num {
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .recipe-browser__use-button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .recipe-browser__use-products {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .recipe-browser {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recipe-browser__picker {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .recipe-browser__catalog {
+    max-height: 340px;
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  .header__title {
+    flex: 1 1 auto;
+  }
+
+  .header__meta {
+    margin-left: 0;
+  }
+
+  .header__mode {
+    order: 3;
+    width: 100%;
+  }
+
+  .header__mode-button {
+    flex: 1;
+  }
+
+  .recipe-browser__detail {
+    padding-inline: 12px;
+  }
+
+  .recipe-browser__flows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recipe-browser__use-button {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recipe-browser__use-products {
+    grid-column: auto;
   }
 }
 
