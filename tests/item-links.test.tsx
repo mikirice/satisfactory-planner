@@ -89,10 +89,14 @@ function links(container: HTMLElement, href: string): HTMLAnchorElement[] {
   return [...container.querySelectorAll<HTMLAnchorElement>(`a[href="${href}"]`)]
 }
 
-const IRON_PLATE_PATH = '/items/iron-plate/'
-// slug は ID 由来なので Desc_OreIron_C は ore-iron（表示名の語順ではない）
-const IRON_ORE_PATH = '/items/ore-iron/'
-const IRON_INGOT_PATH = '/items/iron-ingot/'
+/**
+ * リンク先は表示言語で変わる（ja は /items/…、それ以外は /en/items/… の英語ミラー）。
+ * 期待値も実装（src/plan/item-pages.ts）から引き、アプリと静的ページ生成のズレだけを検出する。
+ * slug は ID 由来なので Desc_OreIron_C は ore-iron（表示名の語順ではない）。
+ */
+const ironPlatePath = (locale: Locale): string => itemPagePath('Desc_IronPlate_C', locale)!
+const ironOrePath = (locale: Locale): string => itemPagePath('Desc_OreIron_C', locale)!
+const ironIngotPath = (locale: Locale): string => itemPagePath('Desc_IronIngot_C', locale)!
 
 // ---------------------------------------------------------------------------
 // 表示専用の解フィクスチャ（鉄板 60/min 相当。tests/locale.test.tsx と同じ作り）
@@ -175,9 +179,15 @@ const ironPlate60: Solution = {
 
 describe('アイテムページへのリンク先', () => {
   it('slug は静的ページ生成と同じ実装から作る', () => {
-    expect(itemPagePath('Desc_IronPlate_C')).toBe(IRON_PLATE_PATH)
-    expect(itemPagePath('Desc_OreIron_C')).toBe(IRON_ORE_PATH)
-    expect(itemPagePath('Desc_IronIngot_C')).toBe(IRON_INGOT_PATH)
+    expect(itemPagePath('Desc_IronPlate_C')).toBe('/items/iron-plate/')
+    expect(itemPagePath('Desc_OreIron_C')).toBe('/items/ore-iron/')
+    expect(itemPagePath('Desc_IronIngot_C')).toBe('/items/iron-ingot/')
+  })
+
+  it('日本語以外の表示言語では英語ミラー（/en/）へ送る', () => {
+    expect(itemPagePath('Desc_IronPlate_C', 'en')).toBe('/en/items/iron-plate/')
+    expect(itemPagePath('Desc_IronPlate_C', 'de')).toBe('/en/items/iron-plate/')
+    expect(itemPagePath('Desc_IronPlate_C', 'ja')).toBe('/items/iron-plate/')
   })
 })
 
@@ -186,14 +196,14 @@ describe('結果テーブルのアイテム名リンク', () => {
     '%s: 生産ステップの投入・産出がアイテムページへのリンクになる',
     async (locale) => {
       const container = await render(<StepsTable solution={ironPlate60} />, locale)
-      const ingotLinks = links(container, IRON_INGOT_PATH)
+      const ingotLinks = links(container, ironIngotPath(locale))
       const expectedName = officialName('Desc_IronIngot_C', locale)
 
       // 産出（製錬炉）と投入（製作機）の2か所
       expect(ingotLinks).toHaveLength(2)
       expect(ingotLinks.every((link) => link.textContent === expectedName)).toBe(true)
-      expect(links(container, IRON_ORE_PATH)).toHaveLength(1)
-      expect(links(container, IRON_PLATE_PATH)).toHaveLength(1)
+      expect(links(container, ironOrePath(locale))).toHaveLength(1)
+      expect(links(container, ironPlatePath(locale))).toHaveLength(1)
       // アイコンはリンクの外に置く（アイコン自体はリンクにしない）
       expect(container.querySelector('a .item-icon')).toBeNull()
       // 通常遷移（target なし・同一タブ）
@@ -206,7 +216,7 @@ describe('結果テーブルのアイテム名リンク', () => {
       <ResourcesTable solution={ironPlate60} extraction={null} />,
       locale,
     )
-    const oreLinks = links(container, IRON_ORE_PATH)
+    const oreLinks = links(container, ironOrePath(locale))
 
     expect(oreLinks).toHaveLength(1)
     expect(oreLinks[0]?.textContent).toBe(officialName('Desc_OreIron_C', locale))
@@ -214,7 +224,7 @@ describe('結果テーブルのアイテム名リンク', () => {
 
   it.each(SUPPORTED_LOCALES)('%s: アイテム収支表のアイテム名がリンクになる', async (locale) => {
     const container = await render(<BalanceTable solution={ironPlate60} />, locale)
-    const plateLinks = links(container, IRON_PLATE_PATH)
+    const plateLinks = links(container, ironPlatePath(locale))
 
     expect(plateLinks).toHaveLength(1)
     expect(plateLinks[0]?.textContent).toBe(officialName('Desc_IronPlate_C', locale))
@@ -231,10 +241,10 @@ describe('結果テーブルのアイテム名リンク', () => {
       )
 
       // 目標 + 建設コスト
-      expect(links(container, IRON_PLATE_PATH)).toHaveLength(2)
+      expect(links(container, ironPlatePath(locale))).toHaveLength(2)
       // 副産物 + 既保有（外部供給）
-      expect(links(container, IRON_INGOT_PATH)).toHaveLength(2)
-      expect(links(container, IRON_PLATE_PATH)[0]?.textContent).toBe(
+      expect(links(container, ironIngotPath(locale))).toHaveLength(2)
+      expect(links(container, ironPlatePath(locale))[0]?.textContent).toBe(
         officialName('Desc_IronPlate_C', locale),
       )
     },
@@ -257,7 +267,7 @@ describe('レシピモードの詳細ヘッダー', () => {
       )
 
       const link = container.querySelector<HTMLAnchorElement>('.recipe-browser__item-page-link')!
-      expect(link.getAttribute('href')).toBe(IRON_PLATE_PATH)
+      expect(link.getAttribute('href')).toBe(ironPlatePath(locale))
       expect(link.textContent).toBe(getDictionary(locale).itemPage.open)
       // 一覧のボタンは今までどおり画面内の選択（リンクにしない）
       expect(

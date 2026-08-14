@@ -5,9 +5,17 @@ import { join } from 'node:path'
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { handwrittenArticlesEn } from '../content/articles/en/index.ts'
 import { handwrittenArticles } from '../content/articles/index.ts'
+import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
 import { items, recipes } from '../src/data/index.ts'
-import { itemPagePath } from '../src/plan/item-pages.ts'
+import { SUPPORTED_LOCALES } from '../src/i18n/types.ts'
+import {
+  articlePagePath,
+  articlesIndexPath,
+  itemPagePath,
+  itemsIndexPath,
+} from '../src/plan/item-pages.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
 import { decodePlan, readPlanParam } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
@@ -253,12 +261,13 @@ describe('記事静的ページ', () => {
 })
 
 describe('sitemap', () => {
-  it('生成した全ページとトップ・privacyのURLを1件ずつ収録する', async () => {
+  it('日本語ページと英語ミラーのURLを1件ずつ収録する', async () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    expect(sitemapPaths()).toHaveLength(214)
-    expect(manifest.urls).toHaveLength(214)
+    // 日本語 214（トップ・privacy・一覧2・アイテム198・記事12）＋ 英語ミラー 212
+    expect(sitemapPaths()).toHaveLength(426)
+    expect(manifest.urls).toHaveLength(426)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -267,6 +276,15 @@ describe('sitemap', () => {
     expect(locations).toContain(
       'https://satisfactory-planner.net/articles/production-planning-tutorial/',
     )
+    expect(locations).toContain('https://satisfactory-planner.net/en/items/')
+    expect(locations).toContain('https://satisfactory-planner.net/en/items/iron-plate/')
+    expect(locations).toContain('https://satisfactory-planner.net/en/articles/')
+    expect(locations).toContain(
+      'https://satisfactory-planner.net/en/articles/production-planning-tutorial/',
+    )
+    // SPA のトップとプライバシーは1URLで言語が切り替わるので、英語ミラーは作らない
+    expect(locations).not.toContain('https://satisfactory-planner.net/en/')
+    expect(locations).not.toContain('https://satisfactory-planner.net/en/privacy.html')
   })
 })
 
@@ -304,5 +322,285 @@ describe('アプリ内リンクと生成ページのパス一致', () => {
   it('ページを持たないID（建物・未知ID）にはリンクを作らない', () => {
     expect(itemPagePath('Build_SmelterMk1_C')).toBeNull()
     expect(itemPagePath('Desc_DoesNotExist_C')).toBeNull()
+    expect(itemPagePath('Build_SmelterMk1_C', 'en')).toBeNull()
+  })
+
+  /**
+   * Stage 3: 表示言語で静的ページのリンク先が変わる。ja だけ日本語ページを持ち、
+   * en と Tier 2 の10言語は英語ミラーへ送る（src/plan/item-pages.ts が正典）。
+   */
+  it('日本語は既存URL、英語とTier 2言語は /en/ ミラーへ送る', () => {
+    expect(itemPagePath('Desc_IronPlate_C')).toBe('/items/iron-plate/')
+    expect(itemPagePath('Desc_IronPlate_C', 'ja')).toBe('/items/iron-plate/')
+    expect(itemPagePath('Desc_IronPlate_C', 'en')).toBe('/en/items/iron-plate/')
+    expect(itemPagePath('Desc_IronPlate_C', 'de')).toBe('/en/items/iron-plate/')
+    expect(itemPagePath('Desc_IronPlate_C', 'zh-Hant')).toBe('/en/items/iron-plate/')
+
+    expect(itemsIndexPath('ja')).toBe('/items/')
+    expect(itemsIndexPath('ko')).toBe('/en/items/')
+    expect(articlesIndexPath('ja')).toBe('/articles/')
+    expect(articlesIndexPath('pt-BR')).toBe('/en/articles/')
+    expect(articlePagePath('excel-export-guide', 'ja')).toBe('/articles/excel-export-guide/')
+    expect(articlePagePath('excel-export-guide', 'fr')).toBe(
+      '/en/articles/excel-export-guide/',
+    )
+  })
+
+  it('全アイテム・全対応言語でアプリのリンク先が生成URLに存在する', () => {
+    const generated = new Set(manifest.urls)
+    const missing = SUPPORTED_LOCALES.flatMap((locale) =>
+      items
+        .filter(
+          (item) => !generated.has(`https://satisfactory-planner.net${itemPagePath(item.id, locale)}`),
+        )
+        .map((item) => `${locale}:${item.id}`),
+    )
+
+    expect(missing).toEqual([])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 英語ミラー（Stage 3）
+// ---------------------------------------------------------------------------
+
+/** ページの hreflang（言語 → 絶対URL）。 */
+function alternateLinks(html: string): Record<string, string> {
+  const matches = [...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)" \/>/g)]
+  return Object.fromEntries(matches.map((match) => [match[1]!, match[2]!]))
+}
+
+const JAPANESE_CHARACTER = /[々〆〇〻぀-ヿ㐀-鿿ｦ-ﾟ]/
+
+/** 本文（<main>）だけを取り出す。ヘッダーの言語切替（日本語）を判定から外すため。 */
+function mainSection(html: string): string {
+  const start = html.indexOf('<main')
+  const end = html.indexOf('</main>')
+  expect(start).toBeGreaterThan(-1)
+  expect(end).toBeGreaterThan(start)
+  return html.slice(start, end)
+}
+
+describe('英語ミラーの生成', () => {
+  it('アイテム198件＋一覧、記事12本＋索引を /en/ に出す', async () => {
+    const itemEntries = await readdir(join(outputDirectory, 'en/items'), { withFileTypes: true })
+    const articleEntries = await readdir(join(outputDirectory, 'en/articles'), {
+      withFileTypes: true,
+    })
+
+    expect(
+      itemEntries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort(),
+    ).toEqual([...manifest.itemSlugs].sort())
+    expect(itemEntries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
+    expect(
+      articleEntries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort(),
+    ).toEqual([...articleSlugs].sort())
+    expect(articleEntries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(
+      true,
+    )
+  })
+
+  it('英訳コンテンツが日本語の記事・ループテンプレートと1対1で揃っている', () => {
+    expect(handwrittenArticlesEn.map((article) => article.slug)).toEqual(
+      handwrittenArticles.map((article) => article.slug),
+    )
+    // CTA の飛び先（サンプル / アイテム）は翻訳で変えない
+    for (const [index, article] of handwrittenArticlesEn.entries()) {
+      const source = handwrittenArticles[index]!
+      expect(article.cta.kind, article.slug).toBe(source.cta.kind)
+      expect(article.cta.label, article.slug).not.toBe(source.cta.label)
+      expect(article.relatedItemIds, article.slug).toEqual(source.relatedItemIds)
+    }
+    const loopSlugs = articleSlugs.filter(
+      (slug) => !handwrittenArticles.some((article) => article.slug === slug),
+    )
+    expect(Object.keys(LOOP_GUIDES_EN).sort()).toEqual([...loopSlugs].sort())
+  })
+
+  it('鉄板ページを英語の公式名・単位・ラベルで焼き込む', async () => {
+    const html = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
+
+    expect(html).toContain('<html lang="en">')
+    expect(html).toContain('<meta property="og:locale" content="en_US" />')
+    expect(html).toContain(
+      '<title>Iron Plate recipes and uses | Satisfactory Production Planner</title>',
+    )
+    expect(html).toContain(
+      '<link rel="canonical" href="https://satisfactory-planner.net/en/items/iron-plate/" />',
+    )
+    expect(html).toContain('data-recipe-id="Recipe_IronPlate_C"')
+    expect(html).toContain('data-recipe-id="Recipe_Alternate_CoatedIronPlate_C"')
+    expect(html).toContain('>Alternate: Steel Cast Plate<')
+    expect(html).toContain('20.00 items/min')
+    expect(html).toContain('4.00 MW')
+    expect(html).toContain('5.00 items/min / MW')
+    expect(html).toContain('href="/en/items/iron-ingot/"')
+    expect(html).toContain('Plan this item in the planner')
+    // 日本語名は照合用に1か所だけ残す（ja ページの「英名: 」の裏返し）
+    expect(html).toContain('Japanese: 鉄板')
+    expect(html).toContain('"inLanguage":"en"')
+    expect(html).not.toContain('type="module"')
+  })
+
+  it('レシピが0件のアイテムも英語で収録範囲を説明する', async () => {
+    const html = await readFile(
+      join(outputDirectory, 'en/items/bp-equipment-descriptor-nobelisk-detonator/index.html'),
+      'utf8',
+    )
+
+    expect(html).toContain('zero recipes available for production line calculations')
+    expect(html).toContain('What this page covers')
+  })
+
+  it('英語ページの本文に日本語が残らない（併記の和名だけ許す）', async () => {
+    for (const slug of manifest.itemSlugs) {
+      const html = await readFile(join(outputDirectory, 'en/items', slug, 'index.html'), 'utf8')
+      // 個別ページだけは照合用に日本語名を1か所出す（ja ページの「英名: 」の裏返し）
+      const stripped = mainSection(html)
+        .replaceAll(/Japanese: [^<]*/g, '')
+        .replaceAll(/Its Japanese name is [^,]*/g, '')
+
+      expect(JAPANESE_CHARACTER.test(stripped), slug).toBe(false)
+    }
+    for (const slug of articleSlugs) {
+      const html = await readFile(join(outputDirectory, 'en/articles', slug, 'index.html'), 'utf8')
+
+      expect(JAPANESE_CHARACTER.test(mainSection(html)), slug).toBe(false)
+    }
+    for (const file of ['en/articles/index.html', 'en/items/index.html']) {
+      const index = await readFile(join(outputDirectory, file), 'utf8')
+
+      expect(JAPANESE_CHARACTER.test(mainSection(index)), file).toBe(false)
+    }
+    // 日本語の一覧は公式英名を併記したまま（ゲーム内表記との突き合わせ用）
+    const jaIndex = await readFile(join(outputDirectory, 'items/index.html'), 'utf8')
+    expect(jaIndex).toContain('<small>Iron Plate</small>')
+  })
+
+  it('ループ記事は英訳の本文と、日本語版と同じbuild-time solver値を持つ', async () => {
+    const oil = await readFile(
+      join(outputDirectory, 'en/articles/oil-loop-complete/index.html'),
+      'utf8',
+    )
+
+    expect(oil).toContain('How the Complete Oil Recycling Loop Works and How to Build It')
+    expect(oil).toContain('Turn the Polymer Resin byproduct into Rubber with Residual Rubber')
+    expect(oil).toContain('900.00 → 200.00 m³/min')
+    expect(oil).toContain('77.8% less')
+    expect(oil).toContain('0.00 → 666.67 m³/min')
+    expect(oil).toContain('Newly used')
+
+    const battery = await readFile(
+      join(outputDirectory, 'en/articles/battery-water-loop/index.html'),
+      'utf8',
+    )
+    expect(battery).toContain('Byproduct Water reused across the line')
+    expect(battery).toContain('135.00 m³/min')
+    expect(battery).toContain('Battery: <span class="num">90.00 m³/min')
+
+    const nuclear = await readFile(
+      join(outputDirectory, 'en/articles/nuclear-reprocessing/index.html'),
+      'utf8',
+    )
+    // 代替レシピの基準構成が無いテンプレートは「ビルド時の計算結果」側の表示になる
+    expect(nuclear).toContain('Calculated at build time')
+    expect(nuclear).toContain('Total power generated')
+  })
+
+  it('英語の手書き記事は全文訳とCTAを持ち、共有URLが警告なく復元できる', async () => {
+    const tutorial = await readFile(
+      join(outputDirectory, 'en/articles/production-planning-tutorial/index.html'),
+      'utf8',
+    )
+    expect(tutorial).toContain('Your First Production Plan — A Guided Tour of the Planner')
+    expect(tutorial).toContain('Read the five result tabs')
+
+    for (const slug of articleSlugs) {
+      const html = await readFile(join(outputDirectory, 'en/articles', slug, 'index.html'), 'utf8')
+      const href = html.match(/class="cta" href="([^"]*#plan=[^"]+)"/)?.[1]
+      expect(href, slug).toBeDefined()
+      const encoded = readPlanParam(href!.slice(href!.indexOf('#')))
+      expect(encoded, slug).not.toBeNull()
+      const parsed = decodePlan(encoded!)
+      expect(parsed.ok, slug).toBe(true)
+      if (parsed.ok) expect(parsed.warnings, slug).toEqual([])
+    }
+  })
+
+  it('英語アイテムページのCTAも全件が警告なく復元できる', async () => {
+    for (const item of items) {
+      const html = await readFile(
+        join(outputDirectory, 'en/items', itemSlug(item.id), 'index.html'),
+        'utf8',
+      )
+      const href = html.match(/class="cta" href="([^"]+)"/)?.[1]
+      const encoded = href === undefined ? null : readPlanParam(href.slice(href.indexOf('#')))
+      const parsed = encoded === null ? null : decodePlan(encoded)
+
+      expect(parsed?.ok, item.id).toBe(true)
+      if (!parsed?.ok) continue
+      expect(parsed.warnings, item.id).toEqual([])
+      expect(parsed.input.targets[0]?.item, item.id).toBe(item.id)
+    }
+  })
+})
+
+describe('hreflang', () => {
+  it('日英ページが相互に指し合い、x-defaultは日本語版を指す', async () => {
+    const pages = [
+      ['items/index.html', 'en/items/index.html', '/items/', '/en/items/'],
+      ['articles/index.html', 'en/articles/index.html', '/articles/', '/en/articles/'],
+      [
+        'articles/oil-loop-complete/index.html',
+        'en/articles/oil-loop-complete/index.html',
+        '/articles/oil-loop-complete/',
+        '/en/articles/oil-loop-complete/',
+      ],
+      [
+        'articles/excel-export-guide/index.html',
+        'en/articles/excel-export-guide/index.html',
+        '/articles/excel-export-guide/',
+        '/en/articles/excel-export-guide/',
+      ],
+      ...manifest.itemSlugs.map((slug) => [
+        `items/${slug}/index.html`,
+        `en/items/${slug}/index.html`,
+        `/items/${slug}/`,
+        `/en/items/${slug}/`,
+      ]),
+    ] as const
+
+    for (const [jaFile, enFile, jaPath, enPath] of pages) {
+      const expected = {
+        ja: `https://satisfactory-planner.net${jaPath}`,
+        en: `https://satisfactory-planner.net${enPath}`,
+        'x-default': `https://satisfactory-planner.net${jaPath}`,
+      }
+      const jaHtml = await readFile(join(outputDirectory, jaFile), 'utf8')
+      const enHtml = await readFile(join(outputDirectory, enFile), 'utf8')
+
+      expect(alternateLinks(jaHtml), jaFile).toEqual(expected)
+      expect(alternateLinks(enHtml), enFile).toEqual(expected)
+    }
+  })
+
+  it('ヘッダーの言語切替が相手言語のページを指す', async () => {
+    const jaHtml = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
+    const enHtml = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
+
+    expect(jaHtml).toContain(
+      '<a class="lang-switch" href="/en/items/iron-plate/" hreflang="en" lang="en"',
+    )
+    expect(jaHtml).toContain('>English</a>')
+    expect(enHtml).toContain(
+      '<a class="lang-switch" href="/items/iron-plate/" hreflang="ja" lang="ja"',
+    )
+    expect(enHtml).toContain('>日本語</a>')
   })
 })

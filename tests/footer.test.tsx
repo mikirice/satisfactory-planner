@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { LocaleProvider } from '../src/i18n/index.ts'
 import { AdSlot } from '../src/ui/AdSlot.tsx'
 import { SiteFooter } from '../src/ui/SiteFooter.tsx'
 
@@ -52,6 +53,23 @@ describe('サイトフッター', () => {
     expect(container.querySelector<HTMLAnchorElement>('a[href="/items/"]')?.textContent).toBe(
       'アイテム一覧',
     )
+  })
+
+  /** Stage 3: 静的ページは日英ミラー。ja 以外の表示言語では /en/ 側へ送る。 */
+  it('英語表示では英語ミラーへリンクする', async () => {
+    const container = await render(
+      <LocaleProvider initialLocale="en">
+        <SiteFooter />
+      </LocaleProvider>,
+    )
+
+    expect(
+      container.querySelector<HTMLAnchorElement>('a[href="/en/articles/"]')?.textContent,
+    ).toBe('Guides')
+    expect(container.querySelector<HTMLAnchorElement>('a[href="/en/items/"]')?.textContent).toBe(
+      'Items',
+    )
+    expect(container.querySelector('a[href="/articles/"]')).toBeNull()
   })
 })
 

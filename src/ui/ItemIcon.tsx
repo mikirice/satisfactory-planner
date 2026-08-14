@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 
+import { useLocale } from '../i18n/index.ts'
 import { itemPagePath } from '../plan/item-pages.ts'
 import { itemName } from './format.ts'
 import { HARD_DRIVE_ICON_ID, iconPath } from './icons.ts'
@@ -55,13 +56,15 @@ export function AlternateIcon({ size = CELL_ICON }: { size?: number }) {
 }
 
 /**
- * アイテム名から静的アイテムページ（/items/{slug}/）へのリンク。
+ * アイテム名から静的アイテムページ（/items/{slug}/ または /en/items/{slug}/）へのリンク。
  *
  * ページを持たないID（建物など）はリンクにせず、渡された表示のまま返す。
  * 表の見た目を変えないよう、色は継承のままで下線はホバー・フォーカス時だけ出す（.item-link）。
+ * リンク先は表示中の言語に合わせる（ja 以外は en ミラー。src/plan/item-pages.ts が正典）。
  */
 export function ItemNameLink({ id, children }: { id: string; children: ReactNode }) {
-  const href = itemPagePath(id)
+  const { locale } = useLocale()
+  const href = itemPagePath(id, locale)
   if (href === null) return <>{children}</>
   return (
     <a className="item-link" href={href}>
@@ -75,7 +78,8 @@ export function ItemNameLink({ id, children }: { id: string; children: ReactNode
  * 表の中のアイテム名リンクと違い、ページ遷移すると分かる文言を出す。
  */
 export function ItemPageLink({ id, className }: { id: string; className?: string }) {
-  const href = itemPagePath(id)
+  const { locale } = useLocale()
+  const href = itemPagePath(id, locale)
   if (href === null) return null
   return (
     <a
