@@ -13,6 +13,7 @@ import {
   recipes,
   resolveDisplayName,
 } from '../src/data/index.ts'
+import { stripAlternatePrefix } from '../src/ui/format.ts'
 
 const namesEn = namesEnJson as Readonly<Record<string, string>>
 
@@ -53,5 +54,30 @@ describe('official game-name resolution', () => {
     for (const entity of entities) expect(namesEn[entity.id], entity.id).toBe(entity.name.en)
     expect(namesEn.Desc_CrystalShard_C).toBe('Power Shard')
     expect(namesEn.Desc_WAT1_C).toBe('Somersloop')
+  })
+})
+
+describe('alternate recipe name prefix', () => {
+  /**
+   * 接頭辞は辞書（ja: 代替 / en: Alternate）から組み立てる。ここが辞書と切れると、
+   * 一覧の名前に「代替: 」が残ったり、逆に別の語を削ったりする。
+   */
+  it('strips the official prefix in both locales, including the full-width colon', () => {
+    expect(stripAlternatePrefix('代替: 接着鉄板')).toBe('接着鉄板')
+    expect(stripAlternatePrefix('代替：アルクラッド筐体')).toBe('アルクラッド筐体')
+    expect(stripAlternatePrefix('Alternate: Adhered Iron Plate')).toBe('Adhered Iron Plate')
+    // 接頭辞が無い通常レシピ名は触らない
+    expect(stripAlternatePrefix('鉄板')).toBe('鉄板')
+    expect(stripAlternatePrefix('Iron Plate')).toBe('Iron Plate')
+  })
+
+  it('matches every alternate recipe in the bundled game data', () => {
+    const alternates = recipes.filter((recipe) => recipe.isAlternate)
+
+    expect(alternates.length).toBeGreaterThan(0)
+    for (const recipe of alternates) {
+      expect(stripAlternatePrefix(recipe.name.ja), recipe.id).not.toBe(recipe.name.ja)
+      expect(stripAlternatePrefix(recipe.name.en), recipe.id).not.toBe(recipe.name.en)
+    }
   })
 })

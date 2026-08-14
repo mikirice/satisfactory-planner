@@ -14,7 +14,7 @@ import {
   isAlternateRecipe,
   itemName,
 } from './format.ts'
-import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
+import { AlternateIcon, ItemIcon, ItemNameLink } from './ItemIcon.tsx'
 import { PowerFilterToggle } from './PowerFilterToggle.tsx'
 import { T } from './text.ts'
 
@@ -174,7 +174,7 @@ function flowList(rates: { item: string; ratePerMin: number }[]) {
         <li key={rate.item}>
           <span className="flow__name">
             <ItemIcon id={rate.item} name={itemName(rate.item)} size={CELL_ICON} />
-            {itemName(rate.item)}
+            <ItemNameLink id={rate.item}>{itemName(rate.item)}</ItemNameLink>
           </span>
           <span className="flow__rate num">{fmtRate(rate.ratePerMin)}</span>
         </li>

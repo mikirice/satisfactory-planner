@@ -67,6 +67,12 @@ export const en = {
       `Replace the current inputs with a plan for ${name}?`,
   },
 
+  /** Links out to the static item pages (/items/{slug}/). */
+  itemPage: {
+    open: 'Open item page',
+    openFor: (name: string): string => `Open the ${name} item page`,
+  },
+
   ads: {
     label: 'Advertisement',
   },
@@ -646,6 +652,12 @@ export const en = {
       output: 'Output',
     },
   },
+
+  /**
+   * Prefix used by official alternate recipe names ("Alternate: Pure Iron Ingot").
+   * Not display copy: it is stripped from names in narrow lists (src/ui/format.ts).
+   */
+  alternateNamePrefix: 'Alternate',
 
   units: {
     solidPerMinute: 'items/min',

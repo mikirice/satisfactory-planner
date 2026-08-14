@@ -14,6 +14,7 @@ import {
   recipes,
 } from '../src/data/index.ts'
 import type { Item, ItemAmount, Recipe } from '../src/data/types.ts'
+import { itemPagePath, itemSlug } from '../src/plan/item-pages.ts'
 import { getRecipesForItem, recipeMetrics } from '../src/plan/recipe-index.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
 import type { SamplePlan } from '../src/plan/samples.ts'
@@ -95,29 +96,10 @@ const loopSamples = SAMPLE_PLANS.filter(
     sample.category === 'special' && sample.guide !== undefined,
 )
 
-/** Item.id から永続的なASCII slugを作る。BP系は衝突回避のため接頭辞を残す。 */
-export function itemSlug(itemId: string): string {
-  const slug = itemId
-    .replace(/^Desc_/, '')
-    .replace(/_C$/, '')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/[^A-Za-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase()
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    throw new Error(`item slug could not be generated: ${itemId}`)
-  }
-  return slug
-}
+// slug の実装はアプリと共有する（src/plan/item-pages.ts が正典）。ここでは再輸出だけする。
+export { itemSlug } from '../src/plan/item-pages.ts'
 
-const itemSlugEntries = items.map((item) => [item.id, itemSlug(item.id)] as const)
-const itemSlugValues = itemSlugEntries.map(([, slug]) => slug)
-if (new Set(itemSlugValues).size !== items.length) {
-  throw new Error('item slug collision detected')
-}
-
-export const itemSlugById: ReadonlyMap<string, string> = new Map(itemSlugEntries)
+const itemSlugValues = items.map((item) => itemSlug(item.id))
 
 export const articleSlugs: readonly string[] = [
   ...handwrittenArticles.map((article) => article.slug),
@@ -164,9 +146,9 @@ function itemCategory(item: Item): string {
 }
 
 function itemUrl(itemId: string): string {
-  const slug = itemSlugById.get(itemId)
-  if (slug === undefined) throw new Error(`unknown item id: ${itemId}`)
-  return `/items/${slug}/`
+  const path = itemPagePath(itemId)
+  if (path === null) throw new Error(`unknown item id: ${itemId}`)
+  return path
 }
 
 function itemLink(itemId: string): string {

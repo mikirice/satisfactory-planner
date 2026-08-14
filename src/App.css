@@ -369,6 +369,15 @@
   font-size: clamp(20px, 2.2vw, 28px);
 }
 
+/* アイテム名の横に「アイテムページを開く」を置く（画面内の移動と区別する導線）。 */
+.recipe-browser__item-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-width: 0;
+}
+
 .recipe-browser__item-meta {
   display: flex;
   align-items: baseline;

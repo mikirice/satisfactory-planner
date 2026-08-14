@@ -72,7 +72,8 @@ export function detectLocale(
     if (matched !== null) return matched
   }
 
-  return 'ja'
+  // 計画書 §4.3「非対応言語は en」。日本語ブラウザは上のマッチで ja になるので影響しない。
+  return 'en'
 }
 
 function browserLanguages(): readonly string[] {

@@ -13,7 +13,7 @@ import {
   itemName,
   itemUnit,
 } from './format.ts'
-import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
+import { AlternateIcon, ItemIcon, ItemPageLink } from './ItemIcon.tsx'
 import { ItemSearchBox, ROW_ICON } from './ItemSearchBox.tsx'
 import { T } from './text.ts'
 
@@ -219,7 +219,11 @@ function ItemRecipeDetail({
         <div className="recipe-browser__item-heading">
           <ItemIcon id={item.id} name={itemName(item.id)} size={48} />
           <div>
-            <h2>{itemName(item.id)}</h2>
+            {/* 一覧・カード内のクリックは今までどおり画面内で移動する。ページ遷移はこのリンクだけ。 */}
+            <div className="recipe-browser__item-title">
+              <h2>{itemName(item.id)}</h2>
+              <ItemPageLink id={item.id} className="recipe-browser__item-page-link" />
+            </div>
             <p className="recipe-browser__item-meta">
               <span className={`tag ${item.isRawResource ? 'is-accent' : 'is-balanced'}`}>
                 {item.isRawResource ? T.recipeBrowser.raw : T.recipeBrowser.processed}

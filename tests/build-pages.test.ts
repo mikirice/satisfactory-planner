@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { handwrittenArticles } from '../content/articles/index.ts'
 import { items, recipes } from '../src/data/index.ts'
+import { itemPagePath } from '../src/plan/item-pages.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
 import { decodePlan, readPlanParam } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
@@ -266,5 +267,42 @@ describe('sitemap', () => {
     expect(locations).toContain(
       'https://satisfactory-planner.net/articles/production-planning-tutorial/',
     )
+  })
+})
+
+describe('アプリ内リンクと生成ページのパス一致', () => {
+  /**
+   * アプリ（表のアイテム名リンク）と静的ページ生成は src/plan/item-pages.ts の同じ実装を使う。
+   * ここが割れると「リンクだけ404」になるので、既知アイテムと全件の両方で突き合わせる。
+   */
+  it('既知アイテム3件でリンク先と生成ファイルが一致する', async () => {
+    const known = [
+      ['Desc_IronPlate_C', '/items/iron-plate/'],
+      ['Desc_Water_C', '/items/water/'],
+      ['Desc_ModularFrameHeavy_C', '/items/modular-frame-heavy/'],
+    ] as const
+
+    for (const [itemId, expectedPath] of known) {
+      expect(itemPagePath(itemId)).toBe(expectedPath)
+      const html = await readFile(join(outputDirectory, expectedPath, 'index.html'), 'utf8')
+      expect(html).toContain(`<link rel="canonical" href="https://satisfactory-planner.net${expectedPath}"`)
+    }
+  })
+
+  it('全アイテムでアプリのリンク先が生成URLと一致する', () => {
+    const generated = new Set(manifest.urls)
+    const mismatched = items.filter(
+      (item) => !generated.has(`https://satisfactory-planner.net${itemPagePath(item.id)}`),
+    )
+
+    expect(mismatched.map((item) => item.id)).toEqual([])
+    expect(items.every((item) => itemPagePath(item.id) === `/items/${itemSlug(item.id)}/`)).toBe(
+      true,
+    )
+  })
+
+  it('ページを持たないID（建物・未知ID）にはリンクを作らない', () => {
+    expect(itemPagePath('Build_SmelterMk1_C')).toBeNull()
+    expect(itemPagePath('Desc_DoesNotExist_C')).toBeNull()
   })
 })

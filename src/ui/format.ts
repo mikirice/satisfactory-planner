@@ -3,7 +3,7 @@
  * numeric cells never pass through these helpers.
  */
 import { itemsById, recipesById, resolveDisplayName } from '../data/index.ts'
-import { getActiveLocale } from '../i18n/index.ts'
+import { SUPPORTED_LOCALES, getActiveLocale, getDictionary } from '../i18n/index.ts'
 import { T } from './text.ts'
 
 type Digits = 0 | 1 | 2 | 4
@@ -73,8 +73,20 @@ export const recipeMainItem = (recipeId: string): string | null =>
 export const isAlternateRecipe = (recipeId: string): boolean =>
   recipesById.get(recipeId)?.isAlternate ?? false
 
-/** Remove the official Japanese or English alternate-recipe prefix for compact lists. */
-const ALTERNATE_PREFIX = /^(?:\u4ee3\u66ff\s*[:\uff1a]\s*|Alternate\s*[:\uff1a]\s*)/i
+/**
+ * Remove the official alternate-recipe prefix for compact lists.
+ *
+ * The prefixes come from the locale dictionaries (never spelled out here), and every locale
+ * is matched at once: a name resolved in one language must stay strippable while the UI is
+ * displayed in another. Only the separator is written literally, because the official
+ * Japanese names use both the ASCII and the full-width colon.
+ */
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const ALTERNATE_PREFIX = new RegExp(
+  `^(?:${SUPPORTED_LOCALES.map((locale) => escapeRegExp(getDictionary(locale).alternateNamePrefix)).join('|')})\\s*[:：]\\s*`,
+  'i',
+)
 
 export const stripAlternatePrefix = (name: string): string => name.replace(ALTERNATE_PREFIX, '')
 

@@ -212,11 +212,15 @@ describe('言語の判定と保持', () => {
     expect(detectLocale(['de-DE', 'en-US'], null)).toBe('en')
   })
 
-  it('対応言語が無いときは既定の日本語のまま（既存ユーザーへの影響ゼロが優先）', () => {
-    // 計画書 §8「既定は従来どおり日本語」に合わせた挙動。
+  it('対応言語がひとつも無いときは英語にする（計画書 §4.3「非対応言語は en」）', () => {
+    // 既定を ja から en に変更（2026-08-14）。日本語ブラウザは navigator.languages の
+    // マッチで ja になるため、既存ユーザーへの影響はない（計画書 §8）。
     // Stage 2 で対応言語が増えたら de-DE などはそちらに吸われる。
-    expect(detectLocale(['de-DE'], null)).toBe('ja')
-    expect(detectLocale([], null)).toBe('ja')
+    expect(detectLocale(['de-DE'], null)).toBe('en')
+    expect(detectLocale(['ja-JP'], null)).toBe('ja')
+    expect(detectLocale([], null)).toBe('en')
+    // 保存済みの選択は非対応言語の既定より優先される
+    expect(detectLocale(['de-DE'], 'ja')).toBe('ja')
   })
 
   it('壊れた保存値は無視してブラウザの希望言語に戻す', () => {

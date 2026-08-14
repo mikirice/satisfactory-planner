@@ -67,6 +67,12 @@ export const ja = {
       `現在の入力を「${name}の計画」で置き換えます。よろしいですか？`,
   },
 
+  /** 静的アイテムページ（/items/{slug}/）への導線。 */
+  itemPage: {
+    open: 'アイテムページを開く',
+    openFor: (name: string): string => `${name}のアイテムページを開く`,
+  },
+
   ads: {
     label: '広告',
   },
@@ -650,6 +656,13 @@ export const ja = {
       output: '産出',
     },
   },
+
+  /**
+   * 公式レシピ名に付く代替レシピの接頭辞（例:「代替: 純鉄インゴット」）。
+   * 画面に出す文言ではなく、狭い一覧で名前から取り除くための語（src/ui/format.ts）。
+   * 公式名の言語に合わせる必要があるので、辞書側に置いて正規表現に手書きしない。
+   */
+  alternateNamePrefix: '代替',
 
   units: {
     solidPerMinute: '個/分',
