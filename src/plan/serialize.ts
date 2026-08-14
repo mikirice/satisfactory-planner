@@ -11,7 +11,7 @@
  * ゲームデータ更新で消えたアイテム/レシピIDは「無視して警告」にする。
  * 前者はデータ全体が信用できないが、後者は残りが十分使えるため。
  */
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
+import LZString from 'lz-string'
 
 import { belts, generatorsById, itemsById, pipes, recipesById } from '../data/index.ts'
 import {
@@ -21,6 +21,9 @@ import {
 } from '../data/constants.ts'
 import { DEFAULT_MINER_ID, MINER_IDS } from '../solver/index.ts'
 import type { InputEntry, ObjectivePresetId, TargetEntry, TargetMode } from '../store/planner.ts'
+
+// lz-string 1.x は CommonJS。default import 経由なら Vite と build-time Node ESM の両方で動く。
+const { compressToEncodedURIComponent, decompressFromEncodedURIComponent } = LZString
 
 // ---------------------------------------------------------------------------
 // クロック / Somersloop の既定値と丸め

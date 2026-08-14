@@ -33,7 +33,7 @@ afterEach(async () => {
 describe('サイトフッター', () => {
   it('免責文と別タブで開くプライバシーポリシーへのリンクを表示する', async () => {
     const container = await render(<SiteFooter />)
-    const link = container.querySelector<HTMLAnchorElement>('a')
+    const link = container.querySelector<HTMLAnchorElement>('a[href="/privacy.html"]')
 
     expect(container.textContent).toContain(
       '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
@@ -41,6 +41,17 @@ describe('サイトフッター', () => {
     expect(link?.textContent).toBe('プライバシーポリシー')
     expect(link?.getAttribute('href')).toBe('/privacy.html')
     expect(link?.target).toBe('_blank')
+  })
+
+  it('静的な解説記事とアイテム一覧への内部リンクを表示する', async () => {
+    const container = await render(<SiteFooter />)
+
+    expect(container.querySelector<HTMLAnchorElement>('a[href="/articles/"]')?.textContent).toBe(
+      '解説記事',
+    )
+    expect(container.querySelector<HTMLAnchorElement>('a[href="/items/"]')?.textContent).toBe(
+      'アイテム一覧',
+    )
   })
 })
 

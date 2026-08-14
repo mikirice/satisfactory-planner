@@ -66,6 +66,8 @@ export const T = {
 
   footer: {
     disclaimer: '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
+    articles: '解説記事',
+    items: 'アイテム一覧',
     privacy: 'プライバシーポリシー',
   },
 

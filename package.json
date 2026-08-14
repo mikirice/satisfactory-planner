@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && npm run build-pages",
+    "build-pages": "node --import tsx scripts/build-pages.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
