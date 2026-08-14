@@ -68,7 +68,7 @@ export function StepsTable({ solution, hidePower = false, onHidePowerChange }: P
       {groups.map((group) => (
         <section className="card card--wide" key={group.buildingId}>
           <h3 className="card__title">
-            {group.buildingNameJa}
+            {itemName(group.buildingId)}
             <span className="card__meta">{T.steps.groupCount(group.steps.length)}</span>
           </h3>
           <div className="table-scroll table-scroll--wide">
@@ -97,12 +97,12 @@ export function StepsTable({ solution, hidePower = false, onHidePowerChange }: P
                     {/* 代替レシピはハードドライブのアイコンを先頭に添える（文字の「代替: 」は残す） */}
                     <span className="cell-name">
                       {isAlternateRecipe(step.recipeId) && <AlternateIcon size={CELL_ICON} />}
-                      <span>{step.recipeName.ja}</span>
+                      <span>{itemName(step.recipeId)}</span>
                     </span>
                   </th>
                   <td className="num">{fmtCount(step.machineCount)}</td>
                   <td className="num">
-                    {step.builtCount} 台 @ {fmtClock(step.clockSpeed)}
+                    {T.steps.builtClock(String(step.builtCount), fmtClock(step.clockSpeed))}
                   </td>
                   {showShards && <td className="num">{fmtInt(step.powerShards)}</td>}
                   {showSomersloops && (
@@ -144,7 +144,7 @@ export function StepsTable({ solution, hidePower = false, onHidePowerChange }: P
               <tr>
                 <th scope="row">{T.steps.subtotal}</th>
                 <td className="num">{fmtCount(group.machineCount)}</td>
-                <td className="num">{group.buildingCount} 台</td>
+                <td className="num">{T.steps.buildingCount(String(group.buildingCount))}</td>
                 {showShards && <td className="num">{fmtInt(group.powerShards)}</td>}
                 {showSomersloops && <td className="num">{fmtInt(group.somersloops)}</td>}
                 <td className="num">{fmtPower(group.powerMW)}</td>

@@ -8,7 +8,7 @@ import {
 import { MINER_IDS } from '../solver/index.ts'
 import { OBJECTIVE_PRESETS, usePlanner } from '../store/planner.ts'
 import { CollapsiblePanel } from './CollapsiblePanel.tsx'
-import { fmtClock } from './format.ts'
+import { fmtClock, fmtRate, itemName } from './format.ts'
 import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
 
@@ -32,8 +32,8 @@ export function ObjectivePanel() {
               onChange={() => setObjective(preset.id)}
             />
             <span className="radio__body">
-              <span className="radio__label">{preset.label}</span>
-              <span className="radio__hint">{preset.hint}</span>
+              <span className="radio__label">{T.objectives[preset.id].label}</span>
+              <span className="radio__hint">{T.objectives[preset.id].hint}</span>
             </span>
           </label>
         ))}
@@ -103,7 +103,7 @@ export function ExtractionPanel() {
             const extractor = extractorsById.get(id)!
             return (
               <option key={id} value={id}>
-                {extractor.name.ja}（{extractor.baseRatePerMin} 個/分・通常ノード）
+                {T.sidebar.minerOption(itemName(extractor.id), fmtRate(extractor.baseRatePerMin))}
               </option>
             )
           })}
@@ -142,7 +142,7 @@ export function LogisticsPanel() {
         <select className="input" value={beltId} onChange={(e) => setBeltId(e.target.value)}>
           {belts.map((belt) => (
             <option key={belt.id} value={belt.id}>
-              {belt.name.ja}（{belt.itemsPerMin} 個/分）
+              {T.sidebar.beltOption(itemName(belt.id), fmtRate(belt.itemsPerMin))}
             </option>
           ))}
         </select>
@@ -152,7 +152,7 @@ export function LogisticsPanel() {
         <select className="input" value={pipeId} onChange={(e) => setPipeId(e.target.value)}>
           {pipes.map((pipe) => (
             <option key={pipe.id} value={pipe.id}>
-              {pipe.name.ja}（{pipe.m3PerMin} m³/min）
+              {T.sidebar.pipeOption(itemName(pipe.id), fmtRate(pipe.m3PerMin))}
             </option>
           ))}
         </select>

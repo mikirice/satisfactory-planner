@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { meta } from './data/index.ts'
+import { useLocale } from './i18n/index.ts'
+import type { Locale } from './i18n/index.ts'
 import { saveAutosaveNow } from './plan/persist.ts'
 import { defaultPlanInput } from './plan/serialize.ts'
 import { disposeGlpk } from './solver/index.ts'
@@ -17,6 +19,7 @@ import { T } from './ui/text.ts'
 import './App.css'
 
 function App() {
+  const { locale, setLocale } = useLocale()
   const [viewMode, setViewMode] = useState<'normal' | 'loop' | 'recipe'>('normal')
   const status = usePlanner((s) => s.status)
   const result = usePlanner((s) => s.result)
@@ -82,6 +85,16 @@ function App() {
             {T.viewMode.recipe}
           </button>
         </div>
+        <select
+          className="header__language"
+          aria-label={T.language.label}
+          title={T.language.label}
+          value={locale}
+          onChange={(event) => setLocale(event.currentTarget.value as Locale)}
+        >
+          <option value="ja">{T.language.japanese}</option>
+          <option value="en">{T.language.english}</option>
+        </select>
         <p className="header__meta">
           {T.dataVersion} {meta.gameVersion}
         </p>

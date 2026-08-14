@@ -7,6 +7,7 @@
  */
 import { buildingsById } from '../data/index.ts'
 import { AISLE_AREA_FACTOR, FOUNDATION_AREA_M2 } from '../data/constants.ts'
+import type { LocalizedName } from '../data/types.ts'
 import type { ExtractionPlan, Solution, SolutionStep } from '../solver/index.ts'
 
 /**
@@ -27,7 +28,7 @@ export function stepKey(step: SolutionStep): string {
 
 export type BuildingGroup = {
   buildingId: string
-  buildingNameJa: string
+  buildingName: LocalizedName
   steps: SolutionStep[]
   machineCount: number
   buildingCount: number
@@ -48,7 +49,7 @@ export function groupByBuilding(steps: readonly SolutionStep[]): BuildingGroup[]
     if (!group) {
       group = {
         buildingId: step.buildingId,
-        buildingNameJa: buildingsById.get(step.buildingId)?.name.ja ?? step.buildingName.ja,
+        buildingName: buildingsById.get(step.buildingId)?.name ?? step.buildingName,
         steps: [],
         machineCount: 0,
         buildingCount: 0,

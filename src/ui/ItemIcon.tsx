@@ -9,6 +9,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { HARD_DRIVE_ICON_ID, iconPath } from './icons.ts'
+import { T } from './text.ts'
 
 /** 表・一覧の1行に置くアイコンの大きさ(px)。行送り（13px文字）を押し広げない大きさ。 */
 export const CELL_ICON = 16
@@ -48,7 +49,7 @@ export function ItemIcon({ id, name, size = 20, className }: Props) {
  * 名前の「代替: 」という文字は消さない（アイコンが撤去されても意味が伝わるように）。
  */
 export function AlternateIcon({ size = CELL_ICON }: { size?: number }) {
-  return <ItemIcon id={HARD_DRIVE_ICON_ID} name="代替レシピ" size={size} />
+  return <ItemIcon id={HARD_DRIVE_ICON_ID} name={T.sidebar.alternates} size={size} />
 }
 
 type LabelProps = {

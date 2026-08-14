@@ -29,6 +29,7 @@ import type {
 } from '../plan/graph.ts'
 import { runElkLayout } from './elk-layout.ts'
 import { fmtRate, isAlternateRecipe } from './format.ts'
+import { T } from './text.ts'
 
 // ---------------------------------------------------------------------------
 // 型
@@ -292,7 +293,7 @@ export function nodeRows(node: PlanGraphNode): NodeRow[] {
       // 「何を作るノードか」を一目で分かるようにする行（主産物アイコン＋主産物名）。
       // レシピ名と主産物名は一致しない（例: 代替レシピ）ので、名前とは別の行にする。
       { id: 'head', height: m.headLine, fontSize: m.headFontSize },
-      title(node.recipeNameJa),
+      title(node.recipeName),
       { id: 'meta:building', height: m.metaLine, fontSize: m.metaFontSize },
       { id: 'meta:power', height: m.metaLine, fontSize: m.metaFontSize },
       // Somersloop を挿すステップだけ1行増える（FlowChart.tsx の描画と同じ条件）
@@ -315,7 +316,7 @@ export function nodeRows(node: PlanGraphNode): NodeRow[] {
 
   const rows: NodeRow[] = [
     { id: 'kind', height: m.kindLine, fontSize: m.kindFontSize },
-    title(node.itemNameJa),
+    title(node.itemName),
     { id: 'rate', height: m.rateLine, fontSize: m.rateFontSize },
   ]
   if (node.kind === 'output' && node.requestedPerMin !== undefined) {
@@ -532,13 +533,12 @@ function toFlowNode(node: PlanGraphNode, position: { x: number; y: number } | un
 
 /** 「鉄板 60.00/min」。ボトルネックのときは必要本数を添える。 */
 export function edgeLabel(edge: PlanGraphEdge): string {
-  const rate =
-    edge.form === 'solid'
-      ? `${fmtRate(edge.ratePerMin)}/min`
-      : `${fmtRate(edge.ratePerMin)} m³/min`
+  const rate = `${fmtRate(edge.ratePerMin)} ${
+    edge.form === 'solid' ? T.units.solidPerMinute : T.units.fluidPerMinute
+  }`
   return edge.bottleneck
-    ? `${edge.itemNameJa} ${rate}・要 ${edge.lines}本`
-    : `${edge.itemNameJa} ${rate}`
+    ? T.flow.edgeBottleneck(edge.itemName, rate, String(edge.lines))
+    : T.flow.edgeLabel(edge.itemName, rate)
 }
 
 function toFlowEdge(

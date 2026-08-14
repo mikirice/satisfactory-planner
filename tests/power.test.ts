@@ -741,7 +741,7 @@ describe('表・グラフへの反映', () => {
     })
     const group = groupByBuilding(solution.steps).find((g) => g.buildingId === COAL)!
     expect(group).toBeDefined()
-    expect(group.buildingNameJa).toBe('石炭発電機')
+    expect(group.buildingName.ja).toBe('石炭発電機')
     expect(group.buildingCount).toBe(4)
     expect(group.powerMW).toBe(0)
     expect(group.powerProductionMW).toBeCloseTo(300, 6)

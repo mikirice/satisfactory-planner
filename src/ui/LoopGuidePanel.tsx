@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { useLocale } from '../i18n/index.ts'
 import { getLoopBaseline } from '../plan/loop-baseline.ts'
 import type { SamplePlan } from '../plan/samples.ts'
 import type { Solution, SolveResult } from '../solver/index.ts'
@@ -17,13 +18,14 @@ type BaselineState =
   | { status: 'error' }
 
 export function LoopGuidePanel({ sample, solution }: LoopGuidePanelProps) {
+  const { locale } = useLocale()
   const [open, setOpen] = useState(true)
   const comparesAlternates = sample.snapshot.a.length > 0
   const [baseline, setBaseline] = useState<BaselineState>({ status: 'loading' })
 
   useEffect(() => {
     setOpen(true)
-    if (!comparesAlternates) return
+    if (locale !== 'ja' || !comparesAlternates) return
 
     let cancelled = false
     setBaseline({ status: 'loading' })
@@ -38,9 +40,14 @@ export function LoopGuidePanel({ sample, solution }: LoopGuidePanelProps) {
     return () => {
       cancelled = true
     }
-  }, [comparesAlternates, sample])
+  }, [comparesAlternates, locale, sample])
 
   if (sample.guide === undefined) return null
+
+  // TODO(Stage 2): render translated per-template guides once their localized fields exist.
+  if (locale !== 'ja') {
+    return <p className="card card--wide hint">{T.samples.detailedGuideJapaneseOnly}</p>
+  }
 
   return (
     <details
@@ -125,13 +132,21 @@ function SavingsComparison({
       {savings.map((entry) => (
         <li key={entry.item}>
           {itemName(entry.item)} {fmtRate(entry.baseline)} → {fmtRate(entry.current)}{' '}
-          {itemUnit(entry.item)}（{fmtPercent((entry.baseline - entry.current) / entry.baseline)} 削減）
+          {T.loopGuide.savingsAmount(
+            itemUnit(entry.item),
+            fmtPercent((entry.baseline - entry.current) / entry.baseline),
+          )}
         </li>
       ))}
       {powerChange !== null && (
         <li>
-          {T.loopGuide.power} {fmtPower(powerChange.baseline)} → {fmtPower(powerChange.current)} MW（
-          {fmtPercent(powerChange.ratio)} {powerChange.current < powerChange.baseline ? '削減' : '増加'}）
+          {T.loopGuide.power} {fmtPower(powerChange.baseline)} → {fmtPower(powerChange.current)} MW{' '}
+          {T.loopGuide.powerChange(
+            fmtPercent(powerChange.ratio),
+            powerChange.current < powerChange.baseline
+              ? T.loopGuide.reduced
+              : T.loopGuide.increased,
+          )}
         </li>
       )}
     </ul>

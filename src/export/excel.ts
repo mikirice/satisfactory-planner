@@ -12,7 +12,7 @@
  * 方針:
  * - **数値は必ず数値セル**で書き、見た目は numFmt に任せる（文字列にすると集計できない）。
  *   丸めの粒度は仕様書 §8 の「レート小数2位・台数小数4位」に合わせる。
- * - アイテム名・レシピ名は日本語（src/data の LocalizedName.ja）。
+ * - アイテム名・レシピ名は出力ロケールの公式名を使う。
  * - 表シートは必ず「ヘッダー行の固定＋オートフィルタ＋列幅自動調整」。
  *   合計行はフィルタ範囲の外に出す（フィルタで消えると合計が読めなくなるため）。
  * - 集計は src/plan/aggregate.ts と共有する（画面と数字がズレないように）。
@@ -23,7 +23,16 @@
 import ExcelJS from 'exceljs'
 import type { Row, Workbook, Worksheet } from 'exceljs'
 
-import { itemsById, meta, recipesById, buildingsById } from '../data/index.ts'
+import {
+  buildingsById,
+  createDisplayName,
+  itemsById,
+  meta,
+  recipesById,
+} from '../data/index.ts'
+import type { DisplayNameResolver } from '../data/index.ts'
+import { getDictionary, resolveText } from '../i18n/index.ts'
+import type { Locale, UiDictionary } from '../i18n/types.ts'
 import { estimateFootprint, groupByBuilding, mergeBuildCost } from '../plan/aggregate.ts'
 import { enumeratePlanFlows, flowTransport, resolveTransportChoice } from '../plan/flows.ts'
 import type { ExtractionPlan, ItemRate, Solution } from '../solver/index.ts'
@@ -35,6 +44,8 @@ import type { ExtractionPlan, ItemRate, Solution } from '../solver/index.ts'
 export type ExcelExportInput = {
   solution: Solution
   extraction: ExtractionPlan | null
+  /** Workbook UI locale. Defaults to Japanese for backward compatibility. */
+  locale?: Locale
   /** プラン名。空なら 'plan' */
   planName?: string
   /** 物流シートで使うベルト（Belt.id）。既定は最速 */
@@ -43,6 +54,8 @@ export type ExcelExportInput = {
   pipeId?: string
   /** 目的関数の表示名（サマリーに出す） */
   objectiveLabel?: string
+  /** 目的関数の安定 ID（ロケール別ラベルは出力時に解決する） */
+  objectiveId?: 'resources' | 'power' | 'buildings'
   /** 有効にした代替レシピの Recipe.id 一覧 */
   enabledAlternateIds?: readonly string[]
   /** 固体ノードの採掘機 Building.id（サマリーに出す） */
@@ -51,14 +64,8 @@ export type ExcelExportInput = {
   generatedAt?: Date
 }
 
-export const SHEET_NAMES = {
-  summary: 'サマリー',
-  buildings: '建物リスト',
-  balance: 'アイテム収支',
-  resources: '原料',
-  buildCost: '建設コスト',
-  logistics: '物流',
-} as const
+/** Japanese sheet names retained as the backward-compatible public constants. */
+export const SHEET_NAMES = getDictionary('ja').excel.sheets
 
 /** シート名（仕様書 §8 の並び順） */
 export const SHEET_NAME_LIST: readonly string[] = [
@@ -100,6 +107,36 @@ const HEADER_BORDER = 'FFCBD5E1'
 const PLACEHOLDER = '—'
 /** 収支の 0 判定（画面の BalanceTable と揃える） */
 const ZERO = 1e-9
+type BalanceState = 'surplus' | 'shortage' | 'balanced'
+type ExcelText = UiDictionary['excel']
+
+type ExcelContext = {
+  numberLocale: string
+  dictionary: UiDictionary
+  t: ExcelText
+  displayName: DisplayNameResolver
+  collator: Intl.Collator
+  fixedRate: Intl.NumberFormat
+  text: (value: string) => string
+}
+
+function createExcelContext(locale: Locale = 'ja'): ExcelContext {
+  const dictionary = getDictionary(locale)
+  const displayName = createDisplayName(locale)
+  const numberLocale = locale === 'ja' ? 'ja-JP' : 'en-US'
+  return {
+    numberLocale,
+    dictionary,
+    t: dictionary.excel,
+    displayName,
+    collator: new Intl.Collator(numberLocale),
+    fixedRate: new Intl.NumberFormat(numberLocale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    text: (value) => resolveText(value, locale),
+  }
+}
 
 // ---------------------------------------------------------------------------
 // 公開API
@@ -115,17 +152,18 @@ export function planFileName(planName: string | undefined, date: Date = new Date
 
 /** ワークブックを組み立てる（保存はしない）。 */
 export function buildPlanWorkbook(input: ExcelExportInput): Workbook {
+  const context = createExcelContext(input.locale)
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'Satisfactory 生産計画ツール'
+  workbook.creator = context.text(context.t.creator)
   workbook.created = input.generatedAt ?? new Date()
   workbook.modified = workbook.created
 
-  writeSummarySheet(workbook, input)
-  writeBuildingsSheet(workbook, input)
-  writeBalanceSheet(workbook, input)
-  writeResourcesSheet(workbook, input)
-  writeBuildCostSheet(workbook, input)
-  writeLogisticsSheet(workbook, input)
+  writeSummarySheet(workbook, input, context)
+  writeBuildingsSheet(workbook, input, context)
+  writeBalanceSheet(workbook, input, context)
+  writeResourcesSheet(workbook, input, context)
+  writeBuildCostSheet(workbook, input, context)
+  writeLogisticsSheet(workbook, input, context)
 
   return workbook
 }
@@ -140,8 +178,9 @@ const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.s
 
 /** ブラウザでダウンロードさせる。document が無い環境では例外。 */
 export async function downloadPlanWorkbook(input: ExcelExportInput): Promise<void> {
+  const context = createExcelContext(input.locale)
   if (typeof document === 'undefined' || typeof URL.createObjectURL !== 'function') {
-    throw new Error('Excel のダウンロードはブラウザでのみ実行できます')
+    throw new Error(context.text(context.t.browserOnlyError))
   }
   const buffer = await planWorkbookBuffer(input)
   const url = URL.createObjectURL(new Blob([buffer], { type: XLSX_MIME }))
@@ -163,34 +202,46 @@ export async function downloadPlanWorkbook(input: ExcelExportInput): Promise<voi
 // 1. サマリー
 // ---------------------------------------------------------------------------
 
-function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
+function writeSummarySheet(
+  workbook: Workbook,
+  input: ExcelExportInput,
+  context: ExcelContext,
+): void {
   const { solution, extraction } = input
-  const ws = workbook.addWorksheet(SHEET_NAMES.summary)
+  const { t } = context
+  const ws = workbook.addWorksheet(t.sheets.summary)
   ws.views = [{ state: 'frozen', ySplit: 1 }]
 
-  const title = ws.addRow(['Satisfactory 生産計画'])
+  const title = ws.addRow([context.text(t.title)])
   title.getCell(1).font = { bold: true, size: 14 }
 
   // 1) 見出しブロック
-  addKeyValue(ws, 'プラン名', input.planName?.trim() || 'plan')
-  const generatedAt = ws.addRow(['生成日時', input.generatedAt ?? new Date()])
+  addKeyValue(ws, t.common.planName, input.planName?.trim() || 'plan')
+  const generatedAt = ws.addRow([t.common.generatedAt, input.generatedAt ?? new Date()])
   generatedAt.getCell(1).font = { bold: true }
   generatedAt.getCell(2).numFmt = NUM_FMT.datetime
-  addKeyValue(ws, 'ゲームデータ', meta.gameVersion)
-  if (input.objectiveLabel) addKeyValue(ws, '目的関数', input.objectiveLabel)
+  addKeyValue(ws, t.common.gameData, meta.gameVersion)
+  const objectiveLabel =
+    input.objectiveLabel ??
+    (input.objectiveId ? context.dictionary.objectives[input.objectiveId].label : undefined)
+  if (objectiveLabel) addKeyValue(ws, t.common.objective, context.text(objectiveLabel))
   if (input.minerId) {
-    addKeyValue(ws, '採掘機', buildingsById.get(input.minerId)?.name.ja ?? input.minerId)
+    addKeyValue(
+      ws,
+      t.common.miner,
+      context.displayName(buildingsById.get(input.minerId) ?? input.minerId),
+    )
   }
 
   // 2) 目標産出（最大化した行は要求欄を「最大化」にする）
-  addSection(ws, '目標産出')
-  addSummaryHeader(ws, ['アイテム', '要求', '産出', '単位'])
+  addSection(ws, t.summary.targetOutput)
+  addSummaryHeader(ws, [t.common.item, t.common.requested, t.common.produced, t.common.unit])
   for (const target of solution.targets) {
     const row = ws.addRow([
-      itemNameJa(target.item),
-      target.maximized ? '最大化' : target.requestedPerMin,
+      itemName(target.item, context),
+      target.maximized ? t.summary.maximized : target.requestedPerMin,
       target.producedPerMin,
-      itemUnitJa(target.item),
+      itemUnit(target.item, context),
     ])
     if (!target.maximized) row.getCell(2).numFmt = NUM_FMT.rate
     row.getCell(3).numFmt = NUM_FMT.rate
@@ -198,7 +249,7 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
   if (solution.maximizedOutput) {
     addKeyValue(
       ws,
-      `最大産出（${itemNameJa(solution.maximizedOutput.item)}）`,
+      t.summary.maximumOutput(itemName(solution.maximizedOutput.item, context)),
       solution.maximizedOutput.ratePerMin,
       NUM_FMT.rate,
     )
@@ -206,99 +257,129 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
 
   // 3) 電力（採掘電力を足した合計も出す）
   const extractionPowerMW = extraction?.totalPowerMW ?? 0
-  addSection(ws, '電力 (MW)')
-  addKeyValue(ws, '製造（下限）', solution.totalPowerRangeMW.minMW, NUM_FMT.power)
-  addKeyValue(ws, '製造（上限）', solution.totalPowerRangeMW.maxMW, NUM_FMT.power)
-  addKeyValue(ws, '採掘', extractionPowerMW, NUM_FMT.power)
-  addKeyValue(ws, '合計（下限）', solution.totalPowerRangeMW.minMW + extractionPowerMW, NUM_FMT.power)
-  addKeyValue(ws, '合計（上限）', solution.totalPowerRangeMW.maxMW + extractionPowerMW, NUM_FMT.power)
-
-  // 3.5) クロックとサマースループ（クロックを適用した実消費電力はこちら）
-  addSection(ws, 'クロックとサマースループ')
-  addKeyValue(ws, '製造クロック上限', solution.maxClock, NUM_FMT.percent)
-  addKeyValue(ws, '採掘クロック', extraction?.clock ?? 1, NUM_FMT.percent)
+  addSection(ws, t.summary.power)
+  addKeyValue(ws, t.summary.manufacturingMin, solution.totalPowerRangeMW.minMW, NUM_FMT.power)
+  addKeyValue(ws, t.summary.manufacturingMax, solution.totalPowerRangeMW.maxMW, NUM_FMT.power)
+  addKeyValue(ws, t.summary.extraction, extractionPowerMW, NUM_FMT.power)
   addKeyValue(
     ws,
-    '製造電力（クロック適用・下限）',
+    t.summary.totalMin,
+    solution.totalPowerRangeMW.minMW + extractionPowerMW,
+    NUM_FMT.power,
+  )
+  addKeyValue(
+    ws,
+    t.summary.totalMax,
+    solution.totalPowerRangeMW.maxMW + extractionPowerMW,
+    NUM_FMT.power,
+  )
+
+  // 3.5) クロックとサマースループ（クロックを適用した実消費電力はこちら）
+  addSection(ws, context.text(t.summary.clockAndSomersloop))
+  addKeyValue(ws, t.summary.manufacturingClockMax, solution.maxClock, NUM_FMT.percent)
+  addKeyValue(ws, t.summary.extractionClock, extraction?.clock ?? 1, NUM_FMT.percent)
+  addKeyValue(
+    ws,
+    t.summary.clockedManufacturingMin,
     solution.totalClockedPowerRangeMW.minMW,
     NUM_FMT.power,
   )
   addKeyValue(
     ws,
-    '製造電力（クロック適用・上限）',
+    t.summary.clockedManufacturingMax,
     solution.totalClockedPowerRangeMW.maxMW,
     NUM_FMT.power,
   )
   addKeyValue(
     ws,
-    '合計電力（クロック適用・下限）',
+    t.summary.clockedTotalMin,
     solution.totalClockedPowerRangeMW.minMW + extractionPowerMW,
     NUM_FMT.power,
   )
   addKeyValue(
     ws,
-    '合計電力（クロック適用・上限）',
+    t.summary.clockedTotalMax,
     solution.totalClockedPowerRangeMW.maxMW + extractionPowerMW,
     NUM_FMT.power,
   )
   addKeyValue(
     ws,
-    'パワーシャード（個）',
+    context.text(t.summary.powerShards),
     solution.totalPowerShards + (extraction?.totalPowerShards ?? 0),
     NUM_FMT.int,
   )
-  addKeyValue(ws, 'サマースループ 使用数（個）', solution.totalSomersloops, NUM_FMT.int)
-  addKeyValue(ws, 'サマースループ 使用可能数（個）', solution.somersloopLimit, NUM_FMT.int)
+  addKeyValue(
+    ws,
+    context.text(t.summary.somersloopsUsed),
+    solution.totalSomersloops,
+    NUM_FMT.int,
+  )
+  addKeyValue(
+    ws,
+    context.text(t.summary.somersloopsAvailable),
+    solution.somersloopLimit,
+    NUM_FMT.int,
+  )
 
   // 3.7) 発電計画（発電機を使う設定のときだけ）
   const power = solution.powerGeneration
   if (power) {
-    addSection(ws, '発電計画')
-    addKeyValue(ws, '総発電量 (MW)', power.totalMW, NUM_FMT.power)
-    addKeyValue(ws, '目標発電量 (MW)', power.targetMW, NUM_FMT.power)
-    addKeyValue(ws, '工場の消費電力を賄う', power.coverFactoryPower ? 'はい' : 'いいえ')
-    addKeyValue(ws, '製造の消費電力（クロック100%換算・MW）', power.factoryPowerMW, NUM_FMT.power)
-    addKeyValue(ws, '差引 (MW)', power.netMW, NUM_FMT.power)
-    addKeyValue(ws, '発電機（建てる台数）', power.totalGeneratorCount, NUM_FMT.int)
-    addKeyValue(ws, '発電機（稼働台数）', power.totalGeneratorMachineCount, NUM_FMT.count)
-    addSummaryHeader(ws, ['燃料', '消費レート', '単位'])
-    if (power.fuelUsage.length === 0) ws.addRow(['燃料を使っていません'])
+    addSection(ws, t.summary.powerPlan)
+    addKeyValue(ws, t.summary.totalGeneration, power.totalMW, NUM_FMT.power)
+    addKeyValue(ws, t.summary.generationTarget, power.targetMW, NUM_FMT.power)
+    addKeyValue(ws, t.summary.coverFactory, power.coverFactoryPower ? t.common.yes : t.common.no)
+    addKeyValue(ws, t.summary.factoryConsumption, power.factoryPowerMW, NUM_FMT.power)
+    addKeyValue(ws, t.summary.netPower, power.netMW, NUM_FMT.power)
+    addKeyValue(ws, t.summary.generatorsBuilt, power.totalGeneratorCount, NUM_FMT.int)
+    addKeyValue(ws, t.summary.generatorsRunning, power.totalGeneratorMachineCount, NUM_FMT.count)
+    addSummaryHeader(ws, [t.common.fuel, t.summary.fuelRate, t.common.unit])
+    if (power.fuelUsage.length === 0) ws.addRow([t.summary.noFuel])
     for (const fuel of power.fuelUsage) {
-      const row = ws.addRow([itemNameJa(fuel.item), fuel.ratePerMin, itemUnitJa(fuel.item)])
+      const row = ws.addRow([
+        itemName(fuel.item, context),
+        fuel.ratePerMin,
+        itemUnit(fuel.item, context),
+      ])
       row.getCell(2).numFmt = NUM_FMT.rate
     }
-    ws.addRow(['※ 発電機のクロックは100%固定です。採掘設備の電力は発電計画に含めていません。'])
+    ws.addRow([t.summary.powerNote])
   }
 
   // 4) 建物
-  addSection(ws, '建物')
-  addKeyValue(ws, '稼働台数（小数）', solution.totalMachineCount, NUM_FMT.count)
-  addKeyValue(ws, '建てる台数', solution.totalBuildingCount, NUM_FMT.int)
-  addKeyValue(ws, '採掘設備台数', extraction?.totalBuildingCount ?? 0, NUM_FMT.int)
+  addSection(ws, t.common.building)
+  addKeyValue(ws, t.summary.runningMachines, solution.totalMachineCount, NUM_FMT.count)
+  addKeyValue(ws, t.summary.builtMachines, solution.totalBuildingCount, NUM_FMT.int)
+  addKeyValue(ws, t.summary.extractorCount, extraction?.totalBuildingCount ?? 0, NUM_FMT.int)
 
   // 4.5) 床面積（概算）
   const footprint = estimateFootprint(solution, extraction)
-  addSection(ws, '床面積（概算）')
-  addKeyValue(ws, '製造建物の設置面積 (m²)', footprint.manufacturingAreaM2, NUM_FMT.area)
-  addKeyValue(ws, '採掘設備の設置面積 (m²)', footprint.extractionAreaM2, NUM_FMT.area)
-  addKeyValue(ws, '設置面積の合計 (m²)', footprint.buildingAreaM2, NUM_FMT.area)
-  addKeyValue(ws, '通路係数', footprint.aisleFactor, NUM_FMT.amount)
-  addKeyValue(ws, '概算床面積 (m²)', footprint.totalAreaM2, NUM_FMT.area)
-  addKeyValue(ws, 'ファウンデーション（8m×8m・枚）', footprint.foundations, NUM_FMT.int)
-  ws.addRow(['※ 建物のクリアランスから出した概算です。実際の広さは配置によって変わります。'])
+  addSection(ws, t.summary.footprint)
+  addKeyValue(ws, t.summary.manufacturingArea, footprint.manufacturingAreaM2, NUM_FMT.area)
+  addKeyValue(ws, t.summary.extractionArea, footprint.extractionAreaM2, NUM_FMT.area)
+  addKeyValue(ws, t.summary.buildingArea, footprint.buildingAreaM2, NUM_FMT.area)
+  addKeyValue(ws, t.summary.aisleFactor, footprint.aisleFactor, NUM_FMT.amount)
+  addKeyValue(ws, t.summary.estimatedArea, footprint.totalAreaM2, NUM_FMT.area)
+  addKeyValue(ws, t.summary.foundations, footprint.foundations, NUM_FMT.int)
+  ws.addRow([t.summary.footprintNote])
 
   // 5) 必要原料
-  addSection(ws, '必要原料')
-  addSummaryHeader(ws, ['アイテム', '必要レート', '単位', 'マップ上限', '上限比率'])
+  addSection(ws, t.summary.requiredResources)
+  addSummaryHeader(ws, [
+    t.common.item,
+    t.summary.requiredRate,
+    t.common.unit,
+    t.summary.mapLimit,
+    t.summary.limitRatio,
+  ])
   if (solution.rawResources.length === 0) {
-    ws.addRow(['原料を使っていません'])
+    ws.addRow([t.summary.noResources])
   }
   for (const raw of solution.rawResources) {
     const row = ws.addRow([
-      itemNameJa(raw.item),
+      itemName(raw.item, context),
       raw.ratePerMin,
-      itemUnitJa(raw.item),
-      raw.limitPerMin ?? '無制限',
+      itemUnit(raw.item, context),
+      raw.limitPerMin ?? t.common.unlimited,
       raw.usageRatio ?? PLACEHOLDER,
     ])
     row.getCell(2).numFmt = NUM_FMT.rate
@@ -308,14 +389,14 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
 
   // 5.5) 既保有アイテムの投入（全量が使われるとは限らないので投入と使用を並べる）
   if (solution.externalInputs.length > 0) {
-    addSection(ws, '既保有アイテムの投入')
-    addSummaryHeader(ws, ['アイテム', '投入', '使用', '単位'])
+    addSection(ws, t.summary.externalInputs)
+    addSummaryHeader(ws, [t.common.item, t.common.input, t.common.used, t.common.unit])
     for (const external of solution.externalInputs) {
       const row = ws.addRow([
-        itemNameJa(external.item),
+        itemName(external.item, context),
         external.availablePerMin,
         external.ratePerMin,
-        itemUnitJa(external.item),
+        itemUnit(external.item, context),
       ])
       row.getCell(2).numFmt = NUM_FMT.rate
       row.getCell(3).numFmt = NUM_FMT.rate
@@ -323,61 +404,66 @@ function writeSummarySheet(workbook: Workbook, input: ExcelExportInput): void {
   }
 
   // 6) シンクポイント
-  addSection(ws, 'シンクポイント')
-  addKeyValue(ws, '合計 (pt/分)', solution.sinkPointsPerMin, NUM_FMT.int)
+  addSection(ws, t.summary.sinkPoints)
+  addKeyValue(ws, t.summary.sinkPointsTotal, solution.sinkPointsPerMin, NUM_FMT.int)
 
   // 7) 副産物
-  addSection(ws, '副産物')
+  addSection(ws, t.summary.byproducts)
   if (solution.byproducts.length === 0) {
-    ws.addRow(['副産物はありません'])
+    ws.addRow([t.summary.noByproducts])
   } else {
-    addSummaryHeader(ws, ['アイテム', 'レート', '単位'])
+    addSummaryHeader(ws, [t.common.item, t.common.rate, t.common.unit])
     for (const byproduct of solution.byproducts) {
       const row = ws.addRow([
-        itemNameJa(byproduct.item),
+        itemName(byproduct.item, context),
         byproduct.ratePerMin,
-        itemUnitJa(byproduct.item),
+        itemUnit(byproduct.item, context),
       ])
       row.getCell(2).numFmt = NUM_FMT.rate
     }
   }
 
   // 8) 有効な代替レシピ
-  addSection(ws, '有効な代替レシピ')
+  addSection(ws, t.summary.enabledAlternates)
   const alternates = (input.enabledAlternateIds ?? [])
-    .map((id) => recipesById.get(id)?.name.ja ?? id)
-    .sort((a, b) => a.localeCompare(b, 'ja'))
-  if (alternates.length === 0) ws.addRow(['なし'])
+    .map((id) => context.displayName(recipesById.get(id) ?? id))
+    .sort(context.collator.compare)
+  if (alternates.length === 0) ws.addRow([t.common.none])
   for (const name of alternates) ws.addRow([name])
 
-  autoFitColumns(ws)
+  autoFitColumns(ws, context)
 }
 
 // ---------------------------------------------------------------------------
 // 2. 建物リスト
 // ---------------------------------------------------------------------------
 
-function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void {
-  const ws = workbook.addWorksheet(SHEET_NAMES.buildings)
+function writeBuildingsSheet(
+  workbook: Workbook,
+  input: ExcelExportInput,
+  context: ExcelContext,
+): void {
+  const { t } = context
+  const ws = workbook.addWorksheet(t.sheets.buildings)
   const headers = [
-    '機械種別',
-    'レシピ',
-    '稼働台数',
-    '建てる台数',
-    'クロック',
-    'パワーシャード',
-    'サマースループ',
-    '消費電力(MW)',
-    '電力下限(MW)',
-    '電力上限(MW)',
-    '発電量(MW)',
-    '幅(m)',
-    '奥行(m)',
-    '高さ(m)',
-    '設置面積(m²/台)',
-    '設置面積合計(m²)',
-    '投入',
-    '産出',
+    t.buildings.machineType,
+    t.common.recipe,
+    t.buildings.running,
+    t.buildings.built,
+    t.buildings.clock,
+    context.text(t.buildings.powerShards),
+    context.text(t.buildings.somersloops),
+    t.buildings.power,
+    t.buildings.powerMin,
+    t.buildings.powerMax,
+    t.buildings.generation,
+    t.buildings.width,
+    t.buildings.depth,
+    t.buildings.height,
+    t.buildings.areaPerBuilding,
+    t.buildings.totalArea,
+    t.common.input,
+    t.common.produced,
   ]
   addHeaderRow(ws, headers)
 
@@ -387,8 +473,8 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
       // 消費電力はクロックを適用した実値（画面の生産ステップ表と同じ）
       const footprint = buildingsById.get(step.buildingId)?.footprint
       const row = ws.addRow([
-        group.buildingNameJa,
-        step.recipeName.ja,
+        context.displayName(group.buildingName),
+        context.displayName(step.recipeName),
         step.machineCount,
         step.builtCount,
         step.clockSpeed,
@@ -404,8 +490,8 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
         footprint?.heightM ?? PLACEHOLDER,
         footprint?.areaM2 ?? PLACEHOLDER,
         step.footprintAreaM2,
-        flowText(step.inputs),
-        flowText(step.outputs),
+        flowText(step.inputs, context),
+        flowText(step.outputs, context),
       ])
       row.getCell(3).numFmt = NUM_FMT.count
       row.getCell(4).numFmt = NUM_FMT.int
@@ -422,7 +508,7 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
 
   // 合計行はフィルタ範囲の外（フィルタで隠れると読めなくなるため）
   const totals = ws.addRow([
-    '合計',
+    t.common.total,
     '',
     input.solution.totalMachineCount,
     input.solution.totalBuildingCount,
@@ -446,42 +532,61 @@ function writeBuildingsSheet(workbook: Workbook, input: ExcelExportInput): void 
   for (const col of [8, 9, 10, 11]) totals.getCell(col).numFmt = NUM_FMT.power
   totals.getCell(16).numFmt = NUM_FMT.area
 
-  autoFitColumns(ws)
+  autoFitColumns(ws, context)
 }
 
 // ---------------------------------------------------------------------------
 // 3. アイテム収支
 // ---------------------------------------------------------------------------
 
-function writeBalanceSheet(workbook: Workbook, input: ExcelExportInput): void {
-  const ws = workbook.addWorksheet(SHEET_NAMES.balance)
-  const headers = ['アイテム', '単位', '産出', '消費', '外部供給', '差分', '状態']
+function writeBalanceSheet(
+  workbook: Workbook,
+  input: ExcelExportInput,
+  context: ExcelContext,
+): void {
+  const { t } = context
+  const ws = workbook.addWorksheet(t.sheets.balance)
+  const headers = [
+    t.common.item,
+    t.common.unit,
+    t.common.produced,
+    t.common.consumed,
+    t.balance.externalSupply,
+    t.balance.net,
+    t.balance.state,
+  ]
   addHeaderRow(ws, headers)
 
   const rows = [...input.solution.itemBalance].sort(
     (a, b) =>
       Math.abs(b.netPerMin) - Math.abs(a.netPerMin) ||
-      itemNameJa(a.item).localeCompare(itemNameJa(b.item), 'ja'),
+      context.collator.compare(itemName(a.item, context), itemName(b.item, context)),
   )
 
   for (const balance of rows) {
-    const state =
-      balance.netPerMin > ZERO ? '余剰' : balance.netPerMin < -ZERO ? '不足' : '均衡'
+    const state: BalanceState =
+      balance.netPerMin > ZERO
+        ? 'surplus'
+        : balance.netPerMin < -ZERO
+          ? 'shortage'
+          : 'balanced'
     const row = ws.addRow([
-      itemNameJa(balance.item),
-      itemUnitJa(balance.item),
+      itemName(balance.item, context),
+      itemUnit(balance.item, context),
       balance.producedPerMin,
       balance.consumedPerMin,
       balance.suppliedPerMin,
       balance.netPerMin,
-      state,
+      t.balance[state],
     ])
     for (const col of [3, 4, 5, 6]) row.getCell(col).numFmt = NUM_FMT.rate
 
     // 色だけに頼らないよう「状態」列のラベルと必ずセットで塗る（カラーユニバーサル対応）
-    if (state !== '均衡') {
-      const fill = state === '不足' ? BALANCE_COLORS.shortageFill : BALANCE_COLORS.surplusFill
-      const font = state === '不足' ? BALANCE_COLORS.shortageFont : BALANCE_COLORS.surplusFont
+    if (state !== 'balanced') {
+      const fill =
+        state === 'shortage' ? BALANCE_COLORS.shortageFill : BALANCE_COLORS.surplusFill
+      const font =
+        state === 'shortage' ? BALANCE_COLORS.shortageFont : BALANCE_COLORS.surplusFont
       for (const col of [6, 7]) {
         const cell = row.getCell(col)
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } }
@@ -491,33 +596,38 @@ function writeBalanceSheet(workbook: Workbook, input: ExcelExportInput): void {
   }
 
   finishTable(ws, 1, ws.rowCount, headers.length)
-  autoFitColumns(ws)
+  autoFitColumns(ws, context)
 }
 
 // ---------------------------------------------------------------------------
 // 4. 原料
 // ---------------------------------------------------------------------------
 
-function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void {
-  const ws = workbook.addWorksheet(SHEET_NAMES.resources)
+function writeResourcesSheet(
+  workbook: Workbook,
+  input: ExcelExportInput,
+  context: ExcelContext,
+): void {
+  const { t } = context
+  const ws = workbook.addWorksheet(t.sheets.resources)
   const headers = [
-    '原料',
-    '単位',
-    '必要レート',
-    'マップ上限',
-    '上限比率',
-    '採掘設備',
-    '稼働台数',
-    '建てる台数',
-    '純度',
-    'ノード数',
-    'マップのノード数',
-    'ノードあたりレート',
-    'このノード群のレート',
-    '加圧機(台)',
-    'パワーシャード',
-    '採掘電力(MW)',
-    'ノード不足',
+    t.resources.resource,
+    t.common.unit,
+    t.resources.requiredRate,
+    t.resources.mapLimit,
+    t.resources.limitRatio,
+    t.resources.extractor,
+    t.resources.running,
+    t.resources.built,
+    t.resources.purity,
+    t.resources.nodes,
+    t.resources.mapNodes,
+    t.resources.ratePerNode,
+    t.resources.groupRate,
+    context.text(t.resources.pressurizers),
+    context.text(t.resources.powerShards),
+    t.resources.extractionPower,
+    t.resources.nodeShortfall,
   ]
   addHeaderRow(ws, headers)
 
@@ -527,10 +637,10 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
     const plan = planByItem.get(raw.item)
     // 採掘計画が無い原料でも1行は出す（設備列は —）
     const head = [
-      itemNameJa(raw.item),
-      itemUnitJa(raw.item),
+      itemName(raw.item, context),
+      itemUnit(raw.item, context),
       raw.ratePerMin,
-      raw.limitPerMin ?? '無制限',
+      raw.limitPerMin ?? t.common.unlimited,
       raw.usageRatio ?? PLACEHOLDER,
     ]
     const styleHead = (row: Row): void => {
@@ -568,15 +678,15 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
         const first = index === 0
         const row = ws.addRow([
           ...head,
-          group.extractorName.ja,
+          context.displayName(group.extractorName),
           group.machineCount,
           group.buildingCount,
-          assignment ? PURITY_JA[assignment.purity] : PLACEHOLDER,
+          assignment ? t.resources[assignment.purity] : PLACEHOLDER,
           assignment ? assignment.nodes : PLACEHOLDER,
           assignment
             ? Number.isFinite(assignment.availableNodes)
               ? assignment.availableNodes
-              : '制限なし'
+              : t.common.noLimit
             : PLACEHOLDER,
           assignment ? assignment.ratePerNodePerMin : PLACEHOLDER,
           assignment ? assignment.ratePerMin : PLACEHOLDER,
@@ -607,18 +717,26 @@ function writeResourcesSheet(workbook: Workbook, input: ExcelExportInput): void 
   }
 
   finishTable(ws, 1, ws.rowCount, headers.length)
-  autoFitColumns(ws)
+  autoFitColumns(ws, context)
 }
-
-const PURITY_JA = { pure: '高純度', normal: '通常', impure: '低純度' } as const
 
 // ---------------------------------------------------------------------------
 // 5. 建設コスト
 // ---------------------------------------------------------------------------
 
-function writeBuildCostSheet(workbook: Workbook, input: ExcelExportInput): void {
-  const ws = workbook.addWorksheet(SHEET_NAMES.buildCost)
-  const headers = ['建材', '製造建物', '採掘設備', '合計']
+function writeBuildCostSheet(
+  workbook: Workbook,
+  input: ExcelExportInput,
+  context: ExcelContext,
+): void {
+  const { t } = context
+  const ws = workbook.addWorksheet(t.sheets.buildCost)
+  const headers = [
+    t.buildCost.material,
+    t.buildCost.manufacturing,
+    t.buildCost.extraction,
+    t.common.total,
+  ]
   addHeaderRow(ws, headers)
 
   const rows = mergeBuildCost(input.solution, input.extraction)
@@ -626,7 +744,12 @@ function writeBuildCostSheet(workbook: Workbook, input: ExcelExportInput): void 
   let extraction = 0
   let total = 0
   for (const cost of rows) {
-    const row = ws.addRow([itemNameJa(cost.item), cost.manufacturing, cost.extraction, cost.total])
+    const row = ws.addRow([
+      itemName(cost.item, context),
+      cost.manufacturing,
+      cost.extraction,
+      cost.total,
+    ])
     for (const col of [2, 3, 4]) row.getCell(col).numFmt = NUM_FMT.amount
     manufacturing += cost.manufacturing
     extraction += cost.extraction
@@ -635,32 +758,37 @@ function writeBuildCostSheet(workbook: Workbook, input: ExcelExportInput): void 
 
   finishTable(ws, 1, ws.rowCount, headers.length)
 
-  const totals = ws.addRow(['合計', manufacturing, extraction, total])
+  const totals = ws.addRow([t.common.total, manufacturing, extraction, total])
   totals.font = { bold: true }
   for (const col of [2, 3, 4]) totals.getCell(col).numFmt = NUM_FMT.amount
 
-  autoFitColumns(ws)
+  autoFitColumns(ws, context)
 }
 
 // ---------------------------------------------------------------------------
 // 6. 物流
 // ---------------------------------------------------------------------------
 
-function writeLogisticsSheet(workbook: Workbook, input: ExcelExportInput): void {
-  const ws = workbook.addWorksheet(SHEET_NAMES.logistics)
+function writeLogisticsSheet(
+  workbook: Workbook,
+  input: ExcelExportInput,
+  context: ExcelContext,
+): void {
+  const { t } = context
+  const ws = workbook.addWorksheet(t.sheets.logistics)
   const headers = [
-    '区分',
-    'レシピ',
-    '機械',
-    'アイテム',
-    '形態',
-    'レート',
-    '単位',
-    '搬送',
-    '搬送手段',
-    '1本あたり上限',
-    '必要本数',
-    '使用率',
+    t.logistics.kind,
+    t.common.recipe,
+    t.common.machine,
+    t.common.item,
+    t.logistics.form,
+    t.common.rate,
+    t.common.unit,
+    t.logistics.transport,
+    t.logistics.transportMethod,
+    t.logistics.capacity,
+    t.logistics.lines,
+    t.logistics.utilization,
   ]
   addHeaderRow(ws, headers)
 
@@ -671,15 +799,15 @@ function writeLogisticsSheet(workbook: Workbook, input: ExcelExportInput): void 
   for (const flow of enumeratePlanFlows(input.solution)) {
     const { kind: transport, requirement } = flowTransport(flow.item, flow.ratePerMin, resolved)
     const row = ws.addRow([
-      flow.kind,
-      flow.step?.recipeName.ja ?? PLACEHOLDER,
-      flow.step?.buildingName.ja ?? PLACEHOLDER,
-      itemNameJa(flow.item),
-      itemFormJa(flow.item),
+      t.logistics[flow.kind],
+      flow.step ? context.displayName(flow.step.recipeName) : PLACEHOLDER,
+      flow.step ? context.displayName(flow.step.buildingName) : PLACEHOLDER,
+      itemName(flow.item, context),
+      itemFormLabel(flow.item, context),
       flow.ratePerMin,
-      itemUnitJa(flow.item),
-      transport === 'belt' ? 'ベルト' : 'パイプ',
-      requirement.nameJa,
+      itemUnit(flow.item, context),
+      transport === 'belt' ? t.common.belt : t.common.pipe,
+      context.displayName(requirement.name),
       requirement.capacityPerMin,
       requirement.lines,
       requirement.utilization,
@@ -691,33 +819,39 @@ function writeLogisticsSheet(workbook: Workbook, input: ExcelExportInput): void 
   }
 
   finishTable(ws, 1, ws.rowCount, headers.length)
-  autoFitColumns(ws)
+  autoFitColumns(ws, context)
 }
 
 // ---------------------------------------------------------------------------
 // 共通ヘルパー
 // ---------------------------------------------------------------------------
 
-const itemNameJa = (id: string): string => itemsById.get(id)?.name.ja ?? id
+const itemName = (id: string, context: ExcelContext): string =>
+  context.displayName(itemsById.get(id) ?? id)
 
-const itemUnitJa = (id: string): string =>
-  itemsById.get(id)?.form === 'solid' ? '個/分' : 'm³/min'
+const itemUnit = (id: string, context: ExcelContext): string =>
+  itemsById.get(id)?.form === 'solid'
+    ? context.dictionary.units.solidPerMinute
+    : context.dictionary.units.fluidPerMinute
 
-function itemFormJa(id: string): string {
+function itemFormLabel(id: string, context: ExcelContext): string {
   switch (itemsById.get(id)?.form) {
     case 'liquid':
-      return '液体'
+      return context.t.common.liquid
     case 'gas':
-      return '気体'
+      return context.t.common.gas
     default:
-      return '固体'
+      return context.t.common.solid
   }
 }
 
 /** 「鉄のインゴット 105.00 個/分 / 水 30.00 m³/min」 */
-function flowText(flows: readonly ItemRate[]): string {
+function flowText(flows: readonly ItemRate[], context: ExcelContext): string {
   return flows
-    .map((f) => `${itemNameJa(f.item)} ${f.ratePerMin.toFixed(2)} ${itemUnitJa(f.item)}`)
+    .map(
+      (flow) =>
+        `${itemName(flow.item, context)} ${context.fixedRate.format(flow.ratePerMin)} ${itemUnit(flow.item, context)}`,
+    )
     .join(' / ')
 }
 
@@ -773,20 +907,20 @@ function addKeyValue(ws: Worksheet, label: string, value: string | number, numFm
  * 列幅の自動調整。全角を2、半角を1として数え、8〜48 文字の範囲に収める。
  * 数値セルは numFmt どおりの桁数で見えるので、小数4位まで見た文字数で概算する。
  */
-function autoFitColumns(ws: Worksheet): void {
+function autoFitColumns(ws: Worksheet, context: ExcelContext): void {
   ws.columns.forEach((column) => {
     let width = 0
     column.eachCell?.({ includeEmpty: false }, (cell) => {
-      width = Math.max(width, displayWidth(cellText(cell.value)))
+      width = Math.max(width, displayWidth(cellText(cell.value, context)))
     })
     column.width = Math.min(48, Math.max(8, width + 2))
   })
 }
 
-function cellText(value: unknown): string {
+function cellText(value: unknown, context: ExcelContext): string {
   if (value === null || value === undefined) return ''
   if (typeof value === 'number') {
-    return value.toLocaleString('ja-JP', { maximumFractionDigits: 4 })
+    return value.toLocaleString(context.numberLocale, { maximumFractionDigits: 4 })
   }
   if (value instanceof Date) return '0000/00/00 00:00'
   return String(value)

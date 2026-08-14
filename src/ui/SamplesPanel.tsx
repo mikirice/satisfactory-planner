@@ -9,6 +9,8 @@
  */
 import { useState } from 'react'
 
+import { resolveText, useLocale } from '../i18n/index.ts'
+import type { Locale } from '../i18n/index.ts'
 import { SAMPLE_PLANS, TEMPLATE_CATEGORIES } from '../plan/samples.ts'
 import type { SamplePlan } from '../plan/samples.ts'
 import { parsePlanSnapshot } from '../plan/serialize.ts'
@@ -25,6 +27,7 @@ type SamplesPanelProps = {
 const LOOP_GUIDE_SEEN_KEY = 'satisfactory-planner:loop-guide-seen'
 
 export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
+  const { locale } = useLocale()
   const [guideOpen, setGuideOpen] = useState(
     () => variant === 'loop' && sessionStorage.getItem(LOOP_GUIDE_SEEN_KEY) !== '1',
   )
@@ -37,11 +40,12 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
   if (variant === 'empty' && !untouched) return null
 
   const load = (sample: SamplePlan): void => {
-    if (hasWork && !window.confirm(T.samples.confirmReplace(sample.title))) return
+    const title = sampleTitle(sample, locale)
+    if (hasWork && !window.confirm(T.samples.confirmReplace(title))) return
     const parsed = parsePlanSnapshot(sample.snapshot)
     // ゲームデータ更新でIDが消えた場合。壊れた入力を流し込むより何もしないほうが安全
     if (!parsed.ok) return
-    applyPlan(parsed.input, sample.id)
+    applyPlan({ ...parsed.input, planName: title }, sample.id)
     if (variant === 'loop') {
       sessionStorage.setItem(LOOP_GUIDE_SEEN_KEY, '1')
       setGuideOpen(false)
@@ -55,17 +59,19 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
     <div className={variant === 'loop' ? 'panel__body' : undefined}>
       <p className="hint">{variant === 'loop' ? T.samples.loopHint : T.samples.hint}</p>
       <section className="samples__category">
-        <h4 className="card__subtitle">{category.title}</h4>
+        <h4 className="card__subtitle">
+          {locale === 'en' ? category.titleEn : category.title}
+        </h4>
         <ul className="samples__list">
           {samples.map((sample) => (
             <li key={sample.id}>
               <button type="button" className="button sample" onClick={() => load(sample)}>
                 <span className="sample__title">
                   <ItemIcon id={sample.icon} name={itemName(sample.icon)} size={ROW_ICON} />
-                  {sample.title}
+                  {sampleTitle(sample, locale)}
                 </span>
-                <span className="sample__desc">{sample.description}</span>
-                {sample.highlight && (
+                <span className="sample__desc">{sampleDescription(sample, locale)}</span>
+                {locale === 'ja' && sample.highlight && (
                   <span className="sample__highlight">
                     <span className="sample__highlight-label">{T.samples.highlight}:</span>{' '}
                     {sample.highlight}
@@ -107,4 +113,12 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
       {gallery}
     </section>
   )
+}
+
+function sampleTitle(sample: SamplePlan, locale: Locale): string {
+  return resolveText(locale === 'en' ? sample.titleEn : sample.title, locale)
+}
+
+function sampleDescription(sample: SamplePlan, locale: Locale): string {
+  return resolveText(locale === 'en' ? sample.descriptionEn : sample.description, locale)
 }

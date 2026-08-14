@@ -378,6 +378,39 @@ function isItemClass(cls: DocsClass): boolean {
 
 type Warning = string
 
+type NamedEntity = {
+  id: string
+  name: LocalizedName
+}
+
+/**
+ * Build a stable ClassName-keyed official-name pack from the normalized output entities.
+ * Buildings intentionally overlap extractors/generators; equal duplicates are collapsed, while
+ * conflicting names fail the data build instead of making the chosen label depend on array order.
+ */
+function buildNamePack(
+  locale: keyof LocalizedName,
+  collections: readonly (readonly NamedEntity[])[],
+): Record<string, string> {
+  const byId = new Map<string, string>()
+  for (const collection of collections) {
+    for (const entity of collection) {
+      const name = entity.name[locale]
+      const existing = byId.get(entity.id)
+      if (existing !== undefined && existing !== name) {
+        throw new Error(
+          `[build-data] conflicting ${locale} names for ${entity.id}: ` +
+            `${JSON.stringify(existing)} / ${JSON.stringify(name)}`,
+        )
+      }
+      byId.set(entity.id, name)
+    }
+  }
+  return Object.fromEntries(
+    [...byId].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)),
+  )
+}
+
 async function main(): Promise<void> {
   await ensureDocs(false)
 
@@ -731,6 +764,15 @@ async function main(): Promise<void> {
   extractors.sort((a, b) => a.id.localeCompare(b.id))
   const itemList = [...items.values()].sort((a, b) => a.id.localeCompare(b.id))
   const buildingList = [...buildings.values()].sort((a, b) => a.id.localeCompare(b.id))
+  const namesEn = buildNamePack('en', [
+    itemList,
+    recipes,
+    buildingList,
+    extractors,
+    generators,
+    belts,
+    pipes,
+  ])
 
   // --- 出力 ---------------------------------------------------------------
   const meta: DataMeta = {
@@ -753,6 +795,7 @@ async function main(): Promise<void> {
   await write('extractors.json', extractors)
   await write('generators.json', generators)
   await write('logistics.json', logistics)
+  await write('names.en.json', namesEn)
   await write('meta.json', meta)
 
   // --- ログ ---------------------------------------------------------------
@@ -760,6 +803,7 @@ async function main(): Promise<void> {
   console.log(`[build-data] items        : ${itemList.length}`)
   console.log(`[build-data] recipes      : ${recipes.length} (alternate: ${recipes.filter((r) => r.isAlternate).length})`)
   console.log(`[build-data] buildings    : ${buildingList.length}`)
+  console.log(`[build-data] names.en     : ${Object.keys(namesEn).length}`)
   console.log(`[build-data] raw resources: ${itemList.filter((i) => i.isRawResource).length}`)
   console.log(
     `[build-data] footprints   : ${buildingList.filter((b) => b.footprint.areaM2 > 0).length}/` +
@@ -822,7 +866,7 @@ async function main(): Promise<void> {
   }
   console.log(
     '[build-data] wrote items.json / recipes.json / buildings.json / extractors.json / ' +
-      'generators.json / logistics.json / meta.json to src/data/',
+      'generators.json / logistics.json / names.en.json / meta.json to src/data/',
   )
 }
 

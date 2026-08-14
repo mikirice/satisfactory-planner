@@ -267,7 +267,7 @@ export function SummaryPanel({ solution, extraction }: Props) {
               <th scope="col">{T.balance.item}</th>
               <th scope="col" className="num">{T.summary.buildCostManufacturing}</th>
               <th scope="col" className="num">{T.summary.buildCostExtraction}</th>
-              <th scope="col" className="num">合計</th>
+              <th scope="col" className="num">{T.summary.total}</th>
             </tr>
           </thead>
           <tbody>

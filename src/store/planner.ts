@@ -70,8 +70,6 @@ export type ObjectivePresetId = 'resources' | 'power' | 'buildings'
 
 export type ObjectivePreset = {
   id: ObjectivePresetId
-  label: string
-  hint: string
   weights: Partial<ObjectiveWeights>
 }
 
@@ -83,20 +81,14 @@ export type ObjectivePreset = {
 export const OBJECTIVE_PRESETS: readonly ObjectivePreset[] = [
   {
     id: 'resources',
-    label: '資源効率',
-    hint: '希少な資源ほど高コストとして扱い、原料の消費を最小化する',
     weights: { resources: 1, power: 0, buildings: 0 },
   },
   {
     id: 'power',
-    label: '電力最小',
-    hint: '総消費電力を主目的にする（資源はタイブレークとして少し効かせる）',
     weights: { resources: 0.01, power: 1, buildings: 0 },
   },
   {
     id: 'buildings',
-    label: '建物最小（近似）',
-    hint: '稼働台数の合計を主目的にする。連続変数なので厳密には稼働率の合計',
     weights: { resources: 0.01, power: 0, buildings: 1 },
   },
 ]
@@ -127,10 +119,8 @@ export function allowedFuelItems(
   return generator.fuels.filter((f) => selection[f.item] === true).map((f) => f.item)
 }
 
-/** 代替レシピの一覧（日本語名の五十音順）。 */
-export const alternateRecipes = recipes
-  .filter((r) => r.isAlternate)
-  .sort((a, b) => a.name.ja.localeCompare(b.name.ja, 'ja'))
+/** 代替レシピの一覧。表示側が選択中の locale でソートする。 */
+export const alternateRecipes = recipes.filter((r) => r.isAlternate)
 
 const baseRecipeIds = recipes.filter((r) => !r.isAlternate).map((r) => r.id)
 
@@ -371,7 +361,7 @@ export function toExcelInput(state: PlannerState): ExcelExportInput | null {
     planName: state.planName,
     beltId: state.beltId,
     pipeId: state.pipeId,
-    objectiveLabel: objectivePresetById.get(state.objective)?.label,
+    objectiveId: state.objective,
     enabledAlternateIds: Object.keys(state.enabledAlternates),
     minerId: state.minerId,
   }

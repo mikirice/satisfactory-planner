@@ -855,7 +855,7 @@ describe('結果テーブル', () => {
     const text = container.textContent ?? ''
     expect(text).toContain('製錬炉')
     expect(text).toContain('製作機')
-    expect(text).toContain('鉄インゴット')
+    expect(text).toContain('鉄のインゴット')
     // 3.5台 → 4台を87.5%で回す案
     expect(text).toContain('4 台 @ 87.5%')
     expect(container.querySelectorAll('table').length).toBe(2)
@@ -1025,7 +1025,7 @@ describe('クロックとサマースループ', () => {
     expect(text).toContain('サマースループ')
     expect(text).toContain('使用数')
     expect(text).toContain('使用可能数')
-    expect(text).toContain('パワーシャード')
+    expect(text).toContain('パワー・シャード')
   })
 
   it('サマリーの総電力はクロック適用後で、100%換算も並べて出す', async () => {
@@ -1261,7 +1261,7 @@ describe('発電を隠す（表示だけの絞り込み）', () => {
     // 戻せるようにトグル自体は残す
     expect(text).toContain('発電を隠す')
     // 工場側の行はそのまま
-    expect(text).toContain('鉄インゴット')
+    expect(text).toContain('鉄のインゴット')
     expect(text).toContain('鉄板')
   })
 

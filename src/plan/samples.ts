@@ -18,8 +18,8 @@ import { PLAN_SCHEMA_VERSION } from './serialize.ts'
 import type { PlanSnapshot } from './serialize.ts'
 
 export const TEMPLATE_CATEGORIES = [
-  { id: 'basic', title: '基本ライン' },
-  { id: 'special', title: 'ループテンプレート' },
+  { id: 'basic', title: '基本ライン', titleEn: 'Basic Lines' },
+  { id: 'special', title: 'ループテンプレート', titleEn: 'Loop Templates' },
 ] as const
 
 export type TemplateCategoryId = (typeof TEMPLATE_CATEGORIES)[number]['id']
@@ -43,6 +43,9 @@ export type SamplePlan = {
   title: string
   /** ボタンに添える1行説明 */
   description: string
+  /** Stage 1 の英語表示。ゲーム用語は公式名トークンから解決する。 */
+  titleEn: string
+  descriptionEn: string
   /** ループテンプレートのフローチャートで注目する箇所 */
   highlight?: string
   /** ボタンに出すアイコンのアイテムID（画像が無ければ何も出ない） */
@@ -71,6 +74,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'basic',
     title: 'はじめての鉄板ライン',
     description: '鉄板 60/min。代替レシピなしの最小構成で、鉱石→インゴット→鉄板の流れを見る。',
+    titleEn: 'Your First {{Desc_IronPlate_C}} Line',
+    descriptionEn:
+      '60/min with no alternate recipes. Follow {{Desc_OreIron_C}} → {{Desc_IronIngot_C}} → {{Desc_IronPlate_C}}.',
     icon: 'Desc_IronPlate_C',
     snapshot: {
       ...DEFAULTS,
@@ -85,6 +91,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     title: 'リサイクルでプラスチック増産',
     description:
       'プラスチック 300/min。循環レシピを使うと原油 450/min が 100/min まで下がる。',
+    titleEn: 'Boost {{Desc_Plastic_C}} with Recycling',
+    descriptionEn:
+      '300/min of {{Desc_Plastic_C}}. Recycling cuts {{Desc_LiquidOil_C}} use from 450/min to 100/min.',
     icon: 'Desc_Plastic_C',
     hasCycle: true,
     snapshot: {
@@ -107,6 +116,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     title: 'ヘビー・モジュラー・フレーム工場',
     description:
       'ヘビー・モジュラー・フレーム 10/min。代替レシピなし。中規模工場の建物数と電力が分かる。',
+    titleEn: '{{Desc_ModularFrameHeavy_C}} Factory',
+    descriptionEn:
+      '10/min with no alternate recipes. See the building count and power for a mid-sized factory.',
     icon: 'Desc_ModularFrameHeavy_C',
     snapshot: {
       ...DEFAULTS,
@@ -121,6 +133,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     title: '石油ループ完全版',
     description:
       'プラスチックとゴムを各 300/min。燃料を相互に回す完全なリサイクル循環を学べる。',
+    titleEn: 'Complete Oil Recycling Loop',
+    descriptionEn:
+      '300/min each of {{Desc_Plastic_C}} and {{Desc_Rubber_C}}. Learn the complete {{Desc_LiquidFuel_C}} recycling loop.',
     highlight: 'プラスチックとゴムが互いの材料に戻る往復の線に注目。',
     icon: 'Desc_Rubber_C',
     hasCycle: true,
@@ -160,6 +175,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: '希釈燃料発電',
     description: '2,500 MW。原油から廃重油と希釈燃料を経て燃料式発電機へつなぐ流れを学べる。',
+    titleEn: 'Efficient {{Desc_LiquidFuel_C}} Power',
+    descriptionEn:
+      '2,500 MW. Follow {{Desc_LiquidOil_C}} through {{Desc_HeavyOilResidue_C}} and {{Recipe_Alternate_DilutedFuel_C}} to generators.',
     highlight: '廃重油に水を加え、燃料として発電機へ送る線に注目。',
     icon: 'Desc_LiquidFuel_C',
     guide: {
@@ -191,6 +209,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: 'ターボ燃料発電',
     description: '2,000 MW。圧縮石炭と燃料からターボ燃料を作る発電チェーンを学べる。',
+    titleEn: '{{Desc_LiquidTurboFuel_C}} Power',
+    descriptionEn:
+      '2,000 MW. Learn the power chain from {{Desc_CompactedCoal_C}} and {{Desc_LiquidFuel_C}} to {{Desc_LiquidTurboFuel_C}}.',
     highlight: '燃料と圧縮石炭がターボ燃料へ合流する線に注目。',
     icon: 'Desc_LiquidTurboFuel_C',
     guide: {
@@ -223,6 +244,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: 'アルミ精錬（水循環）',
     description: 'アルミのインゴット 120/min。スクラップ工程の副産物の水を上流で再利用する。',
+    titleEn: '{{Desc_AluminumIngot_C}} Water Loop',
+    descriptionEn:
+      '120/min of {{Desc_AluminumIngot_C}}. Reuse byproduct {{Desc_Water_C}} from the {{Desc_AluminumScrap_C}} step upstream.',
     highlight: 'アルミのスクラップから出た水がアルミナ溶液へ戻る線に注目。',
     icon: 'Desc_AluminumIngot_C',
     hasCycle: true,
@@ -255,6 +279,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: 'パッケージ希釈燃料の容器ループ',
     description: '燃料 120/min。水を容器に詰め、希釈後に空容器を回収して再利用する。',
+    titleEn: 'Packaged {{Desc_LiquidFuel_C}} Canister Loop',
+    descriptionEn:
+      '120/min of {{Desc_LiquidFuel_C}}. Package {{Desc_Water_C}}, then recover and reuse the empty canisters after dilution.',
     highlight: '空の容器が水の包装工程へ戻る線に注目。',
     icon: 'Desc_Fuel_C',
     hasCycle: true,
@@ -284,6 +311,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     category: 'special',
     title: 'バッテリー製造（水循環）',
     description: 'バッテリー 60/min。製造時に出る水をアルミナ溶液の工程へ戻して再利用する。',
+    titleEn: '{{Desc_Battery_C}} Water Loop',
+    descriptionEn:
+      '60/min of {{Desc_Battery_C}}. Return byproduct {{Desc_Water_C}} to the {{Desc_AluminaSolution_C}} step.',
     highlight: 'バッテリーから出た水がアルミナ溶液へ戻る線に注目。',
     icon: 'Desc_Battery_C',
     hasCycle: true,
@@ -317,6 +347,9 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     title: '原子力と再処理',
     description:
       '5,000 MWとFICSONIUM燃料棒 0.1/min。核廃棄物から続く再処理の全段をたどれる。',
+    titleEn: 'Nuclear Power and Reprocessing',
+    descriptionEn:
+      '5,000 MW and 0.1/min of {{Desc_FicsoniumFuelRod_C}}. Follow every reprocessing stage from nuclear waste.',
     highlight: 'ウラン廃棄物からFICSONIUM燃料棒まで続く再処理の線に注目。',
     icon: 'Desc_NuclearFuelRod_C',
     guide: {

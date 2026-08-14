@@ -94,14 +94,13 @@ describe('鉄板ケース', () => {
     expect(node.buildingCount).toBe(Math.ceil(step.machineCount - 1e-9))
     expect(node.buildingCount * node.clock).toBeCloseTo(step.machineCount, 9)
     expect(node.powerMW).toBeCloseTo(step.powerMW, 9)
-    expect(node.buildingNameJa).toBe(step.buildingName.ja)
+    expect(node.buildingName).toBe(step.buildingName.ja)
   })
 
   it('固体は実線（ベルト）扱いで、単位が個/分になる', () => {
     for (const edge of graph.edges) {
       expect(edge.form).toBe('solid')
       expect(edge.transport).toBe('belt')
-      expect(edge.unitJa).toBe('個/分')
     }
   })
 })
@@ -151,7 +150,6 @@ describe('循環プラスチックケース', () => {
     expect(fluids.length).toBeGreaterThan(0)
     for (const edge of fluids) {
       expect(edge.transport).toBe('pipe')
-      expect(edge.unitJa).toBe('m³/min')
     }
   })
 
@@ -192,7 +190,7 @@ describe('ボトルネック', () => {
     const ore = edgesOf(graph, 'Desc_OreIron_C')[0]!
     const expected = linesRequired(ore.ratePerMin, 'Desc_OreIron_C', MK1_BELT)
 
-    expect(ore.transportNameJa).toBe(expected.nameJa)
+    expect(ore.transportName).toBe(expected.name.ja)
     expect(ore.capacityPerMin).toBe(expected.capacityPerMin)
     expect(ore.lines).toBe(expected.lines)
     expect(ore.lines).toBeGreaterThan(1)
@@ -226,8 +224,8 @@ describe('フロー列挙（Excel と共有）', () => {
       ironPlate.steps.reduce((n, s) => n + s.inputs.length + s.outputs.length, 0)
 
     expect(flows.length).toBe(expected)
-    expect(flows[0]!.kind).toBe('原料供給')
+    expect(flows[0]!.kind).toBe('source')
     expect(flows[0]!.step).toBeNull()
-    expect(flows.filter((f) => f.kind === '産出').every((f) => f.step !== null)).toBe(true)
+    expect(flows.filter((f) => f.kind === 'output').every((f) => f.step !== null)).toBe(true)
   })
 })

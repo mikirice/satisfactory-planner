@@ -17,7 +17,8 @@
 import { stepKey } from './aggregate.ts'
 import { enumeratePlanFlows, flowTransport, itemForm, resolveTransportChoice } from './flows.ts'
 import type { TransportChoice } from './flows.ts'
-import { itemsById } from '../data/index.ts'
+import { createDisplayName } from '../data/index.ts'
+import type { DisplayNameResolver } from '../data/index.ts'
 import type { ItemRate, PowerRangeMW, Solution, SolutionStep } from '../solver/index.ts'
 
 // ---------------------------------------------------------------------------
@@ -35,8 +36,7 @@ type NodeBase = {
 export type SourceGraphNode = NodeBase & {
   kind: 'source'
   item: string
-  itemNameJa: string
-  unitJa: string
+  itemName: string
   ratePerMin: number
   /** SolveInput.inputs で持ち込んだ分（採掘ではない） */
   external: boolean
@@ -46,9 +46,9 @@ export type SourceGraphNode = NodeBase & {
 export type RecipeGraphNode = NodeBase & {
   kind: 'recipe'
   recipeId: string
-  recipeNameJa: string
+  recipeName: string
   buildingId: string
-  buildingNameJa: string
+  buildingName: string
   /** 稼働台数（小数） */
   machineCount: number
   /** 実際に建てる台数（切り上げ） */
@@ -77,8 +77,7 @@ export type RecipeGraphNode = NodeBase & {
 export type OutputGraphNode = NodeBase & {
   kind: 'output'
   item: string
-  itemNameJa: string
-  unitJa: string
+  itemName: string
   ratePerMin: number
   /** 目標に指定されたアイテムか（false なら副産物） */
   isTarget: boolean
@@ -95,13 +94,12 @@ export type PlanGraphEdge = {
   /** 受け取る側のノードID */
   target: string
   item: string
-  itemNameJa: string
+  itemName: string
   ratePerMin: number
-  unitJa: string
   form: 'solid' | 'liquid' | 'gas'
   /** 固体=ベルト、液体・気体=パイプ */
   transport: 'belt' | 'pipe'
-  transportNameJa: string
+  transportName: string
   /** 選択中の Mk の1本あたり上限 */
   capacityPerMin: number
   /** 必要本数（切り上げ） */
@@ -119,7 +117,10 @@ export type PlanGraph = {
   bottleneckCount: number
 }
 
-export type PlanGraphOptions = TransportChoice
+export type PlanGraphOptions = TransportChoice & {
+  /** Labels embedded in the graph use this locale. Default remains Japanese. */
+  locale?: string
+}
 
 /** これ未満のレートは無視する（LPの丸め誤差でノイズのようなエッジが出るのを防ぐ）。 */
 const MIN_RATE = 1e-6
@@ -131,6 +132,7 @@ const MIN_RATE = 1e-6
 /** 解からフローチャート用のノード / エッジを組み立てる。 */
 export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): PlanGraph {
   const resolved = resolveTransportChoice(options)
+  const displayName = createDisplayName(options?.locale)
 
   const nodes: PlanGraphNode[] = []
   /** item -> そのアイテムを送り出すノードと量 */
@@ -141,9 +143,9 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
   // 1) 原料供給（Excel の物流シートと同じ列挙を使う）
   const flows = enumeratePlanFlows(solution)
   for (const flow of flows) {
-    if (flow.kind !== '原料供給' || flow.ratePerMin <= MIN_RATE) continue
+    if (flow.kind !== 'source' || flow.ratePerMin <= MIN_RATE) continue
     const id = `source:${flow.item}`
-    nodes.push(sourceNode(id, flow.item, flow.ratePerMin, false))
+    nodes.push(sourceNode(id, flow.item, flow.ratePerMin, false, displayName))
     add(producers, flow.item, { nodeId: id, ratePerMin: flow.ratePerMin })
   }
 
@@ -151,14 +153,14 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
   for (const input of solution.externalInputs) {
     if (input.ratePerMin <= MIN_RATE) continue
     const id = `external:${input.item}`
-    nodes.push(sourceNode(id, input.item, input.ratePerMin, true))
+    nodes.push(sourceNode(id, input.item, input.ratePerMin, true, displayName))
     add(producers, input.item, { nodeId: id, ratePerMin: input.ratePerMin })
   }
 
   // 3) 生産ステップ
   for (const step of solution.steps) {
     const id = recipeNodeId(step)
-    nodes.push(recipeNode(id, step))
+    nodes.push(recipeNode(id, step, displayName))
     for (const flow of step.inputs) {
       if (flow.ratePerMin > MIN_RATE) {
         add(consumers, flow.item, { nodeId: id, ratePerMin: flow.ratePerMin })
@@ -184,8 +186,7 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
       id,
       kind: 'output',
       item,
-      itemNameJa: itemNameJa(item),
-      unitJa: unitJa(item),
+      itemName: displayName(item),
       ratePerMin: leftover,
       isTarget: target !== undefined,
       ...(target ? { requestedPerMin: target.requestedPerMin } : {}),
@@ -205,7 +206,15 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
         const ratePerMin = (producer.ratePerMin * consumer.ratePerMin) / denominator
         if (ratePerMin <= MIN_RATE) continue
         edges.push(
-          makeEdge(item, producer.nodeId, consumer.nodeId, ratePerMin, resolved, edges.length),
+          makeEdge(
+            item,
+            producer.nodeId,
+            consumer.nodeId,
+            ratePerMin,
+            resolved,
+            edges.length,
+            displayName,
+          ),
         )
       }
     }
@@ -214,7 +223,7 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
   edges.sort(
     (a, b) =>
       b.ratePerMin - a.ratePerMin ||
-      a.itemNameJa.localeCompare(b.itemNameJa, 'ja') ||
+      a.itemName.localeCompare(b.itemName, options?.locale ?? 'ja') ||
       a.id.localeCompare(b.id),
   )
 
@@ -253,26 +262,30 @@ function sourceNode(
   item: string,
   ratePerMin: number,
   external: boolean,
+  displayName: DisplayNameResolver,
 ): SourceGraphNode {
   return {
     id,
     kind: 'source',
     item,
-    itemNameJa: itemNameJa(item),
-    unitJa: unitJa(item),
+    itemName: displayName(item),
     ratePerMin,
     external,
   }
 }
 
-function recipeNode(id: string, step: SolutionStep): RecipeGraphNode {
+function recipeNode(
+  id: string,
+  step: SolutionStep,
+  displayName: DisplayNameResolver,
+): RecipeGraphNode {
   return {
     id,
     kind: 'recipe',
     recipeId: step.recipeId,
-    recipeNameJa: step.recipeName.ja,
+    recipeName: displayName(step.recipeName),
     buildingId: step.buildingId,
-    buildingNameJa: step.buildingName.ja,
+    buildingName: displayName(step.buildingName),
     machineCount: step.machineCount,
     buildingCount: step.builtCount,
     clock: step.clockSpeed,
@@ -293,6 +306,7 @@ function makeEdge(
   ratePerMin: number,
   resolved: { beltId?: string; pipeId?: string },
   seq: number,
+  displayName: DisplayNameResolver,
 ): PlanGraphEdge {
   const transport = flowTransport(item, ratePerMin, resolved)
   return {
@@ -300,19 +314,14 @@ function makeEdge(
     source,
     target,
     item,
-    itemNameJa: itemNameJa(item),
+    itemName: displayName(item),
     ratePerMin,
-    unitJa: unitJa(item),
     form: itemForm(item),
     transport: transport.kind,
-    transportNameJa: transport.requirement.nameJa,
+    transportName: displayName(transport.requirement.name),
     capacityPerMin: transport.requirement.capacityPerMin,
     lines: transport.requirement.lines,
     utilization: transport.singleLineUtilization,
     bottleneck: transport.singleLineUtilization > 1 + 1e-9,
   }
 }
-
-const itemNameJa = (id: string): string => itemsById.get(id)?.name.ja ?? id
-
-const unitJa = (id: string): string => (itemsById.get(id)?.form === 'solid' ? '個/分' : 'm³/min')

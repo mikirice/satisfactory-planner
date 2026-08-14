@@ -1,11 +1,13 @@
 /** 代替レシピの一括／個別 ON・OFF。 */
 import { useMemo, useState } from 'react'
 
+import { useLocale } from '../i18n/index.ts'
 import { alternateRecipes, usePlanner } from '../store/planner.ts'
 import { stripAlternatePrefix } from './format.ts'
 import { T } from './text.ts'
 
 export function AlternatesPanel() {
+  const { locale, displayName } = useLocale()
   const enabled = usePlanner((s) => s.enabledAlternates)
   const setAlternate = usePlanner((s) => s.setAlternate)
   const setAllAlternates = usePlanner((s) => s.setAllAlternates)
@@ -21,11 +23,11 @@ export function AlternatesPanel() {
         const en = stripAlternatePrefix(recipe.name.en)
         return {
           recipe,
-          label: ja,
+          label: stripAlternatePrefix(displayName(recipe)),
           haystack: [recipe.name.ja, recipe.name.en, ja, en].join('\n').toLowerCase(),
         }
-      }),
-    [],
+      }).sort((a, b) => a.label.localeCompare(b.label, locale)),
+    [locale, displayName],
   )
 
   const visible = useMemo(() => {
@@ -41,7 +43,7 @@ export function AlternatesPanel() {
       <button type="button" className="panel__toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="panel__title">{T.sidebar.alternates}</span>
         <span className="panel__meta">{T.sidebar.alternatesCount(onCount, alternateRecipes.length)}</span>
-        <span className="panel__caret">{open ? '閉じる' : '開く'}</span>
+        <span className="panel__caret">{open ? T.sidebar.close : T.sidebar.open}</span>
       </button>
 
       {open && (

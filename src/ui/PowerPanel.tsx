@@ -7,14 +7,13 @@
  *
  * 既定は「発電方式すべてオフ」＝ 発電計画なし。従来と同じ解になる。
  */
-import { itemsById } from '../data/index.ts'
 import {
   allowedFuelItems,
   isPowerPlanActive,
   powerGenerators,
   usePlanner,
 } from '../store/planner.ts'
-import { fmtPower } from './format.ts'
+import { fmtPower, itemName } from './format.ts'
 import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
 import { NumberField } from './NumberField.tsx'
@@ -56,7 +55,7 @@ export function PowerPanel() {
                 />
                 <span className="checkbox__body">
                   <span className="checkbox__label">
-                    {generator.name.ja}
+                    {itemName(generator.id)}
                     <span className="checkbox__meta">
                       {T.sidebar.powerGeneratorSpec(fmtPower(generator.powerProductionMW))}
                     </span>
@@ -67,7 +66,7 @@ export function PowerPanel() {
                 <div className="fuel-list">
                   <p className="fuel-list__head">{T.sidebar.powerFuelsHeading}</p>
                   {generator.fuels.map((fuel) => {
-                    const name = itemsById.get(fuel.item)?.name.ja ?? fuel.item
+                    const name = itemName(fuel.item)
                     return (
                       <label className="check" key={fuel.item}>
                         <input

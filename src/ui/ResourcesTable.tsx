@@ -134,17 +134,18 @@ function ResourceRows({
         <tr key={group.extractorId}>
           {index === 0 && head}
           <td>
-            {group.extractorName.ja}
+            {itemName(group.extractorId)}
             {group.pressurizerCount ? (
               <span className="unit">
-                {' '}
-                ＋ {T.resources.pressurizer} {fmtInt(group.pressurizerCount)} 台
+                {' '}{T.resources.pressurizerCount(fmtInt(group.pressurizerCount))}
               </span>
             ) : null}
           </td>
           <td className="num">
-            {fmtCount(group.machineCount)}
-            <span className="unit"> / 建設 {fmtInt(group.buildingCount)} 台</span>
+            {T.resources.machineBuildCount(
+              fmtCount(group.machineCount),
+              fmtInt(group.buildingCount),
+            )}
           </td>
           <td>{nodeBreakdown(group)}</td>
           {showShards && <td className="num">{fmtInt(group.powerShards)}</td>}

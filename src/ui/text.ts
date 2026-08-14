@@ -1,431 +1,48 @@
-/**
- * UI 文言（日本語）。
- * i18n ライブラリは入れないが、文言はここに集約して後から差し替えられるようにする。
- */
-export const T = {
-  appTitle: 'Satisfactory 生産計画ツール',
-  dataVersion: 'ゲームデータ',
+import { getActiveDictionary, resolveText } from '../i18n/runtime.tsx'
+import type { UiDictionary } from '../i18n/types.ts'
 
-  viewMode: {
-    label: '表示モード',
-    normal: '通常レシピ',
-    loop: 'ループ',
-    recipe: 'レシピ',
-  },
+type DictionaryValue = string | number | boolean | readonly unknown[] | object | null
 
-  recipeBrowser: {
-    pickerLabel: 'アイテム一覧',
-    searchLabel: 'アイテムを検索',
-    searchPlaceholder: 'アイテム名（例: 鉄板）',
-    catalogLabel: '分類からアイテムを選ぶ',
-    groups: {
-      raw: '原料',
-      solid: '固体アイテム',
-      liquid: '液体',
-      gas: '気体',
+function valueAtPath(path: readonly PropertyKey[]): DictionaryValue {
+  let value: unknown = getActiveDictionary()
+  for (const key of path) {
+    value = Reflect.get(value as object, key)
+  }
+  return value as DictionaryValue
+}
+
+function localizedValue(value: DictionaryValue): DictionaryValue {
+  if (typeof value === 'string') return resolveText(value)
+  if (Array.isArray(value)) return value.map((entry) => localizedValue(entry as DictionaryValue))
+  return value
+}
+
+function dictionaryProxy(path: readonly PropertyKey[]): object {
+  return new Proxy(
+    {},
+    {
+      get(_target, key) {
+        const value = valueAtPath([...path, key])
+        if (typeof value === 'function') {
+          return (...args: unknown[]) => localizedValue(value(...args) as DictionaryValue)
+        }
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+          return dictionaryProxy([...path, key])
+        }
+        return localizedValue(value)
+      },
+      ownKeys() {
+        return Reflect.ownKeys(valueAtPath(path) as object)
+      },
+      getOwnPropertyDescriptor(_target, key) {
+        if (!Reflect.has(valueAtPath(path) as object, key)) return undefined
+        return { configurable: true, enumerable: true }
+      },
     },
-    detailLabel: 'レシピ詳細',
-    detailFor: (name: string): string => `${name}のレシピ`,
-    emptyHeading: 'アイテムのレシピを調べる',
-    emptyHint: '左の検索または一覧からアイテムを選んでください。',
-    suggestions: 'おすすめ',
-    suggestionsLabel: 'おすすめアイテム',
-    back: '戻る',
-    raw: '原料',
-    processed: '加工アイテム',
-    sinkPoints: 'シンクポイント',
-    producing: '作り方',
-    producingEmpty: 'このアイテムを作るレシピはありません。',
-    consuming: '使い道',
-    consumingEmpty: 'このアイテムを使うレシピはありません。',
-    standard: '通常',
-    alternate: '代替',
-    building: '製造設備',
-    power: '消費電力',
-    averagePower: '平均',
-    cycle: 'サイクル時間',
-    ingredients: '材料',
-    products: '産出',
-    comparison: '比較',
-    outputPerMachine: '産出レート / 機械1台',
-    outputPerPower: '電力あたり産出',
-    averagePowerNote: '（平均電力）',
-    outputPerIngredient: '材料1個あたりの産出',
-    perIngredient: (name: string, unit: string): string => `${name} 1${unit} あたり`,
-    createPlan: 'このアイテムで計画を作る',
-    consumed: '消費',
-    openProduct: (recipe: string, product: string): string =>
-      `${recipe}の産物「${product}」を表示`,
-    confirmReplace: (name: string): string =>
-      `現在の入力を「${name}の計画」で置き換えます。よろしいですか？`,
-  },
+  )
+}
 
-  ads: {
-    label: '広告',
-  },
+/** Compatibility facade. Values are read from the active typed dictionary on access. */
+export const T = dictionaryProxy([]) as UiDictionary
 
-  footer: {
-    disclaimer: '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
-    articles: '解説記事',
-    items: 'アイテム一覧',
-    privacy: 'プライバシーポリシー',
-  },
-
-  status: {
-    idle: '目標を追加すると計算します',
-    solving: '計算中',
-    done: '最適解',
-    infeasible: '実行不能',
-    error: 'エラー',
-    elapsed: (ms: number): string => `${ms.toFixed(0)} ms`,
-  },
-
-  sidebar: {
-    open: '開く',
-    close: '閉じる',
-    targets: '目標産出',
-    targetSearch: 'アイテムを検索して追加',
-    targetSearchPlaceholder: 'アイテム名（例: 鉄板）',
-    targetEmpty: 'まだ目標がありません。上の検索から追加してください。',
-    targetListHeading: '追加済みの目標',
-    targetRate: 'レート',
-    remove: '削除',
-    noMatch: '一致するアイテムがありません',
-    alreadyAdded: '追加済み',
-    maximize: '最大化',
-    maximizeHint: '原料上限まで作れるだけ作ります（最大化できるのは1つだけ）',
-    maximizeBadge: '作れるだけ',
-
-    stock: '既にあるアイテム',
-    stockSearch: 'アイテムを検索して追加',
-    stockSearchPlaceholder: 'アイテム名（例: 鉄インゴット）',
-    stockEmpty: 'まだありません。手持ちや別工場からの供給を入れると、その分だけ生産を省きます。',
-    stockListHeading: '追加済みの既保有',
-    stockRate: '投入レート',
-    stockHint: '原料の採掘より優先して使われます（使い切らないこともあります）。',
-
-    objective: '目的関数',
-
-    extraction: '採掘設備',
-    miner: '固体ノードの採掘機',
-    minerHint: '端数の1台だけアンダークロック扱いで計算します。',
-    extractionClock: '採掘クロック',
-    extractionClockHint:
-      '100%を超えるとパワーシャードが要ります。電力はクロックに対して超線形に増えます。',
-
-    clock: 'クロックとサマースループ',
-    clockMax: '製造クロックの上限',
-    clockMaxHint:
-      '建てる台数 = 稼働台数 ÷ 上限クロック（切り上げ）。上げるほど台数は減り、電力は増えます。',
-    somersloops: '使えるサマースループの数',
-    somersloopsHint:
-      '0 なら使いません。1 以上にすると、対応する建物のレシピに「フル装着（産出2倍・電力4倍）」の選択肢が増えます。部分装着は扱いません。',
-    somersloopsOver: (used: number, limit: number): string =>
-      `建てる台数を切り上げた結果、必要数が ${used} 個になり上限 ${limit} 個を超えています`,
-
-    power: '発電計画',
-    powerTarget: '目標発電量',
-    powerTargetUnit: 'MW',
-    powerCover: '工場の消費電力ぶんを賄う',
-    powerCoverHint:
-      '発電のために増える建物（燃料の精製・ウラン加工など）の消費も含めて自給できる台数を求めます。採掘設備の電力は含みません。',
-    powerMethods: '発電方式',
-    powerMethodsHint:
-      '許可した方式と燃料の中から、いちばん資源効率のよい組み合わせをソルバーが選びます。方式をオンにしたら燃料を1つ以上選んでください（既定は未選択）。すべてオフなら発電計画は行いません。',
-    powerFuelsHeading: '使う燃料',
-    powerFuelNone: '燃料が選ばれていません（この方式は使いません）。上から1つ以上選んでください。',
-    powerGeneratorSpec: (mw: string): string => `${mw} MW/台`,
-    powerIdle: '目標発電量を入れるか「工場の消費電力ぶんを賄う」をオンにすると計算します。',
-    powerNoMethod: '発電方式を1つ以上選んでください。',
-    powerClockNote: '発電機のクロックは100%固定です（発電側のオーバークロックは未対応）。',
-
-    alternates: '代替レシピ',
-    alternatesCount: (on: number, all: number): string => `${on} / ${all} 有効`,
-    alternatesSearchPlaceholder: 'レシピ名で絞り込み',
-    enableAll: 'すべて有効',
-    disableAll: 'すべて無効',
-
-    limits: '原料上限',
-    limitsHint: '空欄はマップ上限。0 にするとその原料を使わない解を探します。',
-    limitsReset: 'マップ上限に戻す',
-    unlimited: '無制限',
-
-    logistics: '物流',
-    belt: 'ベルト',
-    pipe: 'パイプ',
-    logisticsHint: '物流シートの本数計算に使います。解には影響しません。',
-  },
-
-  jumpToResults: {
-    label: '結果を見る',
-  },
-
-  /** 空状態の「例から始める」。各サンプルの名前と説明は src/plan/samples.ts が持つ */
-  samples: {
-    heading: '例から始める',
-    hint: '押すと入力が入り、そのまま結果が出ます。中身はあとから自由に変えられます。',
-    loopHeading: 'ループテンプレート',
-    loopHint: 'テンプレートを選ぶと入力を置き換えて計算します。',
-    guideHeading: 'はじめての方へ',
-    guideLines: [
-      'ループレシピは、作ったものの一部を前の工程へ戻して再利用する構成です。',
-      '同じ量を、より少ない原料で作れます。',
-      '下のテンプレートを選ぶと計画が読み込まれ、右に結果が出ます。',
-      '「フローチャート」タブでは、行きと戻りの線が見えます。戻る線がループです。',
-      '数字を変えるときは、上の「通常レシピ」に切り替えて目標レートや代替レシピを編集します。',
-      '「Excelダウンロード」で結果を表として保存できます。',
-    ],
-    highlight: '見どころ',
-    editHint: '編集するには「通常レシピ」に切り替えてください',
-    confirmReplace: (name: string): string =>
-      `現在の入力を「${name}」で置き換えます。よろしいですか？`,
-  },
-
-  plans: {
-    heading: 'プラン',
-    hint: '入力だけを保存します（結果は読み込み時に計算し直します）。',
-    save: 'このプランを保存',
-    saved: (name: string): string => `「${name}」を保存しました`,
-    overwritten: (name: string): string => `「${name}」を上書きしました`,
-    nameRequired: 'プラン名を入れてから保存してください（Excel出力の欄と共通です）',
-    listEmpty: '保存したプランはまだありません',
-    load: '読込',
-    remove: '削除',
-    confirmRemove: (name: string): string => `「${name}」を削除します。よろしいですか？`,
-    loaded: (name: string): string => `「${name}」を読み込みました`,
-    removed: (name: string): string => `「${name}」を削除しました`,
-    share: '共有URLをコピー',
-    shareHint: 'URLに入力内容を埋め込みます。開いた人はそのまま計算結果を見られます。',
-    shareCopied: '共有URLをコピーしました',
-    shareFailed: 'コピーできませんでした。URLを選択してコピーしてください',
-    restoredFromUrl: '共有URLからプランを復元しました',
-    restoredFromAutosave: '前回の作業内容を復元しました',
-    restoreFailed: 'プランを復元できませんでした',
-    warnings: (n: number): string => `${n} 件は読み込めず無視しました`,
-    storageFailed: 'ブラウザに保存できませんでした',
-    updatedAt: (d: Date): string =>
-      `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(
-        d.getDate(),
-      ).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(
-        d.getMinutes(),
-      ).padStart(2, '0')}`,
-  },
-
-  export: {
-    heading: 'Excel出力',
-    planName: 'プラン名',
-    planNamePlaceholder: '未入力なら plan',
-    download: 'Excelダウンロード',
-    downloading: '作成中…',
-    needsSolution: '解が出てからダウンロードできます',
-    failed: 'Excelの作成に失敗しました',
-  },
-
-  tabs: {
-    summary: 'サマリー',
-    steps: '生産ステップ',
-    resources: '原料',
-    balance: 'アイテム収支',
-    flow: 'フローチャート',
-  },
-
-  loopGuide: {
-    heading: 'この構成の解説',
-    mechanism: '仕組み',
-    savings: '節約効果',
-    circulation: '循環の意味',
-    tips: 'ゲーム内のコツ',
-    calculating: 'ループなしの構成を計算しています…',
-    failed: 'ループなしの比較を計算できませんでした。',
-    baselineInfeasible: 'ループなしではこの目標は作れません（上限内で成立しない）。',
-    noSavings: '比較できる原料・電力の差はありません。',
-    power: '消費電力',
-    reusedWater: '再利用している水',
-  },
-
-  /** 生産ステップ表 / フローチャートの「発電を隠す」（表示だけの絞り込み） */
-  powerFilter: {
-    hideLabel: '発電を隠す',
-    hideHint: '発電機と発電専用の燃料チェーンを表示から外します（計算は変わりません）',
-    hiddenNote: (n: number): string => `${n} ステップ（発電関連）を非表示中`,
-  },
-
-  flow: {
-    heading: 'フローチャート',
-    loading: 'レイアウトを計算しています…',
-    empty: '表示できる生産フローがありません',
-    failed: 'フローチャートを描画できませんでした',
-    /** ノードの種類 */
-    source: '原料供給',
-    external: '既保有',
-    target: '目標産出',
-    byproduct: '副産物',
-    inputs: '投入',
-    outputs: '産出',
-    requested: (rate: string): string => `要求 ${rate}`,
-    machines: (built: number, clock: string): string => `${built} 台 @ ${clock}`,
-    /** 発電機ノードの発電量。電力のエッジは張らないので、ここに矢印付きで書く */
-    powerProduction: (mw: string): string => `発電 → ${mw} MW`,
-    somersloops: (n: number): string => `サマースループ ${n} 個`,
-    shards: (n: number): string => `シャード ${n} 個`,
-    legend: '凡例',
-    legendSolid: '固体（ベルト）',
-    legendLiquid: '液体（パイプ）',
-    legendGas: '気体（パイプ）',
-    legendBottleneck: '1本で運べない（赤・太線）',
-    legendExternal: '既保有（紫の破線枠）',
-    stats: (nodes: number, edges: number): string => `${nodes} ノード / ${edges} フロー`,
-    bottleneckCount: (n: number): string => `ボトルネック ${n} 本`,
-    transportNote: (belt: string, pipe: string): string =>
-      `${belt} / ${pipe} で換算（サイドバーの物流で変更できます）`,
-    readOnly: 'ドラッグでの編集はできません（閲覧専用）。パン・ズーム・ミニマップが使えます',
-  },
-
-  summary: {
-    heading: 'サマリー',
-    targets: '目標産出',
-    requested: '要求',
-    produced: '産出',
-    maximized: '最大化',
-    maximizedResult: (name: string, rate: string, unit: string): string =>
-      `${name} は最大 ${rate} ${unit} まで作れます`,
-    power: '総消費電力',
-    powerManufacturing: '製造',
-    powerManufacturingNominal: '製造（クロック100%換算）',
-    powerExtraction: '採掘',
-    powerShards: 'パワーシャード',
-    powerShardsUnit: '個',
-    powerGeneration: '総発電量',
-    powerGenerationTarget: '目標',
-    powerGenerationNoTarget: '指定なし',
-    powerGenerationCount: '発電機（建てる台数）',
-    powerGenerationCountUnit: '台',
-    powerGenerationFactory: '製造の消費（クロック100%換算）',
-    powerGenerationNet: '差引',
-    powerGenerationFuel: '燃料の消費',
-    powerGenerationCover: '工場の消費電力ぶんを賄う設定です',
-    powerGenerationShort: (short: string): string =>
-      `製造の消費に対して ${short} MW 足りません（採掘設備の電力は含みません）`,
-    powerGenerationExtractionNote:
-      '採掘設備の電力は発電計画に含めていません（LP の外で計算しているため）。',
-
-    somersloops: 'サマースループ',
-    somersloopsUsed: '使用数',
-    somersloopsLimit: '使用可能数',
-    somersloopsUnit: '個',
-    somersloopsUnused: 'サマースループは使っていません',
-    footprint: '概算床面積',
-    footprintUnit: 'm²',
-    footprintFoundations: (n: string): string => `ファウンデーション ${n} 枚（8m × 8m 換算）`,
-    footprintManufacturing: '製造建物',
-    footprintExtraction: '採掘設備',
-    footprintBuildings: '設置面積の合計',
-    footprintAisle: (factor: string): string => `通路・搬送スペース係数 ×${factor}`,
-    footprintNote:
-      '建物のクリアランス（Docs.json 由来）から出した概算です。実際の広さは配置や縦積みで変わります。',
-    machines: '建物',
-    machineCountRunning: '稼働台数（小数）',
-    machineCountBuilt: '建てる台数',
-    extractorCount: '採掘設備',
-    buildCost: '建設コスト',
-    buildCostManufacturing: '製造建物',
-    buildCostExtraction: '採掘設備',
-    sinkPoints: 'シンクポイント',
-    sinkPointsUnit: 'pt/分',
-    byproducts: '副産物',
-    byproductsEmpty: '副産物はありません',
-    externalInputs: '既保有アイテムの投入',
-    externalInputsAvailable: '投入',
-    externalInputsUsed: '使用',
-    externalInputsUnused: '未使用',
-    unit: {
-      mw: 'MW',
-      count: '台',
-    },
-  },
-
-  steps: {
-    heading: '生産ステップ',
-    empty: '生産ステップがありません',
-    recipe: 'レシピ',
-    machineCount: '稼働台数',
-    built: '建てる台数',
-    clock: 'クロック案',
-    shards: 'シャード',
-    somersloops: 'サマースループ',
-    power: '消費電力 (MW)',
-    powerProductionHead: '発電量 (MW)',
-    inputs: '投入',
-    outputs: '産出',
-    subtotal: '小計',
-    groupCount: (n: number): string => `${n} レシピ`,
-    variablePowerNote: '可変電力レシピは幅で表示しています（値は中央値）',
-    clockNote: (percent: string): string =>
-      `クロック上限 ${percent} で「建てる台数」を決め、消費電力はそのクロックで計算しています`,
-    somersloopBadge: (n: number): string => `${n} 個`,
-    powerProduction: (mw: string): string => `+${mw}`,
-    powerGroupNote: '発電機はクロック100%固定です（端数の台数は部分負荷）',
-  },
-
-  resources: {
-    heading: '原料と採掘計画',
-    empty: '原料を使っていません',
-    item: '原料',
-    required: '必要レート',
-    limit: 'マップ上限',
-    usage: '上限比率',
-    extractor: '設備',
-    machines: '台数',
-    nodes: '必要ノード（純度別）',
-    power: '採掘電力 (MW)',
-    shards: 'シャード',
-    clockNote: (percent: string): string => `採掘クロック ${percent} で計算しています`,
-    pressurizer: '加圧機',
-    shortfall: 'ノード不足',
-    shortfallNote: (n: string): string => `マップのノードが足りず ${n} 分を賄えません`,
-    purity: {
-      pure: '高純度',
-      normal: '通常',
-      impure: '低純度',
-    },
-    nodesOf: (nodes: string, available: number): string =>
-      Number.isFinite(available) ? `${nodes} / ${available}` : nodes,
-    unlimitedNodes: '設置数の制限なし',
-  },
-
-  balance: {
-    heading: 'アイテム収支',
-    empty: '収支がありません',
-    item: 'アイテム',
-    produced: '産出',
-    consumed: '消費',
-    supplied: '外部供給',
-    net: '差分',
-    state: '状態',
-    surplus: '余剰',
-    shortage: '不足',
-    balanced: '均衡',
-    onlyNonZero: '差分が 0 の行を隠す',
-  },
-
-  infeasible: {
-    heading: 'この条件では生産できません',
-    hint: '次のどれかを見直してください。',
-    reason: {
-      unproducibleItem: 'レシピ不足',
-      resourceLimit: '原料不足',
-      unbounded: '目的関数',
-      solverError: 'ソルバー',
-    },
-    advice: {
-      unproducibleItem: '代替レシピを有効にするか、原料上限を 0 にしていないか確認してください。',
-      resourceLimit: '原料上限を上げるか、目標レートを下げてください。',
-      unbounded: '目的関数の重みを見直してください。',
-      solverError: '入力を単純にして再試行してください。',
-    },
-  },
-
-  error: {
-    heading: '計算に失敗しました',
-  },
-} as const
+export type { UiDictionary } from '../i18n/types.ts'

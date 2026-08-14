@@ -18,13 +18,7 @@ const FlowChart = lazy(() => import('./FlowChart.tsx'))
 
 type TabId = 'summary' | 'steps' | 'resources' | 'balance' | 'flow'
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: 'summary', label: T.tabs.summary },
-  { id: 'steps', label: T.tabs.steps },
-  { id: 'resources', label: T.tabs.resources },
-  { id: 'balance', label: T.tabs.balance },
-  { id: 'flow', label: T.tabs.flow },
-]
+const TABS: readonly TabId[] = ['summary', 'steps', 'resources', 'balance', 'flow']
 
 type ResultViewProps = {
   viewMode?: 'normal' | 'loop'
@@ -34,7 +28,6 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
   const status = usePlanner((s) => s.status)
   const result = usePlanner((s) => s.result)
   const extraction = usePlanner((s) => s.extraction)
-  const error = usePlanner((s) => s.error)
   const beltId = usePlanner((s) => s.beltId)
   const pipeId = usePlanner((s) => s.pipeId)
   const loadedTemplateId = usePlanner((s) => s.loadedTemplateId)
@@ -46,7 +39,7 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
     return (
       <section className="card card--wide">
         <h3 className="card__title">{T.error.heading}</h3>
-        <p className="reason__message">{error}</p>
+        <p className="reason__message">{T.error.message}</p>
       </section>
     )
   }
@@ -79,18 +72,18 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
         <LoopGuidePanel key={loadedTemplate.id} sample={loadedTemplate} solution={result} />
       )}
       <div className="tabs" role="tablist">
-        {TABS.map((entry) => (
+        {TABS.map((id) => (
           <button
-            key={entry.id}
+            key={id}
             type="button"
             role="tab"
-            id={`tab-${entry.id}`}
-            aria-selected={tab === entry.id}
-            aria-controls={`tabpanel-${entry.id}`}
-            className={tab === entry.id ? 'tab tab--on' : 'tab'}
-            onClick={() => setTab(entry.id)}
+            id={`tab-${id}`}
+            aria-selected={tab === id}
+            aria-controls={`tabpanel-${id}`}
+            className={tab === id ? 'tab tab--on' : 'tab'}
+            onClick={() => setTab(id)}
           >
-            {entry.label}
+            {T.tabs[id]}
           </button>
         ))}
       </div>

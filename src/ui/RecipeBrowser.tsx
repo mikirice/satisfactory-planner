@@ -2,8 +2,17 @@ import { useState } from 'react'
 
 import { buildingsById, items, itemsById, ratePerMin } from '../data/index.ts'
 import type { Item, Recipe } from '../data/types.ts'
+import { useLocale } from '../i18n/index.ts'
 import { getRecipesForItem, recipeMetrics } from '../plan/recipe-index.ts'
-import { fmtInt, fmtPower, fmtPowerRange, fmtRate, itemName, itemUnit } from './format.ts'
+import {
+  fmtDecimal,
+  fmtInt,
+  fmtPower,
+  fmtPowerRange,
+  fmtRate,
+  itemName,
+  itemUnit,
+} from './format.ts'
 import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
 import { ItemSearchBox, ROW_ICON } from './ItemSearchBox.tsx'
 import { T } from './text.ts'
@@ -36,47 +45,38 @@ const SUGGESTED_ITEM_IDS = [
 // ItemSearchBox は目標入力と共用だが、この画面は「追加」ではなく単一選択なので常に空。
 const NO_ADDED_ITEMS: ReadonlySet<string> = new Set()
 
-const sortedItems = [...items].sort((left, right) =>
-  left.name.ja.localeCompare(right.name.ja, 'ja'),
-)
-
-/**
- * items.json にゲーム内カテゴリは無いため、重複しないデータ属性で全件を分類する。
- * モジュール初期化時に一度だけ作り、198件の分類をレンダーごとに繰り返さない。
- */
-const ITEM_GROUPS: readonly ItemGroup[] = [
-  {
-    id: 'raw',
-    label: T.recipeBrowser.groups.raw,
-    items: sortedItems.filter((item) => item.isRawResource),
-  },
-  {
-    id: 'solid',
-    label: T.recipeBrowser.groups.solid,
-    items: sortedItems.filter((item) => !item.isRawResource && item.form === 'solid'),
-  },
-  {
-    id: 'liquid',
-    label: T.recipeBrowser.groups.liquid,
-    items: sortedItems.filter((item) => !item.isRawResource && item.form === 'liquid'),
-  },
-  {
-    id: 'gas',
-    label: T.recipeBrowser.groups.gas,
-    items: sortedItems.filter((item) => !item.isRawResource && item.form === 'gas'),
-  },
-].filter((group) => group.items.length > 0)
-
-const durationFormat = new Intl.NumberFormat('ja-JP', {
-  maximumFractionDigits: 2,
-})
-
 /** アイテム中心で、ゲームデータ中の作り方と使い道を読む参照画面。 */
 export function RecipeBrowser({ onCreatePlan }: RecipeBrowserProps) {
+  const { locale } = useLocale()
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [selectionHistory, setSelectionHistory] = useState<string[]>([])
 
   const selectedItem = selectedItemId === null ? undefined : itemsById.get(selectedItemId)
+  const sortedItems = [...items].sort((left, right) =>
+    itemName(left.id).localeCompare(itemName(right.id), locale),
+  )
+  const itemGroups: readonly ItemGroup[] = [
+    {
+      id: 'raw',
+      label: T.recipeBrowser.groups.raw,
+      items: sortedItems.filter((item) => item.isRawResource),
+    },
+    {
+      id: 'solid',
+      label: T.recipeBrowser.groups.solid,
+      items: sortedItems.filter((item) => !item.isRawResource && item.form === 'solid'),
+    },
+    {
+      id: 'liquid',
+      label: T.recipeBrowser.groups.liquid,
+      items: sortedItems.filter((item) => !item.isRawResource && item.form === 'liquid'),
+    },
+    {
+      id: 'gas',
+      label: T.recipeBrowser.groups.gas,
+      items: sortedItems.filter((item) => !item.isRawResource && item.form === 'gas'),
+    },
+  ].filter((group) => group.items.length > 0)
 
   const selectItem = (itemId: string): void => {
     if (!itemsById.has(itemId) || itemId === selectedItemId) return
@@ -104,7 +104,7 @@ export function RecipeBrowser({ onCreatePlan }: RecipeBrowserProps) {
         </div>
 
         <nav className="recipe-browser__catalog" aria-label={T.recipeBrowser.catalogLabel}>
-          {ITEM_GROUPS.map((group) => (
+          {itemGroups.map((group) => (
             <section className="recipe-browser__item-group" key={group.id}>
               <h2 className="recipe-browser__item-group-title">
                 {group.label}
@@ -122,8 +122,8 @@ export function RecipeBrowser({ onCreatePlan }: RecipeBrowserProps) {
                       data-recipe-browser-item={item.id}
                       onClick={() => selectItem(item.id)}
                     >
-                      <ItemIcon id={item.id} name={item.name.ja} size={ROW_ICON} />
-                      <span>{item.name.ja}</span>
+                      <ItemIcon id={item.id} name={itemName(item.id)} size={ROW_ICON} />
+                      <span>{itemName(item.id)}</span>
                     </button>
                   </li>
                 ))}
@@ -137,7 +137,7 @@ export function RecipeBrowser({ onCreatePlan }: RecipeBrowserProps) {
         className="recipe-browser__detail"
         aria-label={
           selectedItem
-            ? T.recipeBrowser.detailFor(selectedItem.name.ja)
+            ? T.recipeBrowser.detailFor(itemName(selectedItem.id))
             : T.recipeBrowser.detailLabel
         }
         data-selected-item-id={selectedItem?.id}
@@ -176,8 +176,8 @@ function RecipeBrowserEmpty({ onSelect }: { onSelect: (itemId: string) => void }
                   className="button recipe-browser__suggestion"
                   onClick={() => onSelect(item.id)}
                 >
-                  <ItemIcon id={item.id} name={item.name.ja} size={28} />
-                  <span>{item.name.ja}</span>
+                  <ItemIcon id={item.id} name={itemName(item.id)} size={28} />
+                  <span>{itemName(item.id)}</span>
                 </button>
               </li>
             )
@@ -217,9 +217,9 @@ function ItemRecipeDetail({
           {T.recipeBrowser.back}
         </button>
         <div className="recipe-browser__item-heading">
-          <ItemIcon id={item.id} name={item.name.ja} size={48} />
+          <ItemIcon id={item.id} name={itemName(item.id)} size={48} />
           <div>
-            <h2>{item.name.ja}</h2>
+            <h2>{itemName(item.id)}</h2>
             <p className="recipe-browser__item-meta">
               <span className={`tag ${item.isRawResource ? 'is-accent' : 'is-balanced'}`}>
                 {item.isRawResource ? T.recipeBrowser.raw : T.recipeBrowser.processed}
@@ -299,7 +299,7 @@ function ProducingRecipeCard({ recipe, outputItem, onCreatePlan }: ProducingReci
       <header className="recipe-browser__recipe-header">
         <h3 className="card__title">
           {recipe.isAlternate && <AlternateIcon size={18} />}
-          <span>{recipe.name.ja}</span>
+          <span>{itemName(recipe.id)}</span>
         </h3>
         <span className={`tag ${recipe.isAlternate ? 'is-accent' : 'is-balanced'}`}>
           {recipe.isAlternate ? T.recipeBrowser.alternate : T.recipeBrowser.standard}
@@ -312,10 +312,10 @@ function ProducingRecipeCard({ recipe, outputItem, onCreatePlan }: ProducingReci
           <dd className="cell-name">
             <ItemIcon
               id={recipe.producedIn}
-              name={building?.name.ja ?? recipe.producedIn}
+              name={itemName(building?.id ?? recipe.producedIn)}
               size={18}
             />
-            <span>{building?.name.ja ?? recipe.producedIn}</span>
+            <span>{itemName(building?.id ?? recipe.producedIn)}</span>
           </dd>
         </div>
         <div>
@@ -328,7 +328,7 @@ function ProducingRecipeCard({ recipe, outputItem, onCreatePlan }: ProducingReci
         </div>
         <div>
           <dt>{T.recipeBrowser.cycle}</dt>
-          <dd className="num">{durationFormat.format(recipe.durationSec)} 秒</dd>
+          <dd className="num">{T.recipeBrowser.seconds(fmtDecimal(recipe.durationSec))}</dd>
         </div>
       </dl>
 
@@ -452,8 +452,8 @@ function ConsumingRecipeRow({ recipe, consumedItem, onSelectItem }: ConsumingRec
         disabled={destination === undefined}
         aria-label={
           destination === undefined
-            ? recipe.name.ja
-            : T.recipeBrowser.openProduct(recipe.name.ja, itemName(destination.item))
+            ? itemName(recipe.id)
+            : T.recipeBrowser.openProduct(itemName(recipe.id), itemName(destination.item))
         }
         data-consuming-recipe-id={recipe.id}
         onClick={() => {
@@ -463,10 +463,10 @@ function ConsumingRecipeRow({ recipe, consumedItem, onSelectItem }: ConsumingRec
         <span className="recipe-browser__use-recipe">
           <span className="cell-name">
             {recipe.isAlternate && <AlternateIcon size={16} />}
-            <span>{recipe.name.ja}</span>
+            <span>{itemName(recipe.id)}</span>
           </span>
           <span className="recipe-browser__use-building">
-            {building?.name.ja ?? recipe.producedIn}
+            {itemName(building?.id ?? recipe.producedIn)}
           </span>
         </span>
         <span className="recipe-browser__use-rate num">
@@ -489,5 +489,5 @@ function ConsumingRecipeRow({ recipe, consumedItem, onSelectItem }: ConsumingRec
 }
 
 function amountUnit(itemId: string): string {
-  return itemsById.get(itemId)?.form === 'solid' ? '個' : 'm³'
+  return itemsById.get(itemId)?.form === 'solid' ? T.units.item : T.units.cubicMeter
 }

@@ -28,6 +28,7 @@ import '@xyflow/react/dist/style.css'
 import { buildPlanGraph } from '../plan/graph.ts'
 import { filterPowerFromGraph, findPowerOnlySteps } from '../plan/power-filter.ts'
 import type { Solution } from '../solver/index.ts'
+import { useLocale } from '../i18n/index.ts'
 import {
   EDGE_COLORS,
   LABEL_STYLE,
@@ -51,6 +52,7 @@ import {
   fmtRate,
   isAlternateRecipe,
   itemName,
+  itemUnit,
   recipeMainItem,
 } from './format.ts'
 import { AlternateIcon, ItemIcon } from './ItemIcon.tsx'
@@ -75,14 +77,15 @@ export default function FlowChart({
   hidePower = false,
   onHidePowerChange,
 }: Props) {
+  const { locale } = useLocale()
   // 発電計画が無効な解ではトグルそのものを出さない
   const canFilterPower = solution.powerGeneration !== undefined
   const filter = useMemo(() => findPowerOnlySteps(solution), [solution])
   const hiding = hidePower && canFilterPower
   const graph = useMemo(() => {
-    const full = buildPlanGraph(solution, { beltId, pipeId })
+    const full = buildPlanGraph(solution, { beltId, pipeId, locale })
     return hiding ? filterPowerFromGraph(full, filter) : full
-  }, [solution, beltId, pipeId, hiding, filter])
+  }, [solution, beltId, pipeId, locale, hiding, filter])
   const [layout, setLayout] = useState<PlanFlowLayout | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
 
@@ -126,8 +129,8 @@ export default function FlowChart({
   }
   if (!layout) return frame(<p className="hint">{T.flow.loading}</p>)
 
-  const transport = graph.edges.find((e) => e.transport === 'belt')?.transportNameJa ?? '—'
-  const pipe = graph.edges.find((e) => e.transport === 'pipe')?.transportNameJa ?? '—'
+  const transport = graph.edges.find((e) => e.transport === 'belt')?.transportName ?? '—'
+  const pipe = graph.edges.find((e) => e.transport === 'pipe')?.transportName ?? '—'
 
   return frame(
     <div className="flowchart">
@@ -213,12 +216,12 @@ function SourceNode({ data }: NodeProps<SourceFlowNode>) {
   return (
     <div className={`flow-node ${node.external ? 'flow-node--external' : 'flow-node--source'}`}>
       <p className="flow-node__kind">
-        <ItemIcon id={node.item} name={node.itemNameJa} size={NODE_METRICS.iconSize} />
+        <ItemIcon id={node.item} name={node.itemName} size={NODE_METRICS.iconSize} />
         <span>{node.external ? T.flow.external : T.flow.source}</span>
       </p>
-      <p className="flow-node__title">{node.itemNameJa}</p>
+      <p className="flow-node__title">{node.itemName}</p>
       <p className="flow-node__rate num">
-        {fmtRate(node.ratePerMin)} <span className="flow-node__unit">{node.unitJa}</span>
+        {fmtRate(node.ratePerMin)} <span className="flow-node__unit">{itemUnit(node.item)}</span>
       </p>
       <Handle type="source" position={Position.Right} isConnectable={false} />
     </div>
@@ -243,13 +246,14 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
           1行目が狭くなるぶんは flow-layout.ts の titleLeadingWidth が高さに織り込む */}
       <p className="flow-node__title">
         {isAlternateRecipe(node.recipeId) && <AlternateIcon size={NODE_METRICS.titleIconSize} />}
-        {node.recipeNameJa}
+        {node.recipeName}
       </p>
       <p className="flow-node__meta">
-        {node.buildingNameJa}・{T.flow.machines(node.buildingCount, fmtPercent(node.clock))}
+        {node.buildingName}{T.flow.metaSeparator}
+        {T.flow.machines(node.buildingCount, fmtPercent(node.clock))}
       </p>
       <p className="flow-node__meta">
-        {fmtCount(node.machineCount)} 台相当 ・{' '}
+        {T.flow.machineEquivalent(fmtCount(node.machineCount))}{T.flow.metaSeparator}
         {/* 発電機は電力を消費しない。代わりに発電量を出す（電力のエッジは張らない） */}
         {node.powerProductionMW > 0 ? (
           T.flow.powerProduction(fmtPower(node.powerProductionMW))
@@ -258,7 +262,7 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
             {node.powerRangeMW
               ? fmtPowerRange(node.powerRangeMW.minMW, node.powerRangeMW.maxMW)
               : fmtPower(node.powerMW)}{' '}
-            MW
+            {T.units.megawatt}
           </>
         )}
       </p>
@@ -266,7 +270,7 @@ function RecipeNode({ data }: NodeProps<RecipeFlowNode>) {
       {node.somersloops > 0 && (
         <p className="flow-node__meta">
           {T.flow.somersloops(node.somersloops)}
-          {node.powerShards > 0 ? ` ・ ${T.flow.shards(node.powerShards)}` : ''}
+          {node.powerShards > 0 ? `${T.flow.metaSeparator}${T.flow.shards(node.powerShards)}` : ''}
         </p>
       )}
       <div className="flow-node__io">
@@ -299,12 +303,12 @@ function OutputNode({ data }: NodeProps<OutputFlowNode>) {
   return (
     <div className={`flow-node flow-node--output${node.isTarget ? ' flow-node--target' : ''}`}>
       <p className="flow-node__kind">
-        <ItemIcon id={node.item} name={node.itemNameJa} size={NODE_METRICS.iconSize} />
+        <ItemIcon id={node.item} name={node.itemName} size={NODE_METRICS.iconSize} />
         <span>{node.isTarget ? T.flow.target : T.flow.byproduct}</span>
       </p>
-      <p className="flow-node__title">{node.itemNameJa}</p>
+      <p className="flow-node__title">{node.itemName}</p>
       <p className="flow-node__rate num">
-        {fmtRate(node.ratePerMin)} <span className="flow-node__unit">{node.unitJa}</span>
+        {fmtRate(node.ratePerMin)} <span className="flow-node__unit">{itemUnit(node.item)}</span>
       </p>
       {node.requestedPerMin !== undefined && (
         <p className="flow-node__meta num">{T.flow.requested(fmtRate(node.requestedPerMin))}</p>

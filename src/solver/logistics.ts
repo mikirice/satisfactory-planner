@@ -3,12 +3,12 @@
  * 速度データは Docs.json 由来（src/data/logistics.json）。
  */
 import { belts, itemsById, pipes } from '../data/index.ts'
-import type { Belt, Pipe } from '../data/types.ts'
+import type { Belt, LocalizedName, Pipe } from '../data/types.ts'
 
 export type TransportRequirement = {
   /** 使う搬送手段 */
   id: string
-  nameJa: string
+  name: LocalizedName
   /** 1本あたりの上限（個/分 または m³/min） */
   capacityPerMin: number
   /** 必要本数（整数・切り上げ） */
@@ -36,7 +36,7 @@ export function linesRequired(
   const lines = ratePerMin <= 0 ? 0 : Math.ceil(ratePerMin / capacityPerMin - 1e-9)
   return {
     id: chosen.id,
-    nameJa: chosen.name.ja,
+    name: chosen.name,
     capacityPerMin,
     lines,
     utilization: lines === 0 ? 0 : ratePerMin / (lines * capacityPerMin),

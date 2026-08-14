@@ -6,11 +6,13 @@
  */
 import { useState } from 'react'
 
+import { useLocale } from '../i18n/index.ts'
 import { toExcelInput, usePlanner } from '../store/planner.ts'
 import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { T } from './text.ts'
 
 export function ExportPanel() {
+  const { locale } = useLocale()
   const planName = usePlanner((s) => s.planName)
   const setPlanName = usePlanner((s) => s.setPlanName)
   const status = usePlanner((s) => s.status)
@@ -27,9 +29,9 @@ export function ExportPanel() {
     setError(null)
     try {
       const { downloadPlanWorkbook } = await import('../export/excel.ts')
-      await downloadPlanWorkbook(input)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      await downloadPlanWorkbook({ ...input, locale })
+    } catch {
+      setError(T.export.failed)
     } finally {
       setBusy(false)
     }
@@ -61,7 +63,7 @@ export function ExportPanel() {
 
       {error !== null && (
         <p className="callout callout--warn">
-          {T.export.failed}: {error}
+          {error}
         </p>
       )}
     </CollapsiblePanel>

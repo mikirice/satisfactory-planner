@@ -5,10 +5,10 @@ const COMPLETE_NUMBER = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?$/
 
 function normalizeNumberText(text: string): string {
   return text
-    .replace(/[０-９]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0xfee0))
-    .replace(/．/g, '.')
-    .replace(/[－ー‐]/g, '-')
-    .replace(/[\s,，]/g, '')
+    .replace(/[\uff10-\uff19]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0xfee0))
+    .replace(/\uff0e/g, '.')
+    .replace(/[\uff0d\u30fc\u2010]/g, '-')
+    .replace(/[\s,\uff0c]/g, '')
 }
 
 function parseNumberText(text: string): number | null {

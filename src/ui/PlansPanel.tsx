@@ -64,7 +64,7 @@ export function PlansPanel() {
     const boot = async (): Promise<void> => {
       const restored = await restoreInitialPlan()
       if (restored.error !== null) {
-        flash('warn', `${T.plans.restoreFailed}（${restored.error}）`)
+        flash('warn', T.plans.restoreError)
       } else if (restored.source === 'url') {
         flash('info', withWarnings(T.plans.restoredFromUrl, restored.warnings.length))
         // 共有内容をそのまま自動保存に移し、アドレスバーからは外す。
@@ -88,7 +88,7 @@ export function PlansPanel() {
           await saveAutosaveNow()
           history.replaceState(null, '', stripPlanParam(location.href))
         } else if (r.error !== null) {
-          flash('warn', `${T.plans.restoreFailed}（${r.error}）`)
+          flash('warn', T.plans.restoreError)
         }
       })
     }
@@ -114,15 +114,15 @@ export function PlansPanel() {
       await planStorage().save(name, currentSnapshot())
       await reload()
       flash('info', existed ? T.plans.overwritten(name) : T.plans.saved(name))
-    } catch (e) {
-      flash('warn', `${T.plans.storageFailed}: ${errorText(e)}`)
+    } catch {
+      flash('warn', T.plans.storageFailed)
     }
   }
 
   const load = async (plan: SavedPlan): Promise<void> => {
     const parsed = parsePlanSnapshot(plan.snapshot)
     if (!parsed.ok) {
-      flash('warn', `${T.plans.restoreFailed}（${parsed.error}）`)
+      flash('warn', T.plans.restoreError)
       return
     }
     applyPlan({ ...parsed.input, planName: plan.name })
@@ -135,8 +135,8 @@ export function PlansPanel() {
       await planStorage().remove(plan.id)
       await reload()
       flash('info', T.plans.removed(plan.name))
-    } catch (e) {
-      flash('warn', `${T.plans.storageFailed}: ${errorText(e)}`)
+    } catch {
+      flash('warn', T.plans.storageFailed)
     }
   }
 
@@ -225,6 +225,4 @@ export function PlansPanel() {
 }
 
 const withWarnings = (text: string, count: number): string =>
-  count === 0 ? text : `${text}（${T.plans.warnings(count)}）`
-
-const errorText = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+  count === 0 ? text : T.plans.withWarnings(text, count)

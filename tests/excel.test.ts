@@ -146,6 +146,64 @@ describe('ワークブックの構成', () => {
   })
 })
 
+describe('English workbook localization', () => {
+  it('localizes labels and resolves official names without changing numeric cells', async () => {
+    const buffer = await planWorkbookBuffer({
+      ...ironPlate.input,
+      locale: 'en',
+      planName: 'Iron Plate Line',
+      objectiveLabel: undefined,
+      objectiveId: 'resources',
+    })
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(buffer)
+
+    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
+      'Summary',
+      'Building List',
+      'Item Balance',
+      'Resources',
+      'Build Cost',
+      'Logistics',
+    ])
+
+    const summary = workbook.getWorksheet('Summary')!
+    const summaryLabels = new Map<string, unknown>()
+    for (let rowNumber = 1; rowNumber <= summary.rowCount; rowNumber += 1) {
+      const row = summary.getRow(rowNumber)
+      const label = row.getCell(1).value
+      if (typeof label === 'string') summaryLabels.set(label, row.getCell(2).value)
+    }
+    expect(summaryLabels.get('Plan name')).toBe('Iron Plate Line')
+    expect(summaryLabels.get('Optimization goal')).toBe('Minimize resources')
+    expect(summaryLabels.has('Iron Plate')).toBe(true)
+
+    const buildings = workbook.getWorksheet('Building List')!
+    const buildingColumns = columns(buildings)
+    const ironPlateRow = findRow(buildings, buildingColumns.get('Recipe')!, 'Iron Plate')!
+    expect(ironPlateRow.getCell(buildingColumns.get('Machine type')!).value).toBe('Constructor')
+    expect(ironPlateRow.getCell(buildingColumns.get('Produced')!).value).toBe(
+      'Iron Plate 60.00 items/min',
+    )
+    expect(ironPlateRow.getCell(buildingColumns.get('Running machines')!).type).toBe(
+      ExcelJS.ValueType.Number,
+    )
+    expect(ironPlateRow.getCell(buildingColumns.get('Running machines')!).numFmt).toBe(
+      NUM_FMT.count,
+    )
+    expect(buildingColumns.has('Power Shards')).toBe(true)
+    expect(buildingColumns.has('Somersloops')).toBe(true)
+
+    const logistics = workbook.getWorksheet('Logistics')!
+    const logisticsColumns = columns(logistics)
+    const ironOre = findRow(logistics, logisticsColumns.get('Flow type')!, 'Raw resource')!
+    expect(ironOre.getCell(logisticsColumns.get('Item')!).value).toBe('Iron Ore')
+    expect(ironOre.getCell(logisticsColumns.get('Transport method')!).value).toBe(
+      'Conveyor Belt Mk.6',
+    )
+  })
+})
+
 describe('建物リスト', () => {
   it('鉄板のレシピ行が稼働台数を数値セルで持つ', () => {
     const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
@@ -189,7 +247,7 @@ describe('建物リスト', () => {
     const sheet = ironPlate.workbook.getWorksheet(SHEET_NAMES.buildings)!
     const col = columns(sheet)
     const row = findRow(sheet, col.get('レシピ')!, '鉄板')!
-    expect(row.getCell(col.get('パワーシャード')!).value).toBe(0)
+    expect(row.getCell(col.get('パワー・シャード')!).value).toBe(0)
     expect(row.getCell(col.get('サマースループ')!).value).toBe(0)
   })
 
@@ -371,7 +429,7 @@ describe('物流', () => {
     expect(found).toBeDefined()
     expect(found!.getCell(col.get('形態')!).value).toBe('固体')
     expect(found!.getCell(col.get('搬送')!).value).toBe('ベルト')
-    expect(found!.getCell(col.get('搬送手段')!).value).toBe(expected.nameJa)
+    expect(found!.getCell(col.get('搬送手段')!).value).toBe(expected.name.ja)
     expect(found!.getCell(col.get('必要本数')!).value).toBe(expected.lines)
     expect(found!.getCell(col.get('レート')!).value).toBeCloseTo(output.ratePerMin, 6)
     expect(found!.getCell(col.get('使用率')!).numFmt).toBe(NUM_FMT.percent)
@@ -405,7 +463,7 @@ describe('物流', () => {
     const col = columns(sheet)
     const row = findRow(sheet, col.get('区分')!, '原料供給')!
     const expected = linesRequired(90, 'Desc_OreIron_C', 'Build_ConveyorBeltMk1_C')
-    expect(row.getCell(col.get('搬送手段')!).value).toBe(expected.nameJa)
+    expect(row.getCell(col.get('搬送手段')!).value).toBe(expected.name.ja)
     expect(row.getCell(col.get('必要本数')!).value).toBe(expected.lines)
     expect(expected.lines).toBeGreaterThan(1)
   })
@@ -491,7 +549,7 @@ describe('サマリー', () => {
       solution.totalClockedPowerRangeMW.minMW,
       6,
     )
-    expect(Number(labels.get('パワーシャード（個）'))).toBe(
+    expect(Number(labels.get('パワー・シャード（個）'))).toBe(
       solution.totalPowerShards + target.input.extraction!.totalPowerShards,
     )
     expect(Number(labels.get('サマースループ 使用数（個）'))).toBe(solution.totalSomersloops)
@@ -531,9 +589,11 @@ describe('原料シート（採掘クロック）', () => {
 
     const sheet = workbook.getWorksheet(SHEET_NAMES.resources)!
     const col = columns(sheet)
-    expect(col.has('パワーシャード')).toBe(true)
+    expect(col.has('パワー・シャード')).toBe(true)
     const row = findRow(sheet, col.get('原料')!, '鉄鉱石')!
-    expect(row.getCell(col.get('パワーシャード')!).value).toBe(extraction.totalPowerShards)
+    expect(row.getCell(col.get('パワー・シャード')!).value).toBe(
+      extraction.totalPowerShards,
+    )
     expect(extraction.totalPowerShards).toBeGreaterThan(0)
   })
 })

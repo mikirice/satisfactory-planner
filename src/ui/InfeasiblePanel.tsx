@@ -15,11 +15,11 @@ export function InfeasiblePanel({ result }: Props) {
           <li key={`${reason.kind}-${index}`} className="reason">
             <span className="tag is-shortage">{T.infeasible.reason[reason.kind]}</span>
             <div className="reason__body">
-              <p className="reason__message">{reason.message}</p>
+              <p className="reason__message">{reasonMessage(reason)}</p>
               {detail(reason)}
               {/* 原因ごとの個別の対処があればそれを優先する（例: 産出最大化が非有界） */}
               <p className="reason__advice">
-                {('advice' in reason && reason.advice) || T.infeasible.advice[reason.kind]}
+                {T.infeasible.advice[reason.kind]}
               </p>
             </div>
           </li>
@@ -35,9 +35,18 @@ function detail(reason: InfeasibleReason) {
     <dl className="kv">
       <dt>{itemName(reason.item)}</dt>
       <dd className="num">
-        上限 {fmtRate(reason.limitPerMin)} / 必要 {fmtRate(reason.requiredPerMin)} / 不足{' '}
-        {fmtRate(reason.shortfallPerMin)}
+        {T.infeasible.resourceLimitDetail(
+          fmtRate(reason.limitPerMin),
+          fmtRate(reason.requiredPerMin),
+          fmtRate(reason.shortfallPerMin),
+        )}
       </dd>
     </dl>
   )
+}
+
+function reasonMessage(reason: InfeasibleReason): string {
+  return reason.kind === 'unproducibleItem' || reason.kind === 'resourceLimit'
+    ? T.infeasible.reasonMessage[reason.kind](itemName(reason.item))
+    : T.infeasible.reasonMessage[reason.kind]
 }

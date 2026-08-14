@@ -20,8 +20,10 @@ export function LimitsPanel() {
     <section className="panel">
       <button type="button" className="panel__toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="panel__title">{T.sidebar.limits}</span>
-        <span className="panel__meta">{changed > 0 ? `${changed} 件変更` : 'マップ上限'}</span>
-        <span className="panel__caret">{open ? '閉じる' : '開く'}</span>
+        <span className="panel__meta">
+          {changed > 0 ? T.sidebar.limitsChanged(String(changed)) : T.sidebar.mapLimit}
+        </span>
+        <span className="panel__caret">{open ? T.sidebar.close : T.sidebar.open}</span>
       </button>
 
       {open && (

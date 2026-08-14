@@ -76,6 +76,24 @@
   outline-offset: -2px;
 }
 
+.header__language {
+  flex: 0 0 auto;
+  max-width: 8.5em;
+  min-height: 29px;
+  padding: 4px 24px 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.header__language:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* --- レイアウト ---------------------------------------------------------- */
 
 .layout {
@@ -1752,6 +1770,10 @@
     width: 100%;
   }
 
+  .header__language {
+    order: 4;
+  }
+
   .header__mode-button {
     flex: 1 1 0;
     min-width: 0;
@@ -1761,8 +1783,7 @@
 
   .header__meta {
     order: 4;
-    width: 100%;
-    margin-left: 0;
+    margin-left: auto;
   }
 
   .layout,

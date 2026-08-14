@@ -9,7 +9,7 @@ import { belts, itemsById, pipes } from '../data/index.ts'
 import { linesRequired, transportKind } from '../solver/index.ts'
 import type { ItemRate, Solution, SolutionStep, TransportRequirement } from '../solver/index.ts'
 
-export type PlanFlowKind = '原料供給' | '投入' | '産出'
+export type PlanFlowKind = 'source' | 'input' | 'output'
 
 export type PlanFlow = {
   kind: PlanFlowKind
@@ -26,11 +26,11 @@ export type PlanFlow = {
 export function enumeratePlanFlows(solution: Solution): PlanFlow[] {
   const flows: PlanFlow[] = []
   for (const raw of solution.rawResources) {
-    flows.push({ kind: '原料供給', step: null, item: raw.item, ratePerMin: raw.ratePerMin })
+    flows.push({ kind: 'source', step: null, item: raw.item, ratePerMin: raw.ratePerMin })
   }
   for (const step of solution.steps) {
-    for (const flow of step.inputs) push(flows, '投入', step, flow)
-    for (const flow of step.outputs) push(flows, '産出', step, flow)
+    for (const flow of step.inputs) push(flows, 'input', step, flow)
+    for (const flow of step.outputs) push(flows, 'output', step, flow)
   }
   return flows
 }

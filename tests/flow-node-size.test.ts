@@ -76,7 +76,7 @@ describe('ノードの高さ', () => {
 
   it('アイテム名・レシピ名は折り返しても収まる（省略せずに読める）', () => {
     for (const node of allNodes) {
-      const text = node.kind === 'recipe' ? node.recipeNameJa : node.itemNameJa
+      const text = node.kind === 'recipe' ? node.recipeName : node.itemName
       const width = nodeWidth(node)
       // 代替レシピは名前の前にハードドライブのアイコンが入るぶんだけ1行目が狭くなる
       const leading = titleLeadingWidth(node)
@@ -130,8 +130,8 @@ describe('ノードの高さ', () => {
     expect(rowsOf(big)).toBeGreaterThan(rowsOf(small))
     expect(measureNodeSize(big).height - measureNodeSize(small).height).toBe(
       (rowsOf(big) - rowsOf(small)) * NODE_METRICS.ioRowLine +
-        (titleLineCount(big.recipeNameJa, NODE_METRICS.recipeWidth) -
-          titleLineCount(small.recipeNameJa, NODE_METRICS.recipeWidth)) *
+        (titleLineCount(big.recipeName, NODE_METRICS.recipeWidth) -
+          titleLineCount(small.recipeName, NODE_METRICS.recipeWidth)) *
           NODE_METRICS.titleLine,
     )
   })

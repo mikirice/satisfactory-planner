@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { items } from '../data/index.ts'
+import { useLocale } from '../i18n/index.ts'
 import { ItemIcon } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
@@ -18,8 +19,6 @@ export const ROW_ICON = 20
 
 /** 候補の表示上限。多すぎると選びにくいので絞る */
 const MAX_SUGGESTIONS = 12
-
-const searchableItems = [...items].sort((a, b) => a.name.ja.localeCompare(b.name.ja, 'ja'))
 
 function matches(query: string, haystack: string[]): boolean {
   const q = query.trim().toLowerCase()
@@ -37,16 +36,18 @@ type Props = {
 }
 
 export function ItemSearchBox({ label, placeholder, addedItems, onPick }: Props) {
+  const { locale, displayName } = useLocale()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
   const suggestions = useMemo(() => {
     if (query.trim() === '') return []
-    return searchableItems
+    return [...items]
+      .sort((a, b) => displayName(a).localeCompare(displayName(b), locale))
       .filter((i) => matches(query, [i.name.ja, i.name.en, i.id]))
       .slice(0, MAX_SUGGESTIONS)
-  }, [query])
+  }, [query, locale, displayName])
 
   const showSuggestions = open && query.trim() !== ''
 
@@ -101,8 +102,8 @@ export function ItemSearchBox({ label, placeholder, addedItems, onPick }: Props)
                 }}
               >
                 <span className="suggestions__label">
-                  <ItemIcon id={item.id} name={item.name.ja} size={ROW_ICON} />
-                  {item.name.ja}
+                  <ItemIcon id={item.id} name={displayName(item)} size={ROW_ICON} />
+                  {displayName(item)}
                 </span>
                 {addedItems.has(item.id) && (
                   <span className="suggestions__added">{T.sidebar.alreadyAdded}</span>
