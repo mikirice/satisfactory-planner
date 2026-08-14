@@ -22,3 +22,32 @@ export const LOCALE_ENDONYMS: Readonly<Record<Locale, string>> = {
   pl: 'Polski',
   tr: 'Türkçe',
 } as const
+
+/**
+ * 言語スイッチャーに添える国旗（Regional Indicator の組み合わせ）。
+ *
+ * 言語と国は本来 1:1 ではないが、スイッチャーは**目印**として国旗を出す方が
+ * 一覧から自分の言語を素早く見つけられる（オーナー指示）。割当は代表的な
+ * 話者地域に寄せ、中国語は簡体=CN・繁体=TW で字体と揃える。
+ * 読み上げには意味がないので、装飾が不要な箇所（aria-label 等）では
+ * LOCALE_ENDONYMS 側の素の表記を使う。
+ */
+export const LOCALE_FLAGS: Readonly<Record<Locale, string>> = {
+  ja: '🇯🇵',
+  en: '🇺🇸',
+  de: '🇩🇪',
+  fr: '🇫🇷',
+  'es-ES': '🇪🇸',
+  'pt-BR': '🇧🇷',
+  ru: '🇷🇺',
+  'zh-Hans': '🇨🇳',
+  'zh-Hant': '🇹🇼',
+  ko: '🇰🇷',
+  pl: '🇵🇱',
+  tr: '🇹🇷',
+} as const
+
+/** 言語スイッチャーの表示文字列（国旗＋自称表記）。表示側で結合をばらけさせない。 */
+export function localeSwitcherLabel(locale: Locale): string {
+  return `${LOCALE_FLAGS[locale]} ${LOCALE_ENDONYMS[locale]}`
+}

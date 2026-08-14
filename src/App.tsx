@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { meta } from './data/index.ts'
 import { SUPPORTED_LOCALES, useLocale } from './i18n/index.ts'
-import { LOCALE_ENDONYMS } from './i18n/endonyms.ts'
+import { localeSwitcherLabel } from './i18n/endonyms.ts'
 import type { Locale } from './i18n/index.ts'
 import { saveAutosaveNow } from './plan/persist.ts'
 import { defaultPlanInput } from './plan/serialize.ts'
@@ -87,8 +87,9 @@ function App() {
           </button>
         </div>
         {/*
-          言語名は自称表記（endonym）で全言語共通。選択直後は辞書チャンクの取得が終わるまで
-          画面は現在の言語のままなので、select の値だけ先に選択へ追随させる（点滅させない）。
+          言語名は自称表記（endonym）で全言語共通。頭に国旗を添えて一覧から探しやすくする。
+          選択直後は辞書チャンクの取得が終わるまで画面は現在の言語のままなので、
+          select の値だけ先に選択へ追随させる（点滅させない）。
         */}
         <select
           className="header__language"
@@ -99,7 +100,7 @@ function App() {
         >
           {SUPPORTED_LOCALES.map((option) => (
             <option key={option} value={option}>
-              {LOCALE_ENDONYMS[option]}
+              {localeSwitcherLabel(option)}
             </option>
           ))}
         </select>

@@ -10,6 +10,7 @@
  *    既存ページの内容と tests/build-pages.test.ts の固定値が同時に動くため。
  *  - ゲーム内の固有名詞は書かない（names データが唯一の語彙源。計画書 §8）。
  */
+import { LOCALE_FLAGS } from '../../src/i18n/endonyms.ts'
 import { en as enUi } from '../../src/i18n/locales/en.ts'
 import { ja as jaUi } from '../../src/i18n/locales/ja.ts'
 import type { UiDictionary } from '../../src/i18n/types.ts'
@@ -31,6 +32,15 @@ export const OG_LOCALE: Readonly<Record<StaticLocale, string>> = { ja: 'ja_JP', 
 
 /** 言語切替リンクの表記（自称表記。src/i18n/endonyms.ts と同じ語）。 */
 export const ENDONYM: Readonly<Record<StaticLocale, string>> = { ja: '日本語', en: 'English' }
+
+/**
+ * 言語切替リンクの国旗。アプリのスイッチャーと割当をずらさないため、
+ * src/i18n/endonyms.ts の表をそのまま引く（StaticLocale は Locale の部分集合）。
+ */
+export const FLAG: Readonly<Record<StaticLocale, string>> = {
+  ja: LOCALE_FLAGS.ja,
+  en: LOCALE_FLAGS.en,
+}
 
 const jaLabels = {
   siteName: 'Satisfactory 生産計画ツール',

@@ -35,7 +35,7 @@ import {
   matchSupportedLocale,
   preloadLocale,
 } from '../src/i18n/index.ts'
-import { LOCALE_ENDONYMS } from '../src/i18n/endonyms.ts'
+import { LOCALE_ENDONYMS, LOCALE_FLAGS } from '../src/i18n/endonyms.ts'
 import type { Locale } from '../src/i18n/index.ts'
 import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
@@ -437,11 +437,44 @@ describe('言語スイッチャーの選択肢', () => {
 
     expect(options.map((option) => option.value)).toEqual([...SUPPORTED_LOCALES])
     expect(options.map((option) => option.textContent)).toEqual(
-      SUPPORTED_LOCALES.map((locale) => LOCALE_ENDONYMS[locale]),
+      SUPPORTED_LOCALES.map((locale) => `${LOCALE_FLAGS[locale]} ${LOCALE_ENDONYMS[locale]}`),
     )
     // 簡体・繁体は字体そのもので見分けられる（計画書 §8 の取り違え対策）
     expect(LOCALE_ENDONYMS['zh-Hans']).toBe('简体中文')
     expect(LOCALE_ENDONYMS['zh-Hant']).toBe('繁體中文')
+  })
+
+  /**
+   * 国旗は一覧から自分の言語を素早く見つけるための目印（オーナー指示）。
+   * 割当をうっかり付け替える／取りこぼすと気づけないので、12言語ぶんを固定値で押さえる。
+   */
+  it('12言語ぶんの国旗が自称表記の頭に付く', async () => {
+    const container = await render(
+      <LocaleProvider initialLocale="ja">
+        <App />
+      </LocaleProvider>,
+    )
+    const optionTexts = [
+      ...container.querySelectorAll<HTMLOptionElement>('.header__language option'),
+    ].map((option) => option.textContent)
+
+    expect(optionTexts).toEqual([
+      '🇯🇵 日本語',
+      '🇺🇸 English',
+      '🇩🇪 Deutsch',
+      '🇫🇷 Français',
+      '🇪🇸 Español',
+      '🇧🇷 Português (Brasil)',
+      '🇷🇺 Русский',
+      '🇨🇳 简体中文',
+      '🇹🇼 繁體中文',
+      '🇰🇷 한국어',
+      '🇵🇱 Polski',
+      '🇹🇷 Türkçe',
+    ])
+    // 12言語すべてに割当がある（言語を足したときの付け忘れを検出する）
+    expect(Object.keys(LOCALE_FLAGS)).toEqual([...SUPPORTED_LOCALES])
+    expect(new Set(Object.values(LOCALE_FLAGS)).size).toBe(SUPPORTED_LOCALES.length)
   })
 })
 

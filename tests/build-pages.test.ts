@@ -597,10 +597,10 @@ describe('hreflang', () => {
     expect(jaHtml).toContain(
       '<a class="lang-switch" href="/en/items/iron-plate/" hreflang="en" lang="en"',
     )
-    expect(jaHtml).toContain('>English</a>')
+    expect(jaHtml).toContain('>🇺🇸 English</a>')
     expect(enHtml).toContain(
       '<a class="lang-switch" href="/items/iron-plate/" hreflang="ja" lang="ja"',
     )
-    expect(enHtml).toContain('>日本語</a>')
+    expect(enHtml).toContain('>🇯🇵 日本語</a>')
   })
 })

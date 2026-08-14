@@ -1,6 +1,7 @@
 import { articlesIndexPath, itemsIndexPath } from '../../src/plan/item-pages.ts'
 import {
   ENDONYM,
+  FLAG,
   HTML_LANG,
   OG_LOCALE,
   STATIC_LOCALES,
@@ -95,7 +96,8 @@ function renderLanguageSwitch(meta: StaticPageMeta): string {
   const path = meta.alternates[other]
   if (path === undefined) return ''
   const labels = STATIC_PAGE_LABELS[meta.locale]
-  return `<a class="lang-switch" href="${escapeHtml(path)}" hreflang="${other}" lang="${HTML_LANG[other]}" aria-label="${escapeHtml(labels.switchLanguageTo(ENDONYM[other]))}">${escapeHtml(ENDONYM[other])}</a>`
+  // 表示は「国旗＋自称表記」。aria-label は読み上げに意味のない国旗を外し、素の言語名だけ残す。
+  return `<a class="lang-switch" href="${escapeHtml(path)}" hreflang="${other}" lang="${HTML_LANG[other]}" aria-label="${escapeHtml(labels.switchLanguageTo(ENDONYM[other]))}">${escapeHtml(`${FLAG[other]} ${ENDONYM[other]}`)}</a>`
 }
 
 export function renderDocument(meta: StaticPageMeta, body: string): string {
