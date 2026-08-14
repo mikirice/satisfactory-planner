@@ -151,19 +151,6 @@
   color: var(--text-strong);
 }
 
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sidebar {
-    position: static;
-    max-height: none;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
 /* --- アイテム別レシピブラウザ ------------------------------------------- */
 
 /*
@@ -606,64 +593,6 @@
 
   .recipe-browser__use-products {
     grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 900px) {
-  .recipe-browser {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .recipe-browser__picker {
-    position: static;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .recipe-browser__catalog {
-    max-height: 340px;
-  }
-}
-
-@media (max-width: 600px) {
-  .header {
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-  }
-
-  .header__title {
-    flex: 1 1 auto;
-  }
-
-  .header__meta {
-    margin-left: 0;
-  }
-
-  .header__mode {
-    order: 3;
-    width: 100%;
-  }
-
-  .header__mode-button {
-    flex: 1;
-  }
-
-  .recipe-browser__detail {
-    padding-inline: 12px;
-  }
-
-  .recipe-browser__flows {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .recipe-browser__use-button {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .recipe-browser__use-products {
-    grid-column: auto;
   }
 }
 
@@ -1784,4 +1713,263 @@
 .reason__advice {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/*
+ * Narrow viewport breakpoint: 880px.
+ * CSS custom properties cannot be used in media-query conditions, so every
+ * narrow-only override lives in this single block instead of repeating a value.
+ */
+@media (max-width: 879px) {
+  .app {
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .header {
+    position: static;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 10px 12px;
+  }
+
+  .header__title {
+    flex: 1 1 210px;
+    min-width: 0;
+  }
+
+  .header__status {
+    flex: 0 0 auto;
+  }
+
+  .header__mode {
+    order: 3;
+    width: 100%;
+  }
+
+  .header__mode-button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: 4px;
+  }
+
+  .header__meta {
+    order: 4;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .layout,
+  .recipe-browser {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .layout > *,
+  .recipe-browser > * {
+    min-width: 0;
+  }
+
+  .sidebar {
+    position: static;
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+  }
+
+  .main {
+    width: 100%;
+    padding: 16px 12px;
+  }
+
+  .site-footer {
+    padding-inline: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .ad-slot {
+    overflow: hidden;
+  }
+
+  .ad-slot--banner .adsbygoogle {
+    max-width: 100%;
+  }
+
+  .recipe-browser__picker {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .recipe-browser__catalog {
+    max-height: 340px;
+  }
+
+  .recipe-browser__detail {
+    padding: 16px 12px 24px;
+  }
+
+  .recipe-browser__item-header {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    margin: -16px -12px 0;
+    padding: 12px;
+    background: var(--bg);
+  }
+
+  .recipe-browser__item-heading,
+  .recipe-browser__item-heading > div {
+    min-width: 0;
+  }
+
+  .recipe-browser__item-heading h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .recipe-browser__flows,
+  .recipe-browser__use-button {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recipe-browser__use-products {
+    grid-column: auto;
+  }
+
+  .recipe-browser__recipe-header {
+    flex-wrap: wrap;
+  }
+
+  .recipe-browser__recipe-card,
+  .recipe-browser__uses {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .button,
+  .tab,
+  .panel__toggle,
+  .recipe-browser__item-button,
+  .recipe-browser__use-button,
+  .loop-guide summary {
+    min-height: 40px;
+  }
+
+  .sidebar .button,
+  .sidebar .panel__toggle,
+  .sidebar .suggestions__item {
+    padding-block: 8px;
+  }
+
+  .check,
+  .sidebar .checkbox,
+  .sidebar .radio,
+  .sidebar .target__mode {
+    min-height: 40px;
+    align-items: center;
+    padding-block: 8px;
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+
+  .sidebar .range {
+    min-height: 40px;
+  }
+
+  .input,
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .tabs {
+    max-width: 100%;
+    gap: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    padding-inline: 10px;
+    font-size: 13px;
+  }
+
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card {
+    min-width: 0;
+  }
+
+  .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-scroll > .table {
+    min-width: max(100%, 560px);
+  }
+
+  .table-scroll--compact > .table {
+    min-width: max(100%, 420px);
+  }
+
+  .table-scroll--wide > .table {
+    min-width: max(100%, 840px);
+  }
+
+  .flowchart {
+    width: 100vw;
+    max-width: 100vw;
+    height: 70svh;
+    min-height: 440px;
+    max-height: 640px;
+    margin-inline: calc(50% - 50vw);
+    border-right: none;
+    border-left: none;
+    border-radius: 0;
+  }
+
+  .flowchart .react-flow__pane {
+    touch-action: none;
+  }
+
+  .flowchart .react-flow__controls-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .flowchart .react-flow__minimap {
+    width: min(120px, 32vw);
+    height: 90px;
+  }
+
+  .flow-legend {
+    max-width: calc(50% - 16px);
+  }
+
+  .flow-stats {
+    display: none;
+  }
 }

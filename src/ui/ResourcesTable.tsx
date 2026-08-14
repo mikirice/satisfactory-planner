@@ -36,7 +36,8 @@ export function ResourcesTable({ solution, extraction }: Props) {
         </p>
       )}
       <section className="card card--wide">
-        <table className="table">
+        <div className="table-scroll table-scroll--wide">
+          <table className="table">
           <thead>
             <tr>
               <th scope="col">{T.resources.item}</th>
@@ -70,7 +71,8 @@ export function ResourcesTable({ solution, extraction }: Props) {
               )
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       </section>
     </div>
   )

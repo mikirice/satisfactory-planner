@@ -71,7 +71,8 @@ export function StepsTable({ solution, hidePower = false, onHidePowerChange }: P
             {group.buildingNameJa}
             <span className="card__meta">{T.steps.groupCount(group.steps.length)}</span>
           </h3>
-          <table className="table">
+          <div className="table-scroll table-scroll--wide">
+            <table className="table">
             <thead>
               <tr>
                 <th scope="col">{T.steps.recipe}</th>
@@ -158,7 +159,8 @@ export function StepsTable({ solution, hidePower = false, onHidePowerChange }: P
                 <td />
               </tr>
             </tfoot>
-          </table>
+            </table>
+          </div>
         </section>
       ))}
     </div>

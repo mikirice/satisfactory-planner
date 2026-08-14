@@ -153,6 +153,7 @@ export default function FlowChart({
         panOnDrag
         panOnScroll={false}
         zoomOnScroll
+        zoomOnPinch
         zoomOnDoubleClick
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#2b323d" />
