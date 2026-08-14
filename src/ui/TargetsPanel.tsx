@@ -55,39 +55,42 @@ export function TargetsPanel() {
                     <ItemIcon id={target.item} name={itemName(target.item)} size={ROW_ICON} />
                     {itemName(target.item)}
                   </span>
-                  {isMax ? (
-                    <span className="target__rate target__rate--max">
-                      {T.sidebar.maximizeBadge}
-                    </span>
-                  ) : (
-                    <span className="target__rate">
-                      <NumberField
-                        className="input input--num"
-                        min={0}
-                        step={1}
-                        value={target.ratePerMin}
-                        aria-label={T.sidebar.targetRate}
-                        ref={(el) => {
-                          if (el === null) return
-                          rateInputs.current.set(target.key, el)
-                          return () => {
-                            rateInputs.current.delete(target.key)
+                  {/* 操作はひとかたまり。名前が長い行では丸ごと2段目へ折り返す */}
+                  <span className="target__controls">
+                    {isMax ? (
+                      <span className="target__rate target__rate--max">
+                        {T.sidebar.maximizeBadge}
+                      </span>
+                    ) : (
+                      <span className="target__rate">
+                        <NumberField
+                          className="input input--num"
+                          min={0}
+                          step={1}
+                          value={target.ratePerMin}
+                          aria-label={T.sidebar.targetRate}
+                          ref={(el) => {
+                            if (el === null) return
+                            rateInputs.current.set(target.key, el)
+                            return () => {
+                              rateInputs.current.delete(target.key)
+                            }
+                          }}
+                          onValueChange={(ratePerMin) =>
+                            updateTarget(target.key, { ratePerMin })
                           }
-                        }}
-                        onValueChange={(ratePerMin) =>
-                          updateTarget(target.key, { ratePerMin })
-                        }
-                      />
-                      <span className="unit">{itemUnit(target.item)}</span>
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="button button--quiet"
-                    onClick={() => removeTarget(target.key)}
-                  >
-                    {T.sidebar.remove}
-                  </button>
+                        />
+                        <span className="unit">{itemUnit(target.item)}</span>
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="button button--quiet"
+                      onClick={() => removeTarget(target.key)}
+                    >
+                      {T.sidebar.remove}
+                    </button>
+                  </span>
                   <label className="target__mode" title={T.sidebar.maximizeHint}>
                     <input
                       type="checkbox"

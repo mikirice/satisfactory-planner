@@ -748,7 +748,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  /* 「追加済み」バッジが長い言語でも名前を1文字幅まで潰さない */
+  min-width: 8ch;
   overflow-wrap: anywhere;
 }
 
@@ -784,9 +785,17 @@
   gap: 6px;
 }
 
+/*
+ * 行は「アイテム名」＋「操作（レート入力・単位・削除）」の2ブロック。
+ * grid の minmax(0, 1fr) だと、名前の列が操作側の実寸に押されて数文字幅まで潰れ、
+ * ドイツ語やロシア語の長い名前が1文字ずつ縦に折り返された（オーナー報告の症状）。
+ * flex-wrap にして、1行に収まらないときは操作ブロックごと次の行へ落とす。
+ * 名前が横幅いっぱいを使えるので、折り返しは単語単位のまま済む。
+ * 日本語のような短い名前は今までどおり1行に収まる。
+ */
 .target {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
@@ -795,9 +804,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  flex: 1 1 auto;
+  /* 名前の下限。ここを 0 にすると操作側に押し潰されて1文字ずつ折り返す */
+  min-width: 8ch;
   color: var(--text-strong);
+  /*
+   * 通常は単語の切れ目で折り返す。1語で行幅を超えるときだけ語中で折る
+   * （overflow-wrap は「はみ出す語」にしか効かないので、単語単位の折り返しは保たれる）。
+   */
   overflow-wrap: anywhere;
+}
+
+/* レート入力・単位・削除ボタンはひとかたまり。バラバラに改行させない */
+.target__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .target__rate {
@@ -814,7 +838,7 @@
 
 /* レート指定 / 最大化 の切り替え。行の2段目に置く（サイドバーが狭いため） */
 .target__mode {
-  grid-column: 1 / -1;
+  flex: 1 0 100%;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -834,8 +858,8 @@
 
 /* 既にあるアイテムの行（目標と同じ組み方だが、最大化の段は持たない） */
 .stock {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
@@ -980,9 +1004,10 @@
   gap: 6px;
 }
 
+/* 目標産出の行と同じ組み方（長い原料名で名前が潰れないよう flex-wrap にする） */
 .limit {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
@@ -992,8 +1017,19 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 8ch;
   font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+/* 上限の入力欄＋単位。名前が長い行では2段目にまとめて落ちる */
+.limit__controls {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 /* --- プラン（保存・共有） ------------------------------------------------- */
@@ -1015,7 +1051,8 @@
 
 .plan {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* 操作ボタンが長い言語でもプラン名の列を数文字幅まで潰さない */
+  grid-template-columns: minmax(6ch, 1fr) auto;
   align-items: center;
   gap: 2px 8px;
   border: 1px solid var(--border);

@@ -43,17 +43,20 @@ export function LimitsPanel() {
                     <ItemIcon id={limit.item} name={itemName(limit.item)} size={CELL_ICON} />
                     {itemName(limit.item)}
                   </span>
-                  <NumberField
-                    className="input input--num"
-                    min={0}
-                    step={1}
-                    value={override}
-                    placeholder={placeholder}
-                    aria-label={`${itemName(limit.item)} ${T.sidebar.limits}`}
-                    onValueChange={(value) => setLimitOverride(limit.item, value)}
-                    onEmpty={() => setLimitOverride(limit.item, undefined)}
-                  />
-                  <span className="unit">{itemUnit(limit.item)}</span>
+                  {/* 入力欄と単位はひとかたまり。名前が長い行では丸ごと2段目へ折り返す */}
+                  <span className="limit__controls">
+                    <NumberField
+                      className="input input--num"
+                      min={0}
+                      step={1}
+                      value={override}
+                      placeholder={placeholder}
+                      aria-label={`${itemName(limit.item)} ${T.sidebar.limits}`}
+                      onValueChange={(value) => setLimitOverride(limit.item, value)}
+                      onEmpty={() => setLimitOverride(limit.item, undefined)}
+                    />
+                    <span className="unit">{itemUnit(limit.item)}</span>
+                  </span>
                 </li>
               )
             })}

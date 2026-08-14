@@ -49,33 +49,36 @@ export function InputsPanel() {
                     <ItemIcon id={input.item} name={itemName(input.item)} size={ROW_ICON} />
                     {itemName(input.item)}
                   </span>
-                  <span className="target__rate">
-                    <NumberField
-                      className="input input--num"
-                      min={0}
-                      step={1}
-                      value={input.ratePerMin}
-                      aria-label={T.sidebar.stockRate}
-                      ref={(el) => {
-                        if (el === null) return
-                        rateInputs.current.set(input.key, el)
-                        return () => {
-                          rateInputs.current.delete(input.key)
+                  {/* 操作はひとかたまり。名前が長い行では丸ごと2段目へ折り返す */}
+                  <span className="target__controls">
+                    <span className="target__rate">
+                      <NumberField
+                        className="input input--num"
+                        min={0}
+                        step={1}
+                        value={input.ratePerMin}
+                        aria-label={T.sidebar.stockRate}
+                        ref={(el) => {
+                          if (el === null) return
+                          rateInputs.current.set(input.key, el)
+                          return () => {
+                            rateInputs.current.delete(input.key)
+                          }
+                        }}
+                        onValueChange={(ratePerMin) =>
+                          updateInput(input.key, { ratePerMin })
                         }
-                      }}
-                      onValueChange={(ratePerMin) =>
-                        updateInput(input.key, { ratePerMin })
-                      }
-                    />
-                    <span className="unit">{itemUnit(input.item)}</span>
+                      />
+                      <span className="unit">{itemUnit(input.item)}</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="button button--quiet"
+                      onClick={() => removeInput(input.key)}
+                    >
+                      {T.sidebar.remove}
+                    </button>
                   </span>
-                  <button
-                    type="button"
-                    className="button button--quiet"
-                    onClick={() => removeInput(input.key)}
-                  >
-                    {T.sidebar.remove}
-                  </button>
                 </li>
               ))}
             </ul>

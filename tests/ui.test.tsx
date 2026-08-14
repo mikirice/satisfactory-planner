@@ -383,6 +383,28 @@ describe('画面の骨格', () => {
     // 目標産出の行は増えない
     expect(container.querySelectorAll('.target')).toHaveLength(0)
   })
+
+  /**
+   * 長い名前（ドイツ語 "Eisenplatte" などで再現した、名前が1文字ずつ縦に折り返す不具合）の再発防止。
+   * jsdom にはレイアウトが無いので幅は測れない。代わりに「行の構成要素が欠けず、
+   * レート入力・単位・削除ボタンが1つの操作ブロックにまとまっている」ことを見る。
+   */
+  it('名前が長い行でもレート入力・単位・削除ボタンが1つのまとまりとして残る', async () => {
+    usePlanner.setState({
+      targets: [{ key: 'long-name-target', item: 'Desc_ModularFrameHeavy_C', ratePerMin: 30 }],
+      inputs: [{ key: 'long-name-stock', item: 'Desc_ModularFrameHeavy_C', ratePerMin: 5 }],
+    })
+    const container = await render(<App />)
+
+    for (const selector of ['.target', '.stock']) {
+      const row = container.querySelector(selector)!
+      expect(row.querySelector('.target__name')?.textContent).toBeTruthy()
+      const controls = row.querySelector('.target__controls')!
+      expect(controls.querySelector('.input--num')).not.toBeNull()
+      expect(controls.querySelector('.unit')).not.toBeNull()
+      expect(controls.querySelector('button.button--quiet')).not.toBeNull()
+    }
+  })
 })
 
 describe('数値入力', () => {
