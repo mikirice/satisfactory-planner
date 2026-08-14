@@ -1212,10 +1212,10 @@
   {
     "id": "Recipe_Alternate_EnrichedCoal_C",
     "name": {
-      "ja": "代替: 圧縮石炭",
-      "en": "Alternate: Compacted Coal"
+      "ja": "圧縮石炭",
+      "en": "Compacted Coal"
     },
-    "isAlternate": true,
+    "isAlternate": false,
     "producedIn": "Build_AssemblerMk1_C",
     "durationSec": 12,
     "ingredients": [
@@ -2891,7 +2891,7 @@
       "ja": "ターボ燃料",
       "en": "Turbofuel"
     },
-    "isAlternate": true,
+    "isAlternate": false,
     "producedIn": "Build_OilRefinery_C",
     "durationSec": 16,
     "ingredients": [

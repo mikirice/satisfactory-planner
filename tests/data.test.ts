@@ -134,6 +134,15 @@ describe('スキーマ整合性', () => {
       ).toBe(true)
     }
   })
+
+  it('MAM 硫黄研究の圧縮石炭・ターボ燃料は通常の進行レシピとして扱う', () => {
+    const compactedCoal = recipesById.get('Recipe_Alternate_EnrichedCoal_C')!
+    const turbofuel = recipesById.get('Recipe_Alternate_Turbofuel_C')!
+    expect(compactedCoal.isAlternate).toBe(false)
+    expect(compactedCoal.name).toEqual({ ja: '圧縮石炭', en: 'Compacted Coal' })
+    expect(turbofuel.isAlternate).toBe(false)
+    expect(turbofuel.name).toEqual({ ja: 'ターボ燃料', en: 'Turbofuel' })
+  })
 })
 
 describe('既知の値のスポットチェック', () => {

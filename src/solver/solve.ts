@@ -1,7 +1,7 @@
 /**
  * LP を解いて Solution（仕様書ドラフト-v0 §4.4）に組み立てる本体。
  */
-import { buildingsById, itemsById, ratePerMin, recipesById } from '../data/index.ts'
+import { buildingsById, itemsById, ratePerMin, recipes, recipesById } from '../data/index.ts'
 import { CLOCK_MAX, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
 import type { ItemAmount, Recipe } from '../data/types.ts'
 import type { LpBackend, LpResult } from './lp.ts'
@@ -682,12 +682,16 @@ export function findUnusableGenerators(
   model: ProductionModel,
 ): InfeasibleReason[] {
   if (!model.powerPlan.active) return []
+  const isFuelAvailable = (
+    available: ReadonlySet<string>,
+    fuel: GeneratorVariant['fuel'],
+  ): boolean =>
+    available.has(fuel.item) &&
+    (!fuel.supplementalItem || available.has(fuel.supplementalItem))
   // 発電機の副産物も供給源に数える（FICSONIUM燃料棒はプルトニウム廃棄物が要る）
   const available = reachableItems(input, model.supplies, model.generatorVariants)
-  const usable = model.generatorVariants.filter(
-    (v) =>
-      available.has(v.fuel.item) &&
-      (!v.fuel.supplementalItem || available.has(v.fuel.supplementalItem)),
+  const usable = model.generatorVariants.filter((variant) =>
+    isFuelAvailable(available, variant.fuel),
   )
   if (usable.length > 0) return []
 
@@ -701,22 +705,43 @@ export function findUnusableGenerators(
       generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
     ),
   )
+  const withAllRecipesAndFuels = reachableItems(
+    { ...input, enabledRecipes: recipes.map((recipe) => recipe.id) },
+    model.supplies,
+    model.powerPlan.generators.flatMap((generator) =>
+      generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
+    ),
+  )
 
   return model.powerPlan.generators.map((generator) => {
     // 燃料を絞っている場合は「絞ったせいで解けない」ことが分かるよう、許可した燃料だけを挙げる
     const allowed = model.powerPlan.allowedFuels.get(generator.id) ?? generator.fuels
     const restricted = allowed.length < generator.fuels.length
-    const unlocked = allowed.filter((f) => withAllFuels.has(f.item))
+    const unlocked = allowed.filter((fuel) => isFuelAvailable(withAllFuels, fuel))
     // 外している燃料のうち、副産物（廃棄物）を出すもの＝ふさがっている供給源
     const missing = generator.fuels.filter(
       (f) => f.byproduct !== undefined && !allowed.some((a) => a.item === f.item),
     )
+    const manualOnlyFuels = allowed.filter(
+      (fuel) => !isFuelAvailable(withAllRecipesAndFuels, fuel),
+    )
+    const manualInputs = manualOnlyFuels.flatMap((fuel) => [
+      ...nearestUnavailableIngredients(fuel.item, withAllRecipesAndFuels),
+      ...(fuel.supplementalItem && !withAllRecipesAndFuels.has(fuel.supplementalItem)
+        ? [fuel.supplementalItem]
+        : []),
+    ])
+    const manualInputNames = [...new Set(manualInputs.map(jaName))].join(' / ')
     const hint =
       restricted && unlocked.length > 0 && missing.length > 0
         ? `（${unlocked.map((f) => jaName(f.item)).join(' / ')} の材料には ` +
           `${[...new Set(missing.map((f) => jaName(f.byproduct!.item)))].join(' / ')} が要ります。` +
           `これはレシピでは作れず ${missing.map((f) => jaName(f.item)).join(' / ')} を燃やしたときの` +
           '副産物なので、その燃料も一緒に許可してください）'
+        : manualInputs.length > 0 && manualOnlyFuels.length === allowed.length
+          ? `（材料の「${manualInputNames}」は、` +
+            'マップ原料と自動化レシピだけでは用意できません。' +
+            `「既にあるアイテム」に「${manualInputNames}」を追加してください）`
         : restricted
           ? '（選択中の燃料だけで判定しています。他の燃料も許可すると解けることがあります）'
           : ''
@@ -729,6 +754,16 @@ export function findUnusableGenerators(
           .join(' / ')}）を、有効なレシピと利用できる原料からは用意できません` + hint,
     }
   })
+}
+
+/** 全レシピを使っても作れない燃料について、持ち込みに最も近い材料を返す。 */
+function nearestUnavailableIngredients(item: string, available: ReadonlySet<string>): string[] {
+  const candidates = recipes
+    .filter((recipe) => recipe.products.some((product) => product.item === item))
+    .map((recipe) => recipe.ingredients.filter((ingredient) => !available.has(ingredient.item)))
+    .filter((missing) => missing.length > 0)
+    .sort((a, b) => a.length - b.length)
+  return (candidates[0] ?? [{ item, amount: 0 }]).map((ingredient) => ingredient.item)
 }
 
 /**

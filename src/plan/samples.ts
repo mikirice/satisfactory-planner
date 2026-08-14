@@ -210,7 +210,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
       ...DEFAULTS,
       n: 'ターボ燃料発電',
       t: [],
-      a: ['Recipe_Alternate_EnrichedCoal_C', 'Recipe_Alternate_Turbofuel_C'],
+      a: [],
       g: ['Build_GeneratorFuel_C'],
       u: { Build_GeneratorFuel_C: ['Desc_LiquidTurboFuel_C'] },
       w: 2000,
