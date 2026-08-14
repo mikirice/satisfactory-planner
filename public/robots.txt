@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://satisfactory-planner.net/sitemap.xml
