@@ -36,5 +36,6 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
-  }
+  },
+  "license": "GPL-3.0-only"
 }
