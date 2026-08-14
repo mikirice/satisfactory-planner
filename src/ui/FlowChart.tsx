@@ -77,15 +77,15 @@ export default function FlowChart({
   hidePower = false,
   onHidePowerChange,
 }: Props) {
-  const { locale } = useLocale()
+  const { locale, namePack } = useLocale()
   // 発電計画が無効な解ではトグルそのものを出さない
   const canFilterPower = solution.powerGeneration !== undefined
   const filter = useMemo(() => findPowerOnlySteps(solution), [solution])
   const hiding = hidePower && canFilterPower
   const graph = useMemo(() => {
-    const full = buildPlanGraph(solution, { beltId, pipeId, locale })
+    const full = buildPlanGraph(solution, { beltId, pipeId, locale, namePack })
     return hiding ? filterPowerFromGraph(full, filter) : full
-  }, [solution, beltId, pipeId, locale, hiding, filter])
+  }, [solution, beltId, pipeId, locale, namePack, hiding, filter])
   const [layout, setLayout] = useState<PlanFlowLayout | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
 

@@ -3,7 +3,12 @@
  * numeric cells never pass through these helpers.
  */
 import { itemsById, recipesById, resolveDisplayName } from '../data/index.ts'
-import { SUPPORTED_LOCALES, getActiveLocale, getDictionary } from '../i18n/index.ts'
+import {
+  ALTERNATE_NAME_PREFIXES,
+  SUPPORTED_LOCALES,
+  getActiveLocale,
+  getActiveNamePack,
+} from '../i18n/index.ts'
 import { T } from './text.ts'
 
 type Digits = 0 | 1 | 2 | 4
@@ -62,8 +67,13 @@ export function fmtPowerRange(minMW: number, maxMW: number): string {
   return `${fmtPower(minMW)}${T.units.rangeSeparator}${fmtPower(maxMW)}`
 }
 
-/** Official display name for any ClassName known to the bundled game data. */
-export const itemName = (id: string): string => resolveDisplayName(id, getActiveLocale())
+/**
+ * Official display name for any ClassName known to the bundled game data.
+ * Tier-2 locales read the lazily loaded name pack of the active locale; a missing entry
+ * falls back to English (計画書 §4.2).
+ */
+export const itemName = (id: string): string =>
+  resolveDisplayName(id, getActiveLocale(), getActiveNamePack())
 
 /** First product ClassName for a recipe, or null when the recipe is unknown. */
 export const recipeMainItem = (recipeId: string): string | null =>
@@ -80,11 +90,14 @@ export const isAlternateRecipe = (recipeId: string): boolean =>
  * is matched at once: a name resolved in one language must stay strippable while the UI is
  * displayed in another. Only the separator is written literally, because the official
  * Japanese names use both the ASCII and the full-width colon.
+ *
+ * The prefixes come from the always-bundled table (src/i18n/alternate-prefixes.ts) rather than
+ * the dictionaries, because Tier-2 dictionaries are loaded on demand and this regex is built once.
  */
 const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const ALTERNATE_PREFIX = new RegExp(
-  `^(?:${SUPPORTED_LOCALES.map((locale) => escapeRegExp(getDictionary(locale).alternateNamePrefix)).join('|')})\\s*[:：]\\s*`,
+  `^(?:${SUPPORTED_LOCALES.map((locale) => escapeRegExp(ALTERNATE_NAME_PREFIXES[locale])).join('|')})\\s*[:：]\\s*`,
   'i',
 )
 

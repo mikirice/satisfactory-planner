@@ -21,10 +21,15 @@ export function AlternatesPanel() {
       alternateRecipes.map((recipe) => {
         const ja = stripAlternatePrefix(recipe.name.ja)
         const en = stripAlternatePrefix(recipe.name.en)
+        // 表示中の言語の公式名でも引けるようにする（画面に出ている文字で検索できないと、
+        // Tier 2 の言語では絞り込みが使えない）
+        const localized = displayName(recipe)
         return {
           recipe,
-          label: stripAlternatePrefix(displayName(recipe)),
-          haystack: [recipe.name.ja, recipe.name.en, ja, en].join('\n').toLowerCase(),
+          label: stripAlternatePrefix(localized),
+          haystack: [localized, stripAlternatePrefix(localized), recipe.name.ja, recipe.name.en, ja, en]
+            .join('\n')
+            .toLowerCase(),
         }
       }).sort((a, b) => a.label.localeCompare(b.label, locale)),
     [locale, displayName],

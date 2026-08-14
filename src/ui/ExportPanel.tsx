@@ -12,7 +12,7 @@ import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { T } from './text.ts'
 
 export function ExportPanel() {
-  const { locale } = useLocale()
+  const { locale, namePack } = useLocale()
   const planName = usePlanner((s) => s.planName)
   const setPlanName = usePlanner((s) => s.setPlanName)
   const status = usePlanner((s) => s.status)
@@ -29,7 +29,8 @@ export function ExportPanel() {
     setError(null)
     try {
       const { downloadPlanWorkbook } = await import('../export/excel.ts')
-      await downloadPlanWorkbook({ ...input, locale })
+      // Tier 2 の公式名は遅延読み込みのパックにしか無いので、書き出し側へ明示的に渡す。
+      await downloadPlanWorkbook({ ...input, locale, namePack })
     } catch {
       setError(T.export.failed)
     } finally {

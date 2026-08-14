@@ -20,8 +20,36 @@ export const DATA_SOURCE_DIR = join(PROJECT_ROOT, 'data-source')
 export const SOURCE_BASE_URL =
   'https://raw.githubusercontent.com/aringadre76/satisfactory-api/master/Docs'
 
-/** 取得するファイル（en-US = 原文, ja = 日本語ローカライズ）。 */
-export const DOCS_FILES = ['en-US.json', 'ja.json', 'CustomVersions.json'] as const
+/**
+ * Tier 2（計画書 §3）のロケール → ミラー上のローカライズファイル名。
+ *
+ * ミラーのファイル名はアプリ側のロケール識別子とたまたま一致しているが、
+ * 上流の命名に引きずられて取り違えないよう**対応表として明示**しておく
+ * （簡体 zh-Hans / 繁体 zh-Hant の取り違えは計画書 §8 のリスク項目）。
+ * 実在確認: https://github.com/aringadre76/satisfactory-api/tree/master/Docs
+ */
+export const TIER2_DOCS_FILES = {
+  de: 'de.json',
+  fr: 'fr.json',
+  'es-ES': 'es-ES.json',
+  'pt-BR': 'pt-BR.json',
+  ru: 'ru.json',
+  'zh-Hans': 'zh-Hans.json',
+  'zh-Hant': 'zh-Hant.json',
+  ko: 'ko.json',
+  pl: 'pl.json',
+  tr: 'tr.json',
+} as const
+
+export type Tier2Locale = keyof typeof TIER2_DOCS_FILES
+
+/** 取得するファイル（en-US = 原文, ja ほか = 各言語ローカライズ）。 */
+export const DOCS_FILES = [
+  'en-US.json',
+  'ja.json',
+  ...Object.values(TIER2_DOCS_FILES),
+  'CustomVersions.json',
+] as const
 
 export async function ensureDocs(force = false): Promise<void> {
   await mkdir(DATA_SOURCE_DIR, { recursive: true })

@@ -31,7 +31,9 @@ export function ResourcesTable({ solution, extraction }: Props) {
       {extraction && extraction.shortfalls.length > 0 && (
         <p className="callout callout--warn">
           {extraction.shortfalls
-            .map((s) => `${s.itemName.ja}: ${T.resources.shortfallNote(fmtRate(s.shortfallPerMin))}`)
+            // 名前は ID から引く（解の itemName は ja/en しか持たないので、
+            // そのまま使うと Tier 2 の画面に日本語が残る）
+            .map((s) => `${itemName(s.item)}: ${T.resources.shortfallNote(fmtRate(s.shortfallPerMin))}`)
             .join(' / ')}
         </p>
       )}

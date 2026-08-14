@@ -11,7 +11,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { resolveDisplayName } from '../src/data/index.ts'
-import { SUPPORTED_LOCALES } from '../src/i18n/index.ts'
+import { SUPPORTED_LOCALES, loadGameNamePack } from '../src/i18n/index.ts'
 import {
   PLAN_HASH_PARAM,
   buildShareUrl,
@@ -90,7 +90,11 @@ describe('共有URLは表示言語に依存しない', () => {
 
     // 変わってよいのは表示名だけ。IDは全言語で共通
     const recipeId = solutions[0].steps[0].recipeId
-    const names = SUPPORTED_LOCALES.map((locale) => resolveDisplayName(recipeId, locale))
+    // Tier 2 の公式名は遅延パックにあるので、言語ごとに取り寄せてから引く
+    const packs = await Promise.all(SUPPORTED_LOCALES.map((locale) => loadGameNamePack(locale)))
+    const names = SUPPORTED_LOCALES.map((locale, index) =>
+      resolveDisplayName(recipeId, locale, packs[index]),
+    )
     expect(new Set(names).size).toBe(SUPPORTED_LOCALES.length)
     expect(resolveDisplayName('Desc_IronPlate_C', 'ja')).toBe('鉄板')
     expect(resolveDisplayName('Desc_IronPlate_C', 'en')).toBe('Iron Plate')

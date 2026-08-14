@@ -45,7 +45,9 @@ export function ItemSearchBox({ label, placeholder, addedItems, onPick }: Props)
     if (query.trim() === '') return []
     return [...items]
       .sort((a, b) => displayName(a).localeCompare(displayName(b), locale))
-      .filter((i) => matches(query, [i.name.ja, i.name.en, i.id]))
+      // 表示中の言語の公式名でも引けるようにする（ja/en しか見ないと、たとえば
+      // ドイツ語表示の人が画面に出ている「Eisenplatte」で検索できない）
+      .filter((i) => matches(query, [displayName(i), i.name.ja, i.name.en, i.id]))
       .slice(0, MAX_SUGGESTIONS)
   }, [query, locale, displayName])
 

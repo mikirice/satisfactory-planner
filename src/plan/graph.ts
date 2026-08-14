@@ -17,8 +17,8 @@
 import { stepKey } from './aggregate.ts'
 import { enumeratePlanFlows, flowTransport, itemForm, resolveTransportChoice } from './flows.ts'
 import type { TransportChoice } from './flows.ts'
-import { createDisplayName } from '../data/index.ts'
-import type { DisplayNameResolver } from '../data/index.ts'
+import { buildingsById, createDisplayName, recipesById } from '../data/index.ts'
+import type { DisplayNameResolver, GameNamePack } from '../data/index.ts'
 import type { ItemRate, PowerRangeMW, Solution, SolutionStep } from '../solver/index.ts'
 
 // ---------------------------------------------------------------------------
@@ -120,6 +120,11 @@ export type PlanGraph = {
 export type PlanGraphOptions = TransportChoice & {
   /** Labels embedded in the graph use this locale. Default remains Japanese. */
   locale?: string
+  /**
+   * Official names of `locale` when they are not bundled (Tier 2 languages keep them in a
+   * lazily loaded pack). Without it those locales fall back to the English names.
+   */
+  namePack?: GameNamePack
 }
 
 /** これ未満のレートは無視する（LPの丸め誤差でノイズのようなエッジが出るのを防ぐ）。 */
@@ -132,7 +137,7 @@ const MIN_RATE = 1e-6
 /** 解からフローチャート用のノード / エッジを組み立てる。 */
 export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): PlanGraph {
   const resolved = resolveTransportChoice(options)
-  const displayName = createDisplayName(options?.locale)
+  const displayName = createDisplayName(options?.locale, options?.namePack)
 
   const nodes: PlanGraphNode[] = []
   /** item -> そのアイテムを送り出すノードと量 */
@@ -283,9 +288,10 @@ function recipeNode(
     id,
     kind: 'recipe',
     recipeId: step.recipeId,
-    recipeName: displayName(step.recipeName),
+    // ID から引く（Tier 2 の公式名はパック側にあり、表示名だけの値では解決できない）
+    recipeName: displayName(recipesById.get(step.recipeId) ?? step.recipeName),
     buildingId: step.buildingId,
-    buildingName: displayName(step.buildingName),
+    buildingName: displayName(buildingsById.get(step.buildingId) ?? step.buildingName),
     machineCount: step.machineCount,
     buildingCount: step.builtCount,
     clock: step.clockSpeed,
@@ -318,7 +324,7 @@ function makeEdge(
     ratePerMin,
     form: itemForm(item),
     transport: transport.kind,
-    transportName: displayName(transport.requirement.name),
+    transportName: displayName(transport.requirement),
     capacityPerMin: transport.requirement.capacityPerMin,
     lines: transport.requirement.lines,
     utilization: transport.singleLineUtilization,

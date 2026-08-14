@@ -26,11 +26,12 @@ import type { Row, Workbook, Worksheet } from 'exceljs'
 import {
   buildingsById,
   createDisplayName,
+  extractorsById,
   itemsById,
   meta,
   recipesById,
 } from '../data/index.ts'
-import type { DisplayNameResolver } from '../data/index.ts'
+import type { DisplayNameResolver, GameNamePack } from '../data/index.ts'
 import { getDictionary, resolveText } from '../i18n/index.ts'
 import type { Locale, UiDictionary } from '../i18n/types.ts'
 import { estimateFootprint, groupByBuilding, mergeBuildCost } from '../plan/aggregate.ts'
@@ -46,6 +47,12 @@ export type ExcelExportInput = {
   extraction: ExtractionPlan | null
   /** Workbook UI locale. Defaults to Japanese for backward compatibility. */
   locale?: Locale
+  /**
+   * Official names of `locale` for the Tier-2 languages, which keep their names in a lazily
+   * loaded pack instead of the bundled data. Omitting it falls the names back to English while
+   * the labels stay translated (計画書 §4.2).
+   */
+  namePack?: GameNamePack
   /** プラン名。空なら 'plan' */
   planName?: string
   /** 物流シートで使うベルト（Belt.id）。既定は最速 */
@@ -120,10 +127,21 @@ type ExcelContext = {
   text: (value: string) => string
 }
 
-function createExcelContext(locale: Locale = 'ja'): ExcelContext {
+/**
+ * 数値表示（セルの表示形式ではなく、文字列として書く桁区切り）に使う BCP-47 タグ。
+ * ja/en は既存の出力を変えないため従来のタグを保つ。Tier 2 は識別子がそのまま
+ * 妥当な BCP-47（`pt-BR` / `zh-Hans` など）なので Intl にそのまま渡せる。
+ */
+function numberLocaleFor(locale: Locale): string {
+  if (locale === 'ja') return 'ja-JP'
+  if (locale === 'en') return 'en-US'
+  return locale
+}
+
+function createExcelContext(locale: Locale = 'ja', pack?: GameNamePack): ExcelContext {
   const dictionary = getDictionary(locale)
-  const displayName = createDisplayName(locale)
-  const numberLocale = locale === 'ja' ? 'ja-JP' : 'en-US'
+  const displayName = createDisplayName(locale, pack)
+  const numberLocale = numberLocaleFor(locale)
   return {
     numberLocale,
     dictionary,
@@ -134,7 +152,7 @@ function createExcelContext(locale: Locale = 'ja'): ExcelContext {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }),
-    text: (value) => resolveText(value, locale),
+    text: (value) => resolveText(value, locale, pack),
   }
 }
 
@@ -152,7 +170,7 @@ export function planFileName(planName: string | undefined, date: Date = new Date
 
 /** ワークブックを組み立てる（保存はしない）。 */
 export function buildPlanWorkbook(input: ExcelExportInput): Workbook {
-  const context = createExcelContext(input.locale)
+  const context = createExcelContext(input.locale, input.namePack)
   const workbook = new ExcelJS.Workbook()
   workbook.creator = context.text(context.t.creator)
   workbook.created = input.generatedAt ?? new Date()
@@ -178,7 +196,7 @@ const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.s
 
 /** ブラウザでダウンロードさせる。document が無い環境では例外。 */
 export async function downloadPlanWorkbook(input: ExcelExportInput): Promise<void> {
-  const context = createExcelContext(input.locale)
+  const context = createExcelContext(input.locale, input.namePack)
   if (typeof document === 'undefined' || typeof URL.createObjectURL !== 'function') {
     throw new Error(context.text(context.t.browserOnlyError))
   }
@@ -473,8 +491,9 @@ function writeBuildingsSheet(
       // 消費電力はクロックを適用した実値（画面の生産ステップ表と同じ）
       const footprint = buildingsById.get(step.buildingId)?.footprint
       const row = ws.addRow([
-        context.displayName(group.buildingName),
-        context.displayName(step.recipeName),
+        // ID から引くと Tier 2 の公式名パックで解決できる（表示名だけの値では id が無く en に落ちる）
+        context.displayName(buildingsById.get(group.buildingId) ?? group.buildingName),
+        context.displayName(recipesById.get(step.recipeId) ?? step.recipeName),
         step.machineCount,
         step.builtCount,
         step.clockSpeed,
@@ -678,7 +697,7 @@ function writeResourcesSheet(
         const first = index === 0
         const row = ws.addRow([
           ...head,
-          context.displayName(group.extractorName),
+          context.displayName(extractorsById.get(group.extractorId) ?? group.extractorName),
           group.machineCount,
           group.buildingCount,
           assignment ? t.resources[assignment.purity] : PLACEHOLDER,
@@ -800,14 +819,18 @@ function writeLogisticsSheet(
     const { kind: transport, requirement } = flowTransport(flow.item, flow.ratePerMin, resolved)
     const row = ws.addRow([
       t.logistics[flow.kind],
-      flow.step ? context.displayName(flow.step.recipeName) : PLACEHOLDER,
-      flow.step ? context.displayName(flow.step.buildingName) : PLACEHOLDER,
+      flow.step
+        ? context.displayName(recipesById.get(flow.step.recipeId) ?? flow.step.recipeName)
+        : PLACEHOLDER,
+      flow.step
+        ? context.displayName(buildingsById.get(flow.step.buildingId) ?? flow.step.buildingName)
+        : PLACEHOLDER,
       itemName(flow.item, context),
       itemFormLabel(flow.item, context),
       flow.ratePerMin,
       itemUnit(flow.item, context),
       transport === 'belt' ? t.common.belt : t.common.pipe,
-      context.displayName(requirement.name),
+      context.displayName(requirement),
       requirement.capacityPerMin,
       requirement.lines,
       requirement.utilization,

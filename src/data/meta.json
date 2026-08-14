@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "gameVersion": "1.1.x",
   "sourceUrl": "https://raw.githubusercontent.com/aringadre76/satisfactory-api/master/Docs",
-  "generatedAt": "2026-08-14T08:22:06.867Z",
+  "generatedAt": "2026-08-14T10:38:51.342Z",
   "counts": {
     "items": 198,
     "recipes": 291,
@@ -11,5 +11,47 @@
   "missingJaNames": [],
   "untranslatedJaNames": [
     "Recipe_Alternate_PolyesterFabric_C"
-  ]
+  ],
+  "nameFallbacks": {
+    "de": {
+      "missing": 0,
+      "sameAsEnglish": 26
+    },
+    "fr": {
+      "missing": 0,
+      "sameAsEnglish": 15
+    },
+    "es-ES": {
+      "missing": 0,
+      "sameAsEnglish": 10
+    },
+    "pt-BR": {
+      "missing": 0,
+      "sameAsEnglish": 6
+    },
+    "ru": {
+      "missing": 0,
+      "sameAsEnglish": 1
+    },
+    "zh-Hans": {
+      "missing": 0,
+      "sameAsEnglish": 1
+    },
+    "zh-Hant": {
+      "missing": 0,
+      "sameAsEnglish": 4
+    },
+    "ko": {
+      "missing": 0,
+      "sameAsEnglish": 1
+    },
+    "pl": {
+      "missing": 0,
+      "sameAsEnglish": 4
+    },
+    "tr": {
+      "missing": 0,
+      "sameAsEnglish": 12
+    }
+  }
 }

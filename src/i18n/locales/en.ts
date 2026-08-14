@@ -5,10 +5,9 @@ export const en = {
   appTitle: 'Satisfactory Production Planner',
   dataVersion: 'Game data',
 
+  /** Language names themselves live in src/i18n/endonyms.ts (identical in every locale). */
   language: {
     label: 'Language',
-    japanese: '日本語',
-    english: 'English',
   },
 
   viewMode: {

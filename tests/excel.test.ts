@@ -21,6 +21,7 @@ import {
   planWorkbookBuffer,
 } from '../src/export/excel.ts'
 import type { ExcelExportInput } from '../src/export/excel.ts'
+import { loadGameNamePack, preloadLocale } from '../src/i18n/index.ts'
 import { linesRequired, planExtraction, solveProduction } from '../src/solver/index.ts'
 import type { Solution } from '../src/solver/index.ts'
 
@@ -201,6 +202,83 @@ describe('English workbook localization', () => {
     expect(ironOre.getCell(logisticsColumns.get('Transport method')!).value).toBe(
       'Conveyor Belt Mk.6',
     )
+  })
+})
+
+describe('Tier 2 workbook localization', () => {
+  /**
+   * Tier 2（計画書 §3 の10言語）の公式名は遅延パックにしか無いので、Excel 出力は
+   * 呼び出し側から `namePack` を受け取る。ここが抜けると「ラベルはドイツ語なのに
+   * アイテム名だけ英語」という中途半端なブックになる。
+   */
+  it('ドイツ語: ラベルと公式名が揃い、数値セルは変わらない', async () => {
+    // 画面がドイツ語で表示されている＝辞書は読み込み済み、という実際の状況を再現する
+    // （出力ボタンはその言語で描画された画面の中にしか無い）。
+    await preloadLocale('de')
+    const namePack = await loadGameNamePack('de')
+    const buffer = await planWorkbookBuffer({
+      ...ironPlate.input,
+      locale: 'de',
+      namePack,
+      planName: 'Eisenplatten-Linie',
+      objectiveLabel: undefined,
+      objectiveId: 'resources',
+    })
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(buffer)
+
+    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
+      'Übersicht',
+      'Gebäudeliste',
+      'Bilanz',
+      'Rohstoffe',
+      'Baukosten',
+      'Logistik',
+    ])
+
+    const summary = workbook.getWorksheet('Übersicht')!
+    const summaryLabels = new Map<string, unknown>()
+    for (let rowNumber = 1; rowNumber <= summary.rowCount; rowNumber += 1) {
+      const row = summary.getRow(rowNumber)
+      const label = row.getCell(1).value
+      if (typeof label === 'string') summaryLabels.set(label, row.getCell(2).value)
+    }
+    expect(summaryLabels.get('Planname')).toBe('Eisenplatten-Linie')
+    expect(summaryLabels.get('Optimierungsziel')).toBe('Rohstoffe minimieren')
+    // ゲーム用語はドイツ語の公式訳で出る（トークンから解決される）
+    expect(summaryLabels.has('Eisenplatte')).toBe(true)
+
+    const buildings = workbook.getWorksheet('Gebäudeliste')!
+    const buildingColumns = columns(buildings)
+    const plateRow = findRow(buildings, buildingColumns.get('Rezept')!, 'Eisenplatte')!
+    expect(plateRow.getCell(buildingColumns.get('Maschinentyp')!).value).toBe('Konstruktor')
+    // 数値セルは言語に関係なく数値のまま（集計できる形を崩さない）
+    expect(plateRow.getCell(buildingColumns.get('Laufende Maschinen')!).type).toBe(
+      ExcelJS.ValueType.Number,
+    )
+    expect(plateRow.getCell(buildingColumns.get('Laufende Maschinen')!).numFmt).toBe(NUM_FMT.count)
+
+    const logistics = workbook.getWorksheet('Logistik')!
+    const logisticsColumns = columns(logistics)
+    const ironOre = findRow(logistics, logisticsColumns.get('Flussart')!, 'Rohstoff')!
+    expect(ironOre.getCell(logisticsColumns.get('Gegenstand')!).value).toBe('Eisenerz')
+  })
+
+  it('パックを渡さなければ名前だけ英語に落ちる（ラベルはその言語のまま）', async () => {
+    await preloadLocale('de')
+    const buffer = await planWorkbookBuffer({
+      ...ironPlate.input,
+      locale: 'de',
+      objectiveId: 'resources',
+    })
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(buffer)
+
+    const buildings = workbook.getWorksheet('Gebäudeliste')!
+    const buildingColumns = columns(buildings)
+    // ラベルはドイツ語のまま、名前だけ en フォールバック（計画書 §4.2）
+    expect(buildingColumns.has('Maschinentyp')).toBe(true)
+    expect(findRow(buildings, buildingColumns.get('Rezept')!, 'Iron Plate')).toBeDefined()
   })
 })
 

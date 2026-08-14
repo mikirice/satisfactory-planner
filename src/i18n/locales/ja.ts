@@ -5,10 +5,12 @@ export const ja = {
   appTitle: 'Satisfactory 生産計画ツール',
   dataVersion: 'ゲームデータ',
 
+  /**
+   * 言語名そのもの（Deutsch / 한국어 …）は自称表記で全言語共通なので、
+   * ここには置かず src/i18n/endonyms.ts の1か所にまとめてある。
+   */
   language: {
     label: '表示言語',
-    japanese: '日本語',
-    english: 'English',
   },
 
   viewMode: {
@@ -277,7 +279,8 @@ export const ja = {
     baselineInfeasible: 'ループなしではこの目標は作れません（上限内で成立しない）。',
     noSavings: '比較できる原料・電力の差はありません。',
     power: '消費電力',
-    reusedWater: '再利用している水',
+    // ゲーム用語は辞書に直書きしない（公式訳「水」と同じ文字になるが、トークン経由に揃える）
+    reusedWater: '再利用している{{Desc_Water_C}}',
     reduced: '削減',
     increased: '増加',
     savingsAmount: (unit: string, percent: string): string => `${unit}（${percent} 削減）`,

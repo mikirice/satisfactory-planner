@@ -50,8 +50,10 @@ import {
   DATA_SOURCE_DIR,
   PROJECT_ROOT,
   SOURCE_BASE_URL,
+  TIER2_DOCS_FILES,
   ensureDocs,
 } from './fetch-docs.ts'
+import type { Tier2Locale } from './fetch-docs.ts'
 import type { DocsClass, DocsGroup } from './docs-parse.ts'
 import {
   decodeDocs,
@@ -409,6 +411,49 @@ function buildNamePack(
   return Object.fromEntries(
     [...byId].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)),
   )
+}
+
+/**
+ * Tier 2 の言語別 names パック（ClassName → 公式表示名）を作る。
+ *
+ * 英語の pack と同じキー集合を必ず持たせ、その言語の Docs に無いものだけ en に落とす
+ * （計画書 §4.2「欠落訳は en フォールバック＋未訳数を記録」）。
+ * 「英語と同じ文字列」は未訳とは限らない（SAM・FICSONIUM のような固有表記）ので、
+ * *欠落* と *英語と同一* を分けて数え、判断材料としてログに出す。
+ */
+type NamePackReport = {
+  locale: Tier2Locale
+  names: Record<string, string>
+  missing: string[]
+  sameAsEnglish: string[]
+}
+
+async function buildTier2NamePack(
+  locale: Tier2Locale,
+  namesEn: Readonly<Record<string, string>>,
+): Promise<NamePackReport> {
+  const groups = await readDocs(TIER2_DOCS_FILES[locale])
+  const localizedNames = new Map<string, string>()
+  for (const group of groups) {
+    for (const cls of group.Classes) {
+      if (cls.mDisplayName) localizedNames.set(cls.ClassName, cls.mDisplayName)
+    }
+  }
+
+  const names: Record<string, string> = {}
+  const missing: string[] = []
+  const sameAsEnglish: string[] = []
+  for (const [id, enName] of Object.entries(namesEn)) {
+    const localized = localizedNames.get(id)
+    if (localized === undefined || localized === '') {
+      missing.push(id)
+      names[id] = enName
+      continue
+    }
+    if (localized === enName) sameAsEnglish.push(id)
+    names[id] = localized
+  }
+  return { locale, names, missing, sameAsEnglish }
 }
 
 async function main(): Promise<void> {
@@ -774,6 +819,12 @@ async function main(): Promise<void> {
     pipes,
   ])
 
+  // Tier 2（計画書 §3 の10言語）の names パック。en の pack を作ってから同じキーで引く。
+  const tier2Reports: NamePackReport[] = []
+  for (const locale of Object.keys(TIER2_DOCS_FILES) as Tier2Locale[]) {
+    tier2Reports.push(await buildTier2NamePack(locale, namesEn))
+  }
+
   // --- 出力 ---------------------------------------------------------------
   const meta: DataMeta = {
     schemaVersion: DATA_SCHEMA_VERSION,
@@ -783,6 +834,12 @@ async function main(): Promise<void> {
     counts: { items: itemList.length, recipes: recipes.length, buildings: buildingList.length },
     missingJaNames: [...new Set(missingJaNames)].sort(),
     untranslatedJaNames: [...new Set(untranslatedJaNames)].sort(),
+    nameFallbacks: Object.fromEntries(
+      tier2Reports.map((report) => [
+        report.locale,
+        { missing: report.missing.length, sameAsEnglish: report.sameAsEnglish.length },
+      ]),
+    ),
   }
 
   await mkdir(OUT_DIR, { recursive: true })
@@ -796,6 +853,7 @@ async function main(): Promise<void> {
   await write('generators.json', generators)
   await write('logistics.json', logistics)
   await write('names.en.json', namesEn)
+  for (const report of tier2Reports) await write(`names.${report.locale}.json`, report.names)
   await write('meta.json', meta)
 
   // --- ログ ---------------------------------------------------------------
@@ -852,6 +910,22 @@ async function main(): Promise<void> {
     console.log('[build-data] ja names     : OK (no fallback to en)')
   }
 
+  // 言語別の未訳（＝en フォールバック）状況。計画書 §6-6「フォールバック監査」。
+  for (const report of tier2Reports) {
+    const total = Object.keys(report.names).length
+    const line =
+      `[build-data] names.${report.locale.padEnd(7)}: ${total} entries / ` +
+      `missing ${report.missing.length} / same as en ${report.sameAsEnglish.length}`
+    if (report.missing.length > 0) {
+      console.warn(
+        `${line} -> fell back to en: ${report.missing.slice(0, 10).join(', ')}` +
+          `${report.missing.length > 10 ? ' ...' : ''}`,
+      )
+    } else {
+      console.log(line)
+    }
+  }
+
   if (meta.untranslatedJaNames.length > 0) {
     console.warn(
       `[build-data] WARNING: ${meta.untranslatedJaNames.length} entities are untranslated in the ` +
@@ -866,7 +940,10 @@ async function main(): Promise<void> {
   }
   console.log(
     '[build-data] wrote items.json / recipes.json / buildings.json / extractors.json / ' +
-      'generators.json / logistics.json / names.en.json / meta.json to src/data/',
+      'generators.json / logistics.json / names.en.json / meta.json' +
+      ` + ${tier2Reports.length} Tier 2 name packs (${tier2Reports
+        .map((report) => `names.${report.locale}.json`)
+        .join(', ')}) to src/data/`,
   )
 }
 

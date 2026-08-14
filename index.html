@@ -5,8 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href="https://satisfactory-planner.net/" />
+    <!--
+      対応言語は1つのURLで切り替わる（SPA・言語はクライアント側で決める）ので、
+      hreflang は全言語が同じURLを指す。並びは src/i18n/types.ts の SUPPORTED_LOCALES と
+      同じ順に保つ（tests/locale.test.tsx が全言語ぶん揃っていることを検査する）。
+    -->
     <link rel="alternate" hreflang="ja" href="https://satisfactory-planner.net/" />
     <link rel="alternate" hreflang="en" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="de" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="fr" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="es-ES" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="pt-BR" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="ru" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="zh-Hans" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="zh-Hant" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="ko" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="pl" href="https://satisfactory-planner.net/" />
+    <link rel="alternate" hreflang="tr" href="https://satisfactory-planner.net/" />
     <link rel="alternate" hreflang="x-default" href="https://satisfactory-planner.net/" />
 
     <title>Satisfactory 生産計画ツール — 日本語ソルバー＆Excel出力</title>

@@ -248,4 +248,10 @@ export type DataMeta = {
    * JA_NAME_OVERRIDES の手当てか「代替:」接頭辞の置換が入っている（scripts/build-data.ts）。
    */
   untranslatedJaNames: string[]
+  /**
+   * Tier 2 言語の names パックのフォールバック統計（計画書 §6-6）。
+   * missing = その言語の Docs にエントリが無く en を使った件数、
+   * sameAsEnglish = 訳はあるが英語と同一文字列だった件数（固有表記を含むため警告にはしない）。
+   */
+  nameFallbacks: Record<string, { missing: number; sameAsEnglish: number }>
 }

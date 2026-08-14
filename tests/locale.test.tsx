@@ -18,17 +18,24 @@ import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import App from '../src/App.tsx'
-import { buildingsById } from '../src/data/index.ts'
+import { buildingsById, resolveDisplayName } from '../src/data/index.ts'
 import {
+  ALTERNATE_NAME_PREFIXES,
   LOCALE_STORAGE_KEY,
   LocaleProvider,
   REGION_COLLAPSE_MAP,
   SUPPORTED_LOCALES,
   detectLocale,
   getDictionary,
+  getLoadedGameNamePack,
   matchSupportedLocale,
+  preloadLocale,
 } from '../src/i18n/index.ts'
+import { LOCALE_ENDONYMS } from '../src/i18n/endonyms.ts'
 import type { Locale } from '../src/i18n/index.ts'
 import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
@@ -208,19 +215,25 @@ describe('言語の判定と保持', () => {
     expect(detectLocale(['ja-JP', 'en-US'], null)).toBe('ja')
     expect(detectLocale(['en-US', 'ja'], null)).toBe('en')
     expect(detectLocale(['en-GB'], null)).toBe('en')
+    // Tier 2（計画書 §3）は先頭でそのまま拾う
+    expect(detectLocale(['de-DE', 'en-US'], null)).toBe('de')
+    expect(detectLocale(['pt-BR'], null)).toBe('pt-BR')
+    expect(detectLocale(['ko-KR', 'en-US'], null)).toBe('ko')
     // 対応外が先頭でも、後続に対応言語があればそれを使う
-    expect(detectLocale(['de-DE', 'en-US'], null)).toBe('en')
+    expect(detectLocale(['sv-SE', 'de-DE'], null)).toBe('de')
   })
 
   it('対応言語がひとつも無いときは英語にする（計画書 §4.3「非対応言語は en」）', () => {
     // 既定を ja から en に変更（2026-08-14）。日本語ブラウザは navigator.languages の
     // マッチで ja になるため、既存ユーザーへの影響はない（計画書 §8）。
-    // Stage 2 で対応言語が増えたら de-DE などはそちらに吸われる。
-    expect(detectLocale(['de-DE'], null)).toBe('en')
+    // Stage 2 で de-DE などは Tier 2 に吸われるので、ここは対応外の言語で見る。
+    expect(detectLocale(['sv-SE'], null)).toBe('en')
+    expect(detectLocale(['th-TH', 'vi-VN'], null)).toBe('en')
     expect(detectLocale(['ja-JP'], null)).toBe('ja')
     expect(detectLocale([], null)).toBe('en')
     // 保存済みの選択は非対応言語の既定より優先される
-    expect(detectLocale(['de-DE'], 'ja')).toBe('ja')
+    expect(detectLocale(['sv-SE'], 'ja')).toBe('ja')
+    expect(detectLocale(['sv-SE'], 'zh-Hant')).toBe('zh-Hant')
   })
 
   it('壊れた保存値は無視してブラウザの希望言語に戻す', () => {
@@ -233,9 +246,25 @@ describe('言語の判定と保持', () => {
     expect(matchSupportedLocale('ja-JP')).toBe('ja')
     expect(matchSupportedLocale('en_US')).toBe('en')
     expect(matchSupportedLocale('EN-GB')).toBe('en')
-    // Stage 1 では ja/en だけなので、縮退先が未対応なら null（誤って ja/en に落とさない）
-    expect(matchSupportedLocale('zh-TW')).toBeNull()
-    expect(matchSupportedLocale('de-DE')).toBeNull()
+    // Tier 2 は地域付き・地域なしのどちらの綴りでも同じ言語に落ちる
+    expect(matchSupportedLocale('de-DE')).toBe('de')
+    expect(matchSupportedLocale('de')).toBe('de')
+    expect(matchSupportedLocale('fr-CA')).toBe('fr')
+    expect(matchSupportedLocale('es-MX')).toBe('es-ES')
+    expect(matchSupportedLocale('pt-PT')).toBe('pt-BR')
+    expect(matchSupportedLocale('ru-RU')).toBe('ru')
+    expect(matchSupportedLocale('ko')).toBe('ko')
+    expect(matchSupportedLocale('pl-PL')).toBe('pl')
+    expect(matchSupportedLocale('tr-TR')).toBe('tr')
+    // 表記ゆれ（大文字小文字・アンダースコア）を吸っても簡繁は取り違えない
+    expect(matchSupportedLocale('zh-TW')).toBe('zh-Hant')
+    expect(matchSupportedLocale('ZH_HANT')).toBe('zh-Hant')
+    expect(matchSupportedLocale('zh-CN')).toBe('zh-Hans')
+    expect(matchSupportedLocale('zh')).toBe('zh-Hans')
+    // 未対応の言語は null（誤って別言語に落とさない）
+    expect(matchSupportedLocale('sv-SE')).toBeNull()
+    expect(matchSupportedLocale('ar')).toBeNull()
+    expect(matchSupportedLocale('')).toBeNull()
   })
 
   it('簡体・繁体の取り違えが起きないよう縮退マップを固定する（Stage 2 の前提）', () => {
@@ -293,6 +322,50 @@ describe('言語スイッチャー', () => {
     )
   })
 
+  it('Tier 2 に切り替えると、読み込み済みなら一度も英語を挟まずにその言語になる', async () => {
+    // 実装は辞書と公式名が揃うまで切り替えを保留する（計画書 §8「切替時のフラッシュなし」）。
+    // 先に取り寄せておけば同期的に適用されるので、途中経過が混ざらないことを固定できる。
+    await preloadLocale('de')
+    const container = await render(
+      <LocaleProvider initialLocale="ja">
+        <App />
+      </LocaleProvider>,
+    )
+
+    await selectLocale(container, 'de')
+
+    const text = container.textContent ?? ''
+    expect(text).toContain(getDictionary('de').sidebar.targets)
+    expect(text).toContain(getDictionary('de').viewMode.normal)
+    // 日本語の文言も、英語の文言も残っていない（半端な混在を出さない）
+    expect(text).not.toContain(getDictionary('ja').sidebar.targetEmpty)
+    expect(text).not.toContain(getDictionary('en').sidebar.targetEmpty)
+    expect(document.documentElement.lang).toBe('de')
+    expect(document.querySelector<HTMLMetaElement>('meta[property="og:locale"]')?.content).toBe(
+      'de_DE',
+    )
+  })
+
+  it('読み込みが終わるまでは現在の言語のまま、選択欄だけが先に追随する', async () => {
+    const container = await render(
+      <LocaleProvider initialLocale="ja">
+        <App />
+      </LocaleProvider>,
+    )
+    const select = container.querySelector<HTMLSelectElement>('.header__language')!
+
+    await selectLocale(container, 'ko')
+
+    // 保留中か適用済みかにかかわらず、選択欄は利用者が選んだ言語を指す
+    expect(select.value).toBe('ko')
+    // 表示は「日本語のまま」か「韓国語になった」かのどちらかで、混在しない
+    const text = container.textContent ?? ''
+    const inJapanese = text.includes(getDictionary('ja').sidebar.targetEmpty)
+    const inKorean = text.includes(getDictionary('ko').sidebar.targetEmpty)
+    expect(inJapanese || inKorean).toBe(true)
+    expect(inJapanese && inKorean).toBe(false)
+  })
+
   it('日本語に戻せる', async () => {
     installMemoryLocalStorage()
     const container = await render(
@@ -313,6 +386,9 @@ describe('言語スイッチャー', () => {
 
 describe('言語ごとの表示スモーク（鉄板 60/min のサマリー）', () => {
   it.each(SUPPORTED_LOCALES)('%s: サマリーがその言語のラベルと公式アイテム名で出る', async (locale) => {
+    // Tier 2 は辞書も公式名も遅延読み込み。取り寄せてから描画する（実装は読み込みが
+    // 終わるまで英語で待つので、preload を挟まないと言語ごとに結果がブレる）。
+    await preloadLocale(locale)
     const dictionary = getDictionary(locale)
     const container = await render(
       <LocaleProvider initialLocale={locale}>
@@ -324,9 +400,112 @@ describe('言語ごとの表示スモーク（鉄板 60/min のサマリー）',
     expect(text).toContain(dictionary.summary.targets)
     expect(text).toContain(dictionary.summary.power)
     // ゲーム用語は公式名から解決される（手書きしない）
-    expect(text).toContain(locale === 'ja' ? '鉄板' : 'Iron Plate')
+    expect(text).toContain(resolveDisplayName('Desc_IronPlate_C', locale, getLoadedGameNamePack(locale)))
     // 数値は Intl 経由でも桁が崩れない
     expect(text).toMatch(/60/)
+  })
+
+  it.each(SUPPORTED_LOCALES)(
+    '%s: 辞書が完全に揃っている（未翻訳の英語が混ざっていない）',
+    async (locale) => {
+      await preloadLocale(locale)
+      const dictionary = getDictionary(locale)
+      // 動的 import が解決していれば、辞書は英語のオブジェクトとは別物になる
+      if (locale !== 'en') expect(dictionary).not.toBe(getDictionary('en'))
+      // 代表的なラベルが空文字になっていない（型では空文字まで防げない）
+      expect(dictionary.summary.heading.length).toBeGreaterThan(0)
+      expect(dictionary.tabs.summary.length).toBeGreaterThan(0)
+      expect(dictionary.export.download.length).toBeGreaterThan(0)
+      // ゲーム用語は辞書に直書きしない（トークンのまま持つ）
+      expect(dictionary.summary.somersloops).toContain('{{Desc_WAT1_C}}')
+      // 代替レシピ接頭辞は公式訳から採った表と一致する（src/i18n/alternate-prefixes.ts）
+      expect(dictionary.alternateNamePrefix).toBe(ALTERNATE_NAME_PREFIXES[locale])
+    },
+  )
+})
+
+describe('言語スイッチャーの選択肢', () => {
+  it('対応12言語をそれぞれの自称表記で出す', async () => {
+    const container = await render(
+      <LocaleProvider initialLocale="ja">
+        <App />
+      </LocaleProvider>,
+    )
+    const options = [
+      ...container.querySelectorAll<HTMLOptionElement>('.header__language option'),
+    ]
+
+    expect(options.map((option) => option.value)).toEqual([...SUPPORTED_LOCALES])
+    expect(options.map((option) => option.textContent)).toEqual(
+      SUPPORTED_LOCALES.map((locale) => LOCALE_ENDONYMS[locale]),
+    )
+    // 簡体・繁体は字体そのもので見分けられる（計画書 §8 の取り違え対策）
+    expect(LOCALE_ENDONYMS['zh-Hans']).toBe('简体中文')
+    expect(LOCALE_ENDONYMS['zh-Hant']).toBe('繁體中文')
+  })
+})
+
+describe('hreflang', () => {
+  /**
+   * SPA なので全言語が同じURLを指す。index.html は静的なので、対応言語を増やしたときの
+   * 追記漏れをここで機械検出する（計画書 §5）。
+   */
+  // jsdom 環境では import.meta.url が http URL になるので、プロジェクトルートから読む。
+  const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8')
+
+  it.each(SUPPORTED_LOCALES)('%s の alternate link がある', (locale) => {
+    expect(html).toContain(`<link rel="alternate" hreflang="${locale}" href=`)
+  })
+
+  it('x-default があり、余分な hreflang が無い', () => {
+    expect(html).toContain('hreflang="x-default"')
+    const tags = [...html.matchAll(/hreflang="([^"]+)"/g)].map((match) => match[1])
+    expect(tags).toEqual([...SUPPORTED_LOCALES, 'x-default'])
+  })
+})
+
+describe('検索はその言語の公式名で引ける', () => {
+  /** React の値トラッカーを通して input へ入力する（tests/ui.test.tsx と同じ作り）。 */
+  function typeInto(input: HTMLInputElement, value: string): void {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+    setter?.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+
+  it('de: 画面に出ているドイツ語名（Eisenplatte）で候補が出る', async () => {
+    await preloadLocale('de')
+    const container = await render(
+      <LocaleProvider initialLocale="de">
+        <App />
+      </LocaleProvider>,
+    )
+    const search = container.querySelector<HTMLInputElement>('input[type="search"]')!
+
+    await act(async () => {
+      typeInto(search, 'Eisenplatte')
+    })
+
+    const options = [...container.querySelectorAll('.suggestions__item')].map(
+      (button) => button.textContent,
+    )
+    expect(options.length).toBeGreaterThan(0)
+    expect(options.some((label) => label?.includes('Eisenplatte'))).toBe(true)
+  })
+
+  it('de: 英語名でも今までどおり引ける（言語をまたぐ検索は残す）', async () => {
+    await preloadLocale('de')
+    const container = await render(
+      <LocaleProvider initialLocale="de">
+        <App />
+      </LocaleProvider>,
+    )
+    const search = container.querySelector<HTMLInputElement>('input[type="search"]')!
+
+    await act(async () => {
+      typeInto(search, 'Iron Plate')
+    })
+
+    expect(container.querySelectorAll('.suggestions__item').length).toBeGreaterThan(0)
   })
 })
 

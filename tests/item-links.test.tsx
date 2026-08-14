@@ -14,8 +14,14 @@ import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { buildingsById } from '../src/data/index.ts'
-import { LocaleProvider, SUPPORTED_LOCALES, getDictionary } from '../src/i18n/index.ts'
+import { buildingsById, resolveDisplayName } from '../src/data/index.ts'
+import {
+  LocaleProvider,
+  SUPPORTED_LOCALES,
+  getDictionary,
+  getLoadedGameNamePack,
+  preloadLocale,
+} from '../src/i18n/index.ts'
 import type { Locale } from '../src/i18n/index.ts'
 import { itemPagePath } from '../src/plan/item-pages.ts'
 import { defaultPlanInput } from '../src/plan/serialize.ts'
@@ -34,6 +40,9 @@ import { SummaryPanel } from '../src/ui/SummaryPanel.tsx'
 const mounted: { unmount: () => void }[] = []
 
 async function render(node: ReactNode, locale: Locale = 'ja'): Promise<HTMLElement> {
+  // Tier 2 の辞書と公式名は遅延読み込み。先に取り寄せておかないと、読み込みが終わるまで
+  // プロバイダが英語で描画するため、期待値が言語ごとにブレる。
+  await preloadLocale(locale)
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
@@ -42,6 +51,14 @@ async function render(node: ReactNode, locale: Locale = 'ja'): Promise<HTMLEleme
   })
   mounted.push({ unmount: () => root.unmount() })
   return container
+}
+
+/**
+ * 表示中ロケールの公式名。ja/en はバンドル済みの名前、Tier 2 は遅延パックから引く
+ * （リンク文字が「表示中の言語の公式名」であることを見るため、解決経路は実装と同じにする）。
+ */
+function officialName(id: string, locale: Locale): string {
+  return resolveDisplayName(id, locale, getLoadedGameNamePack(locale))
 }
 
 async function click(element: HTMLElement): Promise<void> {
@@ -170,7 +187,7 @@ describe('結果テーブルのアイテム名リンク', () => {
     async (locale) => {
       const container = await render(<StepsTable solution={ironPlate60} />, locale)
       const ingotLinks = links(container, IRON_INGOT_PATH)
-      const expectedName = locale === 'ja' ? '鉄のインゴット' : 'Iron Ingot'
+      const expectedName = officialName('Desc_IronIngot_C', locale)
 
       // 産出（製錬炉）と投入（製作機）の2か所
       expect(ingotLinks).toHaveLength(2)
@@ -192,7 +209,7 @@ describe('結果テーブルのアイテム名リンク', () => {
     const oreLinks = links(container, IRON_ORE_PATH)
 
     expect(oreLinks).toHaveLength(1)
-    expect(oreLinks[0]?.textContent).toBe(locale === 'ja' ? '鉄鉱石' : 'Iron Ore')
+    expect(oreLinks[0]?.textContent).toBe(officialName('Desc_OreIron_C', locale))
   })
 
   it.each(SUPPORTED_LOCALES)('%s: アイテム収支表のアイテム名がリンクになる', async (locale) => {
@@ -200,7 +217,7 @@ describe('結果テーブルのアイテム名リンク', () => {
     const plateLinks = links(container, IRON_PLATE_PATH)
 
     expect(plateLinks).toHaveLength(1)
-    expect(plateLinks[0]?.textContent).toBe(locale === 'ja' ? '鉄板' : 'Iron Plate')
+    expect(plateLinks[0]?.textContent).toBe(officialName('Desc_IronPlate_C', locale))
     // 単位（個/分）はリンクの外
     expect(plateLinks[0]?.querySelector('.unit')).toBeNull()
   })
@@ -218,7 +235,7 @@ describe('結果テーブルのアイテム名リンク', () => {
       // 副産物 + 既保有（外部供給）
       expect(links(container, IRON_INGOT_PATH)).toHaveLength(2)
       expect(links(container, IRON_PLATE_PATH)[0]?.textContent).toBe(
-        locale === 'ja' ? '鉄板' : 'Iron Plate',
+        officialName('Desc_IronPlate_C', locale),
       )
     },
   )

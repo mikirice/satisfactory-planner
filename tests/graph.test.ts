@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 import { enumeratePlanFlows } from '../src/plan/flows.ts'
 import { buildPlanGraph } from '../src/plan/graph.ts'
 import type { PlanGraph, PlanGraphEdge, RecipeGraphNode } from '../src/plan/graph.ts'
+import { loadGameNamePack } from '../src/i18n/index.ts'
 import { linesRequired, solveProduction } from '../src/solver/index.ts'
 import type { Solution } from '../src/solver/index.ts'
 
@@ -102,6 +103,42 @@ describe('鉄板ケース', () => {
       expect(edge.form).toBe('solid')
       expect(edge.transport).toBe('belt')
     }
+  })
+})
+
+describe('ラベルのロケール', () => {
+  /**
+   * Tier 2（計画書 §3 の10言語）の公式名は遅延パックにしかない。ノードのラベルは
+   * ID から引かないと英語のままになるので、パックを渡したときに実際に置き換わるか見る。
+   */
+  it('de: パックを渡すとノードのラベルがドイツ語の公式名になる', async () => {
+    const namePack = await loadGameNamePack('de')
+    const graph = buildPlanGraph(ironPlate, { locale: 'de', namePack })
+    const recipeNodes = graph.nodes.filter(
+      (node): node is RecipeGraphNode => node.kind === 'recipe',
+    )
+
+    expect(recipeNodes.map((node) => node.recipeName)).toContain('Eisenplatte')
+    expect(recipeNodes.map((node) => node.buildingName)).toContain('Konstruktor')
+    expect(graph.edges.map((edge) => edge.itemName)).toContain('Eisenbarren')
+  })
+
+  it('パックを渡さなければ英語に落ちる（数字とIDは変わらない）', async () => {
+    const withPack = buildPlanGraph(ironPlate, {
+      locale: 'de',
+      namePack: await loadGameNamePack('de'),
+    })
+    const withoutPack = buildPlanGraph(ironPlate, { locale: 'de' })
+
+    const names = withoutPack.nodes
+      .filter((node): node is RecipeGraphNode => node.kind === 'recipe')
+      .map((node) => node.recipeName)
+    expect(names).toContain('Iron Plate')
+    // 変わるのは表示名だけ。ノードIDとエッジのレートは同一
+    expect(withoutPack.nodes.map((node) => node.id)).toEqual(withPack.nodes.map((node) => node.id))
+    expect(withoutPack.edges.map((edge) => edge.ratePerMin)).toEqual(
+      withPack.edges.map((edge) => edge.ratePerMin),
+    )
   })
 })
 

@@ -60,7 +60,7 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
       <p className="hint">{variant === 'loop' ? T.samples.loopHint : T.samples.hint}</p>
       <section className="samples__category">
         <h4 className="card__subtitle">
-          {locale === 'en' ? category.titleEn : category.title}
+          {locale === 'ja' ? category.title : category.titleEn}
         </h4>
         <ul className="samples__list">
           {samples.map((sample) => (
@@ -115,10 +115,16 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
   )
 }
 
+/**
+ * テンプレートの見出し・説明はサンプル定義の中にあり、辞書とは別に日英2種だけを持つ。
+ * Tier 2 の言語では英語版を出す（ゲーム用語はトークン経由でその言語の公式名になるので、
+ * 「英語の文＋自分の言語のアイテム名」になり、日本語文が出るより読める）。
+ * テンプレート文の多言語化は Stage 3 以降の課題。
+ */
 function sampleTitle(sample: SamplePlan, locale: Locale): string {
-  return resolveText(locale === 'en' ? sample.titleEn : sample.title, locale)
+  return resolveText(locale === 'ja' ? sample.title : sample.titleEn, locale)
 }
 
 function sampleDescription(sample: SamplePlan, locale: Locale): string {
-  return resolveText(locale === 'en' ? sample.descriptionEn : sample.description, locale)
+  return resolveText(locale === 'ja' ? sample.description : sample.descriptionEn, locale)
 }

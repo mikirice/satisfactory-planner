@@ -6,7 +6,8 @@
 
 - **最適化して出す**: 線形計画法（glpk.js）で「資源効率 / 電力最小 / 建物最小」から選んで解く。
   総当たりの手計算ではなく、副産物の再利用や循環レシピも含めて一発で出る
-- **日本語**: アイテム名・レシピ名・建物名は公式の日本語ローカライズをそのまま使う（手訳なし）
+- **12言語**: 画面もアイテム名も母語で読める。アイテム名・レシピ名・建物名は
+  **ゲーム公式のローカライズ**をそのまま使うので、ゲーム内の表記と1文字も違わない（手訳なし）
 - **Excel出力**: サマリー・生産ステップ・原料・収支・物流・レシピの6シートを .xlsx で書き出す
 - **フローチャート**: 原料から最終製品までの流れを閲覧専用の図で追える。
   ベルト/パイプ1本で運びきれない線はボトルネックとして赤く出る
@@ -17,6 +18,37 @@
 
 初めて開いたときは空状態に **「例から始める」**（鉄板ライン / リサイクルでプラスチック増産 /
 ヘビー・モジュラー・フレーム工場）が出る。押すと入力が入って、そのまま結果まで見られる。
+
+## 対応言語 / Languages
+
+画面右上のセレクタでいつでも切り替えられる（選択はブラウザに保存される）。
+初回はブラウザの言語設定から自動で選ばれ、対応が無い言語では英語になる。
+
+日本語 (ja) / English (en) / Deutsch (de) / Français (fr) / Español (es-ES) /
+Português do Brasil (pt-BR) / Русский (ru) / 简体中文 (zh-Hans) / 繁體中文 (zh-Hant) /
+한국어 (ko) / Polski (pl) / Türkçe (tr)
+
+アイテム・レシピ・建物の名前はどの言語でも**ゲーム同梱の公式ローカライズ**から生成しており
+（`src/data/names.<locale>.json`）、その言語に訳が無いものだけ英語名になる。
+計算結果・保存データ・共有URLは言語に依存しない（同じURLをどの言語で開いても同じ計算になる）。
+
+### 翻訳の改善を歓迎します / Translation contributions welcome
+
+UI文言はAI翻訳をベースにしています。母語話者から見て不自然な箇所があれば、
+**Pull Request か Issue で指摘してください**。1語の直しでも歓迎します。
+
+- 直すファイル: `src/i18n/locales/<locale>.ts`（1言語=1ファイル。キー構成は変えない）
+- アイテム名・建物名などのゲーム用語は**直接書かない**。`{{Desc_IronPlate_C}}` のような
+  トークンのまま残してください（公式訳に自動で置き換わります）
+- 確認: `npm run typecheck && npm test`
+
+The UI strings started from AI translation. If something reads unnatural to a native speaker,
+**please open a pull request or an issue** — even a single word is welcome.
+
+- Edit `src/i18n/locales/<locale>.ts` (one file per language; keep the key structure unchanged)
+- Never write item/building names directly. Leave the `{{Desc_IronPlate_C}}` tokens in place;
+  they are replaced with the official game translation at runtime
+- Verify with `npm run typecheck && npm test`
 
 ## スクリーンショット
 
