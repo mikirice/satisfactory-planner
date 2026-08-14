@@ -604,7 +604,7 @@ describe('Solution の構造', () => {
     for (const step of solution.steps) {
       const building = buildingsById.get(step.buildingId)!
       for (const cost of building.buildCost) {
-        expected.set(cost.item, (expected.get(cost.item) ?? 0) + cost.amount * Math.ceil(step.machineCount))
+        expected.set(cost.item, (expected.get(cost.item) ?? 0) + cost.amount * step.builtCount)
       }
     }
     expect(new Map(solution.totalBuildCost.map((c) => [c.item, c.amount]))).toEqual(expected)

@@ -102,6 +102,23 @@ const INTENTIONALLY_ASCII_JA_NAMES = new Set([
 ])
 
 /**
+ * ClassName は旧来の `Recipe_Alternate_*` のままだが、現在はハードドライブではなく
+ * MAM 硫黄研究で直接解除する進行レシピ。プランナーは Tier/MAM の解除済みを前提に
+ * するため、ユーザーが任意に ON/OFF する代替レシピには含めない。
+ */
+const BASE_RECIPE_ID_OVERRIDES = new Set([
+  'Recipe_Alternate_EnrichedCoal_C',
+  'Recipe_Alternate_Turbofuel_C',
+])
+
+function baseRecipeName(name: LocalizedName): LocalizedName {
+  return {
+    ja: name.ja.replace(/^代替:\s*/, ''),
+    en: name.en.replace(/^Alternate:\s*/, ''),
+  }
+}
+
+/**
  * ja.json が英語のままだったときの一般フォールバック。
  * 代替レシピは接頭辞だけでも日本語化しておくと一覧で見分けがつく。
  */
@@ -517,6 +534,7 @@ async function main(): Promise<void> {
         })
 
       const enName = cls.mDisplayName ?? cls.ClassName
+      const name = localized(cls.ClassName, enName)
       const variableFactor = num(cls.mVariablePowerConsumptionFactor)
       const variableConstant = num(cls.mVariablePowerConsumptionConstant)
       const building = buildings.get(producedIn)
@@ -524,8 +542,10 @@ async function main(): Promise<void> {
 
       recipes.push({
         id: cls.ClassName,
-        name: localized(cls.ClassName, enName),
-        isAlternate: cls.ClassName.startsWith('Recipe_Alternate_') || enName.startsWith('Alternate:'),
+        name: BASE_RECIPE_ID_OVERRIDES.has(cls.ClassName) ? baseRecipeName(name) : name,
+        isAlternate:
+          !BASE_RECIPE_ID_OVERRIDES.has(cls.ClassName) &&
+          (cls.ClassName.startsWith('Recipe_Alternate_') || enName.startsWith('Alternate:')),
         producedIn,
         durationSec,
         ingredients: toAmounts(cls.mIngredients, 'ingredient'),

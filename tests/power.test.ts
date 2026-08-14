@@ -370,7 +370,14 @@ describe('石炭発電（手計算）', () => {
 
 describe('燃料式発電（燃料チェーンまで解く）', () => {
   it('目標250MW → 1台・燃料 20 m³/min・原油 30 m³/min まで遡る', async () => {
-    const solution = await solveOk({ targets: [], power: { generators: [FUEL], targetMW: 250 } })
+    const solution = await solveOk({
+      targets: [],
+      power: {
+        generators: [FUEL],
+        fuels: { [FUEL]: ['Desc_LiquidFuel_C'] },
+        targetMW: 250,
+      },
+    })
     expect(solution.powerGeneration!.totalMW).toBeCloseTo(250, 6)
     expect(solution.powerGeneration!.totalGeneratorCount).toBe(1)
     expect(rateOf(solution.powerGeneration!.fuelUsage, 'Desc_LiquidFuel_C')).toBeCloseTo(20, 6)
@@ -583,29 +590,18 @@ describe('燃料の選択', () => {
     expect(solution.powerGeneration!.totalGeneratorCount).toBe(1)
   })
 
-  it('選んだ燃料が用意できないときは、その燃料名を挙げて実行不能を報告する', async () => {
-    // 圧縮石炭は代替レシピ（強化石炭）でしか作れない。既定のレシピ集合では用意できない
-    const result = await solveProduction({
+  it('MAM 硫黄研究の圧縮石炭は、代替レシピを選ばなくても燃料にできる', async () => {
+    const solution = await solveOk({
       targets: [],
       power: { generators: [COAL], fuels: { [COAL]: ['Desc_CompactedCoal_C'] }, targetMW: 300 },
     })
-    expect(result.status).toBe('infeasible')
-    if (result.status !== 'infeasible') return
-    expect(result.message).toContain('圧縮石炭')
-    // 絞り込みが原因だと分かるヒントを出す（他の燃料も許せば解ける）
-    expect(result.message).toContain('選択中の燃料')
-    expect(result.message).not.toContain('石油コークス')
-
-    // 石炭も許可すれば解ける
-    const relaxed = await solveOk({
-      targets: [],
-      power: {
-        generators: [COAL],
-        fuels: { [COAL]: ['Desc_CompactedCoal_C', 'Desc_Coal_C'] },
-        targetMW: 300,
-      },
-    })
-    expect(rateOf(relaxed.powerGeneration!.fuelUsage, 'Desc_Coal_C')).toBeCloseTo(60, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, 'Desc_CompactedCoal_C')).toBeCloseTo(
+      300 / 10.5,
+      6,
+    )
+    expect(solution.steps.some((step) => step.recipeId === 'Recipe_Alternate_EnrichedCoal_C')).toBe(
+      true,
+    )
   })
 
   it('絞っていない方式のメッセージは従来どおり（全燃料を挙げる）', async () => {
