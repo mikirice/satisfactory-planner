@@ -8,6 +8,7 @@
 import { useMemo, useRef } from 'react'
 
 import { usePlanner } from '../store/planner.ts'
+import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { itemName, itemUnit } from './format.ts'
 import { ItemIcon } from './ItemIcon.tsx'
 import { ItemSearchBox, ROW_ICON } from './ItemSearchBox.tsx'
@@ -24,9 +25,7 @@ export function InputsPanel() {
   const addedItems = useMemo(() => new Set(inputs.map((i) => i.item)), [inputs])
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.stock}</h2>
-
+    <CollapsiblePanel title={T.sidebar.stock}>
       <ItemSearchBox
         label={T.sidebar.stockSearch}
         placeholder={T.sidebar.stockSearchPlaceholder}
@@ -84,6 +83,6 @@ export function InputsPanel() {
           </>
         )}
       </div>
-    </section>
+    </CollapsiblePanel>
   )
 }

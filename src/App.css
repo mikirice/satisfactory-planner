@@ -109,6 +109,10 @@
   min-width: 0;
 }
 
+.jump-to-results {
+  display: none;
+}
+
 /* --- 広告枠 -------------------------------------------------------------- */
 
 .ad-slot {
@@ -1784,6 +1788,36 @@
   .main {
     width: 100%;
     padding: 16px 12px;
+  }
+
+  .jump-to-results {
+    position: fixed;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 7px 8px 7px 14px;
+    background: var(--bg-panel);
+    color: var(--text-strong);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 45%);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .jump-to-results:hover {
+    background: var(--bg-raised);
+  }
+
+  .jump-to-results:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .site-footer {

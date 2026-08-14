@@ -7,6 +7,7 @@
 import { useState } from 'react'
 
 import { toExcelInput, usePlanner } from '../store/planner.ts'
+import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { T } from './text.ts'
 
 export function ExportPanel() {
@@ -35,9 +36,7 @@ export function ExportPanel() {
   }
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.export.heading}</h2>
-
+    <CollapsiblePanel title={T.export.heading}>
       <label className="field">
         <span className="field__label">{T.export.planName}</span>
         <input
@@ -65,6 +64,6 @@ export function ExportPanel() {
           {T.export.failed}: {error}
         </p>
       )}
-    </section>
+    </CollapsiblePanel>
   )
 }

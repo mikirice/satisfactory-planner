@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { meta } from './data/index.ts'
 import { saveAutosaveNow } from './plan/persist.ts'
@@ -8,6 +8,7 @@ import { hasAnyInput, usePlanner } from './store/planner.ts'
 import { itemName } from './ui/format.ts'
 import { RecipeBrowser } from './ui/RecipeBrowser.tsx'
 import type { RecipePlanRequest } from './ui/RecipeBrowser.tsx'
+import { JumpToResults } from './ui/JumpToResults.tsx'
 import { ResultView } from './ui/ResultView.tsx'
 import { SamplesPanel } from './ui/SamplesPanel.tsx'
 import { Sidebar } from './ui/Sidebar.tsx'
@@ -22,6 +23,7 @@ function App() {
   const elapsedMs = usePlanner((s) => s.elapsedMs)
   const applyPlan = usePlanner((s) => s.applyPlan)
   const hasWork = usePlanner(hasAnyInput)
+  const resultsRef = useRef<HTMLElement>(null)
 
   // ブラウザ版 glpk.js は Web Worker で動くので、アンマウント時に止める
   useEffect(() => () => void disposeGlpk(), [])
@@ -99,10 +101,17 @@ function App() {
           </aside>
         )}
         <Sidebar hidden={viewMode !== 'normal'} />
-        <main className="main">
+        <main className="main" ref={resultsRef}>
           <ResultView viewMode={viewMode === 'loop' ? 'loop' : 'normal'} />
         </main>
       </div>
+
+      <JumpToResults
+        targetRef={resultsRef}
+        available={viewMode !== 'recipe' && result !== null}
+        statusLabel={statusLabel(status, result?.status)}
+        statusClassName={statusClass(status, result?.status)}
+      />
 
       <SiteFooter />
     </div>

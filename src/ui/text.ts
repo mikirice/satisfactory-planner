@@ -79,6 +79,8 @@ export const T = {
   },
 
   sidebar: {
+    open: '開く',
+    close: '閉じる',
     targets: '目標産出',
     targetSearch: 'アイテムを検索して追加',
     targetSearchPlaceholder: 'アイテム名（例: 鉄板）',
@@ -150,6 +152,10 @@ export const T = {
     belt: 'ベルト',
     pipe: 'パイプ',
     logisticsHint: '物流シートの本数計算に使います。解には影響しません。',
+  },
+
+  jumpToResults: {
+    label: '結果を見る',
   },
 
   /** 空状態の「例から始める」。各サンプルの名前と説明は src/plan/samples.ts が持つ */
