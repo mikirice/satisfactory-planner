@@ -15,6 +15,7 @@ import {
   usePlanner,
 } from '../store/planner.ts'
 import { fmtPower } from './format.ts'
+import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
 import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
@@ -38,9 +39,7 @@ export function PowerPanel() {
   })
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.power}</h2>
-
+    <CollapsiblePanel title={T.sidebar.power}>
       <div className="checkbox-list">
         <p className="target-group__head">{T.sidebar.powerMethods}</p>
         {powerGenerators.map((generator) => {
@@ -125,6 +124,6 @@ export function PowerPanel() {
       )}
       {anyGenerator && !active && <p className="hint">{T.sidebar.powerIdle}</p>}
       <p className="hint">{T.sidebar.powerClockNote}</p>
-    </section>
+    </CollapsiblePanel>
   )
 }

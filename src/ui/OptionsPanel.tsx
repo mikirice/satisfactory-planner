@@ -7,6 +7,7 @@ import {
 } from '../data/constants.ts'
 import { MINER_IDS } from '../solver/index.ts'
 import { OBJECTIVE_PRESETS, usePlanner } from '../store/planner.ts'
+import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { fmtClock } from './format.ts'
 import { NumberField } from './NumberField.tsx'
 import { T } from './text.ts'
@@ -16,8 +17,7 @@ export function ObjectivePanel() {
   const setObjective = usePlanner((s) => s.setObjective)
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.objective}</h2>
+    <CollapsiblePanel title={T.sidebar.objective}>
       <div className="radio-list">
         {OBJECTIVE_PRESETS.map((preset) => (
           <label
@@ -38,7 +38,7 @@ export function ObjectivePanel() {
           </label>
         ))}
       </div>
-    </section>
+    </CollapsiblePanel>
   )
 }
 
@@ -56,8 +56,7 @@ export function ClockPanel() {
   const setSomersloops = usePlanner((s) => s.setSomersloops)
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.clock}</h2>
+    <CollapsiblePanel title={T.sidebar.clock}>
       <label className="field">
         <span className="field__label">
           {T.sidebar.clockMax}
@@ -85,7 +84,7 @@ export function ClockPanel() {
         />
       </label>
       <p className="hint">{T.sidebar.somersloopsHint}</p>
-    </section>
+    </CollapsiblePanel>
   )
 }
 
@@ -96,8 +95,7 @@ export function ExtractionPanel() {
   const setExtractionClock = usePlanner((s) => s.setExtractionClock)
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.extraction}</h2>
+    <CollapsiblePanel title={T.sidebar.extraction}>
       <label className="field">
         <span className="field__label">{T.sidebar.miner}</span>
         <select className="input" value={minerId} onChange={(e) => setMinerId(e.target.value)}>
@@ -127,7 +125,7 @@ export function ExtractionPanel() {
       </label>
       <p className="hint">{T.sidebar.minerHint}</p>
       <p className="hint">{T.sidebar.extractionClockHint}</p>
-    </section>
+    </CollapsiblePanel>
   )
 }
 
@@ -138,8 +136,7 @@ export function LogisticsPanel() {
   const setPipeId = usePlanner((s) => s.setPipeId)
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.logistics}</h2>
+    <CollapsiblePanel title={T.sidebar.logistics}>
       <label className="field">
         <span className="field__label">{T.sidebar.belt}</span>
         <select className="input" value={beltId} onChange={(e) => setBeltId(e.target.value)}>
@@ -161,6 +158,6 @@ export function LogisticsPanel() {
         </select>
       </label>
       <p className="hint">{T.sidebar.logisticsHint}</p>
-    </section>
+    </CollapsiblePanel>
   )
 }

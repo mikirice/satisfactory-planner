@@ -18,6 +18,7 @@ import { buildShareUrl, parsePlanSnapshot, stripPlanParam } from '../plan/serial
 import { planStorage } from '../plan/storage.ts'
 import type { SavedPlan } from '../plan/storage.ts'
 import { usePlanner } from '../store/planner.ts'
+import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { T } from './text.ts'
 
 /** 一過性のお知らせ（成功フィードバック）を消すまでの時間 */
@@ -153,8 +154,7 @@ export function PlansPanel() {
   }
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.plans.heading}</h2>
+    <CollapsiblePanel title={T.plans.heading}>
       <p className="hint">{T.plans.hint}</p>
 
       <label className="field">
@@ -220,7 +220,7 @@ export function PlansPanel() {
       )}
 
       <p className="hint">{T.plans.shareHint}</p>
-    </section>
+    </CollapsiblePanel>
   )
 }
 
