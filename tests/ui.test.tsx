@@ -845,6 +845,9 @@ describe('結果テーブル', () => {
     expect(text).toContain('6.5000') // 稼働台数（小数4位）
     expect(text).toContain('120') // シンクポイント
     expect(text).toContain('建設コスト')
+    expect(container.querySelectorAll('.table-scroll > table.table')).toHaveLength(
+      container.querySelectorAll('table.table').length,
+    )
   })
 
   it('生産ステップが機械種別ごとにまとまり、端数はクロック案になる', async () => {
@@ -856,6 +859,7 @@ describe('結果テーブル', () => {
     // 3.5台 → 4台を87.5%で回す案
     expect(text).toContain('4 台 @ 87.5%')
     expect(container.querySelectorAll('table').length).toBe(2)
+    expect(container.querySelectorAll('.table-scroll > table.table')).toHaveLength(2)
   })
 
   it('原料表に上限比率と採掘機の台数・純度別ノードが出る', async () => {
@@ -868,6 +872,7 @@ describe('結果テーブル', () => {
     expect(text).toContain('採鉱機 Mk.3')
     expect(text).toContain('高純度')
     expect(text).toContain('0.1%') // 90 / 92,100
+    expect(container.querySelector('.table-scroll > table.table')).not.toBeNull()
   })
 
   it('アイテム収支は色だけでなくラベルでも過不足が分かる', async () => {
@@ -878,6 +883,7 @@ describe('結果テーブル', () => {
     expect(text).toContain('均衡')
     expect(container.querySelector('.is-shortage')).not.toBeNull()
     expect(container.querySelector('.is-surplus')).not.toBeNull()
+    expect(container.querySelector('.table-scroll > table.table')).not.toBeNull()
   })
 
   it('結果タブに「フローチャート」がある（中身は遅延読み込み）', async () => {

@@ -48,7 +48,8 @@ export function SummaryPanel({ solution, extraction }: Props) {
             )}
           </p>
         )}
-        <table className="table">
+        <div className="table-scroll table-scroll--compact">
+          <table className="table">
           <thead>
             <tr>
               <th scope="col">{T.balance.item}</th>
@@ -73,7 +74,8 @@ export function SummaryPanel({ solution, extraction }: Props) {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </section>
 
       <section className="card">
@@ -144,19 +146,21 @@ export function SummaryPanel({ solution, extraction }: Props) {
             </p>
           )}
           <h4 className="card__subtitle">{T.summary.powerGenerationFuel}</h4>
-          <table className="table">
-            <tbody>
-              {solution.powerGeneration.fuelUsage.map((fuel) => (
-                <tr key={fuel.item}>
-                  <th scope="row">
-                    <ItemLabel id={fuel.item} name={itemName(fuel.item)} />
-                  </th>
-                  <td className="num">{fmtRate(fuel.ratePerMin)}</td>
-                  <td className="unit-cell">{itemUnit(fuel.item)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-scroll table-scroll--compact">
+            <table className="table">
+              <tbody>
+                {solution.powerGeneration.fuelUsage.map((fuel) => (
+                  <tr key={fuel.item}>
+                    <th scope="row">
+                      <ItemLabel id={fuel.item} name={itemName(fuel.item)} />
+                    </th>
+                    <td className="num">{fmtRate(fuel.ratePerMin)}</td>
+                    <td className="unit-cell">{itemUnit(fuel.item)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="hint">{T.summary.powerGenerationExtractionNote}</p>
         </section>
       )}
@@ -236,25 +240,28 @@ export function SummaryPanel({ solution, extraction }: Props) {
         {solution.byproducts.length === 0 ? (
           <p className="hint">{T.summary.byproductsEmpty}</p>
         ) : (
-          <table className="table">
-            <tbody>
-              {solution.byproducts.map((b) => (
-                <tr key={b.item}>
-                  <th scope="row">
-                    <ItemLabel id={b.item} name={itemName(b.item)} />
-                  </th>
-                  <td className="num">{fmtRate(b.ratePerMin)}</td>
-                  <td className="unit-cell">{itemUnit(b.item)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-scroll table-scroll--compact">
+            <table className="table">
+              <tbody>
+                {solution.byproducts.map((b) => (
+                  <tr key={b.item}>
+                    <th scope="row">
+                      <ItemLabel id={b.item} name={itemName(b.item)} />
+                    </th>
+                    <td className="num">{fmtRate(b.ratePerMin)}</td>
+                    <td className="unit-cell">{itemUnit(b.item)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
       <section className="card card--wide">
         <h3 className="card__title">{T.summary.buildCost}</h3>
-        <table className="table">
+        <div className="table-scroll">
+          <table className="table">
           <thead>
             <tr>
               <th scope="col">{T.balance.item}</th>
@@ -275,13 +282,15 @@ export function SummaryPanel({ solution, extraction }: Props) {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </section>
 
       {solution.externalInputs.length > 0 && (
         <section className="card">
           <h3 className="card__title">{T.summary.externalInputs}</h3>
-          <table className="table">
+          <div className="table-scroll">
+            <table className="table">
             <thead>
               <tr>
                 <th scope="col">{T.balance.item}</th>
@@ -309,10 +318,10 @@ export function SummaryPanel({ solution, extraction }: Props) {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </section>
       )}
     </div>
   )
 }
-

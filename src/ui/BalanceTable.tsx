@@ -30,7 +30,8 @@ export function BalanceTable({ solution }: Props) {
         <span>{T.balance.onlyNonZero}</span>
       </label>
       <section className="card card--wide">
-        <table className="table">
+        <div className="table-scroll">
+          <table className="table">
           <thead>
             <tr>
               <th scope="col">{T.balance.item}</th>
@@ -59,7 +60,8 @@ export function BalanceTable({ solution }: Props) {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </section>
     </div>
   )
