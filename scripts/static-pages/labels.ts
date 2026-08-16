@@ -149,6 +149,56 @@ const jaLabels = {
   itemsIndexLead:
     'アイテムを選ぶと、収録済みの作り方と使い道、機械1台あたりの産出、電力効率、材料効率を確認できます。自動化レシピがないアイテムは、その収録範囲を明示します。',
 
+  // --- このサイトについて（/about/） ---
+  aboutTitle: 'このサイトについて',
+  aboutEyebrow: 'サイト情報',
+  aboutDescription:
+    'Satisfactory 生産計画ツールの概要、収録しているデータ、運営者情報、お問い合わせ先、免責事項、広告とプライバシーの扱いをまとめたページです。',
+  aboutLead:
+    'Satisfactory 生産計画ツールは、ゲーム「Satisfactory」の工場と生産ラインを設計するための無料の非公式Webツールです。このページでは、ツールの内容と運営について説明します。',
+  aboutOverviewHeading: 'ツールの概要',
+  aboutOverviewParagraphs: [
+    'このサイトは、Satisfactory の生産計画をブラウザだけで組み立てられるようにするために作りました。作りたいアイテムと毎分の目標レートを入力すると、線形計画法のソルバーが必要なレシピ、機械の台数、電力、原料の量を計算します。インストールも会員登録も必要ありません。',
+    '計算結果はフローチャートと表で確認でき、Excel ファイルとして書き出せます。計画は共有URLに埋め込めるので、同じ設定を別の端末で開いたり、フレンドに渡したりできます。ゲームを遊びながら手元で使うことを想定した作りです。',
+  ],
+  aboutFeaturesHeading: '主な機能',
+  aboutFeatures: [
+    '線形計画法による最適レシピの計算（原料・電力・設備数のいずれを優先するか選べます）',
+    '生産ライン全体をたどれるフローチャート表示',
+    'Excel ファイルへの書き出し（材料・工程・設備・電力などをシート別に出力）',
+    '発電機と燃料を含めた発電計画の同時計算',
+    '石油の完全循環や水の再利用など、ループ構成のテンプレート',
+    '全アイテムのレシピ辞典（作り方・使い道・毎分レート・電力効率）',
+    '日本語を含む12言語対応',
+  ],
+  aboutDataHeading: 'データについて',
+  aboutDataParagraphs: [
+    'レシピ、建物、電力、シンクポイントなどの数値はゲームの公式データ（バージョン1.1系）から取り込んでいます。アイテム名やレシピ名はゲーム内の公式訳をそのまま使っているため、ゲーム画面と表記が一致します。',
+    'ゲーム側のアップデートでデータが変わった場合は、取り込み直してサイト全体を再生成します。ページ内に記載しているゲームデータのバージョンと生成日を目安にしてください。',
+  ],
+  aboutOperatorHeading: '運営者情報',
+  aboutOperatorParagraphs: [
+    'このサイトは日本の個人開発者が個人で開発・運営しています。企業や団体による運営ではなく、Satisfactory の開発元とも関係はありません。',
+  ],
+  aboutContactHeading: 'お問い合わせ',
+  aboutContactParagraphs: [
+    '不具合の報告、計算結果の誤りの指摘、機能の要望は GitHub リポジトリの Issues で受け付けています。再現手順や共有URLを添えていただけると調査が早くなります。',
+  ],
+  aboutContactLinkLabel: 'GitHub の Issues を開く',
+  aboutDisclaimerHeading: '免責事項',
+  aboutDisclaimerParagraphs: [
+    'このサイトは有志が作った非公式のファンツールであり、Coffee Stain Studios とは無関係です。ゲーム内のアイテム名、レシピ名、画像などの権利は Coffee Stain Studios に帰属します。',
+    '計算結果はゲームデータに基づく目安です。ゲーム内の仕様変更や入力条件によっては実際の工場と差が出る場合があります。計算結果の利用によって生じた不利益について、運営者は責任を負いません。',
+  ],
+  aboutAdsHeading: '広告とプライバシー',
+  aboutAdsParagraphs: [
+    'このサイトは無料で提供しており、運営費をまかなうために広告を掲載する場合があります。広告の配信事業者が Cookie を利用して広告を表示することがあります。',
+    '入力した計画のデータはブラウザ内に保存され、サーバーへ送信することはありません。取り扱いの詳細はプライバシーポリシーに記載しています。',
+  ],
+  aboutPrivacyLinkLabel: 'プライバシーポリシーを読む',
+  aboutLinksHeading: 'サイト内の主なページ',
+  aboutPlannerLinkLabel: '計画ツールを使う',
+
   // --- 記事（共通） ---
   articlesIndexTitle: 'Satisfactory 解説記事',
   articlesIndexDescription:
@@ -313,6 +363,55 @@ const enLabels: StaticPageLabels = {
   itemsIndexShowsOtherName: false,
   itemsIndexLead:
     'Pick an item to see the recipes that make it and the recipes that use it, together with output per machine, output per MW and output per ingredient. Items without an automated recipe say so explicitly.',
+
+  aboutTitle: 'About this site',
+  aboutEyebrow: 'Site information',
+  aboutDescription:
+    'What the Satisfactory Production Planner is, the game data it uses, who runs it, how to get in touch, the disclaimer, and how ads and privacy are handled.',
+  aboutLead:
+    'Satisfactory Production Planner is a free, unofficial web tool for designing factories and production lines in Satisfactory. This page explains what the tool does and who runs it.',
+  aboutOverviewHeading: 'What the planner does',
+  aboutOverviewParagraphs: [
+    'This site exists so that a Satisfactory production line can be planned entirely in the browser. Enter the item you want and the target rate per minute, and a linear programming solver works out the recipes, machine counts, power draw and raw resources you need. There is nothing to install and no account to create.',
+    'Results are shown as a flow chart and as tables, and can be exported to an Excel file. A whole plan can be packed into a shareable URL, so the same setup opens on another device or can be handed to a friend. It is built to be used next to the game while you play.',
+  ],
+  aboutFeaturesHeading: 'Main features',
+  aboutFeatures: [
+    'Optimal recipe selection with a linear programming solver, weighted toward raw resources, power or building count',
+    'A flow chart of the entire production line',
+    'Excel export, with ingredients, steps, buildings and power on separate sheets',
+    'Power planning that solves generators and fuels together with production',
+    'Loop templates such as complete oil recycling and water reuse',
+    'A recipe reference for every item: how to make it, what uses it, rates per minute and power efficiency',
+    'Twelve interface languages',
+  ],
+  aboutDataHeading: 'Where the data comes from',
+  aboutDataParagraphs: [
+    'Recipes, buildings, power figures and sink points are taken from the official game data (version 1.1.x). Item and recipe names use the official in-game translations, so the wording matches what you see in the game.',
+    'When a game update changes the data, it is re-imported and the whole site is regenerated. The game data version and the generation date printed on each page tell you what a page was built from.',
+  ],
+  aboutOperatorHeading: 'Who runs this site',
+  aboutOperatorParagraphs: [
+    'This site is developed and operated by an individual developer based in Japan. It is not run by a company or organisation, and it has no connection to the developers of Satisfactory.',
+  ],
+  aboutContactHeading: 'Contact',
+  aboutContactParagraphs: [
+    'Bug reports, corrections to the calculated numbers and feature requests are handled through the Issues page of the GitHub repository. Including the steps to reproduce the problem, or a share URL, makes it much quicker to look into.',
+  ],
+  aboutContactLinkLabel: 'Open the GitHub issue tracker',
+  aboutDisclaimerHeading: 'Disclaimer',
+  aboutDisclaimerParagraphs: [
+    'This is an unofficial fan-made tool and is not affiliated with Coffee Stain Studios. Item names, recipe names and images from the game remain the property of Coffee Stain Studios.',
+    'The calculated figures are estimates derived from the game data. Game updates or unusual input conditions can make them differ from a real factory, and the operator accepts no liability for decisions made from them.',
+  ],
+  aboutAdsHeading: 'Ads and privacy',
+  aboutAdsParagraphs: [
+    'The site is free to use, and advertising may be shown to cover its running costs. Advertising providers may use cookies to serve those ads.',
+    'Plans you enter are stored in your own browser and are never sent to a server. The privacy policy explains this in detail.',
+  ],
+  aboutPrivacyLinkLabel: 'Read the privacy policy',
+  aboutLinksHeading: 'Main pages on this site',
+  aboutPlannerLinkLabel: 'Open the planner',
 
   articlesIndexTitle: 'Satisfactory guides',
   articlesIndexDescription:

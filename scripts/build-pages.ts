@@ -29,6 +29,7 @@ import {
 import type { Item, ItemAmount, Recipe } from '../src/data/types.ts'
 import type { UiDictionary } from '../src/i18n/types.ts'
 import {
+  aboutPagePath,
   articlePagePath,
   articlesIndexPath,
   itemPagePath,
@@ -59,6 +60,8 @@ import {
 import type { PageAlternates } from './static-pages/templates.ts'
 
 const PUBLISHED_DATE = '2026-08-14'
+/** 問い合わせ先（個人の連絡先は出さず、公開リポジトリの Issues に一本化する）。 */
+const CONTACT_URL = 'https://github.com/mikirice/satisfactory-planner/issues'
 const iconIds = new Set<string>(iconIdsJson)
 const baseRecipes = recipes.filter((recipe) => !recipe.isAlternate)
 const baseRecipeIds = baseRecipes.map((recipe) => recipe.id)
@@ -630,6 +633,108 @@ function renderItemIndex(ctx: Ctx): string {
 }
 
 // ---------------------------------------------------------------------------
+// このサイトについて
+// ---------------------------------------------------------------------------
+
+function aboutSection(heading: string, paragraphs: readonly string[]): string {
+  return `<section>
+    <h2>${escapeHtml(heading)}</h2>
+    ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+  </section>`
+}
+
+/**
+ * 運営者・問い合わせ先・免責・広告の扱いをまとめたページ。
+ * 記事と同じテンプレートで出し、内容は STATIC_PAGE_LABELS の about* だけから取る。
+ */
+export function renderAboutPage(ctx: Ctx): string {
+  const path = aboutPagePath(ctx.locale)
+  const title = pageTitle(ctx, ctx.L.aboutTitle)
+  const description = ctx.L.aboutDescription
+  const breadcrumbId = `${path}#breadcrumb`
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      breadcrumbSchema(
+        [
+          { name: ctx.L.home, path: '/' },
+          { name: ctx.L.aboutTitle, path },
+        ],
+        breadcrumbId,
+      ),
+      {
+        '@type': 'AboutPage',
+        '@id': `${SITE_URL}${path}#webpage`,
+        url: `${SITE_URL}${path}`,
+        name: title,
+        description,
+        inLanguage: ctx.locale,
+        breadcrumb: { '@id': `${SITE_URL}${breadcrumbId}` },
+        mainEntity: {
+          '@type': 'WebApplication',
+          '@id': `${SITE_URL}/#webapp`,
+          name: ctx.site,
+          url: SITE_URL,
+          applicationCategory: 'UtilitiesApplication',
+          operatingSystem: 'Web browser',
+        },
+      },
+    ],
+  }
+
+  const body = `${renderBreadcrumbs(
+    [{ label: ctx.L.home, href: '/' }, { label: ctx.L.aboutTitle }],
+    ctx.locale,
+  )}
+    <header class="hero">
+      <p class="eyebrow">${escapeHtml(ctx.L.aboutEyebrow)}</p>
+      <h1>${escapeHtml(ctx.L.aboutTitle)}</h1>
+      <p class="lead">${escapeHtml(ctx.L.aboutLead)}</p>
+    </header>
+    <article class="article-body">
+      ${aboutSection(ctx.L.aboutOverviewHeading, ctx.L.aboutOverviewParagraphs)}
+      <section>
+        <h2>${escapeHtml(ctx.L.aboutFeaturesHeading)}</h2>
+        <ul>${ctx.L.aboutFeatures.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>
+      </section>
+      ${aboutSection(ctx.L.aboutDataHeading, ctx.L.aboutDataParagraphs)}
+      ${aboutSection(ctx.L.aboutOperatorHeading, ctx.L.aboutOperatorParagraphs)}
+      <section>
+        <h2>${escapeHtml(ctx.L.aboutContactHeading)}</h2>
+        ${ctx.L.aboutContactParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+        <p><a href="${escapeHtml(CONTACT_URL)}" rel="noopener">${escapeHtml(ctx.L.aboutContactLinkLabel)}</a></p>
+      </section>
+      ${aboutSection(ctx.L.aboutDisclaimerHeading, ctx.L.aboutDisclaimerParagraphs)}
+      <section>
+        <h2>${escapeHtml(ctx.L.aboutAdsHeading)}</h2>
+        ${ctx.L.aboutAdsParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+        <p><a href="/privacy.html">${escapeHtml(ctx.L.aboutPrivacyLinkLabel)}</a></p>
+      </section>
+      <section>
+        <h2>${escapeHtml(ctx.L.aboutLinksHeading)}</h2>
+        <ul class="link-list">
+          <li><a href="/">${escapeHtml(ctx.L.aboutPlannerLinkLabel)}</a></li>
+          <li><a href="${escapeHtml(itemsIndexPath(ctx.locale))}">${escapeHtml(ctx.ui.footer.items)}</a></li>
+          <li><a href="${escapeHtml(articlesIndexPath(ctx.locale))}">${escapeHtml(ctx.ui.footer.articles)}</a></li>
+        </ul>
+      </section>
+      <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
+    </article>`
+
+  return renderDocument(
+    {
+      locale: ctx.locale,
+      title,
+      description,
+      canonicalPath: path,
+      alternates: alternatesOf((locale) => aboutPagePath(locale)),
+      structuredData,
+    },
+    body,
+  )
+}
+
+// ---------------------------------------------------------------------------
 // 記事
 // ---------------------------------------------------------------------------
 
@@ -1141,6 +1246,7 @@ function renderArticlesIndex(ctx: Ctx): string {
 export function localeSitemapPaths(locale: StaticLocale): readonly string[] {
   return [
     ...(locale === 'ja' ? ['/', '/privacy.html'] : []),
+    aboutPagePath(locale),
     itemsIndexPath(locale),
     ...items.map((item) => itemUrl(item.id, locale)),
     articlesIndexPath(locale),
@@ -1188,6 +1294,7 @@ export async function generateStaticPages(outputDirectory: string): Promise<Stat
     const ctx = createContext(locale)
     const directory = localeDirectory(output, locale)
     await Promise.all([
+      writeHtml(resolve(directory, 'about/index.html'), renderAboutPage(ctx)),
       writeHtml(resolve(directory, 'items/index.html'), renderItemIndex(ctx)),
       ...items.map((item) =>
         writeHtml(

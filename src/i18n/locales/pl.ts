@@ -80,6 +80,7 @@ export const pl = {
     disclaimer: 'Nieoficjalne narzędzie fanowskie. Bez związku z Coffee Stain Studios.',
     articles: 'Poradniki',
     items: 'Przedmioty',
+    about: 'O stronie',
     privacy: 'Prywatność',
   },
 

@@ -80,6 +80,7 @@ export const ptBR = {
     disclaimer: 'Ferramenta não oficial de fãs. Sem vínculo com a Coffee Stain Studios.',
     articles: 'Guias',
     items: 'Itens',
+    about: 'Sobre',
     privacy: 'Privacidade',
   },
 

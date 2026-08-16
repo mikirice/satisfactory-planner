@@ -79,6 +79,7 @@ export const zhHans = {
     disclaimer: '非官方粉丝工具，与 Coffee Stain Studios 无关。',
     articles: '指南',
     items: '物品',
+    about: '关于本站',
     privacy: '隐私政策',
   },
 

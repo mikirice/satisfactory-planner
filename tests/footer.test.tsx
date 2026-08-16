@@ -55,6 +55,14 @@ describe('サイトフッター', () => {
     )
   })
 
+  it('サイト説明ページへの内部リンクを表示する', async () => {
+    const container = await render(<SiteFooter />)
+
+    expect(container.querySelector<HTMLAnchorElement>('a[href="/about/"]')?.textContent).toBe(
+      'このサイトについて',
+    )
+  })
+
   /** Stage 3: 静的ページは日英ミラー。ja 以外の表示言語では /en/ 側へ送る。 */
   it('英語表示では英語ミラーへリンクする', async () => {
     const container = await render(
@@ -69,7 +77,11 @@ describe('サイトフッター', () => {
     expect(container.querySelector<HTMLAnchorElement>('a[href="/en/items/"]')?.textContent).toBe(
       'Items',
     )
+    expect(container.querySelector<HTMLAnchorElement>('a[href="/en/about/"]')?.textContent).toBe(
+      'About',
+    )
     expect(container.querySelector('a[href="/articles/"]')).toBeNull()
+    expect(container.querySelector('a[href="/about/"]')).toBeNull()
   })
 })
 

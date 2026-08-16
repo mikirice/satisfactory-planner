@@ -80,6 +80,7 @@ export const en = {
     disclaimer: 'Unofficial fan tool. Not affiliated with Coffee Stain Studios.',
     articles: 'Guides',
     items: 'Items',
+    about: 'About',
     privacy: 'Privacy policy',
   },
 

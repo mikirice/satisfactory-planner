@@ -79,6 +79,7 @@ export const ko = {
     disclaimer: '비공식 팬 도구입니다. Coffee Stain Studios와 관련이 없습니다.',
     articles: '가이드',
     items: '아이템',
+    about: '사이트 소개',
     privacy: '개인정보 처리방침',
   },
 

@@ -80,6 +80,7 @@ export const esES = {
     disclaimer: 'Herramienta no oficial de fans. Sin relación con Coffee Stain Studios.',
     articles: 'Guías',
     items: 'Objetos',
+    about: 'Acerca de',
     privacy: 'Privacidad',
   },
 

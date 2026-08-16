@@ -1,4 +1,4 @@
-import { articlesIndexPath, itemsIndexPath } from '../../src/plan/item-pages.ts'
+import { aboutPagePath, articlesIndexPath, itemsIndexPath } from '../../src/plan/item-pages.ts'
 import {
   ENDONYM,
   FLAG,
@@ -108,6 +108,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
   const name = siteName(locale)
   const itemsHref = itemsIndexPath(locale)
   const articlesHref = articlesIndexPath(locale)
+  const aboutHref = aboutPagePath(locale)
   const articleMeta = meta.publishedTime
     ? `<meta property="article:published_time" content="${escapeHtml(meta.publishedTime)}" />`
     : ''
@@ -162,6 +163,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
       <nav aria-label="${escapeHtml(labels.footerNavLabel)}">
         <a href="${escapeHtml(itemsHref)}">${escapeHtml(ui.footer.items)}</a>
         <a href="${escapeHtml(articlesHref)}">${escapeHtml(ui.footer.articles)}</a>
+        <a href="${escapeHtml(aboutHref)}">${escapeHtml(ui.footer.about)}</a>
         <a href="/privacy.html">${escapeHtml(ui.footer.privacy)}</a>
       </nav>
     </footer>

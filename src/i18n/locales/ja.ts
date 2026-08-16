@@ -83,6 +83,7 @@ export const ja = {
     disclaimer: '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
     articles: '解説記事',
     items: 'アイテム一覧',
+    about: 'このサイトについて',
     privacy: 'プライバシーポリシー',
   },
 
