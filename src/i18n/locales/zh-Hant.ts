@@ -83,6 +83,7 @@ export const zhHant = {
     disclaimer: '非官方粉絲工具，與 Coffee Stain Studios 無關。',
     articles: '指南',
     items: '物品',
+    about: '關於本站',
     privacy: '隱私權政策',
   },
 

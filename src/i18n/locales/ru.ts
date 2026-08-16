@@ -80,6 +80,7 @@ export const ru = {
     disclaimer: 'Неофициальный фанатский инструмент. Не связан с Coffee Stain Studios.',
     articles: 'Руководства',
     items: 'Предметы',
+    about: 'О сайте',
     privacy: 'Конфиденциальность',
   },
 

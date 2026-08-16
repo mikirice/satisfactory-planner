@@ -80,6 +80,7 @@ export const tr = {
     disclaimer: 'Resmî olmayan hayran aracı. Coffee Stain Studios ile ilgisi yoktur.',
     articles: 'Rehberler',
     items: 'Eşyalar',
+    about: 'Hakkında',
     privacy: 'Gizlilik',
   },
 

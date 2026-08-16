@@ -11,6 +11,7 @@ import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
 import { items, recipes } from '../src/data/index.ts'
 import { SUPPORTED_LOCALES } from '../src/i18n/types.ts'
 import {
+  aboutPagePath,
   articlePagePath,
   articlesIndexPath,
   itemPagePath,
@@ -260,18 +261,76 @@ describe('記事静的ページ', () => {
   })
 })
 
+describe('このサイトについて', () => {
+  /**
+   * 運営者・問い合わせ先・免責を JS なしで読めるページとして出す（AdSense の審査要件）。
+   * 日英ミラーで用意し、フッターとトップの静的セクションから常に辿れるようにする。
+   */
+  it('日英の /about/ に運営者情報・問い合わせ先・免責・広告の説明を焼き込む', async () => {
+    const ja = await readFile(join(outputDirectory, 'about/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/about/index.html'), 'utf8')
+
+    expect(ja).toContain('<title>このサイトについて | Satisfactory 生産計画ツール</title>')
+    expect(ja).toContain('日本の個人開発者が個人で開発・運営しています')
+    expect(ja).toContain('href="https://github.com/mikirice/satisfactory-planner/issues"')
+    expect(ja).toContain('Coffee Stain Studios とは無関係です')
+    expect(ja).toContain('広告を掲載する場合があります')
+    expect(ja).toContain('href="/privacy.html"')
+    expect(ja).toContain('href="/items/"')
+    expect(ja).toContain('href="/articles/"')
+    expect(ja).toContain('"@type":"AboutPage"')
+    expect(ja).not.toContain('type="module"')
+
+    expect(en).toContain('<title>About this site | Satisfactory Production Planner</title>')
+    expect(en).toContain('individual developer based in Japan')
+    expect(en).toContain('href="https://github.com/mikirice/satisfactory-planner/issues"')
+    expect(en).toContain('not affiliated with Coffee Stain Studios')
+    expect(en).toContain('href="/en/items/"')
+    expect(en).toContain('href="/en/articles/"')
+    expect(en).toContain('"inLanguage":"en"')
+    expect(JAPANESE_CHARACTER.test(mainSection(en))).toBe(false)
+  })
+
+  it('日英が相互に hreflang で結ばれ、フッターから辿れる', async () => {
+    const ja = await readFile(join(outputDirectory, 'about/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/about/index.html'), 'utf8')
+    const expected = {
+      ja: 'https://satisfactory-planner.net/about/',
+      en: 'https://satisfactory-planner.net/en/about/',
+      'x-default': 'https://satisfactory-planner.net/about/',
+    }
+
+    expect(alternateLinks(ja)).toEqual(expected)
+    expect(alternateLinks(en)).toEqual(expected)
+    expect(aboutPagePath('ja')).toBe('/about/')
+    expect(aboutPagePath('en')).toBe('/en/about/')
+    expect(aboutPagePath('de')).toBe('/en/about/')
+
+    // フッターの導線（全静的ページ共通のテンプレート）
+    const itemPage = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
+    const enItemPage = await readFile(
+      join(outputDirectory, 'en/items/iron-plate/index.html'),
+      'utf8',
+    )
+    expect(itemPage).toContain('<a href="/about/">このサイトについて</a>')
+    expect(enItemPage).toContain('<a href="/en/about/">About</a>')
+  })
+})
+
 describe('sitemap', () => {
   it('日本語ページと英語ミラーのURLを1件ずつ収録する', async () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 214（トップ・privacy・一覧2・アイテム198・記事12）＋ 英語ミラー 212
-    expect(sitemapPaths()).toHaveLength(426)
-    expect(manifest.urls).toHaveLength(426)
+    // 日本語 215（トップ・privacy・about・一覧2・アイテム198・記事12）＋ 英語ミラー 213
+    expect(sitemapPaths()).toHaveLength(428)
+    expect(manifest.urls).toHaveLength(428)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
     expect(locations).toContain('https://satisfactory-planner.net/privacy.html')
+    expect(locations).toContain('https://satisfactory-planner.net/about/')
+    expect(locations).toContain('https://satisfactory-planner.net/en/about/')
     expect(locations).toContain('https://satisfactory-planner.net/items/iron-plate/')
     expect(locations).toContain(
       'https://satisfactory-planner.net/articles/production-planning-tutorial/',

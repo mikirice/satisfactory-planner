@@ -99,6 +99,107 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      サイト説明（静的）。JS を実行しないクローラでも読める本文として、#root の外に置く。
+      アプリの描画には関与しないので、マウント後も隠さずそのまま残す（アプリ本体の下に続く）。
+      文面を変えるときは /about/（scripts/static-pages/labels.ts の about*）と揃える。
+    -->
+    <section class="site-intro" aria-labelledby="site-intro-heading">
+      <h2 id="site-intro-heading">Satisfactory 生産計画ツールについて</h2>
+      <p>
+        Satisfactory 生産計画ツールは、ゲーム「Satisfactory」の工場と生産ラインを設計するための無料の非公式Webツールです。作りたいアイテムと毎分の目標レートを入力すると、線形計画法のソルバーが必要なレシピ、機械の台数、消費電力、原料の量を計算します。インストールも会員登録も不要で、ブラウザだけで動きます。
+      </p>
+      <p>
+        「代替レシピを使うと原料はどれだけ減るのか」「この生産量に発電機は何台必要か」を数字で確かめたい方に向けたツールです。計算結果はフローチャートと表で確認でき、Excel に書き出したり、共有URLで別の端末やフレンドに渡したりできます。
+      </p>
+      <h3>主な機能</h3>
+      <ul>
+        <li>線形計画法による最適レシピの計算（原料・電力・設備数のどれを優先するか選択可能）</li>
+        <li>生産ライン全体をたどれるフローチャート表示</li>
+        <li>Excel ファイルへの書き出し（材料・工程・設備・電力をシート別に出力）</li>
+        <li>発電機と燃料を含めた発電計画の同時計算</li>
+        <li>石油の完全循環や水の再利用などのループ構成テンプレート</li>
+        <li>全アイテムのレシピ辞典（作り方・使い道・毎分レート・電力効率）</li>
+        <li>日本語を含む12言語対応</li>
+      </ul>
+      <p>
+        レシピや電力などの数値はゲームの公式データ（バージョン1.1系）に基づき、アイテム名はゲーム内の公式訳と一致させています。
+      </p>
+      <nav class="site-intro__links" aria-label="サイト情報">
+        <a href="/items/">アイテム一覧（全198件のレシピ辞典）</a>
+        <a href="/articles/">解説記事</a>
+        <a href="/about/">このサイトについて</a>
+        <a href="/privacy.html">プライバシーポリシー</a>
+      </nav>
+    </section>
+    <style>
+      .site-intro {
+        width: min(880px, calc(100% - 32px));
+        margin: 0 auto 48px;
+        padding: 24px 28px;
+        border: 1px solid #2b323d;
+        border-radius: 6px;
+        background: #171b22;
+        color: #c3ccd8;
+        font:
+          15px/1.85 system-ui,
+          -apple-system,
+          'Hiragino Sans',
+          'Noto Sans JP',
+          'Yu Gothic UI',
+          sans-serif;
+      }
+
+      .site-intro h2 {
+        margin: 0 0 14px;
+        color: #fff;
+        font-size: 20px;
+        line-height: 1.45;
+      }
+
+      .site-intro h3 {
+        margin: 24px 0 10px;
+        color: #fff;
+        font-size: 16px;
+        line-height: 1.45;
+      }
+
+      .site-intro p {
+        margin: 0 0 14px;
+      }
+
+      .site-intro ul {
+        margin: 0 0 14px;
+        padding-left: 1.3em;
+        list-style: disc;
+      }
+
+      .site-intro li {
+        margin-bottom: 6px;
+      }
+
+      .site-intro__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #2b323d;
+      }
+
+      .site-intro a {
+        color: #f0a13c;
+        text-underline-offset: 0.18em;
+      }
+
+      @media (max-width: 600px) {
+        .site-intro {
+          width: calc(100% - 24px);
+          margin-bottom: 32px;
+          padding: 20px 18px;
+        }
+      }
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

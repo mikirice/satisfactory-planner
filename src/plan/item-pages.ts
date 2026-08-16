@@ -66,6 +66,11 @@ export function itemsIndexPath(locale: string = 'ja'): string {
   return `${staticPagePrefix(locale)}/items/`
 }
 
+/** サイト説明ページ（運営者・問い合わせ・免責）のパス。 */
+export function aboutPagePath(locale: string = 'ja'): string {
+  return `${staticPagePrefix(locale)}/about/`
+}
+
 /** 解説記事の索引ページのパス。 */
 export function articlesIndexPath(locale: string = 'ja'): string {
   return `${staticPagePrefix(locale)}/articles/`

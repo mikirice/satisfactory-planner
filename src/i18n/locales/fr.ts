@@ -80,6 +80,7 @@ export const fr = {
     disclaimer: 'Outil de fan non officiel. Sans lien avec Coffee Stain Studios.',
     articles: 'Guides',
     items: 'Objets',
+    about: 'À propos',
     privacy: 'Confidentialité',
   },
 
