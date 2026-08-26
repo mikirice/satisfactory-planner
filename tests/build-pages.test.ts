@@ -79,6 +79,50 @@ describe('アイテム静的ページ', () => {
     expect(html).not.toContain('type="module"')
   })
 
+  it('レシピ行とアイテム一覧のリンクにアイコンが名前の前で入る（日英とも）', async () => {
+    const ja = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
+    const index = await readFile(join(outputDirectory, 'items/index.html'), 'utf8')
+    const rowIcon = (id: string): string =>
+      `<img class="item-icon-row" src="/icons/${id}.png" alt="" aria-hidden="true" width="20" height="20" loading="lazy" decoding="async" />`
+    const countRowIcons = (html: string): number =>
+      html.split('class="item-icon-row"').length - 1
+
+    // 作り方の材料リンク: アイコン → 名前 の順で、アイコンはリンクの中
+    expect(ja).toContain(
+      `<a href="/items/iron-ingot/">${rowIcon('Desc_IronIngot_C')}鉄のインゴット</a>`,
+    )
+    expect(en).toContain(
+      `<a href="/en/items/iron-ingot/">${rowIcon('Desc_IronIngot_C')}Iron Ingot</a>`,
+    )
+    // 使い道の行（強化鉄板レシピの材料としての鉄板）にも入る
+    expect(ja).toContain(
+      `<a href="/items/iron-plate/">${rowIcon('Desc_IronPlate_C')}鉄板</a>`,
+    )
+    // 見出しの72pxアイコンは意味のあるaltのまま（装飾扱いにしない）
+    expect(ja).toContain(
+      '<img class="item-icon" src="/icons/Desc_IronPlate_C.png" alt="鉄板" width="72" height="72" />',
+    )
+    expect(countRowIcons(ja)).toBeGreaterThan(20)
+    expect(countRowIcons(en)).toBeGreaterThan(20)
+
+    // アイテム一覧（198件）は全カテゴリの名前の前にアイコンが付く
+    expect(index).toContain(
+      `<li><a href="/items/iron-plate/">${rowIcon('Desc_IronPlate_C')}鉄板</a> <small>Iron Plate</small></li>`,
+    )
+    expect(countRowIcons(index)).toBe(items.length - 1) // 画像が無いのは SAM 変動機の1件だけ
+
+    // 画像が無いアイテムは行に何も描かない（「画像未収録」の文字は出さない）
+    expect(index).toContain('<li><a href="/items/sam-fluctuator/">SAM 変動機</a>')
+    const samConsumer = await readFile(
+      join(outputDirectory, 'items/sam-fluctuator/index.html'),
+      'utf8',
+    )
+    expect(samConsumer).toContain('<a href="/items/sam-fluctuator/">SAM 変動機</a>')
+    // 「画像未収録」の代替表示は見出しの72px枠1つだけ（レシピの行には出さない）
+    expect(samConsumer.split('item-icon-missing').length - 1).toBe(1)
+  })
+
   it('全アイテムCTAのhashを既存シリアライザで復元できる', async () => {
     for (const item of items) {
       const html = await readFile(
