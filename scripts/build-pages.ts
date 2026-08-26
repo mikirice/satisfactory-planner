@@ -226,10 +226,31 @@ function itemUrl(itemId: string, locale: StaticLocale): string {
   return path
 }
 
-function itemLink(ctx: Ctx, itemId: string): string {
+/** 行に並べるアイコンの大きさ(px)。本文15px/行送り26pxを押し広げない大きさ。 */
+const ROW_ICON_SIZE = 20
+
+/**
+ * アイテム名の直前に置く小さいアイコン。
+ *
+ * 名前がすぐ隣にあるので**装飾**として扱い、alt を空 + aria-hidden にして
+ * 読み上げが名前を2回言わないようにする。1ページに何十行も出るので遅延読み込み。
+ * アイコンが無いアイテムは何も描かない（アプリの ItemIcon と同じ「無ければ描かない」方針。
+ * 密な行に「画像未収録」の文字を出すとノイズになるだけで、名前は隣にそのまま残る）。
+ */
+function rowItemIcon(item: Item): string {
+  if (!iconIds.has(item.id)) return ''
+  return `<img class="item-icon-row" src="/icons/${escapeHtml(item.id)}.png" alt="" aria-hidden="true" width="${ROW_ICON_SIZE}" height="${ROW_ICON_SIZE}" loading="lazy" decoding="async" />`
+}
+
+/**
+ * アイテムページへのリンク。`icon: true` でアプリのレシピ一覧と同じ
+ * 「アイコン → アイテム名」の並びにする（材料・生成物・使い道・アイテム一覧）。
+ */
+function itemLink(ctx: Ctx, itemId: string, options: { icon?: boolean } = {}): string {
   const item = itemsById.get(itemId)
   if (item === undefined) throw new Error(`unknown item id: ${itemId}`)
-  return `<a href="${itemUrl(itemId, ctx.locale)}">${escapeHtml(item.name[ctx.locale])}</a>`
+  const icon = options.icon === true ? rowItemIcon(item) : ''
+  return `<a href="${itemUrl(itemId, ctx.locale)}">${icon}${escapeHtml(item.name[ctx.locale])}</a>`
 }
 
 function itemIcon(ctx: Ctx, item: Item, size = 72): string {
@@ -326,7 +347,7 @@ function recipeRateList(ctx: Ctx, entries: readonly ItemAmount[], durationSec: n
   const rows = entries
     .map(
       (entry) => `<li>
-        <span>${itemLink(ctx, entry.item)}</span>
+        <span>${itemLink(ctx, entry.item, { icon: true })}</span>
         <span class="num">${ctx.fmtRate(ratePerMin(entry.amount, durationSec))} ${escapeHtml(rateUnit(ctx, entry.item))}</span>
       </li>`,
     )
@@ -360,7 +381,7 @@ function renderProducingRecipe(ctx: Ctx, recipe: Recipe, outputItem: Item): stri
             ${metrics.ingredients
               .map(
                 (ingredient) => `<li>
-                  <span>${browser.perIngredient(itemLink(ctx, ingredient.item), escapeHtml(amountUnit(ctx, ingredient.item)))}</span>
+                  <span>${browser.perIngredient(itemLink(ctx, ingredient.item, { icon: true }), escapeHtml(amountUnit(ctx, ingredient.item)))}</span>
                   <span class="num">${ctx.fmtRate(ingredient.outputPerIngredient)} ${escapeHtml(amountUnit(ctx, outputItem.id))}</span>
                 </li>`,
               )
@@ -570,9 +591,9 @@ function renderItemIndex(ctx: Ctx): string {
               const otherName = ctx.L.itemsIndexShowsOtherName
                 ? ` <small>${escapeHtml(item.name[ctx.other])}</small>`
                 : ''
-              return `<li><a href="${itemUrl(item.id, ctx.locale)}">${escapeHtml(item.name[ctx.locale])}</a>${otherName}</li>`
+              return `<li>${itemLink(ctx, item.id, { icon: true })}${otherName}</li>`
             })
-            .join('')}
+            .join('\n')}
         </ul>
       </section>`,
     )

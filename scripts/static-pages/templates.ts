@@ -297,6 +297,19 @@ main {
   text-align: center;
 }
 
+/*
+ * 行の中のアイコン（材料・生成物・使い道・アイテム一覧）。アプリのレシピ一覧と同じ
+ * 「アイコン → 名前」の並び。インライン画像のままにして、名前が折り返しても
+ * 文字のベースラインがずれないようにする（20px は行送り26pxに収まるので行が伸びない）。
+ */
+.item-icon-row {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  object-fit: contain;
+  vertical-align: -0.3em;
+}
+
 .eyebrow { margin: 0 0 4px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
 h1, h2, h3 { color: var(--strong); line-height: 1.4; }
 h1 { margin: 0; font-size: clamp(25px, 5vw, 36px); }
@@ -419,6 +432,8 @@ p { margin: 0 0 14px; }
   .hero-row { flex-direction: column; gap: 14px; }
   .hero-row > div { min-width: 0; width: 100%; }
   .item-icon, .item-icon-missing { width: 56px; height: 56px; }
+  /* 行が狭いぶんアイコンも一段小さく（名前と毎分レートが1行に収まりやすいように） */
+  .item-icon-row { width: 18px; height: 18px; margin-right: 5px; }
   .link-list { columns: 1; }
 }
 `
