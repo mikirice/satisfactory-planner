@@ -477,6 +477,7 @@ export const pl = {
     hint: 'Sprawdź jedno z poniższych ustawień.',
     reason: {
       unproducibleItem: 'Brak receptury',
+      requiresGeneratorByproduct: 'Potrzebny produkt uboczny generatora',
       resourceLimit: 'Niedobór surowca',
       unbounded: 'Cel optymalizacji',
       solverError: 'Solver',
@@ -484,6 +485,14 @@ export const pl = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `Przedmiotu „${name}” nie da się wytworzyć z włączonych receptur i dostępnych surowców.`,
+      requiresGeneratorByproduct: (
+        name: string,
+        byproducts: readonly string[],
+        sources: readonly string[],
+      ): string =>
+        `Przedmiot „${name}” wymaga: ${byproducts.join(', ')}. To powstaje wyłącznie jako produkt uboczny pracy: ${sources.join(', ')}.`,
+      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
+        `Przedmiot „${name}” powstaje wyłącznie jako produkt uboczny pracy: ${sources.join(', ')}.`,
       resourceLimit: (name: string): string => `Za mało: ${name}.`,
       unbounded: 'Bez limitów surowców produkcji nie da się zmaksymalizować.',
       solverError: 'Solver nie zwrócił rozwiązania.',
@@ -491,10 +500,14 @@ export const pl = {
     advice: {
       unproducibleItem:
         'Włącz recepturę alternatywną lub sprawdź, czy limit potrzebnego surowca nie wynosi 0.',
+      requiresGeneratorByproduct: (sources: readonly string[]): string =>
+        `Włącz wytwarzanie energii i zezwól na: ${sources.join(', ')}.`,
       resourceLimit: 'Zwiększ limit surowca lub zmniejsz docelowe tempo.',
       unbounded: 'Ustaw limity surowców i ponownie zmaksymalizuj produkcję.',
       solverError: 'Uprość dane wejściowe i spróbuj ponownie.',
     },
+    /** Źródło produktu ubocznego: generator i paliwo. */
+    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limit ${limit} / wymagane ${required} / brakuje ${shortfall}`,
   },

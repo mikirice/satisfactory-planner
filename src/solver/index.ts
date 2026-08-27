@@ -78,6 +78,7 @@ export type { LpBackend, LpConstraint, LpModel, LpResult, LpStatus, LpVariable }
 
 export type {
   ExternalInputUsage,
+  GeneratorByproductSource,
   InfeasibleReason,
   InfeasibleResult,
   ItemBalance,

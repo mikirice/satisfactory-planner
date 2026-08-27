@@ -463,6 +463,7 @@ export const en = {
     hint: 'Review one of the following settings.',
     reason: {
       unproducibleItem: 'Missing recipe',
+      requiresGeneratorByproduct: 'Generator byproduct required',
       resourceLimit: 'Resource shortage',
       unbounded: 'Optimization goal',
       solverError: 'Solver',
@@ -470,16 +471,28 @@ export const en = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `${name} cannot be produced with the enabled recipes and available resources.`,
+      requiresGeneratorByproduct: (
+        name: string,
+        byproducts: readonly string[],
+        sources: readonly string[],
+      ): string =>
+        `${name} requires ${byproducts.join(', ')}, which is only produced as a byproduct of running ${sources.join(', ')}.`,
+      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
+        `${name} is only produced as a byproduct of running ${sources.join(', ')}.`,
       resourceLimit: (name: string): string => `Not enough ${name}.`,
       unbounded: 'The output cannot be maximized without resource limits.',
       solverError: 'The solver did not return a solution.',
     },
     advice: {
       unproducibleItem: 'Enable an alternate recipe or check whether a required resource limit is set to 0.',
+      requiresGeneratorByproduct: (sources: readonly string[]): string =>
+        `Turn on power generation and allow ${sources.join(', ')}.`,
       resourceLimit: 'Increase the resource limit or lower the target rate.',
       unbounded: 'Set resource limits, then maximize the output again.',
       solverError: 'Simplify the inputs and try again.',
     },
+    /** Label for where a byproduct comes from: generator and fuel. */
+    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limit ${limit} / required ${required} / shortfall ${shortfall}`,
   },

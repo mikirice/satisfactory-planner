@@ -317,10 +317,37 @@ export type Solution = {
   powerGeneration?: PowerGenerationSummary
 }
 
+/**
+ * 発電機の副産物（核廃棄物）の出どころ。
+ * 「この発電機をこの燃料で回したときだけ出る」という組み合わせを指す。
+ */
+export type GeneratorByproductSource = {
+  /** 発電機の Building.id（例: "Build_GeneratorNuclear_C"） */
+  generator: string
+  /** 燃料の Item.id（例: "Desc_NuclearFuelRod_C"） */
+  fuel: string
+  /** その燃料を燃やすと出る副産物の Item.id（例: "Desc_NuclearWaste_C"） */
+  byproduct: string
+}
+
 export type InfeasibleReason =
   | {
       kind: 'unproducibleItem'
       item: string
+      message: string
+    }
+  | {
+      /**
+       * 発電機の副産物（ウラン廃棄物・プルトニウム廃棄物）が要るせいで作れない。
+       * 発電計画を有効にして該当の発電機と燃料を許可すれば作れるようになる。
+       */
+      kind: 'requiresGeneratorByproduct'
+      /** 作れなかった目標アイテムの Item.id */
+      item: string
+      /** レシピでは作れず、発電機を回さないと手に入らない材料の Item.id */
+      byproducts: string[]
+      /** その副産物を出す発電機 × 燃料の組み合わせ */
+      sources: GeneratorByproductSource[]
       message: string
     }
   | {

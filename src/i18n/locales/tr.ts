@@ -479,6 +479,7 @@ export const tr = {
     hint: 'Aşağıdaki ayarlardan birini gözden geçir.',
     reason: {
       unproducibleItem: 'Tarif eksik',
+      requiresGeneratorByproduct: 'Jeneratör yan ürünü gerekli',
       resourceLimit: 'Kaynak yetersiz',
       unbounded: 'Eniyileme hedefi',
       solverError: 'Çözücü',
@@ -486,6 +487,14 @@ export const tr = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `${name}, açık tarifler ve mevcut kaynaklarla üretilemiyor.`,
+      requiresGeneratorByproduct: (
+        name: string,
+        byproducts: readonly string[],
+        sources: readonly string[],
+      ): string =>
+        `${name} için ${byproducts.join(', ')} gerekiyor; bu yalnızca ${sources.join(', ')} çalıştırıldığında yan ürün olarak elde edilir.`,
+      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
+        `${name}, yalnızca ${sources.join(', ')} çalıştırıldığında yan ürün olarak elde edilir.`,
       resourceLimit: (name: string): string => `Yeterli ${name} yok.`,
       unbounded: 'Kaynak sınırları olmadan üretim en üst düzeye çıkarılamaz.',
       solverError: 'Çözücü bir sonuç döndürmedi.',
@@ -493,10 +502,14 @@ export const tr = {
     advice: {
       unproducibleItem:
         'Bir alternatif tarifi aç ya da gereken bir kaynağın sınırının 0 olup olmadığını denetle.',
+      requiresGeneratorByproduct: (sources: readonly string[]): string =>
+        `Güç üretimini aç ve ${sources.join(', ')} kullanımına izin ver.`,
       resourceLimit: 'Kaynak sınırını yükselt ya da hedef hızı düşür.',
       unbounded: 'Kaynak sınırlarını belirle, sonra üretimi yeniden en üst düzeye çıkar.',
       solverError: 'Girdileri sadeleştirip yeniden dene.',
     },
+    /** Yan ürünün kaynağı: jeneratör ve yakıt. */
+    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Sınır ${limit} / gereken ${required} / eksik ${shortfall}`,
   },
