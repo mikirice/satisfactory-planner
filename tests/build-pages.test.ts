@@ -226,11 +226,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き5本とループ7本、および記事indexを生成する', async () => {
+  it('手書き5本とループ8本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(12)
+    expect(articleSlugs).toHaveLength(13)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -263,11 +263,11 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('7件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
+  it('8件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
     const loopSlugs = SAMPLE_PLANS.filter((sample) => sample.category === 'special').map(
       (sample) => sample.id,
     )
-    expect(loopSlugs).toHaveLength(7)
+    expect(loopSlugs).toHaveLength(8)
     const oil = await readFile(
       join(outputDirectory, 'articles/oil-loop-complete/index.html'),
       'utf8',
@@ -302,6 +302,22 @@ describe('記事静的ページ', () => {
     )
     expect(nuclear).toContain('FICSONIUM燃料棒は再処理チェーンの終点として取り出します')
     expect(nuclear).not.toContain('FICSONIUM燃料棒を発電に使い')
+    // 簡略版は「代替レシピなしとの差」を build-time solver の実値で出す（本文に数値を書かない）
+    const simplified = await readFile(
+      join(outputDirectory, 'articles/nuclear-simplified/index.html'),
+      'utf8',
+    )
+    expect(simplified).toContain('ウラン</a></td>')
+    expect(simplified).toContain('20.00 → 12.50')
+    expect(simplified).toContain('37.5%削減')
+    expect(simplified).toContain('硫酸を使わないため、混合機も精製機もラインから消えます')
+    const simplifiedEn = await readFile(
+      join(outputDirectory, 'en/articles/nuclear-simplified/index.html'),
+      'utf8',
+    )
+    expect(simplifiedEn).toContain('Uranium</a></td>')
+    expect(simplifiedEn).toContain('20.00 → 12.50')
+    expect(simplifiedEn).toContain('the Blender and the Refinery both disappear from the line')
   })
 })
 
@@ -366,9 +382,9 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 215（トップ・privacy・about・一覧2・アイテム198・記事12）＋ 英語ミラー 213
-    expect(sitemapPaths()).toHaveLength(428)
-    expect(manifest.urls).toHaveLength(428)
+    // 日本語 216（トップ・privacy・about・一覧2・アイテム198・記事13）＋ 英語ミラー 214
+    expect(sitemapPaths()).toHaveLength(430)
+    expect(manifest.urls).toHaveLength(430)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')

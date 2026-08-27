@@ -149,6 +149,29 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
       'Water that appears as a byproduct of the Battery step and of the aluminium refining upstream is returned to the Alumina Solution step. The figure below is how much circulates across the whole line without being pumped in from outside.',
   },
 
+  'nuclear-simplified': {
+    title: 'Simplified Uranium Power',
+    headline: 'How Simplified Nuclear Power with Alternate Recipes Works and How to Build It',
+    description:
+      '2,500 MW of nuclear power built from alternate recipes, so the uranium chain never touches Sulfuric Acid and runs on belts alone.',
+    highlight:
+      'Watch the straight run from Uranium to Uranium Fuel Rod, with no acid pipework anywhere along it.',
+    mechanism: [
+      'Mine Uranium and send it to a Manufacturer together with Silica, Sulfur and Quickwire — instead of Sulfuric Acid, this line needs a supply of Raw Quartz and Caterium Ore.',
+      'Make Encased Uranium Cell with Infused Uranium Cell: it needs no Sulfuric Acid, so the Blender and the Refinery both disappear from the line.',
+      'Make Encased Industrial Beam from Steel Pipe and Concrete with Encased Industrial Pipe, which drops the Steel Beam step.',
+      'Feed Encased Uranium Cell, Encased Industrial Beam and Electromagnetic Control Rod into a Manufacturer to make Uranium Fuel Rod.',
+      'Send the fuel rods to Nuclear Power Plants for 2,500 MW; the only pipe on the site is the reactor cooling water.',
+      'Carry the Uranium Waste out on a belt and keep it in storage.',
+    ],
+    tips: [
+      'Uranium Waste is worth 0 sink points and cannot be disposed of in the AWESOME Sink, so decide where it goes — storage or a reprocessing line — before you build.',
+      'Uranium, Encased Uranium Cell, Uranium Fuel Rod and Uranium Waste are all radioactive: keep the belts and the storage away from walkways and wear an Iodine-Infused Filter.',
+      'Both alternate recipes come from Hard Drive research; having them in hand before you start saves rebuilding the line later.',
+      'The SAM limit is set to 0 so that the Converter route to Uranium is off the table. Build this where you can mine Uranium directly.',
+    ],
+  },
+
   'nuclear-reprocessing': {
     title: 'Nuclear Power and Reprocessing',
     headline: 'How Nuclear Power and Reprocessing Work and How to Build Them',

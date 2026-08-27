@@ -342,6 +342,50 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     },
   },
   {
+    id: 'nuclear-simplified',
+    category: 'special',
+    title: '原子力発電（代替レシピで簡略化）',
+    description:
+      '2,500 MW。注入型ウラン・セルで硫酸をなくし、ウラン燃料棒までをベルトだけでつなぐ。',
+    titleEn: 'Simplified {{Desc_OreUranium_C}} Power',
+    descriptionEn:
+      '2,500 MW. {{Recipe_Alternate_UraniumCell_1_C}} keeps {{Desc_SulfuricAcid_C}} out of the chain, so everything up to {{Desc_NuclearFuelRod_C}} runs on belts.',
+    highlight: '硫酸の配管がなく、ウランからウラン燃料棒まで一直線に進む線に注目。',
+    icon: 'Desc_UraniumCell_C',
+    guide: {
+      sections: {
+        mechanism: [
+          'ウランを採掘し、シリカ・硫黄・クイックワイヤーと一緒に製造機へ送ります。硫酸の代わりに、未加工石英とカテリウム鉱石の供給が要ります。',
+          '「注入型ウラン・セル」で被覆型ウラン・セルを作ります。硫酸を使わないため、混合機も精製機もラインから消えます。',
+          '鋼管とコンクリートから「コンクリート被覆型鋼管」でコンクリート被覆型鋼梁を作り、鋼梁の工程を省きます。',
+          '被覆型ウラン・セル・コンクリート被覆型鋼梁・電磁制御棒を製造機へ入れ、ウラン燃料棒にします。',
+          'ウラン燃料棒を原子力発電所へ送り、2,500 MWを発電します。配管は発電所の冷却水だけです。',
+          '発電で出るウラン廃棄物はベルトで運び、保管庫に貯めます。',
+        ],
+        tips: [
+          'ウラン廃棄物はシンクポイントが0で、AWESOMEシンクでは処分できません。保管庫に貯めるか再処理ラインへ回す前提で、置き場所を先に決めてください。',
+          'ウラン・被覆型ウラン・セル・ウラン燃料棒・ウラン廃棄物は放射線を出します。ベルトと保管庫は通路から離し、ヨウ素注入フィルターを着けて作業してください。',
+          '代替レシピ「注入型ウラン・セル」「コンクリート被覆型鋼管」はハードドライブの解析で入手します。両方そろってから建て始めると、作り直さずに済みます。',
+          'SAMの上限を0にして、変換機でウランを作る経路を使わない構成にしています。ウランを直接採掘できる場所に建ててください。',
+        ],
+      },
+    },
+    snapshot: {
+      ...DEFAULTS,
+      n: '原子力発電（代替レシピで簡略化）',
+      t: [],
+      // 硫酸をなくす（注入型ウラン・セル）／鋼梁の工程を省く（コンクリート被覆型鋼管）の2つだけ。
+      // どちらもこの解で実際に使われる（tests/samples.test.ts で検証）
+      a: ['Recipe_Alternate_UraniumCell_1_C', 'Recipe_Alternate_EncasedIndustrialBeam_C'],
+      // SAM の上限を 0 にして、変換機でウランを作る経路を封じる。
+      // ウランを実際に採掘する構成にしないと、簡略化の比較が別チェーンの話になってしまう。
+      l: { Desc_SAM_C: 0 },
+      g: ['Build_GeneratorNuclear_C'],
+      u: { Build_GeneratorNuclear_C: ['Desc_NuclearFuelRod_C'] },
+      w: 2500,
+    },
+  },
+  {
     id: 'nuclear-reprocessing',
     category: 'special',
     title: '原子力と再処理',
