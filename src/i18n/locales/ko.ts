@@ -463,6 +463,7 @@ export const ko = {
     hint: '다음 설정을 다시 확인하세요.',
     reason: {
       unproducibleItem: '제조법 없음',
+      requiresGeneratorByproduct: '발전 부산물 필요',
       resourceLimit: '자원 부족',
       unbounded: '최적화 목표',
       solverError: '계산기',
@@ -470,16 +471,28 @@ export const ko = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `켜 둔 제조법과 사용 가능한 자원으로는 ${name}을(를) 만들 수 없습니다.`,
+      requiresGeneratorByproduct: (
+        name: string,
+        byproducts: readonly string[],
+        sources: readonly string[],
+      ): string =>
+        `${name}에는 ${byproducts.join(', ')}이(가) 필요하지만, ${sources.join(', ')}을(를) 가동할 때 나오는 부산물로만 얻을 수 있습니다.`,
+      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
+        `${name}은(는) ${sources.join(', ')}을(를) 가동할 때 나오는 부산물로만 얻을 수 있습니다.`,
       resourceLimit: (name: string): string => `${name}이(가) 부족합니다.`,
       unbounded: '자원 상한이 없으면 생산량을 최대화할 수 없습니다.',
       solverError: '계산기가 해를 반환하지 않았습니다.',
     },
     advice: {
       unproducibleItem: '대체 제조법을 켜거나, 필요한 자원의 상한이 0인지 확인하세요.',
+      requiresGeneratorByproduct: (sources: readonly string[]): string =>
+        `발전을 켜고 ${sources.join(', ')}을(를) 허용하세요.`,
       resourceLimit: '자원 상한을 올리거나 목표 속도를 낮추세요.',
       unbounded: '자원 상한을 설정한 뒤 다시 최대화하세요.',
       solverError: '입력을 단순하게 만든 뒤 다시 시도하세요.',
     },
+    /** 부산물의 출처: 발전기와 연료 */
+    generatorFuel: (generator: string, fuel: string): string => `${generator}(${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `상한 ${limit} / 필요 ${required} / 부족 ${shortfall}`,
   },

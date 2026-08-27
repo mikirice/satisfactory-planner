@@ -1,7 +1,15 @@
 /**
  * LP を解いて Solution（仕様書ドラフト-v0 §4.4）に組み立てる本体。
  */
-import { buildingsById, itemsById, ratePerMin, recipes, recipesById } from '../data/index.ts'
+import {
+  buildingsById,
+  generators,
+  generatorsById,
+  itemsById,
+  ratePerMin,
+  recipes,
+  recipesById,
+} from '../data/index.ts'
 import { CLOCK_MAX, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
 import type { ItemAmount, Recipe } from '../data/types.ts'
 import type { LpBackend, LpResult } from './lp.ts'
@@ -596,6 +604,9 @@ function infeasible(reasons: InfeasibleReason[]): InfeasibleResult {
  * 供給源として数える。これらはレシピでは作れず**発電機を回したときだけ出る**ので、
  * 渡さないと再処理チェーン（プルトニウム / FICSONIUM 系）が丸ごと「作れない」と
  * 誤判定される。
+ *
+ * 発電計画が無効なままそのチェーンを目標にした場合は「レシピ不足」ではなく
+ * `requiresGeneratorByproduct`（どの副産物がどの発電機・燃料から出るかを持つ）を返す。
  */
 export function findUnreachableTargets(
   input: SolveInput,
@@ -603,18 +614,113 @@ export function findUnreachableTargets(
   generatorVariants: readonly GeneratorVariant[] = [],
 ): InfeasibleReason[] {
   const available = reachableItems(input, supplies, generatorVariants)
+  const unreachable = input.targets.filter(
+    (target) => target.ratePerMin > 0 && !available.has(target.item),
+  )
+  if (unreachable.length === 0) return []
 
-  const reasons: InfeasibleReason[] = []
-  for (const target of input.targets) {
-    if (target.ratePerMin <= 0) continue
-    if (available.has(target.item)) continue
-    reasons.push({
-      kind: 'unproducibleItem',
-      item: target.item,
-      message: `${jaName(target.item)} は有効なレシピと利用できる原料からは生産できません`,
-    })
+  // 発電機の副産物（核廃棄物）はレシピでは作れないので、発電計画を有効にしていないと
+  // その先のチェーン（プルトニウム / FICSONIUM 系）が丸ごと「レシピ不足」に見える。
+  // 利用者の設定に関係なく全発電機 × 全燃料で判定し直し、それで届くなら原因を名指しする。
+  const hypothetical = allGeneratorVariants()
+  const withGenerators = reachableItems(input, supplies, hypothetical)
+
+  return unreachable.map((target) => {
+    const byproductReason = generatorByproductReason(
+      input,
+      supplies,
+      target.item,
+      available,
+      withGenerators,
+      hypothetical,
+    )
+    return (
+      byproductReason ?? {
+        kind: 'unproducibleItem' as const,
+        item: target.item,
+        message: `${jaName(target.item)} は有効なレシピと利用できる原料からは生産できません`,
+      }
+    )
+  })
+}
+
+/** 全発電機 × 全燃料の仮想バリアント（利用者の発電計画の設定は見ない）。 */
+function allGeneratorVariants(): GeneratorVariant[] {
+  return generators.flatMap((generator) =>
+    generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
+  )
+}
+
+/** 副産物を出す燃料だけを残す（ratePerMin が 0 の燃料は供給源として数えない）。 */
+const producesByproduct = (variant: GeneratorVariant, byproduct?: string): boolean =>
+  variant.fuel.byproduct !== undefined &&
+  variant.fuel.byproduct.ratePerMin > 0 &&
+  (byproduct === undefined || variant.fuel.byproduct.item === byproduct)
+
+/**
+ * 「発電機を回さないと手に入らない材料が要るせいで作れない」ケースを見分ける。
+ *
+ * どの副産物が効いているかは**データから導く**。その副産物を出す発電機をすべて外して
+ * 到達可能性を計算し直し、目標に届かなくなるものだけを「必要な副産物」として挙げる
+ * （プルトニウム・ペレットならウラン廃棄物だけ。プルトニウム廃棄物は要らない）。
+ */
+function generatorByproductReason(
+  input: SolveInput,
+  supplies: readonly SupplySource[],
+  item: string,
+  available: ReadonlySet<string>,
+  withGenerators: ReadonlySet<string>,
+  hypothetical: readonly GeneratorVariant[],
+): InfeasibleReason | null {
+  if (!withGenerators.has(item)) return null
+
+  const candidates = [
+    ...new Set(
+      hypothetical
+        .filter((variant) => producesByproduct(variant))
+        .map((variant) => variant.fuel.byproduct!.item),
+    ),
+  ].filter((byproduct) => !available.has(byproduct))
+
+  const essential = candidates.filter(
+    (byproduct) =>
+      !reachableItems(
+        input,
+        supplies,
+        hypothetical.filter((variant) => !producesByproduct(variant, byproduct)),
+      ).has(item),
+  )
+  // どれか1つを外しただけでは届かなくならない（別経路がある）ときは、
+  // 発電機で新たに手に入るようになった副産物をまとめて挙げる。
+  const byproducts =
+    essential.length > 0 ? essential : candidates.filter((entry) => withGenerators.has(entry))
+  if (byproducts.length === 0) return null
+
+  const sources = byproducts.flatMap((byproduct) =>
+    hypothetical
+      .filter((variant) => producesByproduct(variant, byproduct))
+      .map((variant) => ({ generator: variant.generator.id, fuel: variant.fuel.item, byproduct })),
+  )
+  const sourceLabels = sources.map(
+    (source) =>
+      `${generatorsById.get(source.generator)?.name.ja ?? source.generator}（${jaName(source.fuel)}）`,
+  )
+
+  // 目標そのものが廃棄物のときは「材料の…」と言わない（同じ名前が2回出て読みにくい）
+  const subject = byproducts.includes(item)
+    ? `${jaName(item)} は、`
+    : `${jaName(item)} の材料の ${byproducts.map(jaName).join(' / ')} は、`
+
+  return {
+    kind: 'requiresGeneratorByproduct',
+    item,
+    byproducts,
+    sources,
+    message:
+      subject +
+      `${sourceLabels.join(' / ')} を稼働させたときの副産物としてしか得られません` +
+      '（発電計画を有効にして、その発電機と燃料を許可してください）',
   }
-  return reasons
 }
 
 /**

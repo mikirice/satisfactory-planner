@@ -482,6 +482,7 @@ export const fr = {
     hint: 'Vérifiez un des réglages suivants.',
     reason: {
       unproducibleItem: 'Recette manquante',
+      requiresGeneratorByproduct: 'Sous-produit de génération requis',
       resourceLimit: 'Ressource insuffisante',
       unbounded: "Objectif d'optimisation",
       solverError: 'Solveur',
@@ -489,6 +490,14 @@ export const fr = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `${name} ne peut pas être produit avec les recettes activées et les ressources disponibles.`,
+      requiresGeneratorByproduct: (
+        name: string,
+        byproducts: readonly string[],
+        sources: readonly string[],
+      ): string =>
+        `${name} nécessite ${byproducts.join(', ')}, qui ne s'obtient qu'en sous-produit du fonctionnement de ${sources.join(', ')}.`,
+      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
+        `${name} ne s'obtient qu'en sous-produit du fonctionnement de ${sources.join(', ')}.`,
       resourceLimit: (name: string): string => `Pas assez de ${name}.`,
       unbounded: 'La production ne peut pas être maximisée sans limites de ressources.',
       solverError: "Le solveur n'a renvoyé aucune solution.",
@@ -496,10 +505,14 @@ export const fr = {
     advice: {
       unproducibleItem:
         "Activez une recette alternative ou vérifiez qu'aucune ressource nécessaire n'est limitée à 0.",
+      requiresGeneratorByproduct: (sources: readonly string[]): string =>
+        `Activez la production d'électricité et autorisez ${sources.join(', ')}.`,
       resourceLimit: 'Augmentez la limite de ressource ou baissez le débit cible.',
       unbounded: 'Définissez des limites de ressources, puis maximisez à nouveau la production.',
       solverError: 'Simplifiez les entrées et relancez le calcul.',
     },
+    /** Origine d'un sous-produit : générateur et carburant. */
+    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limite ${limit} / requis ${required} / manque ${shortfall}`,
   },

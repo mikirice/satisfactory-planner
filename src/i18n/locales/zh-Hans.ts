@@ -461,6 +461,7 @@ export const zhHans = {
     hint: '请检查下列设置之一。',
     reason: {
       unproducibleItem: '缺少配方',
+      requiresGeneratorByproduct: '需要发电副产物',
       resourceLimit: '资源不足',
       unbounded: '优化目标',
       solverError: '求解器',
@@ -468,16 +469,28 @@ export const zhHans = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `在已启用的配方和可用资源下，无法生产${name}。`,
+      requiresGeneratorByproduct: (
+        name: string,
+        byproducts: readonly string[],
+        sources: readonly string[],
+      ): string =>
+        `${name}需要${byproducts.join('、')}，而它只能作为运行${sources.join('、')}时的副产物获得。`,
+      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
+        `${name}只能作为运行${sources.join('、')}时的副产物获得。`,
       resourceLimit: (name: string): string => `${name}不足。`,
       unbounded: '没有资源上限时无法最大化产量。',
       solverError: '求解器没有返回结果。',
     },
     advice: {
       unproducibleItem: '启用某个替代配方，或检查所需资源的上限是否被设为 0。',
+      requiresGeneratorByproduct: (sources: readonly string[]): string =>
+        `请开启发电，并允许${sources.join('、')}。`,
       resourceLimit: '提高资源上限，或降低目标速率。',
       unbounded: '先设置资源上限，再重新最大化产量。',
       solverError: '请简化输入后重试。',
     },
+    /** 副产物的来源：发电机与燃料 */
+    generatorFuel: (generator: string, fuel: string): string => `${generator}（${fuel}）`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `上限 ${limit} / 需要 ${required} / 缺口 ${shortfall}`,
   },
