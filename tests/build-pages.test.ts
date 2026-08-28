@@ -423,8 +423,8 @@ describe('このサイトについて', () => {
     expect(ja).toContain('href="https://github.com/mikirice/satisfactory-planner/issues"')
     expect(ja).toContain('Coffee Stain Studios とは無関係です')
     expect(ja).toContain('広告を掲載する場合があります')
-    expect(ja).toContain('href="/privacy.html"')
-    expect(en).toContain('href="/en/privacy.html"')
+    expect(ja).toContain('href="/privacy"')
+    expect(en).toContain('href="/en/privacy"')
     expect(ja).toContain('href="/items/"')
     expect(ja).toContain('href="/articles/"')
     expect(ja).toContain('"@type":"AboutPage"')
@@ -478,7 +478,7 @@ describe('sitemap', () => {
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
-    expect(locations).toContain('https://satisfactory-planner.net/privacy.html')
+    expect(locations).toContain('https://satisfactory-planner.net/privacy')
     expect(locations).toContain('https://satisfactory-planner.net/about/')
     expect(locations).toContain('https://satisfactory-planner.net/en/about/')
     expect(locations).toContain('https://satisfactory-planner.net/items/iron-plate/')
@@ -494,7 +494,24 @@ describe('sitemap', () => {
     // SPA のトップは1URLで言語が切り替わるので、英語ミラーは作らない
     expect(locations).not.toContain('https://satisfactory-planner.net/en/')
     // プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
-    expect(locations).toContain('https://satisfactory-planner.net/en/privacy.html')
+    expect(locations).toContain('https://satisfactory-planner.net/en/privacy')
+  })
+
+  /**
+   * Cloudflare Pages は *.html を拡張子なしURLへ 308 でリダイレクトする。
+   * sitemap に .html 付きを載せるとクロール先が毎回リダイレクトになるので、
+   * プライバシーポリシーは拡張子なしURLだけを収録する。
+   */
+  it('プライバシーポリシーは拡張子なしURLだけを収録する', async () => {
+    const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
+    const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
+    const privacyLocations = locations.filter((location) => location.includes('privacy'))
+
+    expect(privacyLocations).toEqual([
+      'https://satisfactory-planner.net/privacy',
+      'https://satisfactory-planner.net/en/privacy',
+    ])
+    expect(privacyLocations.some((location) => location.includes('.html'))).toBe(false)
   })
 })
 

@@ -34,13 +34,13 @@ afterEach(async () => {
 describe('サイトフッター', () => {
   it('免責文と別タブで開くプライバシーポリシーへのリンクを表示する', async () => {
     const container = await render(<SiteFooter />)
-    const link = container.querySelector<HTMLAnchorElement>('a[href="/privacy.html"]')
+    const link = container.querySelector<HTMLAnchorElement>('a[href="/privacy"]')
 
     expect(container.textContent).toContain(
       '非公式のファンツールです。Coffee Stain Studios とは無関係です。',
     )
     expect(link?.textContent).toBe('プライバシーポリシー')
-    expect(link?.getAttribute('href')).toBe('/privacy.html')
+    expect(link?.getAttribute('href')).toBe('/privacy')
     expect(link?.target).toBe('_blank')
   })
 
@@ -81,11 +81,11 @@ describe('サイトフッター', () => {
       'About',
     )
     expect(
-      container.querySelector<HTMLAnchorElement>('a[href="/en/privacy.html"]')?.textContent,
+      container.querySelector<HTMLAnchorElement>('a[href="/en/privacy"]')?.textContent,
     ).toBe('Privacy policy')
     expect(container.querySelector('a[href="/articles/"]')).toBeNull()
     expect(container.querySelector('a[href="/about/"]')).toBeNull()
-    expect(container.querySelector('a[href="/privacy.html"]')).toBeNull()
+    expect(container.querySelector('a[href="/privacy"]')).toBeNull()
   })
 })
 

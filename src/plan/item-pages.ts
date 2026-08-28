@@ -72,12 +72,14 @@ export function aboutPagePath(locale: string = 'ja'): string {
 }
 
 /**
- * プライバシーポリシーのパス。日本語は公開済みの /privacy.html のまま、
- * それ以外は英語ミラー（public/en/privacy.html）へ送る。
+ * プライバシーポリシーのパス。日本語は /privacy、それ以外は英語ミラー
+ * （public/en/privacy.html）の /en/privacy へ送る。
+ * ファイルの実体は public/privacy.html だが、Cloudflare Pages が *.html を
+ * 拡張子なしURLへ 308 リダイレクトするため、URLの正典は拡張子なしにそろえる。
  * about ページと違い静的HTMLを直接置いているので、ここもパスの正典はこの関数にする。
  */
 export function privacyPagePath(locale: string = 'ja'): string {
-  return `${staticPagePrefix(locale)}/privacy.html`
+  return `${staticPagePrefix(locale)}/privacy`
 }
 
 /** 解説記事の索引ページのパス。 */
