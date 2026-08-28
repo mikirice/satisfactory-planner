@@ -1302,7 +1302,7 @@ function renderArticlesIndex(ctx: Ctx): string {
  * sitemap のパス。日本語（トップを含む）→ 英語ミラーの順。
  * SPA のトップは1URLで言語が切り替わるので en 側には作らない。
  * プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
- * を置いているので、両方を載せる。
+ * を置いているので、両方を載せる。URLは拡張子なし（Cloudflare Pages が 308 で正規化）。
  */
 export function localeSitemapPaths(locale: StaticLocale): readonly string[] {
   return [
