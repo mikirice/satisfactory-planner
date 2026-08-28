@@ -1,5 +1,10 @@
 import { useLocale } from '../i18n/index.ts'
-import { aboutPagePath, articlesIndexPath, itemsIndexPath } from '../plan/item-pages.ts'
+import {
+  aboutPagePath,
+  articlesIndexPath,
+  itemsIndexPath,
+  privacyPagePath,
+} from '../plan/item-pages.ts'
 import { T } from './text.ts'
 
 /**
@@ -14,7 +19,7 @@ export function SiteFooter() {
       <a href={articlesIndexPath(locale)}>{T.footer.articles}</a>
       <a href={itemsIndexPath(locale)}>{T.footer.items}</a>
       <a href={aboutPagePath(locale)}>{T.footer.about}</a>
-      <a href="/privacy.html" target="_blank" rel="noreferrer">
+      <a href={privacyPagePath(locale)} target="_blank" rel="noreferrer">
         {T.footer.privacy}
       </a>
     </footer>

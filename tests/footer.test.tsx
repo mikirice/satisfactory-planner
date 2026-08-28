@@ -80,8 +80,12 @@ describe('サイトフッター', () => {
     expect(container.querySelector<HTMLAnchorElement>('a[href="/en/about/"]')?.textContent).toBe(
       'About',
     )
+    expect(
+      container.querySelector<HTMLAnchorElement>('a[href="/en/privacy.html"]')?.textContent,
+    ).toBe('Privacy policy')
     expect(container.querySelector('a[href="/articles/"]')).toBeNull()
     expect(container.querySelector('a[href="/about/"]')).toBeNull()
+    expect(container.querySelector('a[href="/privacy.html"]')).toBeNull()
   })
 })
 

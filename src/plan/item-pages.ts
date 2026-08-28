@@ -71,6 +71,15 @@ export function aboutPagePath(locale: string = 'ja'): string {
   return `${staticPagePrefix(locale)}/about/`
 }
 
+/**
+ * プライバシーポリシーのパス。日本語は公開済みの /privacy.html のまま、
+ * それ以外は英語ミラー（public/en/privacy.html）へ送る。
+ * about ページと違い静的HTMLを直接置いているので、ここもパスの正典はこの関数にする。
+ */
+export function privacyPagePath(locale: string = 'ja'): string {
+  return `${staticPagePrefix(locale)}/privacy.html`
+}
+
 /** 解説記事の索引ページのパス。 */
 export function articlesIndexPath(locale: string = 'ja'): string {
   return `${staticPagePrefix(locale)}/articles/`

@@ -6,7 +6,8 @@ import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { handwrittenArticlesEn } from '../content/articles/en/index.ts'
-import { handwrittenArticles } from '../content/articles/index.ts'
+import { handwrittenArticles as handwrittenArticlesConst } from '../content/articles/index.ts'
+import type { HandwrittenArticle } from '../content/articles/types.ts'
 import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
 import { items, recipes } from '../src/data/index.ts'
 import { SUPPORTED_LOCALES } from '../src/i18n/types.ts'
@@ -27,6 +28,13 @@ import {
   sitemapPaths,
 } from '../scripts/build-pages.ts'
 import type { StaticPagesManifest } from '../scripts/build-pages.ts'
+
+/**
+ * `as const satisfies` で絞られたリテラル型のままだと、任意プロパティ
+ * （publishedDate / relatedArticleSlugs）を持たない記事の型に弾かれるため、
+ * テストでは共通の型で見る。
+ */
+const handwrittenArticles: readonly HandwrittenArticle[] = handwrittenArticlesConst
 
 let outputDirectory = ''
 let manifest: StaticPagesManifest
@@ -226,28 +234,108 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き5本とループ8本、および記事indexを生成する', async () => {
+  it('手書き10本とループ8本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(13)
+    expect(articleSlugs).toHaveLength(18)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
       const html = await readFile(join(outputDirectory, 'articles', slug, 'index.html'), 'utf8')
       expect(html, slug).toContain('"@type":"Article"')
-      expect(html, slug).toContain('"datePublished":"2026-08-14"')
       expect(html, slug).toContain('class="cta" href="/#plan=')
     }
   })
 
-  it('手書き記事5本の本文が各800〜1500文字に収まる', () => {
-    expect(handwrittenArticles).toHaveLength(5)
+  /** 公開日は記事ごとに持てる（省略時はテンプレートの既定日）。日英で同じ日付になる。 */
+  it('記事の公開日を日英とも記事ごとの値で焼き込む', async () => {
+    const expected = new Map(
+      handwrittenArticles.map((article) => [article.slug, article.publishedDate ?? '2026-08-14']),
+    )
+    for (const slug of articleSlugs) {
+      const date = expected.get(slug) ?? '2026-08-14'
+      for (const prefix of ['articles', 'en/articles']) {
+        const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
+        expect(html, `${prefix}/${slug}`).toContain(`"datePublished":"${date}"`)
+        expect(html, `${prefix}/${slug}`).toContain(`"dateModified":"${date}"`)
+      }
+    }
+    expect(expected.get('coal-power-startup')).toBe('2026-08-26')
+    expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
+  })
+
+  it('手書き記事10本の本文が各800〜3000文字に収まる（追加5本は1500文字以上）', () => {
+    expect(handwrittenArticles).toHaveLength(10)
+    const longFormSlugs = new Set([
+      'coal-power-startup',
+      'oil-products-basics',
+      'aluminum-production-guide',
+      'awesome-sink-points',
+      'clock-and-efficiency',
+    ])
     for (const article of handwrittenArticles) {
       const length = article.sections.flatMap((section) => section.paragraphs).join('').length
-      expect(length, article.slug).toBeGreaterThanOrEqual(800)
-      expect(length, article.slug).toBeLessThanOrEqual(1500)
+      expect(length, article.slug).toBeGreaterThanOrEqual(
+        longFormSlugs.has(article.slug) ? 1500 : 800,
+      )
+      expect(length, article.slug).toBeLessThanOrEqual(3000)
     }
+    expect([...longFormSlugs].every((slug) =>
+      handwrittenArticles.some((article) => article.slug === slug),
+    )).toBe(true)
+  })
+
+  /** 関連記事の内部リンクは実在する記事だけを指す（記事間の回遊導線）。 */
+  it('関連記事リンクが実在する記事ページを指す', async () => {
+    const known = new Set(articleSlugs)
+    for (const article of handwrittenArticles) {
+      for (const slug of article.relatedArticleSlugs ?? []) {
+        expect(known.has(slug), `${article.slug} -> ${slug}`).toBe(true)
+        expect(slug, article.slug).not.toBe(article.slug)
+      }
+    }
+    const aluminum = await readFile(
+      join(outputDirectory, 'articles/aluminum-production-guide/index.html'),
+      'utf8',
+    )
+    expect(aluminum).toContain('<h2>関連記事</h2>')
+    expect(aluminum).toContain('href="/articles/aluminum-water-loop/"')
+    const aluminumEn = await readFile(
+      join(outputDirectory, 'en/articles/aluminum-production-guide/index.html'),
+      'utf8',
+    )
+    expect(aluminumEn).toContain('<h2>Related guides</h2>')
+    expect(aluminumEn).toContain('href="/en/articles/aluminum-water-loop/"')
+  })
+
+  /** 追加記事の数値はデータ由来。代表値がページに焼き込まれていることだけ確認する。 */
+  it('追加した5本がゲームデータ由来の代表値を含む', async () => {
+    const read = async (slug: string, locale: 'ja' | 'en'): Promise<string> =>
+      readFile(
+        join(outputDirectory, locale === 'ja' ? 'articles' : 'en/articles', slug, 'index.html'),
+        'utf8',
+      )
+
+    // 石炭発電機 75MW / 石炭15個/分 / 水45m³/min（generators.json）
+    expect(await read('coal-power-startup', 'ja')).toContain('石炭15個/分と水45m³/min')
+    expect(await read('coal-power-startup', 'en')).toContain('15 Coal/min and 45 m³/min of Water')
+    // 精製機のプラスチック（原油30 → プラスチック20 + 廃重油10）
+    expect(await read('oil-products-basics', 'ja')).toContain('プラスチック20個/分と廃重油10m³/min')
+    expect(await read('oil-products-basics', 'en')).toContain('20 Plastic/min plus 10 m³/min')
+    // アルミのインゴット60個/分の原料（ソルバーの解と一致）
+    expect(await read('aluminum-production-guide', 'ja')).toContain(
+      'ボーキサイト60個/分・石炭30個/分・未加工石英30個/分・水60m³/min',
+    )
+    expect(await read('aluminum-production-guide', 'en')).toContain(
+      '60 Bauxite/min, 30 Coal/min, 30 Raw Quartz/min',
+    )
+    // シンクポイントの集計（recipes.json 全件）
+    expect(await read('awesome-sink-points', 'ja')).toContain('280件のうち101件')
+    expect(await read('awesome-sink-points', 'en')).toContain('280 recipes that take ingredients')
+    // 電力指数（buildings.json powerExponent）
+    expect(await read('clock-and-efficiency', 'ja')).toContain('1.321929乗')
+    expect(await read('clock-and-efficiency', 'en')).toContain('1.321929')
   })
 
   it('全記事CTAのhashを警告なしで復元できる', async () => {
@@ -336,6 +424,7 @@ describe('このサイトについて', () => {
     expect(ja).toContain('Coffee Stain Studios とは無関係です')
     expect(ja).toContain('広告を掲載する場合があります')
     expect(ja).toContain('href="/privacy.html"')
+    expect(en).toContain('href="/en/privacy.html"')
     expect(ja).toContain('href="/items/"')
     expect(ja).toContain('href="/articles/"')
     expect(ja).toContain('"@type":"AboutPage"')
@@ -382,9 +471,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 216（トップ・privacy・about・一覧2・アイテム198・記事13）＋ 英語ミラー 214
-    expect(sitemapPaths()).toHaveLength(430)
-    expect(manifest.urls).toHaveLength(430)
+    // 日本語 221（トップ・privacy・about・一覧2・アイテム198・記事18）
+    // ＋ 英語ミラー 220（トップだけ無い）
+    expect(sitemapPaths()).toHaveLength(441)
+    expect(manifest.urls).toHaveLength(441)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -401,9 +491,10 @@ describe('sitemap', () => {
     expect(locations).toContain(
       'https://satisfactory-planner.net/en/articles/production-planning-tutorial/',
     )
-    // SPA のトップとプライバシーは1URLで言語が切り替わるので、英語ミラーは作らない
+    // SPA のトップは1URLで言語が切り替わるので、英語ミラーは作らない
     expect(locations).not.toContain('https://satisfactory-planner.net/en/')
-    expect(locations).not.toContain('https://satisfactory-planner.net/en/privacy.html')
+    // プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
+    expect(locations).toContain('https://satisfactory-planner.net/en/privacy.html')
   })
 })
 
@@ -501,7 +592,7 @@ function mainSection(html: string): string {
 }
 
 describe('英語ミラーの生成', () => {
-  it('アイテム198件＋一覧、記事12本＋索引を /en/ に出す', async () => {
+  it('アイテム198件＋一覧、記事18本＋索引を /en/ に出す', async () => {
     const itemEntries = await readdir(join(outputDirectory, 'en/items'), { withFileTypes: true })
     const articleEntries = await readdir(join(outputDirectory, 'en/articles'), {
       withFileTypes: true,

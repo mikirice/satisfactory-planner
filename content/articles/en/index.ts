@@ -11,8 +11,13 @@
  * official English name from the game data (計画書 §5「機械的でなく1本ずつ品質確認する」).
  */
 import type { HandwrittenArticle } from '../types.ts'
+import { aluminumProductionGuideArticleEn } from './aluminum-production-guide.ts'
 import { alternateRecipeMetricsArticleEn } from './alternate-recipe-metrics.ts'
+import { awesomeSinkPointsArticleEn } from './awesome-sink-points.ts'
+import { clockAndEfficiencyArticleEn } from './clock-and-efficiency.ts'
+import { coalPowerStartupArticleEn } from './coal-power-startup.ts'
 import { excelExportGuideArticleEn } from './excel-export-guide.ts'
+import { oilProductsBasicsArticleEn } from './oil-products-basics.ts'
 import { powerGenerationPlanningArticleEn } from './power-generation-planning.ts'
 import { productionPlanningTutorialArticleEn } from './production-planning-tutorial.ts'
 import { somersloopAndPowerShardsArticleEn } from './somersloop-and-power-shards.ts'
@@ -23,6 +28,11 @@ export const handwrittenArticlesEn = [
   powerGenerationPlanningArticleEn,
   somersloopAndPowerShardsArticleEn,
   excelExportGuideArticleEn,
+  coalPowerStartupArticleEn,
+  oilProductsBasicsArticleEn,
+  aluminumProductionGuideArticleEn,
+  awesomeSinkPointsArticleEn,
+  clockAndEfficiencyArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(

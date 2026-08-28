@@ -1,5 +1,10 @@
+import { aluminumProductionGuideArticle } from './aluminum-production-guide.ts'
 import { alternateRecipeMetricsArticle } from './alternate-recipe-metrics.ts'
+import { awesomeSinkPointsArticle } from './awesome-sink-points.ts'
+import { clockAndEfficiencyArticle } from './clock-and-efficiency.ts'
+import { coalPowerStartupArticle } from './coal-power-startup.ts'
 import { excelExportGuideArticle } from './excel-export-guide.ts'
+import { oilProductsBasicsArticle } from './oil-products-basics.ts'
 import { powerGenerationPlanningArticle } from './power-generation-planning.ts'
 import { productionPlanningTutorialArticle } from './production-planning-tutorial.ts'
 import { somersloopAndPowerShardsArticle } from './somersloop-and-power-shards.ts'
@@ -19,6 +24,11 @@ export const handwrittenArticles = [
   powerGenerationPlanningArticle,
   somersloopAndPowerShardsArticle,
   excelExportGuideArticle,
+  coalPowerStartupArticle,
+  oilProductsBasicsArticle,
+  aluminumProductionGuideArticle,
+  awesomeSinkPointsArticle,
+  clockAndEfficiencyArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']
