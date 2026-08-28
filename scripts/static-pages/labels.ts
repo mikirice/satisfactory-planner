@@ -202,7 +202,7 @@ const jaLabels = {
   // --- 記事（共通） ---
   articlesIndexTitle: 'Satisfactory 解説記事',
   articlesIndexDescription:
-    'Satisfactoryの生産計画、代替レシピ、発電、サマースループ、Excel出力と、7種類の循環・燃料チェーンを日本語で解説します。',
+    'Satisfactoryの生産計画、代替レシピ、発電、アルミニウム、シンクポイント、Excel出力と、8種類の循環・燃料チェーンを日本語で解説します。',
   articlesIndexEyebrow: (count: number): string => `全${count}記事`,
   articlesIndexLead:
     'ツールの操作からレシピ比較、発電、循環ラインまで、実データと計算結果に沿って解説します。',
@@ -212,6 +212,7 @@ const jaLabels = {
   articleEyebrow: 'Satisfactory 実践ガイド',
   publishedOn: (date: string): string => `公開日: ${date}`,
   relatedItems: '関連アイテム',
+  relatedArticles: '関連記事',
   tryInPlannerHeading: 'ツールで試す',
   tryInPlannerBody:
     '記事の条件を読み込んだ状態で計画ツールを開きます。目標レートや許可するレシピは、開いた後で変更できます。',
@@ -415,7 +416,7 @@ const enLabels: StaticPageLabels = {
 
   articlesIndexTitle: 'Satisfactory guides',
   articlesIndexDescription:
-    'Guides to production planning, alternate recipes, power, Somersloops and the Excel export in Satisfactory, plus seven loop and fuel chain templates.',
+    'Guides to production planning, alternate recipes, power, aluminum, sink points and the Excel export in Satisfactory, plus eight loop and fuel chain templates.',
   articlesIndexEyebrow: (count: number): string => `${count} guides`,
   articlesIndexLead:
     'From using the planner to comparing recipes, planning power and closing loops — every guide follows the real game data and the solved numbers.',
@@ -425,6 +426,7 @@ const enLabels: StaticPageLabels = {
   articleEyebrow: 'Satisfactory field guide',
   publishedOn: (date: string): string => `Published: ${date}`,
   relatedItems: 'Related items',
+  relatedArticles: 'Related guides',
   tryInPlannerHeading: 'Try it in the planner',
   tryInPlannerBody:
     'Opens the planner with the conditions from this guide already loaded. Target rates and the recipes you allow can be changed once it is open.',

@@ -35,6 +35,7 @@ import {
   itemPagePath,
   itemSlug,
   itemsIndexPath,
+  privacyPagePath,
 } from '../src/plan/item-pages.ts'
 import { getRecipesForItem, recipeMetrics } from '../src/plan/recipe-index.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
@@ -729,7 +730,7 @@ export function renderAboutPage(ctx: Ctx): string {
       <section>
         <h2>${escapeHtml(ctx.L.aboutAdsHeading)}</h2>
         ${ctx.L.aboutAdsParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-        <p><a href="/privacy.html">${escapeHtml(ctx.L.aboutPrivacyLinkLabel)}</a></p>
+        <p><a href="${escapeHtml(privacyPagePath(ctx.locale))}">${escapeHtml(ctx.L.aboutPrivacyLinkLabel)}</a></p>
       </section>
       <section>
         <h2>${escapeHtml(ctx.L.aboutLinksHeading)}</h2>
@@ -765,6 +766,7 @@ function articleSchema(
   headline: string,
   description: string,
   breadcrumbId: string,
+  publishedDate: string = PUBLISHED_DATE,
 ): object {
   return {
     '@context': 'https://schema.org',
@@ -783,8 +785,8 @@ function articleSchema(
         headline,
         description,
         image: `${SITE_URL}/ogp.png`,
-        datePublished: PUBLISHED_DATE,
-        dateModified: PUBLISHED_DATE,
+        datePublished: publishedDate,
+        dateModified: publishedDate,
         inLanguage: ctx.locale,
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
         author: { '@type': 'Organization', name: ctx.site, url: SITE_URL },
@@ -803,6 +805,32 @@ function articleCtaHref(ctx: Ctx, cta: ArticleCta): string {
   const item = itemsById.get(cta.itemId)
   if (item === undefined) throw new Error(`unknown item for article CTA: ${cta.itemId}`)
   return targetPlanHref(ctx, item, cta)
+}
+
+/**
+ * 記事 slug → 表示ロケールの見出し。手書き記事とループテンプレートの両方を引ける。
+ * 内部リンクの文字は必ずここから取り、記事本文に見出しを書き写さない（訳のズレ防止）。
+ */
+function articleHeadline(ctx: Ctx, slug: string): string {
+  const handwritten = handwrittenArticles.find((article) => article.slug === slug)
+  if (handwritten !== undefined) return localizedArticle(ctx, handwritten).title
+  const sample = loopSamples.find((entry) => entry.id === slug)
+  if (sample !== undefined) return loopContent(ctx, sample).headline
+  throw new Error(`unknown related article slug: ${slug}`)
+}
+
+function renderRelatedArticles(ctx: Ctx, slugs: readonly string[] | undefined): string {
+  const unique = [...new Set(slugs ?? [])]
+  if (unique.length === 0) return ''
+  return `<section>
+    <h2>${escapeHtml(ctx.L.relatedArticles)}</h2>
+    <ul class="link-list">${unique
+      .map(
+        (slug) =>
+          `<li><a href="${escapeHtml(articlePagePath(slug, ctx.locale))}">${escapeHtml(articleHeadline(ctx, slug))}</a></li>`,
+      )
+      .join('')}</ul>
+  </section>`
 }
 
 function renderRelatedItems(ctx: Ctx, itemIds: readonly string[]): string {
@@ -832,6 +860,8 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
   const path = articlePagePath(article.slug, ctx.locale)
   const title = pageTitle(ctx, article.title)
   const breadcrumbId = `${path}#breadcrumb`
+  // 公開日は日本語版を正典にする（翻訳側で日付がずれても ja に合わせる）。
+  const publishedDate = source.publishedDate ?? PUBLISHED_DATE
   const sections = article.sections
     .map(
       (section) => `<section>
@@ -852,11 +882,12 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       <p class="eyebrow">${escapeHtml(ctx.L.articleEyebrow)}</p>
       <h1>${escapeHtml(article.title)}</h1>
       <p class="lead">${escapeHtml(article.description)}</p>
-      <p class="version">${escapeHtml(ctx.L.publishedOn(PUBLISHED_DATE))}</p>
+      <p class="version">${escapeHtml(ctx.L.publishedOn(publishedDate))}</p>
     </header>
     <article class="article-body">
       ${sections}
       ${renderRelatedItems(ctx, article.relatedItemIds)}
+      ${renderRelatedArticles(ctx, source.relatedArticleSlugs)}
       <section>
         <h2>${escapeHtml(ctx.L.tryInPlannerHeading)}</h2>
         <p>${escapeHtml(ctx.L.tryInPlannerBody)}</p>
@@ -871,8 +902,15 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       canonicalPath: path,
       alternates: alternatesOf((locale) => articlePagePath(article.slug, locale)),
       ogType: 'article',
-      publishedTime: PUBLISHED_DATE,
-      structuredData: articleSchema(ctx, path, article.title, article.description, breadcrumbId),
+      publishedTime: publishedDate,
+      structuredData: articleSchema(
+        ctx,
+        path,
+        article.title,
+        article.description,
+        breadcrumbId,
+        publishedDate,
+      ),
     },
     body,
   )
@@ -1261,12 +1299,15 @@ function renderArticlesIndex(ctx: Ctx): string {
 // ---------------------------------------------------------------------------
 
 /**
- * sitemap のパス。日本語（トップとプライバシーを含む）→ 英語ミラーの順。
- * SPA のトップとプライバシーは1URLで言語が切り替わるので en 側には作らない。
+ * sitemap のパス。日本語（トップを含む）→ 英語ミラーの順。
+ * SPA のトップは1URLで言語が切り替わるので en 側には作らない。
+ * プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
+ * を置いているので、両方を載せる。
  */
 export function localeSitemapPaths(locale: StaticLocale): readonly string[] {
   return [
-    ...(locale === 'ja' ? ['/', '/privacy.html'] : []),
+    ...(locale === 'ja' ? ['/'] : []),
+    privacyPagePath(locale),
     aboutPagePath(locale),
     itemsIndexPath(locale),
     ...items.map((item) => itemUrl(item.id, locale)),
