@@ -1783,6 +1783,203 @@
   color: var(--text-muted);
 }
 
+/* --- 建設リスト ---------------------------------------------------------- */
+
+/*
+ * スマホをゲームの隣に置いて消し込む画面（計画書 §5）。
+ * ・タップ領域は 44px 以上
+ * ・全体の進捗はタブ内の上部に貼り付ける（スクロールしても残り台数が見える）
+ * ・完了した項目は「沈める」だけ（動きは Phase 2）
+ */
+.build-progress {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-head);
+}
+
+.build-progress__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.build-progress__label {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.build-progress__count {
+  font-variant-numeric: tabular-nums;
+}
+
+.build-progress__reset {
+  align-self: flex-start;
+  min-height: 44px;
+}
+
+.build-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.build-bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.build-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.build-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+/* 完了した項目は沈めるだけ（消さない: 数え直したくなることがある） */
+.build-item--done {
+  opacity: 0.55;
+  border-color: var(--border);
+  background: var(--bg-panel);
+}
+
+.build-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.build-item__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.build-item__check input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.build-item__name {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.build-item--done .build-item__name {
+  text-decoration: line-through;
+}
+
+.build-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.build-counter__button {
+  width: 44px;
+  height: 44px;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.build-counter__button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.build-counter__button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.build-counter__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.build-counter__value {
+  min-width: 7em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.build-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.build-item__chip {
+  display: inline-flex;
+  align-items: center;
+}
+
+.build-item__separator {
+  color: var(--border-strong);
+}
+
+.build-item__flows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px 16px;
+}
+
+.build-flows__title {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.build-flows .flow-list li {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 4px 8px;
+}
+
+.build-flows .flow__name {
+  flex: 1 1 auto;
+}
+
+.build-flows__transport {
+  color: var(--text-muted);
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+
 /*
  * Narrow viewport breakpoint: 880px.
  * CSS custom properties cannot be used in media-query conditions, so every
@@ -2072,5 +2269,30 @@
 
   .flow-stats {
     display: none;
+  }
+
+  /* 建設リストは1列。カウンターは行いっぱいに広げて押しやすくする */
+  .build-item__head {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .build-counter {
+    justify-content: space-between;
+  }
+
+  .build-counter__button {
+    flex: 0 0 auto;
+    width: 56px;
+  }
+
+  .build-counter__value {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .build-item__flows {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,10 +1,15 @@
 /** 結果表示（タブ切り替え）。 */
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 
+import { planHash } from '../plan/build-progress.ts'
+import { currentSnapshot } from '../plan/persist.ts'
 import { SAMPLE_PLANS } from '../plan/samples.ts'
+import { encodePlan } from '../plan/serialize.ts'
+import type { PlanSnapshot } from '../plan/serialize.ts'
 import { usePlanner } from '../store/planner.ts'
 import { AdSlot } from './AdSlot.tsx'
 import { BalanceTable } from './BalanceTable.tsx'
+import { BuildListView } from './BuildListView.tsx'
 import { InfeasiblePanel } from './InfeasiblePanel.tsx'
 import { LoopGuidePanel } from './LoopGuidePanel.tsx'
 import { ResourcesTable } from './ResourcesTable.tsx'
@@ -16,9 +21,9 @@ import { T } from './text.ts'
 // React Flow + elkjs は重いので、フローチャートを開いたときだけ読み込む
 const FlowChart = lazy(() => import('./FlowChart.tsx'))
 
-type TabId = 'summary' | 'steps' | 'resources' | 'balance' | 'flow'
+type TabId = 'summary' | 'steps' | 'resources' | 'balance' | 'flow' | 'build'
 
-const TABS: readonly TabId[] = ['summary', 'steps', 'resources', 'balance', 'flow']
+const TABS: readonly TabId[] = ['summary', 'steps', 'resources', 'balance', 'flow', 'build']
 
 type ResultViewProps = {
   viewMode?: 'normal' | 'loop'
@@ -34,6 +39,18 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
   const [tab, setTab] = useState<TabId>('summary')
   // 「発電を隠す」は生産ステップ表とフローチャートで共有する（表示だけ・保存しない）
   const [hidePower, setHidePower] = useState(false)
+  /**
+   * 建設進捗の保存キー。入力（＝共有URLと同じスナップショット）から決まるので、
+   * 同じ計画を開き直せば進捗が戻り、計画を変えればまっさらになる。
+   *
+   * 圧縮（lz-string）は入力が変わったときだけ走らせる。store は解の更新でも通知が来るので、
+   * 監視は軽い JSON 文字列で行い、そこからハッシュを作り直す（persist.ts の自動保存と同じ作り）。
+   */
+  const planJson = usePlanner((state) => JSON.stringify(currentSnapshot(state)))
+  const buildPlanHash = useMemo(
+    () => planHash(encodePlan(JSON.parse(planJson) as PlanSnapshot)),
+    [planJson],
+  )
 
   if (status === 'error') {
     return (
@@ -105,6 +122,9 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
         )}
         {tab === 'resources' && <ResourcesTable solution={result} extraction={extraction} />}
         {tab === 'balance' && <BalanceTable solution={result} />}
+        {tab === 'build' && (
+          <BuildListView solution={result} extraction={extraction} planHash={buildPlanHash} />
+        )}
         {tab === 'flow' && (
           <Suspense fallback={<p className="hint">{T.flow.loading}</p>}>
             <FlowChart

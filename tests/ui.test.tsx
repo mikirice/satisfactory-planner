@@ -941,7 +941,37 @@ describe('結果テーブル', () => {
         '原料',
         'アイテム収支',
         'フローチャート',
+        '建設リスト',
       ])
+    } finally {
+      usePlanner.setState({
+        status: previous.status,
+        result: previous.result,
+        extraction: previous.extraction,
+      })
+    }
+  })
+
+  it('建設リストタブに切り替えると、採掘から順のチェックリストが出る', async () => {
+    const previous = usePlanner.getState()
+    usePlanner.setState({ status: 'done', result: solution, extraction: planExtraction(solution) })
+    try {
+      const container = await render(<ResultView />)
+      const tab = [...container.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find(
+        (button) => button.textContent === '建設リスト',
+      )!
+      await act(async () => {
+        tab.click()
+      })
+
+      const text = container.textContent ?? ''
+      expect(text).toContain('全体の進捗')
+      expect(text).toContain('原料の採掘・給水')
+      expect(text).toContain('製造ライン')
+      expect(text).toContain('進捗をリセット')
+      // 工程ごとに「建てた n / m」のカウンターが並ぶ
+      expect(container.querySelectorAll('.build-item').length).toBeGreaterThan(0)
+      expect(container.querySelector('.build-counter__value')?.textContent).toContain('建てた 0 /')
     } finally {
       usePlanner.setState({
         status: previous.status,

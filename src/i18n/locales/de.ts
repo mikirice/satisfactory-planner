@@ -276,6 +276,40 @@ export const de = {
     resources: 'Rohstoffe',
     balance: 'Bilanz',
     flow: 'Flussdiagramm',
+    build: 'Bauliste',
+  },
+
+  /** Bau-Checkliste: der Bildschirm, den du beim Bauen neben dem Spiel offen hast. */
+  buildList: {
+    heading: 'Bauliste',
+    intro: 'Von oben nach unten bauen – dann steht jeder Schritt bereit, wenn du ihn brauchst.',
+    storageNote: 'Der Fortschritt liegt nur auf diesem Gerät (geteilte Links enthalten ihn nicht).',
+    transportNote:
+      'Angegeben ist jeweils die niedrigste Stufe, die die volle Rate auf einer Leitung schafft.',
+    empty: 'Nichts zu bauen',
+    overall: 'Gesamtfortschritt',
+    progress: (built: string, total: string): string => `${built} / ${total} Maschinen`,
+    sections: {
+      extraction: 'Abbau und Wasserförderung',
+      manufacturing: 'Produktionslinien',
+      power: 'Stromerzeugung',
+    },
+    built: (built: string, total: string): string => `Gebaut ${built} / ${total}`,
+    increase: 'Eine Maschine mehr',
+    decrease: 'Eine Maschine weniger',
+    markComplete: 'Diesen Schritt als fertig markieren',
+    clock: (percent: string): string => `Takt ${percent}`,
+    shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
+    somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
+    fuel: (name: string): string => `Brennstoff: ${name}`,
+    powerProduction: (mw: string): string => `${mw} MW erzeugt`,
+    nodes: (purity: string, count: string): string => `${purity} ${count} Vorkommen`,
+    inputs: 'Eingang',
+    outputs: 'Ausgang',
+    transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
+    reset: 'Fortschritt zurücksetzen',
+    resetConfirm: 'Damit wird der gesamte Baufortschritt dieses Plans gelöscht. Fortfahren?',
+    metaSeparator: ' · ',
   },
 
   loopGuide: {
