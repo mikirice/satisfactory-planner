@@ -309,6 +309,11 @@ export const ru = {
     reset: 'Сбросить прогресс',
     resetConfirm: 'Весь прогресс стройки по этому плану будет удалён. Продолжить?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Не гасить экран',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Строить по списку',
+    openFromTemplateHint: 'Превращает эту схему в список с порядком постройки и количеством машин.',
   },
 
   loopGuide: {

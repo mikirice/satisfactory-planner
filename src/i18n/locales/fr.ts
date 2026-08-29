@@ -312,6 +312,11 @@ export const fr = {
     reset: 'Réinitialiser la progression',
     resetConfirm: 'Toute la progression de ce plan sera effacée. Continuer ?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Garder l’écran allumé',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Construire avec la liste',
+    openFromTemplateHint: 'Transforme cette configuration en checklist avec l’ordre de construction et le nombre de machines.',
   },
 
   loopGuide: {

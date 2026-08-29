@@ -1,6 +1,7 @@
 import { aluminumProductionGuideArticle } from './aluminum-production-guide.ts'
 import { alternateRecipeMetricsArticle } from './alternate-recipe-metrics.ts'
 import { awesomeSinkPointsArticle } from './awesome-sink-points.ts'
+import { buildChecklistGuideArticle } from './build-checklist-guide.ts'
 import { clockAndEfficiencyArticle } from './clock-and-efficiency.ts'
 import { coalPowerStartupArticle } from './coal-power-startup.ts'
 import { excelExportGuideArticle } from './excel-export-guide.ts'
@@ -29,6 +30,7 @@ export const handwrittenArticles = [
   aluminumProductionGuideArticle,
   awesomeSinkPointsArticle,
   clockAndEfficiencyArticle,
+  buildChecklistGuideArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']

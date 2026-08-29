@@ -297,6 +297,11 @@ export const en = {
     reset: 'Reset progress',
     resetConfirm: 'This clears all build progress for this plan. Continue?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Keep the screen awake',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Build it from the build list',
+    openFromTemplateHint: 'Turn this setup into a checklist with build order and machine counts.',
   },
 
   loopGuide: {

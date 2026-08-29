@@ -1789,7 +1789,7 @@
  * スマホをゲームの隣に置いて消し込む画面（計画書 §5）。
  * ・タップ領域は 44px 以上
  * ・全体の進捗はタブ内の上部に貼り付ける（スクロールしても残り台数が見える）
- * ・完了した項目は「沈める」だけ（動きは Phase 2）
+ * ・完了した項目は「沈める」だけ（そこに Phase 2 で完了の波紋を1回だけ足した）
  */
 .build-progress {
   position: sticky;
@@ -1820,8 +1820,45 @@
   font-variant-numeric: tabular-nums;
 }
 
+.build-progress__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
 .build-progress__reset {
-  align-self: flex-start;
+  min-height: 44px;
+}
+
+/* 画面スリープ抑止のトグル（対応ブラウザだけに出る） */
+.build-wake {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.build-wake input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+/* テンプレートから建設リストへ送る導線（結果タブの上） */
+.build-cta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.build-cta__button {
   min-height: 44px;
 }
 
@@ -1837,6 +1874,8 @@
   display: block;
   height: 100%;
   background: var(--accent);
+  /* 台数が動いたときだけ短く追従する（150ms 以内。常時動くものは置かない） */
+  transition: width 140ms ease-out;
 }
 
 .build-items {
@@ -1880,10 +1919,58 @@
   cursor: pointer;
 }
 
+.build-item__checkbox {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .build-item__check input[type='checkbox'] {
   width: 22px;
   height: 22px;
   flex: 0 0 auto;
+}
+
+/*
+ * 完了の波紋（design-spells 型 D2 / motion-specs #22）。
+ * チェックから外へ1回だけ広がって消える。440ms・easeOutQuad・不透明度 0.35 → 0。
+ * 要素は完了した瞬間にだけ描かれ、終わったら外す（連打時は描き直しで最新の1つだけ）。
+ */
+.build-item__ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  opacity: 0.35;
+  pointer-events: none;
+  animation: build-check-ripple 440ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes build-check-ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* 動きを減らす設定では波紋も進捗バーの追従も止める（JS 側でも要素自体を描かない） */
+@media (prefers-reduced-motion: reduce) {
+  .build-item__ripple {
+    display: none;
+    animation: none;
+  }
+
+  .build-bar__fill {
+    transition: none;
+  }
 }
 
 .build-item__name {

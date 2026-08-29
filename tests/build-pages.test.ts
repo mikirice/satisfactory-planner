@@ -234,11 +234,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き10本とループ8本、および記事indexを生成する', async () => {
+  it('手書き11本とループ8本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(18)
+    expect(articleSlugs).toHaveLength(19)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -265,8 +265,8 @@ describe('記事静的ページ', () => {
     expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
   })
 
-  it('手書き記事10本の本文が各800〜3000文字に収まる（追加5本は1500文字以上）', () => {
-    expect(handwrittenArticles).toHaveLength(10)
+  it('手書き記事11本の本文が各800〜3000文字に収まる（追加5本は1500文字以上）', () => {
+    expect(handwrittenArticles).toHaveLength(11)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -336,6 +336,31 @@ describe('記事静的ページ', () => {
     // 電力指数（buildings.json powerExponent）
     expect(await read('clock-and-efficiency', 'ja')).toContain('1.321929乗')
     expect(await read('clock-and-efficiency', 'en')).toContain('1.321929')
+  })
+
+  /** 建設リストの解説（Phase 2）。ベルト容量と鉄板60個/分の構成はデータ・解由来の値。 */
+  it('建設リストの解説がベルト容量と鉄板60個/分の構成を日英で含む', async () => {
+    const ja = await readFile(
+      join(outputDirectory, 'articles/build-checklist-guide/index.html'),
+      'utf8',
+    )
+    const en = await readFile(
+      join(outputDirectory, 'en/articles/build-checklist-guide/index.html'),
+      'utf8',
+    )
+
+    // logistics.json のベルト・パイプ容量
+    expect(ja).toContain('Mk.1 が60個/分、Mk.2 が120個/分')
+    expect(ja).toContain('Mk.6 が1200個/分')
+    expect(ja).toContain('Mk.1 が300m³/min、Mk.2 が600m³/min')
+    expect(en).toContain('60 items/min for Mk.1, 120 for Mk.2')
+    expect(en).toContain('1200 for Mk.6')
+    expect(en).toContain('300 m³/min for Mk.1 and 600 m³/min for Mk.2')
+    // 鉄板60個/分の解（採鉱機Mk.3×1・製錬炉×3・製作機×3 = 7台）
+    expect(ja).toContain('採鉱機 Mk.3 を1台、製造ラインが製錬炉3台と製作機3台')
+    expect(ja).toContain('鉄鉱石90個/分と鉄のインゴット90個/分')
+    expect(en).toContain('one Miner Mk.3 for extraction, then three Smelters and three Constructors')
+    expect(en).toContain('90 Iron Ore/min and the 90 Iron Ingot/min')
   })
 
   it('全記事CTAのhashを警告なしで復元できる', async () => {
@@ -471,10 +496,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 221（トップ・privacy・about・一覧2・アイテム198・記事18）
-    // ＋ 英語ミラー 220（トップだけ無い）
-    expect(sitemapPaths()).toHaveLength(441)
-    expect(manifest.urls).toHaveLength(441)
+    // 日本語 222（トップ・privacy・about・一覧2・アイテム198・記事19）
+    // ＋ 英語ミラー 221（トップだけ無い）
+    expect(sitemapPaths()).toHaveLength(443)
+    expect(manifest.urls).toHaveLength(443)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -609,7 +634,7 @@ function mainSection(html: string): string {
 }
 
 describe('英語ミラーの生成', () => {
-  it('アイテム198件＋一覧、記事18本＋索引を /en/ に出す', async () => {
+  it('アイテム198件＋一覧、記事19本＋索引を /en/ に出す', async () => {
     const itemEntries = await readdir(join(outputDirectory, 'en/items'), { withFileTypes: true })
     const articleEntries = await readdir(join(outputDirectory, 'en/articles'), {
       withFileTypes: true,

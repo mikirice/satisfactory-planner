@@ -297,6 +297,11 @@ export const ko = {
     reset: '진행 초기화',
     resetConfirm: '이 계획의 건설 진행을 모두 지웁니다. 계속할까요?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: '화면이 꺼지지 않게 하기',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: '건설 목록으로 짓기',
+    openFromTemplateHint: '이 구성을 건설 순서와 기계 수가 담긴 목록으로 만듭니다.',
   },
 
   loopGuide: {

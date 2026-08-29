@@ -300,6 +300,11 @@ export const ja = {
     reset: '進捗をリセット',
     resetConfirm: '建設の進捗をすべて消します。よろしいですか？',
     metaSeparator: ' ・ ',
+    /** スマホをゲームの隣に置く用途。対応ブラウザでだけ出す（Screen Wake Lock API） */
+    wakeLock: '画面をスリープさせない',
+    /** テンプレートを読み込んだ直後に出す「そのまま建てに行く」導線 */
+    openFromTemplate: '建設リストで建てる',
+    openFromTemplateHint: 'この構成を、建てる順番と台数のチェックリストにします。',
   },
 
   loopGuide: {

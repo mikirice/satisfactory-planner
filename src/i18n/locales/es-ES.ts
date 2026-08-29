@@ -309,6 +309,11 @@ export const esES = {
     reset: 'Reiniciar progreso',
     resetConfirm: 'Se borrará todo el progreso de construcción de este plan. ¿Continuar?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Mantener la pantalla encendida',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Construir con la lista',
+    openFromTemplateHint: 'Convierte esta configuración en una lista con el orden de construcción y el número de máquinas.',
   },
 
   loopGuide: {

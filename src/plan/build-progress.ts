@@ -5,12 +5,17 @@
  * 同じ計画（保存プラン・共有URL経由を含む）を開き直せば続きから消し込める。
  * 計画を変えればキーが変わり、進捗はまっさらになる。
  *
+ * ただしハッシュに入れるのは「解に効く入力」だけ（planProgressHash）。プラン名の変更や
+ * ベルト等級の表示設定で消し込みが飛ぶのは事故なので、そこは除外する。
+ *
  * 進捗は端末ローカル。共有URLには載せない（他人に自分の建設状況は渡らない）。
  *
  * localStorage は「無い / 使えない / 中身が壊れている」ことが普通にある
  * （プライベートモード、容量超過、手で書き換えられた値）。読み書きは必ず握り潰し、
  * 壊れていれば**空の進捗**として扱う。ここが原因で画面が落ちてはいけない。
  */
+
+import type { PlanSnapshot } from './serialize.ts'
 
 /** 保存キーの接頭辞（他機能の保存と衝突させないための名前空間）。 */
 export const BUILD_PROGRESS_KEY_PREFIX = 'satisfactory-planner:build-progress:'
@@ -33,6 +38,50 @@ export function planHash(encoded: string): string {
   }
   // 符号なし32bitへ寄せてから36進数（短く・URLにもログにも出せる文字だけ）
   return (hash >>> 0).toString(36)
+}
+
+/**
+ * 進捗キーの計算から外す「表示だけの入力」。
+ *
+ * ここに挙げたキーは**解にも建設リストの中身にも影響しない**ので、変えても進捗は続く。
+ *   n … プラン名（名前を付け直しただけで消し込みが消えるのは事故）
+ *   b / p … ベルト・パイプの選択。搬送等級の見せ方（フローチャート・Excel・物流表）にしか
+ *           使わず、建設リストの項目はレートから最小等級を自前で選ぶ（build-list.ts）。
+ *           store も「解に影響しないので再計算しない」扱い（planner.ts の setBeltId / setPipeId）
+ *
+ * 逆に目標レート・代替レシピ・クロック・発電計画などを変えたらキーは変わり、進捗はまっさらになる。
+ */
+export const PROGRESS_IGNORED_SNAPSHOT_KEYS: readonly (keyof PlanSnapshot)[] = ['n', 'b', 'p']
+
+/**
+ * キー順に依存しない決定的な文字列化。
+ *
+ * スナップショットは省略可能なキーが多く、作られ方によって並びが変わりうる。
+ * 並びでキーが変わると進捗が消えるので、オブジェクトはキーを並べ替えてから畳む。
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null'
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, entry]) => entry !== undefined)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([key, entry]) => `${JSON.stringify(key)}:${stableStringify(entry)}`)
+  return `{${entries.join(',')}}`
+}
+
+/**
+ * 進捗の保存キーになる計画ハッシュ。
+ *
+ * 「解に効く入力」だけを見る（PROGRESS_IGNORED_SNAPSHOT_KEYS を除いた全部）。
+ * プラン名を変えただけ・ベルトの表示等級を変えただけなら、同じキーのまま続きから消し込める。
+ *
+ * 保存キーの形式（接頭辞 + ハッシュ）は変えていない。除外キーを増やした結果、
+ * 以前のキーで書かれた進捗は参照されなくなる（孤児になるだけで実害はない）。
+ */
+export function planProgressHash(snapshot: PlanSnapshot): string {
+  const relevant: Record<string, unknown> = { ...snapshot }
+  for (const key of PROGRESS_IGNORED_SNAPSHOT_KEYS) delete relevant[key]
+  return planHash(stableStringify(relevant))
 }
 
 /** 進捗の保存キー。 */

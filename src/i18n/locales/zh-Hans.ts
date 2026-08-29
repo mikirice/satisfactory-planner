@@ -296,6 +296,11 @@ export const zhHans = {
     reset: '重置进度',
     resetConfirm: '将清除该方案的全部建造进度，确定吗？',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: '保持屏幕常亮',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: '按建造清单建造',
+    openFromTemplateHint: '把这套配置变成带建造顺序和机器数量的清单。',
   },
 
   loopGuide: {

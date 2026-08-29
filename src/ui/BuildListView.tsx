@@ -6,9 +6,12 @@
  * src/plan/build-list.ts、保存は src/plan/build-progress.ts に分けてあり、
  * ここは表示と操作だけを持つ（解には一切触らない）。
  *
- * Phase 1 は動きなし（モーションは Phase 2）。完了した項目は CSS で沈めるだけにする。
+ * Phase 2 で足した動き（design-spells 型 D2「チェックインの波紋」）:
+ * 完了した瞬間だけチェックから波紋を1回出す。連打しても重ねず最新の1つを描き直すだけで、
+ * 外すときは何も出さない。prefers-reduced-motion では波紋そのものを描かない
+ * （CSS 側でも animation を止めてある。常時ループする動きはこの画面に置かない）。
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { deriveBuildList } from '../plan/build-list.ts'
@@ -22,7 +25,9 @@ import type { BuildProgress } from '../plan/build-progress.ts'
 import type { ExtractionPlan, Solution } from '../solver/index.ts'
 import { fmtClock, fmtCount, fmtInt, fmtPower, fmtRate, isAlternateRecipe, itemName } from './format.ts'
 import { AlternateIcon, ItemIcon, ItemNameLink } from './ItemIcon.tsx'
+import { REDUCED_MOTION_QUERY, useMediaQuery } from './responsive.ts'
 import { T } from './text.ts'
+import { useWakeLock } from './wake-lock.ts'
 
 /** 行の中に置くアイコン(px)。表と同じ大きさに揃える。 */
 const ROW_ICON = 20
@@ -41,6 +46,9 @@ type Props = {
 export function BuildListView({ solution, extraction, planHash }: Props) {
   const list = useMemo(() => deriveBuildList(solution, extraction), [solution, extraction])
   const [progress, setProgress] = useState<BuildProgress>(() => loadBuildProgress(planHash))
+  const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY)
+  // 画面スリープ抑止。対応ブラウザでだけトグルを出し、このタブを離れたら必ず解放する
+  const wakeLock = useWakeLock()
 
   // 計画が変わったら（＝キーが変わったら）その計画の進捗を読み直す
   useEffect(() => {
@@ -84,9 +92,21 @@ export function BuildListView({ solution, extraction, planHash }: Props) {
           </span>
         </div>
         <ProgressBar built={totalBuilt} total={list.totalCount} label={T.buildList.overall} />
-        <button type="button" className="button button--small build-progress__reset" onClick={reset}>
-          {T.buildList.reset}
-        </button>
+        <div className="build-progress__controls">
+          <button type="button" className="button button--small build-progress__reset" onClick={reset}>
+            {T.buildList.reset}
+          </button>
+          {wakeLock.supported && (
+            <label className="build-wake">
+              <input
+                type="checkbox"
+                checked={wakeLock.enabled}
+                onChange={(event) => wakeLock.setEnabled(event.target.checked)}
+              />
+              <span>{T.buildList.wakeLock}</span>
+            </label>
+          )}
+        </div>
       </div>
 
       <p className="hint">{T.buildList.intro}</p>
@@ -114,6 +134,7 @@ export function BuildListView({ solution, extraction, planHash }: Props) {
                   key={item.id}
                   item={item}
                   built={builtOf(item)}
+                  reducedMotion={reducedMotion}
                   onChange={(next) => setBuilt(item, next)}
                 />
               ))}
@@ -144,21 +165,49 @@ function ProgressBar({ built, total, label }: { built: number; total: number; la
 type RowProps = {
   item: BuildListItem
   built: number
+  /** 動きを減らす設定のときは波紋そのものを描かない */
+  reducedMotion: boolean
   onChange: (next: number) => void
 }
 
-function BuildRow({ item, built, onChange }: RowProps) {
+function BuildRow({ item, built, reducedMotion, onChange }: RowProps) {
   const done = built >= item.builtCount
+  /**
+   * 波紋の世代番号（0 = 出していない）。
+   * 完了になった瞬間だけ +1 する。key に使うので、連打しても要素は1つのまま描き直され、
+   * 前の波紋が残って重なることがない（型 D2「連打時は最新のみ」）。
+   */
+  const [ripple, setRipple] = useState(0)
+  const wasDone = useRef(done)
+
+  useEffect(() => {
+    // 未完了 → 完了のときだけ。外したとき・復元して最初から完了だったときは出さない
+    if (done && !wasDone.current) setRipple((generation) => generation + 1)
+    // 完了を外したら描きかけの波紋も引っ込める（外す操作に動きは付けない）
+    if (!done) setRipple(0)
+    wasDone.current = done
+  }, [done])
+
   return (
     <li className={done ? 'build-item build-item--done' : 'build-item'}>
       <div className="build-item__head">
         <label className="build-item__check">
-          <input
-            type="checkbox"
-            checked={done}
-            aria-label={T.buildList.markComplete}
-            onChange={() => onChange(done ? 0 : item.builtCount)}
-          />
+          <span className="build-item__checkbox">
+            <input
+              type="checkbox"
+              checked={done}
+              aria-label={T.buildList.markComplete}
+              onChange={() => onChange(done ? 0 : item.builtCount)}
+            />
+            {ripple > 0 && !reducedMotion && (
+              <span
+                key={ripple}
+                className="build-item__ripple"
+                aria-hidden="true"
+                onAnimationEnd={() => setRipple(0)}
+              />
+            )}
+          </span>
           <span className="cell-name">
             <ItemIcon id={item.buildingId} name={itemName(item.buildingId)} size={ROW_ICON} />
             <span className="build-item__name">{itemName(item.buildingId)}</span>
