@@ -275,6 +275,40 @@ export const ru = {
     resources: 'Сырьё',
     balance: 'Баланс',
     flow: 'Схема',
+    build: 'Список стройки',
+  },
+
+  /** Список стройки: экран, который держат рядом с игрой во время постройки. */
+  buildList: {
+    heading: 'Список стройки',
+    intro: 'Стройте сверху вниз — тогда каждый этап получит сырьё раньше, чем оно понадобится.',
+    storageNote: 'Прогресс хранится только на этом устройстве (в ссылке он не передаётся).',
+    transportNote:
+      'Для каждого потока показан минимальный уровень, который тянет всю скорость одной линией.',
+    empty: 'Строить нечего',
+    overall: 'Общий прогресс',
+    progress: (built: string, total: string): string => `${built} / ${total} шт.`,
+    sections: {
+      extraction: 'Добыча ресурсов и воды',
+      manufacturing: 'Производственные линии',
+      power: 'Электростанции',
+    },
+    built: (built: string, total: string): string => `Построено ${built} / ${total}`,
+    increase: 'Добавить одну машину',
+    decrease: 'Убрать одну машину',
+    markComplete: 'Отметить этап выполненным',
+    clock: (percent: string): string => `Такт ${percent}`,
+    shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
+    somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
+    fuel: (name: string): string => `Топливо: ${name}`,
+    powerProduction: (mw: string): string => `${mw} МВт выработки`,
+    nodes: (purity: string, count: string): string => `${purity} ${count} мест.`,
+    inputs: 'Вход',
+    outputs: 'Выход',
+    transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
+    reset: 'Сбросить прогресс',
+    resetConfirm: 'Весь прогресс стройки по этому плану будет удалён. Продолжить?',
+    metaSeparator: ' · ',
   },
 
   loopGuide: {

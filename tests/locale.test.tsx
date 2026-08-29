@@ -39,9 +39,10 @@ import { LOCALE_ENDONYMS, LOCALE_FLAGS } from '../src/i18n/endonyms.ts'
 import type { Locale } from '../src/i18n/index.ts'
 import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
-import { clockedPowerMW } from '../src/solver/index.ts'
+import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
 import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
 import { usePlanner } from '../src/store/planner.ts'
+import { BuildListView } from '../src/ui/BuildListView.tsx'
 import { InfeasiblePanel } from '../src/ui/InfeasiblePanel.tsx'
 import { SummaryPanel } from '../src/ui/SummaryPanel.tsx'
 
@@ -491,6 +492,40 @@ describe('言語ごとの表示スモーク（鉄板 60/min のサマリー）',
         expect(text).not.toContain(getDictionary('ja').infeasible.hint)
       }
       // ラテン文字圏では日本語の文字そのものが出ない（公式名も英語にフォールバックする）
+      if (NON_CJK_LOCALES.includes(locale)) expect(text).not.toMatch(JAPANESE_CHARACTER)
+    },
+  )
+
+  it.each(SUPPORTED_LOCALES)(
+    '%s: 建設リストがその言語のラベルと公式名（建物・ベルト）で出る',
+    async (locale) => {
+      await preloadLocale(locale)
+      const dictionary = getDictionary(locale)
+      const pack = getLoadedGameNamePack(locale)
+      const container = await render(
+        <LocaleProvider initialLocale={locale}>
+          <BuildListView
+            solution={ironPlate60}
+            extraction={planExtraction(ironPlate60)}
+            planHash={`locale-${locale}`}
+          />
+        </LocaleProvider>,
+      )
+
+      const text = container.textContent ?? ''
+      expect(text).toContain(dictionary.buildList.overall)
+      expect(text).toContain(dictionary.buildList.sections.extraction)
+      expect(text).toContain(dictionary.buildList.sections.manufacturing)
+      expect(text).toContain(dictionary.buildList.reset)
+      expect(text).toContain(dictionary.buildList.built('0', '3'))
+      // 建物・搬送手段は公式名から解決する（辞書に直書きしない）
+      for (const id of ['Build_SmelterMk1_C', 'Build_MinerMk3_C', 'Build_ConveyorBeltMk2_C']) {
+        expect(text).toContain(resolveDisplayName(id, locale, pack))
+      }
+      if (locale !== 'ja') {
+        expect(text).not.toContain(getDictionary('ja').buildList.overall)
+        expect(text).not.toContain(getDictionary('ja').buildList.reset)
+      }
       if (NON_CJK_LOCALES.includes(locale)) expect(text).not.toMatch(JAPANESE_CHARACTER)
     },
   )

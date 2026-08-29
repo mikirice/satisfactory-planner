@@ -275,6 +275,40 @@ export const esES = {
     resources: 'Recursos',
     balance: 'Balance',
     flow: 'Diagrama',
+    build: 'Lista de construcción',
+  },
+
+  /** Lista de construcción: la pantalla que tienes al lado del juego mientras construyes. */
+  buildList: {
+    heading: 'Lista de construcción',
+    intro: 'Construye de arriba abajo y cada paso tendrá sus entradas listas a tiempo.',
+    storageNote: 'El progreso se guarda solo en este dispositivo (los enlaces no lo incluyen).',
+    transportNote:
+      'Cada flujo indica el nivel más bajo capaz de transportar toda la tasa en una sola línea.',
+    empty: 'Nada que construir',
+    overall: 'Progreso total',
+    progress: (built: string, total: string): string => `${built} / ${total} máquinas`,
+    sections: {
+      extraction: 'Extracción de recursos y agua',
+      manufacturing: 'Líneas de producción',
+      power: 'Generación de energía',
+    },
+    built: (built: string, total: string): string => `Construidas ${built} / ${total}`,
+    increase: 'Añadir una máquina',
+    decrease: 'Quitar una máquina',
+    markComplete: 'Marcar este paso como completado',
+    clock: (percent: string): string => `Reloj ${percent}`,
+    shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
+    somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
+    fuel: (name: string): string => `Combustible: ${name}`,
+    powerProduction: (mw: string): string => `${mw} MW generados`,
+    nodes: (purity: string, count: string): string => `${purity} ${count} nodos`,
+    inputs: 'Entradas',
+    outputs: 'Salidas',
+    transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
+    reset: 'Reiniciar progreso',
+    resetConfirm: 'Se borrará todo el progreso de construcción de este plan. ¿Continuar?',
+    metaSeparator: ' · ',
   },
 
   loopGuide: {

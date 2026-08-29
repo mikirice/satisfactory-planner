@@ -277,6 +277,41 @@ export const fr = {
     resources: 'Ressources',
     balance: 'Bilan',
     flow: 'Diagramme',
+    build: 'Liste de construction',
+  },
+
+  /** Liste de construction : l'écran gardé à côté du jeu pendant le montage. */
+  buildList: {
+    heading: 'Liste de construction',
+    intro: 'Construisez de haut en bas : chaque étape reçoit ses entrées avant d’en avoir besoin.',
+    storageNote:
+      'La progression reste sur cet appareil (elle n’est pas incluse dans les liens partagés).',
+    transportNote:
+      'Chaque flux indique le plus petit niveau capable de tout transporter sur une seule ligne.',
+    empty: 'Rien à construire',
+    overall: 'Progression totale',
+    progress: (built: string, total: string): string => `${built} / ${total} machines`,
+    sections: {
+      extraction: 'Extraction et pompage',
+      manufacturing: 'Lignes de production',
+      power: 'Production d’énergie',
+    },
+    built: (built: string, total: string): string => `Construites ${built} / ${total}`,
+    increase: 'Ajouter une machine',
+    decrease: 'Retirer une machine',
+    markComplete: 'Marquer cette étape comme terminée',
+    clock: (percent: string): string => `Horloge ${percent}`,
+    shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
+    somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
+    fuel: (name: string): string => `Carburant : ${name}`,
+    powerProduction: (mw: string): string => `${mw} MW produits`,
+    nodes: (purity: string, count: string): string => `${purity} ${count} gisements`,
+    inputs: 'Entrées',
+    outputs: 'Sorties',
+    transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
+    reset: 'Réinitialiser la progression',
+    resetConfirm: 'Toute la progression de ce plan sera effacée. Continuer ?',
+    metaSeparator: ' · ',
   },
 
   loopGuide: {
