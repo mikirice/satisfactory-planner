@@ -1,33 +1,19 @@
 // @vitest-environment jsdom
 /**
- * 建設リストの画面（src/ui/BuildListView.tsx）と進捗の保存（src/plan/build-progress.ts）。
+ * 建設リストの画面（src/ui/BuildListView.tsx）。
  *
- * 見たいのは「ゲームの隣でカウンターを押す」操作の往復。
- *   カウンター（+/−）とチェックの連動 / 進捗バーの数値 / localStorage への保存と復元 /
- *   リセットの確認ダイアログ / 壊れた保存値を握り潰すこと
- *
- * Phase 2 で足した分:
- *   完了の波紋（型 D2。連打で重ねない・外したら出さない・Reduce Motion で描かない）/
- *   画面スリープ抑止（対応ブラウザだけ・復帰時に取り直す・拒否されたら戻す）/
- *   進捗キーが「解に効く入力」だけで決まること（名前を変えても続く）
+ * この画面は読み取り専用の一覧。見たいのは
+ *   セクションの並びと中身 / 設備ごとの台数 / セクション小計と全体合計 /
+ *   クロック・搬送等級が出ること / 操作系（チェック・カウンター・進捗バー）を持たないこと
  *
  * ソルバーは jsdom で動かせないので、解は tests/ui.test.tsx と同じ作りのフィクスチャを使う。
  */
 import { act } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { buildingsById } from '../src/data/index.ts'
-import {
-  BUILD_PROGRESS_KEY_PREFIX,
-  buildProgressKey,
-  loadBuildProgress,
-  planHash,
-  planProgressHash,
-  saveBuildProgress,
-} from '../src/plan/build-progress.ts'
-import type { PlanSnapshot } from '../src/plan/serialize.ts'
 import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
 import type { Solution } from '../src/solver/index.ts'
 import { BuildListView } from '../src/ui/BuildListView.tsx'
@@ -47,86 +33,11 @@ async function render(node: ReactNode): Promise<HTMLElement> {
   return container
 }
 
-/**
- * Node 25 は空オブジェクトの localStorage をグローバルに置く（tests/locale.test.tsx と同じ事情）。
- * 保存を確かめたいので最小実装を挿す。
- */
-function installMemoryLocalStorage(): Map<string, string> {
-  const store = new Map<string, string>()
-  Object.defineProperty(window, 'localStorage', {
-    configurable: true,
-    value: {
-      getItem: (key: string): string | null => store.get(key) ?? null,
-      setItem: (key: string, value: string): void => void store.set(key, String(value)),
-      removeItem: (key: string): void => void store.delete(key),
-      clear: (): void => store.clear(),
-      key: (index: number): string | null => [...store.keys()][index] ?? null,
-      get length(): number {
-        return store.size
-      },
-    },
-  })
-  return store
-}
-
-const originalLocalStorage = Object.getOwnPropertyDescriptor(window, 'localStorage')
-
-/**
- * 動きを減らす設定を強制する。jsdom の matchMedia は常に matches:false なので、
- * Reduce Motion 側の分岐はここで作る（src/ui/responsive.ts が読む条件）。
- */
-function stubReducedMotion(): void {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: query.includes('prefers-reduced-motion'),
-    media: query,
-    addEventListener: (): void => undefined,
-    removeEventListener: (): void => undefined,
-  }))
-}
-
-type FakeSentinel = {
-  released: boolean
-  release: () => Promise<void>
-  addEventListener: (type: string, listener: () => void) => void
-  /** OS 側がロックを外したときの通知（タブを隠す・画面が消える） */
-  emitRelease: () => void
-}
-
-/** navigator.wakeLock を差し込む。jsdom には実装が無いので、あるブラウザを作って試す。 */
-function installWakeLock(behaviour: 'grant' | 'reject' = 'grant') {
-  const sentinels: FakeSentinel[] = []
-  const request = vi.fn(async (): Promise<FakeSentinel> => {
-    if (behaviour === 'reject') throw new Error('wake lock denied')
-    const listeners: (() => void)[] = []
-    const sentinel: FakeSentinel = {
-      released: false,
-      release: vi.fn(async (): Promise<void> => {
-        sentinel.released = true
-      }),
-      addEventListener: (type, listener) => {
-        if (type === 'release') listeners.push(listener)
-      },
-      emitRelease: () => {
-        sentinel.released = true
-        for (const listener of listeners) listener()
-      },
-    }
-    sentinels.push(sentinel)
-    return sentinel
-  })
-  Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request } })
-  return { request, sentinels }
-}
-
 afterEach(async () => {
   await act(async () => {
     for (const m of mounted.splice(0)) m.unmount()
   })
   document.body.innerHTML = ''
-  if (originalLocalStorage === undefined) Reflect.deleteProperty(window, 'localStorage')
-  else Object.defineProperty(window, 'localStorage', originalLocalStorage)
-  Reflect.deleteProperty(navigator, 'wakeLock')
-  vi.unstubAllGlobals()
 })
 
 // ---------------------------------------------------------------------------
@@ -200,30 +111,18 @@ const rows = (container: HTMLElement): HTMLLIElement[] => [
   ...container.querySelectorAll<HTMLLIElement>('.build-item'),
 ]
 
-const counterButtons = (row: HTMLElement): HTMLButtonElement[] => [
-  ...row.querySelectorAll<HTMLButtonElement>('.build-counter__button'),
-]
+const totalText = (container: HTMLElement): string =>
+  container.querySelector('.build-total')?.textContent ?? ''
 
-const checkbox = (row: HTMLElement): HTMLInputElement =>
-  row.querySelector<HTMLInputElement>('input[type="checkbox"]')!
-
-const overallText = (container: HTMLElement): string =>
-  container.querySelector('.build-progress__count')?.textContent ?? ''
-
-async function click(element: HTMLElement): Promise<void> {
-  await act(async () => {
-    element.click()
-  })
-}
+const sectionTotals = (container: HTMLElement): string[] =>
+  [...container.querySelectorAll<HTMLElement>('.card__meta')].map(
+    (meta) => meta.textContent ?? '',
+  )
 
 describe('建設リストの表示', () => {
   it('セクションと工程が依存順に並び、台数・クロック・ベルト等級が出る', async () => {
     const container = await render(
-      <BuildListView
-        solution={solution}
-        extraction={planExtraction(solution)}
-        planHash="plan-a"
-      />,
+      <BuildListView solution={solution} extraction={planExtraction(solution)} />,
     )
     const text = container.textContent ?? ''
 
@@ -240,8 +139,24 @@ describe('建設リストの表示', () => {
     // 製錬炉（投入=鉄鉱石）が製作機（投入=鉄インゴット）より前
     const names = rows(container).map((row) => row.querySelector('.build-item__name')?.textContent)
     expect(names.indexOf('製錬炉')).toBeLessThan(names.indexOf('製作機'))
-    // 全体は 採掘1台 + 製錬炉3台 + 製作機4台
-    expect(overallText(container)).toContain('0 / 8')
+  })
+
+  it('工程ごとに建てる台数を出す', async () => {
+    const container = await render(<BuildListView solution={solution} extraction={null} />)
+    const counts = rows(container).map((row) => row.querySelector('.build-item__count')?.textContent)
+
+    // 製錬炉3台 → 製作機4台（並びは依存順のまま）
+    expect(counts).toEqual(['×3 台', '×4 台'])
+  })
+
+  it('セクションの小計と全体の合計を出す', async () => {
+    const container = await render(
+      <BuildListView solution={solution} extraction={planExtraction(solution)} />,
+    )
+
+    // 採掘1台 + 製造ライン7台
+    expect(sectionTotals(container)).toEqual(['小計 1 台', '小計 7 台'])
+    expect(totalText(container)).toBe('合計 8 台')
   })
 
   it('発電の項目は発電機の名前・燃料・発電量で出す（内部IDを見せない）', async () => {
@@ -273,9 +188,7 @@ describe('建設リストの表示', () => {
         },
       ],
     }
-    const container = await render(
-      <BuildListView solution={powered} extraction={null} planHash="plan-power" />,
-    )
+    const container = await render(<BuildListView solution={powered} extraction={null} />)
     const text = container.textContent ?? ''
 
     expect(text).toContain('発電')
@@ -285,437 +198,47 @@ describe('建設リストの表示', () => {
     // 水 180 m³/min はパイプ Mk.1（300 m³/min）で1本
     expect(text).toContain('パイプラインMk.1')
     expect(text).not.toContain('power:Build_GeneratorCoal_C')
-    expect(rows(container).at(-1)?.textContent).toContain('建てた 0 / 4')
+    expect(rows(container).at(-1)?.querySelector('.build-item__count')?.textContent).toBe('×4 台')
+    // 製造7台 + 発電4台
+    expect(totalText(container)).toBe('合計 11 台')
   })
 
   it('建てるものが無ければ空状態を出す', async () => {
     const empty: Solution = { ...solution, steps: [], totalBuildingCount: 0 }
-    const container = await render(
-      <BuildListView solution={empty} extraction={null} planHash="plan-empty" />,
-    )
+    const container = await render(<BuildListView solution={empty} extraction={null} />)
+
     expect(container.textContent).toContain('建てるものがありません')
+    expect(container.querySelector('.build-total')).toBeNull()
   })
 })
 
-describe('カウンターとチェック', () => {
-  it('+ / − で台数が増減し、上限・下限で止まる', async () => {
-    installMemoryLocalStorage()
+describe('操作系を持たない（読み取り専用）', () => {
+  it('チェックボックス・カウンター・進捗バー・リセットを出さない', async () => {
     const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-counter" />,
+      <BuildListView solution={solution} extraction={planExtraction(solution)} />,
     )
-    // 製錬炉（3台）の行
-    const row = rows(container)[0]!
-    const [minus, plus] = counterButtons(row)
 
-    expect(row.textContent).toContain('建てた 0 / 3')
-    expect(minus!.disabled).toBe(true)
-
-    await click(plus!)
-    expect(rows(container)[0]!.textContent).toContain('建てた 1 / 3')
-    expect(overallText(container)).toContain('1 / 7')
-
-    await click(counterButtons(rows(container)[0]!)[0]!)
-    expect(rows(container)[0]!.textContent).toContain('建てた 0 / 3')
-    // 下限で止まる（マイナスにならない）
-    expect(counterButtons(rows(container)[0]!)[0]!.disabled).toBe(true)
-
-    for (let i = 0; i < 3; i += 1) await click(counterButtons(rows(container)[0]!)[1]!)
-    expect(rows(container)[0]!.textContent).toContain('建てた 3 / 3')
-    // 上限に達したら + は押せない
-    expect(counterButtons(rows(container)[0]!)[1]!.disabled).toBe(true)
+    expect(container.querySelector('input')).toBeNull()
+    expect(container.querySelector('button')).toBeNull()
+    expect(container.querySelector('[role="progressbar"]')).toBeNull()
+    expect(container.querySelector('.build-bar')).toBeNull()
+    expect(container.querySelector('.build-counter')).toBeNull()
+    expect(container.querySelector('.build-wake')).toBeNull()
+    // 消し込み前提の文言も残っていない
+    const text = container.textContent ?? ''
+    expect(text).not.toContain('建てた')
+    expect(text).not.toContain('進捗')
   })
 
-  it('全数に達するとチェックが入り、チェックを押すと全数 / 0 台に切り替わる', async () => {
-    installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-check" />,
-    )
-    const row = () => rows(container)[0]!
-
-    expect(checkbox(row()).checked).toBe(false)
-    for (let i = 0; i < 3; i += 1) await click(counterButtons(row())[1]!)
-    expect(checkbox(row()).checked).toBe(true)
-    expect(row().className).toContain('build-item--done')
-
-    // チェックを外すと 0 台に戻る
-    await click(checkbox(row()))
-    expect(checkbox(row()).checked).toBe(false)
-    expect(row().textContent).toContain('建てた 0 / 3')
-
-    // チェックを直接押すと全数完了
-    await click(checkbox(row()))
-    expect(row().textContent).toContain('建てた 3 / 3')
-    expect(overallText(container)).toContain('3 / 7')
-  })
-
-  it('全部建てると全体の進捗が満了になる', async () => {
-    installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-full" />,
-    )
-    for (const row of rows(container)) await click(checkbox(row))
-
-    expect(overallText(container)).toContain('7 / 7')
-    const bar = container.querySelector('.build-bar')!
-    expect(bar.getAttribute('aria-valuenow')).toBe('7')
-    expect(bar.getAttribute('aria-valuemax')).toBe('7')
-    expect(container.querySelector<HTMLElement>('.build-bar__fill')?.style.width).toBe('100%')
-  })
-})
-
-describe('進捗の保存', () => {
-  it('localStorage に書かれ、開き直すと復元される', async () => {
-    const store = installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-save" />,
-    )
-    await click(counterButtons(rows(container)[0]!)[1]!)
-
-    const raw = store.get(buildProgressKey('plan-save'))
-    expect(raw).toBeDefined()
-    expect(JSON.parse(raw!)).toEqual({ 'make:Recipe_IngotIron_C': 1 })
-    expect(buildProgressKey('plan-save').startsWith(BUILD_PROGRESS_KEY_PREFIX)).toBe(true)
-
-    // 同じ計画をもう一度開く（＝別のマウント）と続きから
-    const reopened = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-save" />,
-    )
-    expect(rows(reopened)[0]!.textContent).toContain('建てた 1 / 3')
-
-    // 別の計画（ハッシュが違う）はまっさら
-    const other = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-other" />,
-    )
-    expect(rows(other)[0]!.textContent).toContain('建てた 0 / 3')
-  })
-
-  it('「進捗をリセット」は確認してから消す', async () => {
-    const store = installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-reset" />,
-    )
-    await click(checkbox(rows(container)[0]!))
-    expect(overallText(container)).toContain('3 / 7')
-
-    const confirmMock = vi.fn(() => false)
-    vi.stubGlobal('confirm', confirmMock)
-    await click([...container.querySelectorAll<HTMLButtonElement>('button')].find(
-      (button) => button.textContent === '進捗をリセット',
-    )!)
-    expect(confirmMock).toHaveBeenCalledWith('建設の進捗をすべて消します。よろしいですか？')
-    expect(overallText(container)).toContain('3 / 7')
-
-    vi.stubGlobal('confirm', () => true)
-    await click([...container.querySelectorAll<HTMLButtonElement>('button')].find(
-      (button) => button.textContent === '進捗をリセット',
-    )!)
-    expect(overallText(container)).toContain('0 / 7')
-    expect(store.has(buildProgressKey('plan-reset'))).toBe(false)
-  })
-
-  it('localStorage が無い環境でも操作できる（保存だけ諦める）', async () => {
+  it('localStorage が無い環境でも表示できる（保存を一切しない）', async () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'localStorage')
     Reflect.deleteProperty(window, 'localStorage')
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-nostorage" />,
-    )
-    await click(counterButtons(rows(container)[0]!)[1]!)
-    expect(rows(container)[0]!.textContent).toContain('建てた 1 / 3')
-  })
-})
-
-describe('進捗データの検証（build-progress.ts）', () => {
-  it('計画ハッシュは同じ文字列から同じ値・違う文字列で別の値になる', () => {
-    expect(planHash('abc')).toBe(planHash('abc'))
-    expect(planHash('abc')).not.toBe(planHash('abd'))
-    expect(planHash('')).toMatch(/^[0-9a-z]+$/)
-  })
-
-  it('壊れた保存値・不正な台数は無かったことにする', () => {
-    const store = installMemoryLocalStorage()
-
-    store.set(buildProgressKey('broken'), '{ this is not json')
-    expect(loadBuildProgress('broken')).toEqual({})
-
-    store.set(buildProgressKey('array'), '[1,2,3]')
-    expect(loadBuildProgress('array')).toEqual({})
-
-    store.set(
-      buildProgressKey('mixed'),
-      JSON.stringify({ ok: 2, negative: -1, text: 'x', zero: 0, fraction: 2.7 }),
-    )
-    expect(loadBuildProgress('mixed')).toEqual({ ok: 2, fraction: 2 })
-
-    // 0台だけになったらキーごと消す（保存を膨らませない）
-    saveBuildProgress('mixed', { ok: 0 })
-    expect(store.has(buildProgressKey('mixed'))).toBe(false)
-  })
-
-  it('保存キーは名前空間つきで、計画ごとに分かれる', () => {
-    expect(buildProgressKey('abc')).toBe(`${BUILD_PROGRESS_KEY_PREFIX}abc`)
-    expect(buildProgressKey('abc')).not.toBe(buildProgressKey('abd'))
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 進捗キーは「解に効く入力」だけで決まる（Phase 2）
-// ---------------------------------------------------------------------------
-
-const snapshot = (patch: Partial<PlanSnapshot> = {}): PlanSnapshot => ({
-  v: 6,
-  n: '鉄板ライン',
-  t: [['Desc_IronPlate_C', 60]],
-  a: [],
-  l: {},
-  o: 'resources',
-  m: 'Build_MinerMk3_C',
-  b: 'Build_ConveyorBeltMk6_C',
-  p: 'Build_PipelineMK2_C',
-  ...patch,
-})
-
-describe('進捗キーの決め方（planProgressHash）', () => {
-  it('プラン名を変えても・ベルトの表示等級を変えても同じキー', () => {
-    const base = planProgressHash(snapshot())
-
-    expect(planProgressHash(snapshot({ n: '主力ライン（改）' }))).toBe(base)
-    expect(planProgressHash(snapshot({ n: '' }))).toBe(base)
-    expect(planProgressHash(snapshot({ b: 'Build_ConveyorBeltMk1_C' }))).toBe(base)
-    expect(planProgressHash(snapshot({ p: 'Build_Pipeline_C' }))).toBe(base)
-  })
-
-  it('解に効く入力を変えたらキーが変わる（進捗はまっさらになる）', () => {
-    const base = planProgressHash(snapshot())
-
-    expect(planProgressHash(snapshot({ t: [['Desc_IronPlate_C', 120]] }))).not.toBe(base)
-    expect(planProgressHash(snapshot({ t: [['Desc_IronRod_C', 60]] }))).not.toBe(base)
-    expect(planProgressHash(snapshot({ a: ['Recipe_Alternate_CoatedIronPlate_C'] }))).not.toBe(base)
-    expect(planProgressHash(snapshot({ c: 2.5 }))).not.toBe(base)
-    expect(planProgressHash(snapshot({ o: 'power' }))).not.toBe(base)
-    expect(planProgressHash(snapshot({ l: { Desc_OreIron_C: 120 } }))).not.toBe(base)
-  })
-
-  it('キーの並び順が違うだけの同じ計画は同じキー', () => {
-    const ordered: PlanSnapshot = {
-      v: 6,
-      n: '鉄板ライン',
-      t: [['Desc_IronPlate_C', 60]],
-      a: [],
-      l: {},
-      o: 'resources',
-      m: 'Build_MinerMk3_C',
-      b: 'Build_ConveyorBeltMk6_C',
-      p: 'Build_PipelineMK2_C',
-      s: 4,
+    try {
+      const container = await render(<BuildListView solution={solution} extraction={null} />)
+      expect(rows(container)).toHaveLength(2)
+      expect(totalText(container)).toBe('合計 7 台')
+    } finally {
+      if (original !== undefined) Object.defineProperty(window, 'localStorage', original)
     }
-    const shuffled = {
-      s: 4,
-      p: 'Build_PipelineMK2_C',
-      b: 'Build_ConveyorBeltMk6_C',
-      m: 'Build_MinerMk3_C',
-      o: 'resources',
-      l: {},
-      a: [],
-      t: [['Desc_IronPlate_C', 60]],
-      n: '鉄板ライン',
-      v: 6,
-    } as PlanSnapshot
-
-    expect(planProgressHash(shuffled)).toBe(planProgressHash(ordered))
-  })
-
-  it('進捗は名前を変えた計画でも続きから消し込める', async () => {
-    const store = installMemoryLocalStorage()
-    const before = planProgressHash(snapshot())
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash={before} />,
-    )
-    await click(counterButtons(rows(container)[0]!)[1]!)
-    expect(store.has(buildProgressKey(before))).toBe(true)
-
-    // 名前だけ変えた同じ計画をもう一度開く
-    const renamed = planProgressHash(snapshot({ n: '別名にした鉄板ライン' }))
-    const reopened = await render(
-      <BuildListView solution={solution} extraction={null} planHash={renamed} />,
-    )
-    expect(rows(reopened)[0]!.textContent).toContain('建てた 1 / 3')
-
-    // 目標レートを変えたら別の計画として最初から
-    const retargeted = planProgressHash(snapshot({ t: [['Desc_IronPlate_C', 120]] }))
-    const other = await render(
-      <BuildListView solution={solution} extraction={null} planHash={retargeted} />,
-    )
-    expect(rows(other)[0]!.textContent).toContain('建てた 0 / 3')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 完了の波紋（design-spells 型 D2）
-// ---------------------------------------------------------------------------
-
-const ripples = (container: HTMLElement): HTMLElement[] => [
-  ...container.querySelectorAll<HTMLElement>('.build-item__ripple'),
-]
-
-describe('完了の波紋', () => {
-  it('完了した瞬間だけ1つ出て、外すと消える', async () => {
-    installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-ripple" />,
-    )
-    const row = () => rows(container)[0]!
-
-    expect(ripples(container)).toHaveLength(0)
-
-    await click(checkbox(row()))
-    expect(ripples(container)).toHaveLength(1)
-
-    // 外す操作には動きを付けない
-    await click(checkbox(row()))
-    expect(ripples(container)).toHaveLength(0)
-  })
-
-  it('カウンターで全数に達したときにも出る', async () => {
-    installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-ripple-counter" />,
-    )
-    const row = () => rows(container)[0]!
-
-    await click(counterButtons(row())[1]!)
-    await click(counterButtons(row())[1]!)
-    // まだ 2 / 3 なので出ない
-    expect(ripples(container)).toHaveLength(0)
-
-    await click(counterButtons(row())[1]!)
-    expect(ripples(container)).toHaveLength(1)
-  })
-
-  it('連打しても重ならず、最新の1つを描き直す', async () => {
-    installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-ripple-rapid" />,
-    )
-    const row = () => rows(container)[0]!
-
-    await click(checkbox(row()))
-    const first = ripples(container)[0]
-    await click(checkbox(row()))
-    await click(checkbox(row()))
-
-    const after = ripples(container)
-    expect(after).toHaveLength(1)
-    // 別の要素になっている＝前の波紋を残さず最初から描き直している
-    expect(after[0]).not.toBe(first)
-  })
-
-  it('動きを減らす設定では波紋を描かない', async () => {
-    installMemoryLocalStorage()
-    stubReducedMotion()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-ripple-reduced" />,
-    )
-
-    await click(checkbox(rows(container)[0]!))
-    expect(ripples(container)).toHaveLength(0)
-    // 消し込み自体は普通に効く
-    expect(rows(container)[0]!.textContent).toContain('建てた 3 / 3')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 画面をスリープさせない（Screen Wake Lock API）
-// ---------------------------------------------------------------------------
-
-const wakeToggle = (container: HTMLElement): HTMLInputElement | null =>
-  container.querySelector<HTMLInputElement>('.build-wake input[type="checkbox"]')
-
-describe('画面スリープ抑止', () => {
-  it('対応していないブラウザではトグルを出さない', async () => {
-    installMemoryLocalStorage()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-nowake" />,
-    )
-
-    expect(wakeToggle(container)).toBeNull()
-    expect(container.textContent).not.toContain('画面をスリープさせない')
-  })
-
-  it('オンで取得し、オフで解放する', async () => {
-    installMemoryLocalStorage()
-    const wakeLock = installWakeLock()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-wake" />,
-    )
-    const toggle = wakeToggle(container)!
-
-    expect(container.textContent).toContain('画面をスリープさせない')
-    expect(toggle.checked).toBe(false)
-
-    await click(toggle)
-    expect(wakeLock.request).toHaveBeenCalledTimes(1)
-    expect(wakeLock.request).toHaveBeenCalledWith('screen')
-    expect(wakeToggle(container)!.checked).toBe(true)
-    expect(wakeLock.sentinels[0]!.released).toBe(false)
-
-    await click(wakeToggle(container)!)
-    expect(wakeToggle(container)!.checked).toBe(false)
-    expect(wakeLock.sentinels[0]!.released).toBe(true)
-  })
-
-  it('OSに外されても、表に戻ったら取り直す', async () => {
-    installMemoryLocalStorage()
-    const wakeLock = installWakeLock()
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-wake-visible" />,
-    )
-    await click(wakeToggle(container)!)
-    expect(wakeLock.request).toHaveBeenCalledTimes(1)
-
-    // タブを隠すと OS 側でロックが外れる
-    await act(async () => {
-      wakeLock.sentinels[0]!.emitRelease()
-    })
-    await act(async () => {
-      document.dispatchEvent(new Event('visibilitychange'))
-    })
-
-    expect(wakeLock.request).toHaveBeenCalledTimes(2)
-    expect(wakeLock.sentinels).toHaveLength(2)
-    expect(wakeToggle(container)!.checked).toBe(true)
-  })
-
-  it('タブを離れる（アンマウント）と解放する', async () => {
-    installMemoryLocalStorage()
-    const wakeLock = installWakeLock()
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-    await act(async () => {
-      root.render(
-        <BuildListView solution={solution} extraction={null} planHash="plan-wake-unmount" />,
-      )
-    })
-    await click(wakeToggle(container)!)
-    expect(wakeLock.sentinels[0]!.released).toBe(false)
-
-    await act(async () => {
-      root.unmount()
-    })
-    expect(wakeLock.sentinels[0]!.released).toBe(true)
-  })
-
-  it('要求が拒否されたらトグルはオフに戻る（落ちない）', async () => {
-    installMemoryLocalStorage()
-    const wakeLock = installWakeLock('reject')
-    const container = await render(
-      <BuildListView solution={solution} extraction={null} planHash="plan-wake-reject" />,
-    )
-
-    await click(wakeToggle(container)!)
-    expect(wakeLock.request).toHaveBeenCalledTimes(1)
-    expect(wakeToggle(container)!.checked).toBe(false)
-    // 画面は生きていて消し込みも続けられる
-    await click(checkbox(rows(container)[0]!))
-    expect(overallText(container)).toContain('3 / 7')
   })
 })

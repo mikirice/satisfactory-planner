@@ -284,22 +284,17 @@ export const fr = {
   buildList: {
     heading: 'Liste de construction',
     intro: 'Construisez de haut en bas : chaque étape reçoit ses entrées avant d’en avoir besoin.',
-    storageNote:
-      'La progression reste sur cet appareil (elle n’est pas incluse dans les liens partagés).',
     transportNote:
       'Chaque flux indique le plus petit niveau capable de tout transporter sur une seule ligne.',
     empty: 'Rien à construire',
-    overall: 'Progression totale',
-    progress: (built: string, total: string): string => `${built} / ${total} machines`,
+    total: (count: string): string => `${count} machines au total`,
+    sectionTotal: (count: string): string => `${count} machines`,
+    count: (count: string): string => `×${count}`,
     sections: {
       extraction: 'Extraction et pompage',
       manufacturing: 'Lignes de production',
       power: 'Production d’énergie',
     },
-    built: (built: string, total: string): string => `Construites ${built} / ${total}`,
-    increase: 'Ajouter une machine',
-    decrease: 'Retirer une machine',
-    markComplete: 'Marquer cette étape comme terminée',
     clock: (percent: string): string => `Horloge ${percent}`,
     shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
     somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
@@ -309,14 +304,10 @@ export const fr = {
     inputs: 'Entrées',
     outputs: 'Sorties',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
-    reset: 'Réinitialiser la progression',
-    resetConfirm: 'Toute la progression de ce plan sera effacée. Continuer ?',
     metaSeparator: ' · ',
-    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
-    wakeLock: 'Garder l’écran allumé',
     /** Shortcut shown right after a template is loaded */
     openFromTemplate: 'Construire avec la liste',
-    openFromTemplateHint: 'Transforme cette configuration en checklist avec l’ordre de construction et le nombre de machines.',
+    openFromTemplateHint: 'Transforme cette configuration en liste avec l’ordre de construction et le nombre de machines.',
   },
 
   loopGuide: {

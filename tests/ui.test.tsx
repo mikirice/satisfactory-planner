@@ -952,7 +952,7 @@ describe('結果テーブル', () => {
     }
   })
 
-  it('建設リストタブに切り替えると、採掘から順のチェックリストが出る', async () => {
+  it('建設リストタブに切り替えると、採掘から順の一覧が出る', async () => {
     const previous = usePlanner.getState()
     usePlanner.setState({ status: 'done', result: solution, extraction: planExtraction(solution) })
     try {
@@ -965,13 +965,14 @@ describe('結果テーブル', () => {
       })
 
       const text = container.textContent ?? ''
-      expect(text).toContain('全体の進捗')
       expect(text).toContain('原料の採掘・給水')
       expect(text).toContain('製造ライン')
-      expect(text).toContain('進捗をリセット')
-      // 工程ごとに「建てた n / m」のカウンターが並ぶ
+      // 全体の合計台数（採掘1台 + 製造7台）と工程ごとの台数が並ぶ
+      expect(container.querySelector('.build-total')?.textContent).toBe('合計 8 台')
       expect(container.querySelectorAll('.build-item').length).toBeGreaterThan(0)
-      expect(container.querySelector('.build-counter__value')?.textContent).toContain('建てた 0 /')
+      expect(container.querySelector('.build-item__count')?.textContent).toMatch(/^×\d+ 台$/)
+      // 読み取り専用（消し込みの操作は置かない）
+      expect(container.querySelector('.build-item input')).toBeNull()
     } finally {
       usePlanner.setState({
         status: previous.status,
@@ -1005,7 +1006,7 @@ describe('結果テーブル', () => {
       })
 
       expect(container.querySelectorAll('.build-item').length).toBeGreaterThan(0)
-      expect(container.textContent).toContain('全体の進捗')
+      expect(container.querySelector('.build-total')).not.toBeNull()
       // 建設タブにいる間は同じ案内を重ねて出さない
       expect(container.querySelector('.build-cta')).toBeNull()
     } finally {

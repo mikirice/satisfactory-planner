@@ -504,27 +504,25 @@ describe('言語ごとの表示スモーク（鉄板 60/min のサマリー）',
       const pack = getLoadedGameNamePack(locale)
       const container = await render(
         <LocaleProvider initialLocale={locale}>
-          <BuildListView
-            solution={ironPlate60}
-            extraction={planExtraction(ironPlate60)}
-            planHash={`locale-${locale}`}
-          />
+          <BuildListView solution={ironPlate60} extraction={planExtraction(ironPlate60)} />
         </LocaleProvider>,
       )
 
       const text = container.textContent ?? ''
-      expect(text).toContain(dictionary.buildList.overall)
       expect(text).toContain(dictionary.buildList.sections.extraction)
       expect(text).toContain(dictionary.buildList.sections.manufacturing)
-      expect(text).toContain(dictionary.buildList.reset)
-      expect(text).toContain(dictionary.buildList.built('0', '3'))
+      expect(text).toContain(dictionary.buildList.intro)
+      // 製錬炉3台。合計は 採掘1台 + 製造7台
+      expect(text).toContain(dictionary.buildList.count('3'))
+      expect(text).toContain(dictionary.buildList.sectionTotal('7'))
+      expect(text).toContain(dictionary.buildList.total('8'))
       // 建物・搬送手段は公式名から解決する（辞書に直書きしない）
       for (const id of ['Build_SmelterMk1_C', 'Build_MinerMk3_C', 'Build_ConveyorBeltMk2_C']) {
         expect(text).toContain(resolveDisplayName(id, locale, pack))
       }
       if (locale !== 'ja') {
-        expect(text).not.toContain(getDictionary('ja').buildList.overall)
-        expect(text).not.toContain(getDictionary('ja').buildList.reset)
+        expect(text).not.toContain(getDictionary('ja').buildList.intro)
+        expect(text).not.toContain(getDictionary('ja').buildList.sections.manufacturing)
       }
       if (NON_CJK_LOCALES.includes(locale)) expect(text).not.toMatch(JAPANESE_CHARACTER)
     },
