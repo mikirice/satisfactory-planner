@@ -283,21 +283,17 @@ export const de = {
   buildList: {
     heading: 'Bauliste',
     intro: 'Von oben nach unten bauen – dann steht jeder Schritt bereit, wenn du ihn brauchst.',
-    storageNote: 'Der Fortschritt liegt nur auf diesem Gerät (geteilte Links enthalten ihn nicht).',
     transportNote:
       'Angegeben ist jeweils die niedrigste Stufe, die die volle Rate auf einer Leitung schafft.',
     empty: 'Nichts zu bauen',
-    overall: 'Gesamtfortschritt',
-    progress: (built: string, total: string): string => `${built} / ${total} Maschinen`,
+    total: (count: string): string => `Insgesamt ${count} Maschinen`,
+    sectionTotal: (count: string): string => `${count} Maschinen`,
+    count: (count: string): string => `×${count}`,
     sections: {
       extraction: 'Abbau und Wasserförderung',
       manufacturing: 'Produktionslinien',
       power: 'Stromerzeugung',
     },
-    built: (built: string, total: string): string => `Gebaut ${built} / ${total}`,
-    increase: 'Eine Maschine mehr',
-    decrease: 'Eine Maschine weniger',
-    markComplete: 'Diesen Schritt als fertig markieren',
     clock: (percent: string): string => `Takt ${percent}`,
     shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
     somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
@@ -307,14 +303,10 @@ export const de = {
     inputs: 'Eingang',
     outputs: 'Ausgang',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
-    reset: 'Fortschritt zurücksetzen',
-    resetConfirm: 'Damit wird der gesamte Baufortschritt dieses Plans gelöscht. Fortfahren?',
     metaSeparator: ' · ',
-    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
-    wakeLock: 'Bildschirm wach halten',
     /** Shortcut shown right after a template is loaded */
     openFromTemplate: 'Mit der Bauliste bauen',
-    openFromTemplateHint: 'Macht aus diesem Aufbau eine Checkliste mit Baureihenfolge und Maschinenzahl.',
+    openFromTemplateHint: 'Macht aus diesem Aufbau eine Liste mit Baureihenfolge und Maschinenzahl.',
   },
 
   loopGuide: {

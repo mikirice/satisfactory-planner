@@ -282,21 +282,17 @@ export const ru = {
   buildList: {
     heading: 'Список стройки',
     intro: 'Стройте сверху вниз — тогда каждый этап получит сырьё раньше, чем оно понадобится.',
-    storageNote: 'Прогресс хранится только на этом устройстве (в ссылке он не передаётся).',
     transportNote:
       'Для каждого потока показан минимальный уровень, который тянет всю скорость одной линией.',
     empty: 'Строить нечего',
-    overall: 'Общий прогресс',
-    progress: (built: string, total: string): string => `${built} / ${total} шт.`,
+    total: (count: string): string => `Всего ${count} шт.`,
+    sectionTotal: (count: string): string => `${count} шт.`,
+    count: (count: string): string => `×${count}`,
     sections: {
       extraction: 'Добыча ресурсов и воды',
       manufacturing: 'Производственные линии',
       power: 'Электростанции',
     },
-    built: (built: string, total: string): string => `Построено ${built} / ${total}`,
-    increase: 'Добавить одну машину',
-    decrease: 'Убрать одну машину',
-    markComplete: 'Отметить этап выполненным',
     clock: (percent: string): string => `Такт ${percent}`,
     shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
     somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
@@ -306,11 +302,7 @@ export const ru = {
     inputs: 'Вход',
     outputs: 'Выход',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
-    reset: 'Сбросить прогресс',
-    resetConfirm: 'Весь прогресс стройки по этому плану будет удалён. Продолжить?',
     metaSeparator: ' · ',
-    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
-    wakeLock: 'Не гасить экран',
     /** Shortcut shown right after a template is loaded */
     openFromTemplate: 'Строить по списку',
     openFromTemplateHint: 'Превращает эту схему в список с порядком постройки и количеством машин.',

@@ -271,20 +271,16 @@ export const en = {
   buildList: {
     heading: 'Build list',
     intro: 'Build from top to bottom and every step has its inputs ready before you need them.',
-    storageNote: 'Progress is stored on this device only (shared links never carry it).',
     transportNote: 'Each flow shows the slowest tier that still carries the full rate on one line.',
     empty: 'Nothing to build',
-    overall: 'Overall progress',
-    progress: (built: string, total: string): string => `${built} / ${total} machines`,
+    total: (count: string): string => `${count} machines in total`,
+    sectionTotal: (count: string): string => `${count} machines`,
+    count: (count: string): string => `×${count}`,
     sections: {
       extraction: 'Mining and water extraction',
       manufacturing: 'Production lines',
       power: 'Power generation',
     },
-    built: (built: string, total: string): string => `Built ${built} / ${total}`,
-    increase: 'Add one machine',
-    decrease: 'Remove one machine',
-    markComplete: 'Mark this step complete',
     clock: (percent: string): string => `Clock ${percent}`,
     shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
     somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
@@ -294,14 +290,10 @@ export const en = {
     inputs: 'Inputs',
     outputs: 'Outputs',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
-    reset: 'Reset progress',
-    resetConfirm: 'This clears all build progress for this plan. Continue?',
     metaSeparator: ' · ',
-    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
-    wakeLock: 'Keep the screen awake',
     /** Shortcut shown right after a template is loaded */
     openFromTemplate: 'Build it from the build list',
-    openFromTemplateHint: 'Turn this setup into a checklist with build order and machine counts.',
+    openFromTemplateHint: 'Turn this setup into a list with build order and machine counts.',
   },
 
   loopGuide: {

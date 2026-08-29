@@ -1786,67 +1786,21 @@
 /* --- 建設リスト ---------------------------------------------------------- */
 
 /*
- * スマホをゲームの隣に置いて消し込む画面（計画書 §5）。
- * ・タップ領域は 44px 以上
- * ・全体の進捗はタブ内の上部に貼り付ける（スクロールしても残り台数が見える）
- * ・完了した項目は「沈める」だけ（そこに Phase 2 で完了の波紋を1回だけ足した）
+ * 建てるものと台数を一覧で見るだけの画面（読み取り専用）。
+ * ・全体の合計台数はタブ内の上部に貼り付ける（スクロールしても総数が見える）
+ * ・操作は無いので、チェック・カウンター・進捗バーは持たない
  */
-.build-progress {
+.build-total {
   position: sticky;
   top: 0;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-head);
-}
-
-.build-progress__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.build-progress__label {
   color: var(--text-strong);
   font-weight: 600;
-}
-
-.build-progress__count {
   font-variant-numeric: tabular-nums;
-}
-
-.build-progress__controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-
-.build-progress__reset {
-  min-height: 44px;
-}
-
-/* 画面スリープ抑止のトグル（対応ブラウザだけに出る） */
-.build-wake {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  font-size: 13px;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.build-wake input[type='checkbox'] {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
 }
 
 /* テンプレートから建設リストへ送る導線（結果タブの上） */
@@ -1860,22 +1814,6 @@
 
 .build-cta__button {
   min-height: 44px;
-}
-
-.build-bar {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.build-bar__fill {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  /* 台数が動いたときだけ短く追従する（150ms 以内。常時動くものは置かない） */
-  transition: width 140ms ease-out;
 }
 
 .build-items {
@@ -1895,13 +1833,6 @@
   background: var(--bg-raised);
 }
 
-/* 完了した項目は沈めるだけ（消さない: 数え直したくなることがある） */
-.build-item--done {
-  opacity: 0.55;
-  border-color: var(--border);
-  background: var(--bg-panel);
-}
-
 .build-item__head {
   display: flex;
   align-items: center;
@@ -1910,114 +1841,16 @@
   flex-wrap: wrap;
 }
 
-.build-item__check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  min-width: 0;
-  cursor: pointer;
-}
-
-.build-item__checkbox {
-  position: relative;
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-
-.build-item__check input[type='checkbox'] {
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
-}
-
-/*
- * 完了の波紋（design-spells 型 D2 / motion-specs #22）。
- * チェックから外へ1回だけ広がって消える。440ms・easeOutQuad・不透明度 0.35 → 0。
- * 要素は完了した瞬間にだけ描かれ、終わったら外す（連打時は描き直しで最新の1つだけ）。
- */
-.build-item__ripple {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 22px;
-  height: 22px;
-  margin: -11px 0 0 -11px;
-  border: 2px solid var(--accent);
-  border-radius: 999px;
-  opacity: 0.35;
-  pointer-events: none;
-  animation: build-check-ripple 440ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-@keyframes build-check-ripple {
-  from {
-    transform: scale(1);
-    opacity: 0.35;
-  }
-  to {
-    transform: scale(2.6);
-    opacity: 0;
-  }
-}
-
-/* 動きを減らす設定では波紋も進捗バーの追従も止める（JS 側でも要素自体を描かない） */
-@media (prefers-reduced-motion: reduce) {
-  .build-item__ripple {
-    display: none;
-    animation: none;
-  }
-
-  .build-bar__fill {
-    transition: none;
-  }
-}
-
 .build-item__name {
   color: var(--text-strong);
   font-weight: 600;
 }
 
-.build-item--done .build-item__name {
-  text-decoration: line-through;
-}
-
-.build-counter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.build-counter__button {
-  width: 44px;
-  height: 44px;
-  font: inherit;
-  font-size: 20px;
-  line-height: 1;
-  color: var(--text);
-  background: var(--bg-panel);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.build-counter__button:hover:not(:disabled) {
-  border-color: var(--accent);
-}
-
-.build-counter__button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.build-counter__button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.build-counter__value {
-  min-width: 7em;
-  text-align: right;
+/* 台数（×4 台）。行の右端に置き、桁を揃える */
+.build-item__count {
+  flex: 0 0 auto;
+  color: var(--text-strong);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2358,25 +2191,9 @@
     display: none;
   }
 
-  /* 建設リストは1列。カウンターは行いっぱいに広げて押しやすくする */
+  /* 建設リストは1列。設備名と台数は同じ行のまま両端に置く */
   .build-item__head {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .build-counter {
-    justify-content: space-between;
-  }
-
-  .build-counter__button {
-    flex: 0 0 auto;
-    width: 56px;
-  }
-
-  .build-counter__value {
-    flex: 1 1 auto;
-    text-align: center;
+    gap: 8px 12px;
   }
 
   .build-item__flows {

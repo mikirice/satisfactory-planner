@@ -280,21 +280,17 @@ export const ptBR = {
   buildList: {
     heading: 'Lista de construção',
     intro: 'Construa de cima para baixo e cada etapa recebe suas entradas antes da hora.',
-    storageNote: 'O progresso fica só neste dispositivo (links compartilhados não o levam).',
     transportNote:
       'Cada fluxo mostra o menor nível capaz de transportar a taxa inteira em uma linha.',
     empty: 'Nada a construir',
-    overall: 'Progresso geral',
-    progress: (built: string, total: string): string => `${built} / ${total} máquinas`,
+    total: (count: string): string => `${count} máquinas no total`,
+    sectionTotal: (count: string): string => `${count} máquinas`,
+    count: (count: string): string => `×${count}`,
     sections: {
       extraction: 'Mineração e captação de água',
       manufacturing: 'Linhas de produção',
       power: 'Geração de energia',
     },
-    built: (built: string, total: string): string => `Construídas ${built} / ${total}`,
-    increase: 'Adicionar uma máquina',
-    decrease: 'Remover uma máquina',
-    markComplete: 'Marcar esta etapa como concluída',
     clock: (percent: string): string => `Clock ${percent}`,
     shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
     somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
@@ -304,11 +300,7 @@ export const ptBR = {
     inputs: 'Entradas',
     outputs: 'Saídas',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
-    reset: 'Zerar progresso',
-    resetConfirm: 'Isso apaga todo o progresso de construção deste plano. Continuar?',
     metaSeparator: ' · ',
-    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
-    wakeLock: 'Manter a tela ligada',
     /** Shortcut shown right after a template is loaded */
     openFromTemplate: 'Construir pela lista',
     openFromTemplateHint: 'Transforma esta configuração em uma lista com a ordem de construção e a quantidade de máquinas.',

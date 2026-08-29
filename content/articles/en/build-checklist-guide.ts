@@ -2,9 +2,9 @@ import type { HandwrittenArticle } from '../types.ts'
 
 export const buildChecklistGuideArticleEn = {
   slug: 'build-checklist-guide',
-  title: 'Using the Build List — From a Solved Plan to a Finished Factory',
+  title: 'Reading the Build List — What to Build and How Many',
   description:
-    'How to read the build list, tick machines off with the counters, keep progress between sessions, and use it on a phone next to the game.',
+    'How to read the build list: machine counts per step, recipes and clock speeds, belt and pipe tiers, and the per-section and overall totals.',
   sections: [
     {
       heading: 'The same plan, sorted by what you build first',
@@ -25,15 +25,15 @@ export const buildChecklistGuideArticleEn = {
       ],
     },
     {
-      heading: 'Tick machines off and pick up where you stopped',
+      heading: 'Subtotals and a total tell you the scale',
       paragraphs: [
-        'Every row has a "built / required" counter with plus and minus buttons, so you can count machines as you place them. Reaching the full count ticks the checkbox automatically, and tapping the checkbox directly marks the whole step done in one go. Progress bars per section and for the whole plan keep the remaining count visible without scrolling. Progress is stored in this browser on this device, so opening the same plan the next day continues where you left off, and a share link never carries it — nobody else sees how far along you are. Changing an input that affects the calculation, such as a target rate or an alternate recipe, counts as a different plan and starts from zero, while renaming the plan or switching the belt tier you display leaves your progress alone. When you want to count again from scratch, use the reset button.',
+        'Each row ends with the number of machines to place, written as "×3". Every section heading carries its own subtotal, and the overall total stays pinned at the top of the tab, so the size of the plan is visible however far you scroll. Checking the total before you start tells you whether this is an evening of building or something that needs a site cleared first, and the subtotals break that down into extraction, production and power. These counts are the machines you actually place after clocking, so they feed straight into a build cost or power estimate.',
       ],
     },
     {
-      heading: 'A phone next to the game',
+      heading: 'A screen for reading, not for ticking',
       paragraphs: [
-        'The screen is built for a phone propped up beside the game, so the counters and checkboxes have large tap targets. Where the browser supports it, a "keep the screen awake" toggle appears, which matters when you only touch the phone every few minutes while building. Right after you load a template, a button offers to open it straight in the build list, so an example can go from calculation to construction in one tap. Start with the Iron Plate template and tick off all seven machines.',
+        'There is nothing to operate here. Instead of checkboxes and counters, the tab gives you the information in build order and nothing else — ticking a box in a browser does not place a foundation, so leave the progress to the game and open this screen when you want to know what comes next and how many of it to build. It reads well on a phone propped up beside the game. Right after you load a template, a button offers to open it straight in the build list, so an example goes from calculation to a build order in one tap. Start with the Iron Plate template and look at how its seven machines break down.',
       ],
     },
   ],

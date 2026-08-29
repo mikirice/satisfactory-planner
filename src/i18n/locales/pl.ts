@@ -280,21 +280,17 @@ export const pl = {
   buildList: {
     heading: 'Lista budowy',
     intro: 'Buduj od góry do dołu — każdy etap dostanie surowce, zanim będą potrzebne.',
-    storageNote: 'Postęp zapisuje się tylko na tym urządzeniu (linki go nie przenoszą).',
     transportNote:
       'Przy każdym przepływie podano najniższy poziom, który przewiezie całość jedną linią.',
     empty: 'Nie ma czego budować',
-    overall: 'Postęp całości',
-    progress: (built: string, total: string): string => `${built} / ${total} maszyn`,
+    total: (count: string): string => `Łącznie ${count} maszyn`,
+    sectionTotal: (count: string): string => `${count} maszyn`,
+    count: (count: string): string => `×${count}`,
     sections: {
       extraction: 'Wydobycie i pobór wody',
       manufacturing: 'Linie produkcyjne',
       power: 'Wytwarzanie energii',
     },
-    built: (built: string, total: string): string => `Zbudowano ${built} / ${total}`,
-    increase: 'Dodaj jedną maszynę',
-    decrease: 'Usuń jedną maszynę',
-    markComplete: 'Oznacz ten etap jako gotowy',
     clock: (percent: string): string => `Zegar ${percent}`,
     shards: (count: string): string => `${count} × {{Desc_CrystalShard_C}}`,
     somersloops: (count: string): string => `${count} × {{Desc_WAT1_C}}`,
@@ -304,11 +300,7 @@ export const pl = {
     inputs: 'Wejście',
     outputs: 'Wyjście',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}`,
-    reset: 'Wyzeruj postęp',
-    resetConfirm: 'Cały postęp budowy tego planu zostanie usunięty. Kontynuować?',
     metaSeparator: ' · ',
-    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
-    wakeLock: 'Nie wygaszaj ekranu',
     /** Shortcut shown right after a template is loaded */
     openFromTemplate: 'Buduj z listy budowy',
     openFromTemplateHint: 'Zamienia ten układ w listę z kolejnością budowy i liczbą maszyn.',

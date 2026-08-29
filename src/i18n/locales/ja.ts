@@ -270,24 +270,23 @@ export const ja = {
     build: '建設リスト',
   },
 
-  /** 建設チェックリスト（ゲームの隣に置いて消し込む画面） */
+  /** 建設リスト（何を何台建てるかを一覧で見る画面・読み取り専用） */
   buildList: {
     heading: '建設リスト',
     intro: '上から順に建てると、次の工程に必要なものが先に揃います。',
-    storageNote: '進捗はこの端末にだけ保存されます（共有URLでは渡りません）。',
     transportNote: '搬送の等級は、そのレートを1本で運べる最小のものを出しています。',
     empty: '建てるものがありません',
-    overall: '全体の進捗',
-    progress: (built: string, total: string): string => `${built} / ${total} 台`,
+    /** 全体の合計台数 */
+    total: (count: string): string => `合計 ${count} 台`,
+    /** セクションごとの小計台数 */
+    sectionTotal: (count: string): string => `小計 ${count} 台`,
+    /** 1項目の台数 */
+    count: (count: string): string => `×${count} 台`,
     sections: {
       extraction: '原料の採掘・給水',
       manufacturing: '製造ライン',
       power: '発電',
     },
-    built: (built: string, total: string): string => `建てた ${built} / ${total}`,
-    increase: '1台増やす',
-    decrease: '1台減らす',
-    markComplete: 'この工程を完了にする',
     clock: (percent: string): string => `クロック ${percent}`,
     shards: (count: string): string => `{{Desc_CrystalShard_C}} ${count} 個`,
     somersloops: (count: string): string => `{{Desc_WAT1_C}} ${count} 個`,
@@ -297,14 +296,10 @@ export const ja = {
     inputs: '投入',
     outputs: '産出',
     transportLines: (name: string, lines: string): string => `${name} ×${lines}本`,
-    reset: '進捗をリセット',
-    resetConfirm: '建設の進捗をすべて消します。よろしいですか？',
     metaSeparator: ' ・ ',
-    /** スマホをゲームの隣に置く用途。対応ブラウザでだけ出す（Screen Wake Lock API） */
-    wakeLock: '画面をスリープさせない',
     /** テンプレートを読み込んだ直後に出す「そのまま建てに行く」導線 */
     openFromTemplate: '建設リストで建てる',
-    openFromTemplateHint: 'この構成を、建てる順番と台数のチェックリストにします。',
+    openFromTemplateHint: 'この構成を、建てる順番と台数のリストにします。',
   },
 
   loopGuide: {
