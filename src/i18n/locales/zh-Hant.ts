@@ -300,6 +300,11 @@ export const zhHant = {
     reset: '重設進度',
     resetConfirm: '將清除這份方案的所有建造進度，確定嗎？',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: '保持螢幕常亮',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: '依建造清單建造',
+    openFromTemplateHint: '把這套配置變成含建造順序與機器數量的清單。',
   },
 
   loopGuide: {

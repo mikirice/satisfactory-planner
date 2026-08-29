@@ -6,6 +6,11 @@
  *   カウンター（+/−）とチェックの連動 / 進捗バーの数値 / localStorage への保存と復元 /
  *   リセットの確認ダイアログ / 壊れた保存値を握り潰すこと
  *
+ * Phase 2 で足した分:
+ *   完了の波紋（型 D2。連打で重ねない・外したら出さない・Reduce Motion で描かない）/
+ *   画面スリープ抑止（対応ブラウザだけ・復帰時に取り直す・拒否されたら戻す）/
+ *   進捗キーが「解に効く入力」だけで決まること（名前を変えても続く）
+ *
  * ソルバーは jsdom で動かせないので、解は tests/ui.test.tsx と同じ作りのフィクスチャを使う。
  */
 import { act } from 'react'
@@ -19,8 +24,10 @@ import {
   buildProgressKey,
   loadBuildProgress,
   planHash,
+  planProgressHash,
   saveBuildProgress,
 } from '../src/plan/build-progress.ts'
+import type { PlanSnapshot } from '../src/plan/serialize.ts'
 import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
 import type { Solution } from '../src/solver/index.ts'
 import { BuildListView } from '../src/ui/BuildListView.tsx'
@@ -64,6 +71,53 @@ function installMemoryLocalStorage(): Map<string, string> {
 
 const originalLocalStorage = Object.getOwnPropertyDescriptor(window, 'localStorage')
 
+/**
+ * 動きを減らす設定を強制する。jsdom の matchMedia は常に matches:false なので、
+ * Reduce Motion 側の分岐はここで作る（src/ui/responsive.ts が読む条件）。
+ */
+function stubReducedMotion(): void {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query.includes('prefers-reduced-motion'),
+    media: query,
+    addEventListener: (): void => undefined,
+    removeEventListener: (): void => undefined,
+  }))
+}
+
+type FakeSentinel = {
+  released: boolean
+  release: () => Promise<void>
+  addEventListener: (type: string, listener: () => void) => void
+  /** OS 側がロックを外したときの通知（タブを隠す・画面が消える） */
+  emitRelease: () => void
+}
+
+/** navigator.wakeLock を差し込む。jsdom には実装が無いので、あるブラウザを作って試す。 */
+function installWakeLock(behaviour: 'grant' | 'reject' = 'grant') {
+  const sentinels: FakeSentinel[] = []
+  const request = vi.fn(async (): Promise<FakeSentinel> => {
+    if (behaviour === 'reject') throw new Error('wake lock denied')
+    const listeners: (() => void)[] = []
+    const sentinel: FakeSentinel = {
+      released: false,
+      release: vi.fn(async (): Promise<void> => {
+        sentinel.released = true
+      }),
+      addEventListener: (type, listener) => {
+        if (type === 'release') listeners.push(listener)
+      },
+      emitRelease: () => {
+        sentinel.released = true
+        for (const listener of listeners) listener()
+      },
+    }
+    sentinels.push(sentinel)
+    return sentinel
+  })
+  Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request } })
+  return { request, sentinels }
+}
+
 afterEach(async () => {
   await act(async () => {
     for (const m of mounted.splice(0)) m.unmount()
@@ -71,6 +125,7 @@ afterEach(async () => {
   document.body.innerHTML = ''
   if (originalLocalStorage === undefined) Reflect.deleteProperty(window, 'localStorage')
   else Object.defineProperty(window, 'localStorage', originalLocalStorage)
+  Reflect.deleteProperty(navigator, 'wakeLock')
   vi.unstubAllGlobals()
 })
 
@@ -398,5 +453,269 @@ describe('進捗データの検証（build-progress.ts）', () => {
   it('保存キーは名前空間つきで、計画ごとに分かれる', () => {
     expect(buildProgressKey('abc')).toBe(`${BUILD_PROGRESS_KEY_PREFIX}abc`)
     expect(buildProgressKey('abc')).not.toBe(buildProgressKey('abd'))
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 進捗キーは「解に効く入力」だけで決まる（Phase 2）
+// ---------------------------------------------------------------------------
+
+const snapshot = (patch: Partial<PlanSnapshot> = {}): PlanSnapshot => ({
+  v: 6,
+  n: '鉄板ライン',
+  t: [['Desc_IronPlate_C', 60]],
+  a: [],
+  l: {},
+  o: 'resources',
+  m: 'Build_MinerMk3_C',
+  b: 'Build_ConveyorBeltMk6_C',
+  p: 'Build_PipelineMK2_C',
+  ...patch,
+})
+
+describe('進捗キーの決め方（planProgressHash）', () => {
+  it('プラン名を変えても・ベルトの表示等級を変えても同じキー', () => {
+    const base = planProgressHash(snapshot())
+
+    expect(planProgressHash(snapshot({ n: '主力ライン（改）' }))).toBe(base)
+    expect(planProgressHash(snapshot({ n: '' }))).toBe(base)
+    expect(planProgressHash(snapshot({ b: 'Build_ConveyorBeltMk1_C' }))).toBe(base)
+    expect(planProgressHash(snapshot({ p: 'Build_Pipeline_C' }))).toBe(base)
+  })
+
+  it('解に効く入力を変えたらキーが変わる（進捗はまっさらになる）', () => {
+    const base = planProgressHash(snapshot())
+
+    expect(planProgressHash(snapshot({ t: [['Desc_IronPlate_C', 120]] }))).not.toBe(base)
+    expect(planProgressHash(snapshot({ t: [['Desc_IronRod_C', 60]] }))).not.toBe(base)
+    expect(planProgressHash(snapshot({ a: ['Recipe_Alternate_CoatedIronPlate_C'] }))).not.toBe(base)
+    expect(planProgressHash(snapshot({ c: 2.5 }))).not.toBe(base)
+    expect(planProgressHash(snapshot({ o: 'power' }))).not.toBe(base)
+    expect(planProgressHash(snapshot({ l: { Desc_OreIron_C: 120 } }))).not.toBe(base)
+  })
+
+  it('キーの並び順が違うだけの同じ計画は同じキー', () => {
+    const ordered: PlanSnapshot = {
+      v: 6,
+      n: '鉄板ライン',
+      t: [['Desc_IronPlate_C', 60]],
+      a: [],
+      l: {},
+      o: 'resources',
+      m: 'Build_MinerMk3_C',
+      b: 'Build_ConveyorBeltMk6_C',
+      p: 'Build_PipelineMK2_C',
+      s: 4,
+    }
+    const shuffled = {
+      s: 4,
+      p: 'Build_PipelineMK2_C',
+      b: 'Build_ConveyorBeltMk6_C',
+      m: 'Build_MinerMk3_C',
+      o: 'resources',
+      l: {},
+      a: [],
+      t: [['Desc_IronPlate_C', 60]],
+      n: '鉄板ライン',
+      v: 6,
+    } as PlanSnapshot
+
+    expect(planProgressHash(shuffled)).toBe(planProgressHash(ordered))
+  })
+
+  it('進捗は名前を変えた計画でも続きから消し込める', async () => {
+    const store = installMemoryLocalStorage()
+    const before = planProgressHash(snapshot())
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash={before} />,
+    )
+    await click(counterButtons(rows(container)[0]!)[1]!)
+    expect(store.has(buildProgressKey(before))).toBe(true)
+
+    // 名前だけ変えた同じ計画をもう一度開く
+    const renamed = planProgressHash(snapshot({ n: '別名にした鉄板ライン' }))
+    const reopened = await render(
+      <BuildListView solution={solution} extraction={null} planHash={renamed} />,
+    )
+    expect(rows(reopened)[0]!.textContent).toContain('建てた 1 / 3')
+
+    // 目標レートを変えたら別の計画として最初から
+    const retargeted = planProgressHash(snapshot({ t: [['Desc_IronPlate_C', 120]] }))
+    const other = await render(
+      <BuildListView solution={solution} extraction={null} planHash={retargeted} />,
+    )
+    expect(rows(other)[0]!.textContent).toContain('建てた 0 / 3')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 完了の波紋（design-spells 型 D2）
+// ---------------------------------------------------------------------------
+
+const ripples = (container: HTMLElement): HTMLElement[] => [
+  ...container.querySelectorAll<HTMLElement>('.build-item__ripple'),
+]
+
+describe('完了の波紋', () => {
+  it('完了した瞬間だけ1つ出て、外すと消える', async () => {
+    installMemoryLocalStorage()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-ripple" />,
+    )
+    const row = () => rows(container)[0]!
+
+    expect(ripples(container)).toHaveLength(0)
+
+    await click(checkbox(row()))
+    expect(ripples(container)).toHaveLength(1)
+
+    // 外す操作には動きを付けない
+    await click(checkbox(row()))
+    expect(ripples(container)).toHaveLength(0)
+  })
+
+  it('カウンターで全数に達したときにも出る', async () => {
+    installMemoryLocalStorage()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-ripple-counter" />,
+    )
+    const row = () => rows(container)[0]!
+
+    await click(counterButtons(row())[1]!)
+    await click(counterButtons(row())[1]!)
+    // まだ 2 / 3 なので出ない
+    expect(ripples(container)).toHaveLength(0)
+
+    await click(counterButtons(row())[1]!)
+    expect(ripples(container)).toHaveLength(1)
+  })
+
+  it('連打しても重ならず、最新の1つを描き直す', async () => {
+    installMemoryLocalStorage()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-ripple-rapid" />,
+    )
+    const row = () => rows(container)[0]!
+
+    await click(checkbox(row()))
+    const first = ripples(container)[0]
+    await click(checkbox(row()))
+    await click(checkbox(row()))
+
+    const after = ripples(container)
+    expect(after).toHaveLength(1)
+    // 別の要素になっている＝前の波紋を残さず最初から描き直している
+    expect(after[0]).not.toBe(first)
+  })
+
+  it('動きを減らす設定では波紋を描かない', async () => {
+    installMemoryLocalStorage()
+    stubReducedMotion()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-ripple-reduced" />,
+    )
+
+    await click(checkbox(rows(container)[0]!))
+    expect(ripples(container)).toHaveLength(0)
+    // 消し込み自体は普通に効く
+    expect(rows(container)[0]!.textContent).toContain('建てた 3 / 3')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 画面をスリープさせない（Screen Wake Lock API）
+// ---------------------------------------------------------------------------
+
+const wakeToggle = (container: HTMLElement): HTMLInputElement | null =>
+  container.querySelector<HTMLInputElement>('.build-wake input[type="checkbox"]')
+
+describe('画面スリープ抑止', () => {
+  it('対応していないブラウザではトグルを出さない', async () => {
+    installMemoryLocalStorage()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-nowake" />,
+    )
+
+    expect(wakeToggle(container)).toBeNull()
+    expect(container.textContent).not.toContain('画面をスリープさせない')
+  })
+
+  it('オンで取得し、オフで解放する', async () => {
+    installMemoryLocalStorage()
+    const wakeLock = installWakeLock()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-wake" />,
+    )
+    const toggle = wakeToggle(container)!
+
+    expect(container.textContent).toContain('画面をスリープさせない')
+    expect(toggle.checked).toBe(false)
+
+    await click(toggle)
+    expect(wakeLock.request).toHaveBeenCalledTimes(1)
+    expect(wakeLock.request).toHaveBeenCalledWith('screen')
+    expect(wakeToggle(container)!.checked).toBe(true)
+    expect(wakeLock.sentinels[0]!.released).toBe(false)
+
+    await click(wakeToggle(container)!)
+    expect(wakeToggle(container)!.checked).toBe(false)
+    expect(wakeLock.sentinels[0]!.released).toBe(true)
+  })
+
+  it('OSに外されても、表に戻ったら取り直す', async () => {
+    installMemoryLocalStorage()
+    const wakeLock = installWakeLock()
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-wake-visible" />,
+    )
+    await click(wakeToggle(container)!)
+    expect(wakeLock.request).toHaveBeenCalledTimes(1)
+
+    // タブを隠すと OS 側でロックが外れる
+    await act(async () => {
+      wakeLock.sentinels[0]!.emitRelease()
+    })
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    expect(wakeLock.request).toHaveBeenCalledTimes(2)
+    expect(wakeLock.sentinels).toHaveLength(2)
+    expect(wakeToggle(container)!.checked).toBe(true)
+  })
+
+  it('タブを離れる（アンマウント）と解放する', async () => {
+    installMemoryLocalStorage()
+    const wakeLock = installWakeLock()
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    await act(async () => {
+      root.render(
+        <BuildListView solution={solution} extraction={null} planHash="plan-wake-unmount" />,
+      )
+    })
+    await click(wakeToggle(container)!)
+    expect(wakeLock.sentinels[0]!.released).toBe(false)
+
+    await act(async () => {
+      root.unmount()
+    })
+    expect(wakeLock.sentinels[0]!.released).toBe(true)
+  })
+
+  it('要求が拒否されたらトグルはオフに戻る（落ちない）', async () => {
+    installMemoryLocalStorage()
+    const wakeLock = installWakeLock('reject')
+    const container = await render(
+      <BuildListView solution={solution} extraction={null} planHash="plan-wake-reject" />,
+    )
+
+    await click(wakeToggle(container)!)
+    expect(wakeLock.request).toHaveBeenCalledTimes(1)
+    expect(wakeToggle(container)!.checked).toBe(false)
+    // 画面は生きていて消し込みも続けられる
+    await click(checkbox(rows(container)[0]!))
+    expect(overallText(container)).toContain('3 / 7')
   })
 })

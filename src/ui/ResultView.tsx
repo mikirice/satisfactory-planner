@@ -1,10 +1,9 @@
 /** 結果表示（タブ切り替え）。 */
 import { Suspense, lazy, useMemo, useState } from 'react'
 
-import { planHash } from '../plan/build-progress.ts'
+import { planProgressHash } from '../plan/build-progress.ts'
 import { currentSnapshot } from '../plan/persist.ts'
 import { SAMPLE_PLANS } from '../plan/samples.ts'
-import { encodePlan } from '../plan/serialize.ts'
 import type { PlanSnapshot } from '../plan/serialize.ts'
 import { usePlanner } from '../store/planner.ts'
 import { AdSlot } from './AdSlot.tsx'
@@ -42,13 +41,14 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
   /**
    * 建設進捗の保存キー。入力（＝共有URLと同じスナップショット）から決まるので、
    * 同じ計画を開き直せば進捗が戻り、計画を変えればまっさらになる。
+   * プラン名やベルトの表示等級だけを変えたときはキーが変わらない（build-progress.ts）。
    *
-   * 圧縮（lz-string）は入力が変わったときだけ走らせる。store は解の更新でも通知が来るので、
-   * 監視は軽い JSON 文字列で行い、そこからハッシュを作り直す（persist.ts の自動保存と同じ作り）。
+   * store は解の更新でも通知が来るので、監視は軽い JSON 文字列で行い、
+   * そこからハッシュを作り直す（persist.ts の自動保存と同じ作り）。
    */
   const planJson = usePlanner((state) => JSON.stringify(currentSnapshot(state)))
   const buildPlanHash = useMemo(
-    () => planHash(encodePlan(JSON.parse(planJson) as PlanSnapshot)),
+    () => planProgressHash(JSON.parse(planJson) as PlanSnapshot),
     [planJson],
   )
 
@@ -87,6 +87,18 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
     <>
       {loadedTemplate !== undefined && (
         <LoopGuidePanel key={loadedTemplate.id} sample={loadedTemplate} solution={result} />
+      )}
+      {/*
+        テンプレートを読み込んだ直後だけ出す「そのまま建てに行く」導線（計画書 §8 Phase 2）。
+        入力を1つでも触ると loadedTemplateId は null に戻るので、案内は最初の一歩にだけ出る。
+      */}
+      {loadedTemplateId !== null && tab !== 'build' && (
+        <div className="build-cta">
+          <button type="button" className="button build-cta__button" onClick={() => setTab('build')}>
+            {T.buildList.openFromTemplate}
+          </button>
+          <span className="hint">{T.buildList.openFromTemplateHint}</span>
+        </div>
       )}
       <div className="tabs" role="tablist">
         {TABS.map((id) => (

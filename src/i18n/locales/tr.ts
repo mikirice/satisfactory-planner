@@ -308,6 +308,11 @@ export const tr = {
     reset: 'İlerlemeyi sıfırla',
     resetConfirm: 'Bu planın tüm yapım ilerlemesi silinecek. Devam edilsin mi?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Ekranı açık tut',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Yapım listesiyle kur',
+    openFromTemplateHint: 'Bu kurulumu, yapım sırası ve makine sayısı içeren bir listeye dönüştürür.',
   },
 
   loopGuide: {

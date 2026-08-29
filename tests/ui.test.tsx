@@ -981,6 +981,64 @@ describe('結果テーブル', () => {
     }
   })
 
+  /**
+   * テンプレートを読み込んだ直後は「そのまま建てに行く」導線を出す（計画書 §8 Phase 2）。
+   * 入力を触ると loadedTemplateId が null に戻るので、案内も同時に消える。
+   */
+  it('テンプレートを読み込んだ直後は「建設リストで建てる」から1タップで建設タブへ行ける', async () => {
+    const previous = usePlanner.getState()
+    usePlanner.setState({
+      status: 'done',
+      result: solution,
+      extraction: planExtraction(solution),
+      loadedTemplateId: 'iron-plate',
+    })
+    try {
+      const container = await render(<ResultView />)
+      const cta = container.querySelector<HTMLButtonElement>('.build-cta__button')
+
+      expect(cta?.textContent).toBe('建設リストで建てる')
+      expect(container.querySelector('.build-item')).toBeNull()
+
+      await act(async () => {
+        cta!.click()
+      })
+
+      expect(container.querySelectorAll('.build-item').length).toBeGreaterThan(0)
+      expect(container.textContent).toContain('全体の進捗')
+      // 建設タブにいる間は同じ案内を重ねて出さない
+      expect(container.querySelector('.build-cta')).toBeNull()
+    } finally {
+      usePlanner.setState({
+        status: previous.status,
+        result: previous.result,
+        extraction: previous.extraction,
+        loadedTemplateId: previous.loadedTemplateId,
+      })
+    }
+  })
+
+  it('テンプレート由来でなければ建設リストへの案内は出さない', async () => {
+    const previous = usePlanner.getState()
+    usePlanner.setState({
+      status: 'done',
+      result: solution,
+      extraction: planExtraction(solution),
+      loadedTemplateId: null,
+    })
+    try {
+      const container = await render(<ResultView />)
+      expect(container.querySelector('.build-cta')).toBeNull()
+    } finally {
+      usePlanner.setState({
+        status: previous.status,
+        result: previous.result,
+        extraction: previous.extraction,
+        loadedTemplateId: previous.loadedTemplateId,
+      })
+    }
+  })
+
   it('最大化した目標はサマリーで達成レートが分かる', async () => {
     const container = await render(<SummaryPanel solution={maximized} extraction={null} />)
     const text = container.textContent ?? ''

@@ -14,6 +14,7 @@ import type { HandwrittenArticle } from '../types.ts'
 import { aluminumProductionGuideArticleEn } from './aluminum-production-guide.ts'
 import { alternateRecipeMetricsArticleEn } from './alternate-recipe-metrics.ts'
 import { awesomeSinkPointsArticleEn } from './awesome-sink-points.ts'
+import { buildChecklistGuideArticleEn } from './build-checklist-guide.ts'
 import { clockAndEfficiencyArticleEn } from './clock-and-efficiency.ts'
 import { coalPowerStartupArticleEn } from './coal-power-startup.ts'
 import { excelExportGuideArticleEn } from './excel-export-guide.ts'
@@ -33,6 +34,7 @@ export const handwrittenArticlesEn = [
   aluminumProductionGuideArticleEn,
   awesomeSinkPointsArticleEn,
   clockAndEfficiencyArticleEn,
+  buildChecklistGuideArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(

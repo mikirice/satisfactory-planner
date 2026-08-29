@@ -307,6 +307,11 @@ export const ptBR = {
     reset: 'Zerar progresso',
     resetConfirm: 'Isso apaga todo o progresso de construção deste plano. Continuar?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Manter a tela ligada',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Construir pela lista',
+    openFromTemplateHint: 'Transforma esta configuração em uma lista com a ordem de construção e a quantidade de máquinas.',
   },
 
   loopGuide: {

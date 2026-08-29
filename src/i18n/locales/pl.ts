@@ -307,6 +307,11 @@ export const pl = {
     reset: 'Wyzeruj postęp',
     resetConfirm: 'Cały postęp budowy tego planu zostanie usunięty. Kontynuować?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Nie wygaszaj ekranu',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Buduj z listy budowy',
+    openFromTemplateHint: 'Zamienia ten układ w listę z kolejnością budowy i liczbą maszyn.',
   },
 
   loopGuide: {

@@ -310,6 +310,11 @@ export const de = {
     reset: 'Fortschritt zurücksetzen',
     resetConfirm: 'Damit wird der gesamte Baufortschritt dieses Plans gelöscht. Fortfahren?',
     metaSeparator: ' · ',
+    /** Only shown where the Screen Wake Lock API exists (phone next to the game) */
+    wakeLock: 'Bildschirm wach halten',
+    /** Shortcut shown right after a template is loaded */
+    openFromTemplate: 'Mit der Bauliste bauen',
+    openFromTemplateHint: 'Macht aus diesem Aufbau eine Checkliste mit Baureihenfolge und Maschinenzahl.',
   },
 
   loopGuide: {
