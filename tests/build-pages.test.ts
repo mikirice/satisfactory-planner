@@ -28,6 +28,8 @@ import {
   sitemapPaths,
 } from '../scripts/build-pages.ts'
 import type { StaticPagesManifest } from '../scripts/build-pages.ts'
+import { faqEntries } from '../scripts/static-pages/faq.ts'
+import { escapeHtml } from '../scripts/static-pages/templates.ts'
 
 /**
  * `as const satisfies` で絞られたリテラル型のままだと、任意プロパティ
@@ -1008,6 +1010,39 @@ describe('英語ランディング（/en/）', () => {
         item: 'https://satisfactory-planner.net/en/',
       },
     ])
+  })
+
+  /**
+   * FAQ は本文と FAQPage を同じ定義（scripts/static-pages/faq.ts）から作る。
+   * ここでは生成後のファイルで「見える質問」と「構造化データの質問」が一致することを見る。
+   */
+  it('FAQ を本文に出し、同じ内容の FAQPage を WebApplication と別ブロックで持つ', async () => {
+    const html = await readFile(join(outputDirectory, 'en/index.html'), 'utf8')
+    const entries = faqEntries('en')
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+      .map((match) => JSON.parse(match[1]!.replaceAll('\\u003c', '<')) as Record<string, unknown>)
+    const faq = blocks.find((block) => block['@type'] === 'FAQPage')
+
+    // 既存の @graph（WebApplication / BreadcrumbList）は残す
+    expect(blocks.some((block) => Array.isArray(block['@graph']))).toBe(true)
+    expect(faq).toBeDefined()
+    expect(faq!['@id']).toBe('https://satisfactory-planner.net/en/#faq')
+
+    const questions = faq!.mainEntity as { name: string; acceptedAnswer: { text: string } }[]
+    // 構造化データ → 本文
+    for (const question of questions) {
+      expect(html).toContain(`<h3>${escapeHtml(question.name)}</h3>`)
+      expect(html).toContain(`<p>${escapeHtml(question.acceptedAnswer.text)}</p>`)
+    }
+    // 本文 → 構造化データ（FAQ ブロックの中の h3 だけを見る）
+    const block = html.match(/<div class="faq">([\s\S]*?)<\/div>/)
+    expect(block, 'FAQ の本文が見つかりません').not.toBeNull()
+    const visible = [...block![1]!.matchAll(/<h3>([\s\S]*?)<\/h3>/g)].map((match) => match[1]!)
+    expect(visible).toEqual(entries.map((entry) => escapeHtml(entry.question)))
+    expect(questions.map((question) => question.name)).toEqual(
+      entries.map((entry) => entry.question),
+    )
+    expect(JAPANESE_CHARACTER.test(mainSection(html))).toBe(false)
   })
 
   it('sitemap とファイルの両方に載る', async () => {

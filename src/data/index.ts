@@ -2,13 +2,13 @@
  * 正規化データのエントリポイント。
  * JSON は scripts/build-data.ts の生成物（`npm run build-data` で再生成）。
  */
-import itemsJson from './items.json'
-import recipesJson from './recipes.json'
-import buildingsJson from './buildings.json'
-import extractorsJson from './extractors.json'
-import generatorsJson from './generators.json'
-import logisticsJson from './logistics.json'
-import metaJson from './meta.json'
+import itemsJson from './items.json' with { type: 'json' }
+import recipesJson from './recipes.json' with { type: 'json' }
+import buildingsJson from './buildings.json' with { type: 'json' }
+import extractorsJson from './extractors.json' with { type: 'json' }
+import generatorsJson from './generators.json' with { type: 'json' }
+import logisticsJson from './logistics.json' with { type: 'json' }
+import metaJson from './meta.json' with { type: 'json' }
 
 import type {
   Belt,

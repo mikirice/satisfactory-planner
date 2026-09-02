@@ -48,6 +48,7 @@ import {
 } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
 import type { ObjectiveWeights, Solution, SolveResult } from '../src/solver/index.ts'
+import { faqPageSchema, renderFaqHtml } from './static-pages/faq.ts'
 import {
   EN_LANDING,
   STATIC_LOCALES,
@@ -725,6 +726,9 @@ export function renderEnLandingPage(ctx: Ctx): string {
       <h2>${escapeHtml(EN_LANDING.dataHeading)}</h2>
       ${EN_LANDING.dataParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
     </section>
+    <section aria-labelledby="faq-heading">
+      ${renderFaqHtml('en')}
+    </section>
     <section>
       <h2>${escapeHtml(EN_LANDING.linksHeading)}</h2>
       <ul class="link-list">
@@ -743,6 +747,8 @@ export function renderEnLandingPage(ctx: Ctx): string {
       // SPA のトップが日本語側の対になる（/ は日本語の静的説明を持つ同じツール）。
       alternates: { ja: '/', en: path },
       structuredData,
+      // FAQPage は @graph とは別ブロックで出す（本文の Q&A と同じ定義から作る）。
+      extraStructuredData: [faqPageSchema('en', `${SITE_URL}${path}`)],
     },
     body,
   )
