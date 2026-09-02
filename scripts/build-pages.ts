@@ -48,7 +48,12 @@ import {
 } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
 import type { ObjectiveWeights, Solution, SolveResult } from '../src/solver/index.ts'
-import { STATIC_LOCALES, STATIC_PAGE_LABELS, UI_DICTIONARIES } from './static-pages/labels.ts'
+import {
+  EN_LANDING,
+  STATIC_LOCALES,
+  STATIC_PAGE_LABELS,
+  UI_DICTIONARIES,
+} from './static-pages/labels.ts'
 import type { StaticLocale, StaticPageLabels } from './static-pages/labels.ts'
 import {
   escapeHtml,
@@ -199,8 +204,12 @@ function createContext(locale: StaticLocale): Ctx {
 // 名前・単位・リンク
 // ---------------------------------------------------------------------------
 
+/**
+ * <title>。サイト名は titleSiteName を使う（日本語はカタカナ表記＝検索の実需要に合わせる。
+ * labels.ts の titleSiteName 参照）。ヘッダーのブランドや og:site_name は siteName のまま。
+ */
 function pageTitle(ctx: Ctx, headline: string): string {
-  return `${headline} | ${ctx.site}`
+  return `${headline} | ${ctx.L.titleSiteName}`
 }
 
 function amountUnit(ctx: Ctx, itemId: string): string {
@@ -655,6 +664,91 @@ function renderItemIndex(ctx: Ctx): string {
 }
 
 // ---------------------------------------------------------------------------
+// 英語ランディング（/en/）
+// ---------------------------------------------------------------------------
+
+/**
+ * 英語のトップページ。トップ（/）は SPA ＋日本語の静的説明しか持たないため、
+ * 英語圏のクローラからは「日本語のページ」に見え、ツール本体が英語検索で拾われない。
+ * ここはミラーではなく**ツール本体の英語の玄関**で、/ の SPA へ送り出すのが仕事。
+ *
+ * hreflang は index.html と相互に指し合う（ja → /、en → /en/、x-default → /）。
+ */
+export const EN_LANDING_PATH = '/en/'
+
+export function renderEnLandingPage(ctx: Ctx): string {
+  const path = EN_LANDING_PATH
+  const breadcrumbId = `${path}#breadcrumb`
+  const links: readonly (readonly [string, string])[] = [
+    [itemsIndexPath('en'), EN_LANDING.itemsLinkLabel],
+    [articlesIndexPath('en'), EN_LANDING.articlesLinkLabel],
+    [aboutPagePath('en'), EN_LANDING.aboutLinkLabel],
+    [privacyPagePath('en'), EN_LANDING.privacyLinkLabel],
+  ]
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      breadcrumbSchema([{ name: ctx.L.home, path }], breadcrumbId),
+      {
+        '@type': 'WebApplication',
+        '@id': `${SITE_URL}/#webapp`,
+        name: ctx.site,
+        url: SITE_URL,
+        description: EN_LANDING.description,
+        applicationCategory: 'UtilitiesApplication',
+        operatingSystem: 'Web browser',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        inLanguage: 'en',
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
+      },
+    ],
+  }
+
+  const body = `<header class="hero">
+    <p class="eyebrow">${escapeHtml(EN_LANDING.eyebrow)}</p>
+    <h1>${escapeHtml(EN_LANDING.heading)}</h1>
+    <p class="lead">${escapeHtml(EN_LANDING.lead)}</p>
+    <a class="cta" href="/">${escapeHtml(EN_LANDING.ctaLabel)}</a>
+    <p class="version">${escapeHtml(EN_LANDING.ctaNote)}</p>
+  </header>
+  <article class="article-body">
+    <section>
+      <h2>${escapeHtml(EN_LANDING.overviewHeading)}</h2>
+      ${EN_LANDING.overviewParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+    </section>
+    <section>
+      <h2>${escapeHtml(EN_LANDING.featuresHeading)}</h2>
+      <ul>${EN_LANDING.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>
+    </section>
+    <section>
+      <h2>${escapeHtml(EN_LANDING.dataHeading)}</h2>
+      ${EN_LANDING.dataParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+    </section>
+    <section>
+      <h2>${escapeHtml(EN_LANDING.linksHeading)}</h2>
+      <ul class="link-list">
+        ${links.map(([href, label]) => `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a></li>`).join('')}
+      </ul>
+    </section>
+    <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
+  </article>`
+
+  return renderDocument(
+    {
+      locale: 'en',
+      title: EN_LANDING.title,
+      description: EN_LANDING.description,
+      canonicalPath: path,
+      // SPA のトップが日本語側の対になる（/ は日本語の静的説明を持つ同じツール）。
+      alternates: { ja: '/', en: path },
+      structuredData,
+    },
+    body,
+  )
+}
+
+// ---------------------------------------------------------------------------
 // このサイトについて
 // ---------------------------------------------------------------------------
 
@@ -760,6 +854,41 @@ export function renderAboutPage(ctx: Ctx): string {
 // 記事
 // ---------------------------------------------------------------------------
 
+/**
+ * HowTo を出す記事の slug。
+ *
+ * 「順番に実行すると1つの結果に至る」記事だけに限る（構造化データは本文の主張と
+ * 一致していないと嘘になる。解説・比較・リファレンス的な記事は Article のままにする）。
+ * ステップは記事の section 見出しと第1段落からそのまま作り、ここで書き起こさない。
+ */
+const HOW_TO_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
+  // 目標入力 → 結果タブを読む → 条件を調整 → 発電・保存へ、の順に実行するチュートリアル
+  'production-planning-tutorial',
+  // 発電機1台の消費 → 8台ブロック → 採掘・給水設備 → 燃料選択 → ツールで計算、の順に組む
+  'coal-power-startup',
+])
+
+/**
+ * 記事の section をそのまま HowToStep に写す。name は見出し、text は第1段落。
+ * 本文にない文言は足さない（足すと構造化データとページの内容がずれる）。
+ */
+function howToSchema(ctx: Ctx, path: string, article: HandwrittenArticle): object {
+  return {
+    '@type': 'HowTo',
+    '@id': `${SITE_URL}${path}#howto`,
+    name: article.title,
+    description: article.description,
+    inLanguage: ctx.locale,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
+    step: article.sections.map((section, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: section.heading,
+      text: section.paragraphs[0] ?? section.heading,
+    })),
+  }
+}
+
 function articleSchema(
   ctx: Ctx,
   path: string,
@@ -767,6 +896,7 @@ function articleSchema(
   description: string,
   breadcrumbId: string,
   publishedDate: string = PUBLISHED_DATE,
+  extraNodes: readonly object[] = [],
 ): object {
   return {
     '@context': 'https://schema.org',
@@ -792,6 +922,7 @@ function articleSchema(
         author: { '@type': 'Organization', name: ctx.site, url: SITE_URL },
         publisher: { '@type': 'Organization', name: ctx.site, url: SITE_URL },
       },
+      ...extraNodes,
     ],
   }
 }
@@ -910,6 +1041,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
         article.description,
         breadcrumbId,
         publishedDate,
+        HOW_TO_ARTICLE_SLUGS.has(article.slug) ? [howToSchema(ctx, path, article)] : [],
       ),
     },
     body,
@@ -1300,13 +1432,14 @@ function renderArticlesIndex(ctx: Ctx): string {
 
 /**
  * sitemap のパス。日本語（トップを含む）→ 英語ミラーの順。
- * SPA のトップは1URLで言語が切り替わるので en 側には作らない。
+ * SPA のトップ（/）は1URLで言語が切り替わるが、クローラには日本語の静的説明しか
+ * 見えないので、英語側は静的なランディング（/en/）を別URLとして載せる。
  * プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
  * を置いているので、両方を載せる。URLは拡張子なし（Cloudflare Pages が 308 で正規化）。
  */
 export function localeSitemapPaths(locale: StaticLocale): readonly string[] {
   return [
-    ...(locale === 'ja' ? ['/'] : []),
+    ...(locale === 'ja' ? ['/'] : [EN_LANDING_PATH]),
     privacyPagePath(locale),
     aboutPagePath(locale),
     itemsIndexPath(locale),
@@ -1356,6 +1489,10 @@ export async function generateStaticPages(outputDirectory: string): Promise<Stat
     const ctx = createContext(locale)
     const directory = localeDirectory(output, locale)
     await Promise.all([
+      // 英語だけ、ツール本体の入口になる静的ランディングを /en/ に出す（日本語は SPA の / が入口）。
+      ...(locale === 'en'
+        ? [writeHtml(resolve(directory, 'index.html'), renderEnLandingPage(ctx))]
+        : []),
       writeHtml(resolve(directory, 'about/index.html'), renderAboutPage(ctx)),
       writeHtml(resolve(directory, 'items/index.html'), renderItemIndex(ctx)),
       ...items.map((item) =>

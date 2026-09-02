@@ -44,6 +44,19 @@ export const FLAG: Readonly<Record<StaticLocale, string>> = {
 
 const jaLabels = {
   siteName: 'Satisfactory 生産計画ツール',
+  /**
+   * <title> の末尾に付けるサイト名。
+   *
+   * 日本語話者はゲーム名をカタカナで検索する（Search Console 実測: 「サティスファクトリー
+   * ガスフィルター」は CTR 25%、同順位のラテン表記クエリは 0 クリック）。ページ内の
+   * どこにもカタカナが無いと、この需要をまるごと取り逃がす。
+   *
+   * そこで **<title> のサイト名だけ**カタカナにする。ラテン表記の "Satisfactory" は
+   * og:site_name・構造化データ・ヘッダーのブランド（siteName）と、アイテムページの
+   * eyebrow に残るので、両方の綴りでページが引ける。
+   * 1ページに1回だけ出す（見出しや description には足さない＝キーワード詰め込みにしない）。
+   */
+  titleSiteName: 'サティスファクトリー生産計画ツール',
 
   // --- レイアウト（templates.ts） ---
   skipToContent: '本文へ移動',
@@ -272,6 +285,8 @@ export type StaticPageLabels = typeof jaLabels
 
 const enLabels: StaticPageLabels = {
   siteName: 'Satisfactory Production Planner',
+  // 英語はゲーム名の別綴りが無いので、<title> のサイト名も siteName と同じにする。
+  titleSiteName: 'Satisfactory Production Planner',
 
   skipToContent: 'Skip to main content',
   breadcrumbNavLabel: 'Breadcrumb',
@@ -481,3 +496,58 @@ export const STATIC_PAGE_LABELS: Readonly<Record<StaticLocale, StaticPageLabels>
   ja: jaLabels,
   en: enLabels,
 }
+
+/**
+ * 英語のランディングページ（/en/）専用の文。
+ *
+ * トップ（/）は SPA ＋日本語の静的説明なので、クローラからは「日本語のページ」に見え、
+ * 英語圏の検索では /en/items/… と /en/articles/… しか拾われない。ツール本体の
+ * 入口として英語で読める静的ページを1枚だけ用意する（ミラーではなく英語の玄関）。
+ *
+ * ここは英語にしか出ない文なので StaticPageLabels（日英で同じ形）には入れず、
+ * 独立した定数として持つ。文言はゲーム内公式名と /en/about/ の説明に揃える。
+ */
+export const EN_LANDING = {
+  /** サイト名を後置しない（見出し自体がサイト名を含むため）。 */
+  title: 'Satisfactory Production Planner — Solver, Flow Chart and Excel Export',
+  description:
+    'Free unofficial planner for Satisfactory factories. Enter a target rate per minute and a linear programming solver returns the recipes, machine counts, power draw and raw resources, with a flow chart, a build list and an Excel export. Runs in the browser, nothing to install.',
+  eyebrow: 'Satisfactory production planner',
+  heading: 'Satisfactory Production Planner',
+  lead: 'Say what you want to produce and how much of it per minute. A linear programming solver works out the recipes, the number of machines, the power draw and the raw resources the line needs — in the browser, with nothing to install and no account to create.',
+  ctaLabel: 'Open the planner',
+  /** CTA のすぐ下。英語ブラウザでは自動で英語UIになることを1行で伝える。 */
+  ctaNote:
+    'The planner opens in English when your browser is set to English, and twelve interface languages are available from the switcher in the app.',
+
+  overviewHeading: 'What the planner does',
+  overviewParagraphs: [
+    'The planner solves a whole production line in one pass instead of walking recipe by recipe. Give it a target — 60 Iron Plate per minute, a fixed amount of power from Fuel generators, or as much of an item as your resource limits allow — and it returns the recipes to run, how many machines of each, the clock speeds, the power draw, and the ore and fluids the line consumes at the map end.',
+    'It is meant for the point where a factory stops fitting in your head: when an alternate recipe changes the whole ingredient mix, when a byproduct has to go somewhere before it backs up a pipe, or when you want to know whether the nodes you have secured can really feed the build you are drawing. Everything is recalculated the moment you change a target, so it is quick to try the version you were not sure about.',
+  ],
+
+  featuresHeading: 'What it gives you',
+  features: [
+    'Optimal recipe selection with a linear programming solver, weighted toward raw resources, power or building count',
+    'A flow chart of the whole line, from raw resources through to the finished item',
+    'Excel export with the summary, building list, item balance, resources, construction cost and logistics on separate sheets',
+    'Power planning that solves generators, fuels and byproducts together with production',
+    'Loop templates such as complete oil recycling and byproduct water reuse',
+    'A build list in build order, with machine counts per step and the belt or pipe tier each flow needs',
+    'A recipe reference for every item: how it is made, what uses it, rates per minute and output per MW',
+    'Twelve interface languages',
+  ],
+
+  dataHeading: 'Where the numbers come from',
+  dataParagraphs: [
+    'Recipes, buildings, power figures and sink points are taken from the official game data (version 1.1.x), and item and recipe names use the official in-game English names, so the wording matches what you see on screen.',
+    'Your plans stay with you: they are solved in your browser and saved there, never uploaded. A finished plan can be packed into a share URL, which reopens the same conditions on another device or for someone else.',
+  ],
+
+  linksHeading: 'More on this site',
+  /** 2次リンク。パスは item-pages.ts の関数から作り、ここには文言だけ置く。 */
+  itemsLinkLabel: 'Item list — recipes, uses and rates for every item',
+  articlesLinkLabel: 'Guides — planning, power, loops and the Excel export',
+  aboutLinkLabel: 'About this site — who runs it, data sources and disclaimer',
+  privacyLinkLabel: 'Privacy policy',
+} as const
