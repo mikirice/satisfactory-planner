@@ -230,6 +230,23 @@ let keySeq = 0
 const nextKey = (): string => `t${++keySeq}`
 
 /**
+ * 進行中の再計算を捨てる（デバウンス待ちのタイマーと、解が返る途中の求解の両方）。
+ *
+ * アプリ本体は入力が変わるたびに解き直せばよいので呼ばない。ストアを直接書き換えてから
+ * 描画するテストのための後片付け用で、これを呼ばずに `setState` で入力だけ戻すと、
+ * 前のテストが仕掛けたタイマーや求解が**次のテストの最中に**着地して
+ * `result` を null に戻してしまう（tests/ui.test.tsx の afterEach が呼ぶ）。
+ */
+export function cancelPendingSolve(): void {
+  if (debounceTimer !== undefined) {
+    clearTimeout(debounceTimer)
+    debounceTimer = undefined
+  }
+  // 実行IDを進めると、解が返っても recompute 側の `id !== runId` で捨てられる。
+  runId += 1
+}
+
+/**
  * 復元した目標産出を1アイテム1行に正規化する。
  * UI からは重複を作れないが、共有URL・保存プランには古いデータや手書きの
  * データが入りうる。後勝ちで捨てるとレートを取りこぼすので合算してまとめる。

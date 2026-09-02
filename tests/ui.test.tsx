@@ -18,7 +18,7 @@ import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import { buildingsById } from '../src/data/index.ts'
 import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
 import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
-import { usePlanner } from '../src/store/planner.ts'
+import { cancelPendingSolve, usePlanner } from '../src/store/planner.ts'
 import { BalanceTable } from '../src/ui/BalanceTable.tsx'
 import { InfeasiblePanel } from '../src/ui/InfeasiblePanel.tsx'
 import { NumberField } from '../src/ui/NumberField.tsx'
@@ -70,6 +70,28 @@ async function pressKey(
   return event
 }
 
+/**
+ * 期待する要素が現れるまで待つ（既定1秒）。描画が1回で落ち着かない場合に
+ * 空振りで読み取らないための保険で、時間切れは黙って通さず失敗させる。
+ */
+async function waitFor<T>(
+  find: () => T | null | undefined,
+  label: string,
+  timeoutMs = 1000,
+): Promise<T> {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    const found = find()
+    if (found !== null && found !== undefined) return found
+    if (Date.now() >= deadline) {
+      throw new Error(`${label} が ${timeoutMs}ms 以内に現れませんでした`)
+    }
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    })
+  }
+}
+
 afterEach(async () => {
   await act(async () => {
     for (const m of mounted.splice(0)) m.unmount()
@@ -77,6 +99,10 @@ afterEach(async () => {
   document.body.innerHTML = ''
   setPlanStorage(null)
   history.replaceState(null, '', '/') // 共有URLのハッシュを次のテストに持ち越さない
+  // 仕掛かりの求解を捨てる。デバウンス待ちのタイマーと、解の返る途中の求解は
+  // モジュール変数なのでテストをまたいで生き残り、着地した先のテストの result を
+  // 上書きしてしまう（下の setState だけでは止まらない）。
+  cancelPendingSolve()
   // 復元テストの入力を次のテストに残さない（残すと裏で求解が走る）
   usePlanner.setState({
     targets: [],
@@ -709,6 +735,9 @@ describe('空状態のサンプル', () => {
     )!
     await act(async () => {
       load.click()
+      // 読み込み直後の状態を見るテストなので、200ms 後の再計算は待たずに捨てる。
+      // jsdom ではソルバー（Web Worker）が動かず、着地すると status が error に変わる。
+      cancelPendingSolve()
     })
 
     const state = usePlanner.getState()
@@ -735,6 +764,9 @@ describe('空状態のサンプル', () => {
     )!
     await act(async () => {
       load.click()
+      // 解はこの場で固定して見るので、裏の再計算（jsdom では解けない）は捨てる。
+      // 残すと 200ms 後に result が null に戻り、解説パネルごと消えることがある。
+      cancelPendingSolve()
       usePlanner.setState({ status: 'done', result: solution, extraction: null })
     })
 
@@ -957,12 +989,17 @@ describe('結果テーブル', () => {
     usePlanner.setState({ status: 'done', result: solution, extraction: planExtraction(solution) })
     try {
       const container = await render(<ResultView />)
-      const tab = [...container.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find(
-        (button) => button.textContent === '建設リスト',
-      )!
+      const tab = await waitFor(
+        () =>
+          [...container.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find(
+            (button) => button.textContent === '建設リスト',
+          ),
+        '建設リストタブ',
+      )
       await act(async () => {
         tab.click()
       })
+      await waitFor(() => container.querySelector('.build-item'), '建設リストの明細')
 
       const text = container.textContent ?? ''
       expect(text).toContain('原料の採掘・給水')

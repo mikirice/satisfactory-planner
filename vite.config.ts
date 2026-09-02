@@ -4,6 +4,9 @@ import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
+import { injectFaqIntoIndexHtml } from './scripts/static-pages/faq.ts'
+import { SITE_URL } from './scripts/static-pages/templates.ts'
+
 const HERE = fileURLToPath(new URL('.', import.meta.url))
 
 /**
@@ -32,9 +35,25 @@ function iconManifestCheck(): Plugin {
   }
 }
 
+/**
+ * トップの index.html に FAQ（本文＋FAQPage）を差し込む。
+ *
+ * トップは静的ページ生成（scripts/build-pages.ts）の対象外なので、ここで差し込む。
+ * dev でも build でも同じ関数を通すため、表示と構造化データがズレることはない。
+ */
+function faqSection(): Plugin {
+  return {
+    name: 'faq-section',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: (html) => injectFaqIntoIndexHtml(html, SITE_URL),
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), iconManifestCheck()],
+  plugins: [react(), iconManifestCheck(), faqSection()],
   build: {
     // exceljs(≈940kB) / elkjs(≈1.4MB) は重いが、どちらも遅延 import で
     // 初期表示には載らない（Excelダウンロード時・フローチャートを開いたとき）。

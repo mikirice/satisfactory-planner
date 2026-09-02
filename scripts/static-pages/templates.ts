@@ -42,6 +42,11 @@ export type StaticPageMeta = {
   ogType?: 'website' | 'article'
   publishedTime?: string
   structuredData?: unknown
+  /**
+   * structuredData とは別の <script> で出す構造化データ。
+   * FAQPage のように、ページ本体を表す @graph とは独立に置きたいものに使う。
+   */
+  extraStructuredData?: readonly unknown[]
 }
 
 export function escapeHtml(value: string): string {
@@ -118,8 +123,12 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
   const articleMeta = meta.publishedTime
     ? `<meta property="article:published_time" content="${escapeHtml(meta.publishedTime)}" />`
     : ''
-  const structuredData =
-    meta.structuredData === undefined ? '' : jsonLdScript(meta.structuredData)
+  const structuredData = [
+    ...(meta.structuredData === undefined ? [] : [meta.structuredData]),
+    ...(meta.extraStructuredData ?? []),
+  ]
+    .map(jsonLdScript)
+    .join('\n    ')
 
   return `<!doctype html>
 <html lang="${HTML_LANG[locale]}">
@@ -405,6 +414,10 @@ p { margin: 0 0 14px; }
 .article-body h2:first-child { margin-top: 0; }
 .article-body p { line-height: 1.9; }
 .article-body li { margin-bottom: 8px; }
+/* FAQ。質問(h3)と回答(p)が交互に続くので、質問の上だけ間を空ける（他の体裁は既存のまま）。 */
+.faq h3 { margin: 26px 0 8px; }
+.faq h3:first-child { margin-top: 0; }
+
 .article-note { padding: 12px 14px; border-left: 2px solid var(--accent); background: var(--accent-soft); color: #c3ccd8; }
 .comparison-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .table-wrap { overflow-x: auto; }

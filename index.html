@@ -87,6 +87,12 @@
     </script>
 
     <!--
+      FAQ の構造化データ（FAQPage）。本文の Q&A と同じ定義から作って差し込む
+      （scripts/static-pages/faq.ts が唯一の出どころ・差し込みは vite.config.ts のプラグイン）。
+    -->
+    <!--faq-jsonld-->
+
+    <!--
       テスト用URL（Vercel のプレビュー等、*.vercel.app のホスト）だけ検索避けする。
       同じ内容のページが複数のURLで拾われると本番ドメインの評価が割れるため。
       本番ドメインでは何もしない（この <meta> 自体が入らない）。
@@ -136,6 +142,11 @@
       <p>
         レシピや電力などの数値はゲームの公式データ（バージョン1.1系）に基づき、アイテム名はゲーム内の公式訳と一致させています。
       </p>
+      <!--
+        よくある質問。本文と head の FAQPage は同じ定義（scripts/static-pages/faq.ts）から
+        作られるので、片方だけ直して食い違うことがない。
+      -->
+      <!--faq-content-->
       <nav class="site-intro__links" aria-label="サイト情報">
         <a href="/items/">アイテム一覧（全198件のレシピ辞典）</a>
         <a href="/articles/">解説記事</a>
