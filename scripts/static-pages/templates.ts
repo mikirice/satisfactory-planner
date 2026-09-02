@@ -334,6 +334,16 @@ h4 { margin: 20px 0 8px; color: var(--strong); font-size: 14px; }
 p { margin: 0 0 14px; }
 
 .lead { max-width: 760px; margin: 12px 0 0; color: #c3ccd8; font-size: 16px; }
+/* リード直後に置く「結局どれを使うか」の結論。左の罫で本文と区別する。 */
+.item-verdict {
+  max-width: 760px;
+  margin: 14px 0 0;
+  padding: 0 0 0 14px;
+  border-left: 3px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.75;
+}
 .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
 .tag {
   display: inline-flex;

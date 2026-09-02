@@ -9,7 +9,7 @@ import { handwrittenArticlesEn } from '../content/articles/en/index.ts'
 import { handwrittenArticles as handwrittenArticlesConst } from '../content/articles/index.ts'
 import type { HandwrittenArticle } from '../content/articles/types.ts'
 import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
-import { items, recipes } from '../src/data/index.ts'
+import { generators, items, recipes } from '../src/data/index.ts'
 import { SUPPORTED_LOCALES } from '../src/i18n/types.ts'
 import {
   aboutPagePath,
@@ -29,6 +29,7 @@ import {
 } from '../scripts/build-pages.ts'
 import type { StaticPagesManifest } from '../scripts/build-pages.ts'
 import { faqEntries } from '../scripts/static-pages/faq.ts'
+import { itemInsight } from '../scripts/static-pages/item-insights.ts'
 import { escapeHtml } from '../scripts/static-pages/templates.ts'
 
 /**
@@ -1250,5 +1251,245 @@ describe('カタカナのゲーム名', () => {
     expect(occurrences(title, KATAKANA)).toBe(1)
     expect(title).toContain('Satisfactory')
     expect(title.length).toBeLessThanOrEqual(60)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// アイテムページの結論と関連ガイド
+// ---------------------------------------------------------------------------
+
+/** ページ本文からリード直後の結論を1つ取り出す（無ければ null）。 */
+function verdictOf(html: string): string | null {
+  const match = /<p class="item-verdict">([\s\S]*?)<\/p>/.exec(html)
+  if (match?.[1] === undefined) return null
+  return match[1]
+    .replace(/&#(\d+);/g, (_full, code: string) => String.fromCharCode(Number(code)))
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+}
+
+const itemPageHtml = async (locale: 'ja' | 'en', slug: string): Promise<string> =>
+  readFile(join(outputDirectory, locale === 'ja' ? '' : 'en', 'items', slug, 'index.html'), 'utf8')
+
+describe('アイテムページの結論', () => {
+  /**
+   * 結論を出すのは「表を読み比べないと分からないこと」がある少数のアイテムだけ。
+   * 198件すべてに定型文を貼ると量産ページになるため、状況が判定できないものは
+   * 何も出さない。ここは件数そのものではなく「全件には付かない」ことを守る。
+   */
+  it('結論は一部のアイテムにだけ付き、大多数のページには出ない', async () => {
+    let withVerdict = 0
+    for (const slug of manifest.itemSlugs) {
+      if (verdictOf(await itemPageHtml('ja', slug)) !== null) withVerdict += 1
+    }
+    expect(withVerdict).toBeGreaterThan(0)
+    // 全体の1/4を超えたら「量産された定型文」に近づいているので、状況判定を見直す。
+    expect(withVerdict).toBeLessThan(items.length / 4)
+  })
+
+  it('言うことが無いアイテムには結論を出さない', async () => {
+    // 作り方が1件だけで副産物も無い（表の言い換えにしかならない）
+    expect(verdictOf(await itemPageHtml('ja', 'plutonium-pellet'))).toBeNull()
+    expect(verdictOf(await itemPageHtml('en', 'plutonium-pellet'))).toBeNull()
+    // 自動化レシピと無関係な装備品（リード文と収録範囲の節で足りる）
+    expect(verdictOf(await itemPageHtml('ja', 'bp-equipment-descriptor-jet-pack'))).toBeNull()
+    // 採掘資源の変換レシピは、どのアイテムでも同じ文になるので出さない
+    expect(verdictOf(await itemPageHtml('ja', 'ore-copper'))).toBeNull()
+    expect(verdictOf(await itemPageHtml('en', 'ore-copper'))).toBeNull()
+  })
+
+  it('日英どちらのページにも同じ状況の結論が出る', async () => {
+    for (const slug of manifest.itemSlugs) {
+      const ja = verdictOf(await itemPageHtml('ja', slug))
+      const en = verdictOf(await itemPageHtml('en', slug))
+      expect(ja === null).toBe(en === null)
+    }
+  })
+
+  /**
+   * 結論に書いた数値が、同じページの表と1桁でも違えばページ全体の信用が消える。
+   * 代表的な状況を1件ずつ取り、結論の数字が表にも現れることを確かめる。
+   */
+  it('結論の数値は同じページの表に載っている値と一致する', async () => {
+    const cases: readonly (readonly [string, readonly string[]])[] = [
+      // 台数1位と材料効率1位が違う（比較の中心）。材料1個あたりの値は別テストで見る。
+      ['iron-plate', ['75.00 個/分']],
+      ['quartz-crystal', ['75.00 個/分']],
+      // 専用レシピ1件＋副産物
+      ['compacted-coal', ['25.00 個/分', '40.00 個/分']],
+      // 副産物としてしか出ない
+      ['dissolved-silica', ['60.00 m³/min']],
+      // 採水資源だが副産物で戻る
+      ['water', ['120.00 m³/min', '105.00 m³/min']],
+      // 産出量が並ぶ2件
+      ['motor', ['7.50 個/分', '5.00 個/分']],
+    ]
+    for (const [slug, numbers] of cases) {
+      const html = await itemPageHtml('ja', slug)
+      const verdict = verdictOf(html)
+      expect(verdict, `${slug} に結論が無い`).not.toBeNull()
+      // 表の部分（結論の段落を除いた本文）に同じ数値が載っていること。
+      const table = html.replace(/<p class="item-verdict">[\s\S]*?<\/p>/, '')
+      for (const value of numbers) {
+        expect(verdict, `${slug}: 結論に ${value} が無い`).toContain(value)
+        const bare = value.replace(/(個|m³)$/, '')
+        expect(table.includes(bare), `${slug}: 表に ${bare} が無い`).toBe(true)
+      }
+    }
+  })
+
+  /**
+   * 発電副産物だけは、ページに作り方の表が無い（レシピでは作れないアイテムのため）。
+   * この数値の出どころは generators.json なので、表ではなくデータ側と突き合わせる。
+   */
+  it('発電副産物の結論は generators.json の副産物レートと一致する', async () => {
+    const plant = generators.find((generator) => generator.id === 'Build_GeneratorNuclear_C')
+    const fuel = plant?.fuels.find((entry) => entry.byproduct?.item === 'Desc_NuclearWaste_C')
+    expect(fuel?.byproduct?.ratePerMin).toBe(10)
+    const verdict = verdictOf(await itemPageHtml('ja', 'nuclear-waste'))
+    expect(verdict).toContain('10.00 個/分')
+    expect(verdict).toContain(`${plant?.powerProductionMW.toLocaleString('ja-JP')} MW`)
+    // レシピでは作れないので、作り方の表そのものが無いページである。
+    expect(await itemPageHtml('ja', 'nuclear-waste')).toContain('作る自動化レシピは')
+  })
+
+  /**
+   * 材料1個あたりの比較だけは、表（小数2桁）より細かい**有効数字3桁**で出す。
+   * 高速コネクターの 0.0333 対 0.0179 は2桁だと「0.03 対 0.02」に潰れ、
+   * 1.87倍という、この文が伝えたい当のものが消えるため。
+   * 桁は違っても**同じ数値**でなければならないので、表の2桁表記と突き合わせて確かめる。
+   */
+  it('材料1個あたりの値は表と同じ数値を、差が読める桁数で出す', async () => {
+    const twoDecimals = new Intl.NumberFormat('ja-JP', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+    const threeSignificant = new Intl.NumberFormat('ja-JP', {
+      minimumSignificantDigits: 3,
+      maximumSignificantDigits: 3,
+    })
+    let checked = 0
+    for (const item of items) {
+      const insight = itemInsight(item)
+      if (insight?.kind !== 'splitWinners') continue
+      checked += 1
+      const slug = itemSlug(item.id)
+      const html = await itemPageHtml('ja', slug)
+      const verdict = verdictOf(html)
+      const table = html.replace(/<p class="item-verdict">[\s\S]*?<\/p>/, '')
+      for (const value of [insight.efficiencyBest, insight.throughputPerIngredient]) {
+        // 結論は有効数字3桁で出す
+        expect(verdict, `${slug}: 結論に ${threeSignificant.format(value)} が無い`).toContain(
+          threeSignificant.format(value),
+        )
+        // 同じ数値が、表では小数2桁で載っている
+        expect(table.includes(twoDecimals.format(value)), `${slug}: 表に2桁表記が無い`).toBe(true)
+      }
+      // 差の大きさ（倍率）を文中に書く。読者が行動に移すのはこの部分。
+      const ratio = insight.efficiencyBest / insight.throughputPerIngredient
+      expect(ratio).toBeGreaterThan(1.1)
+      const printed = new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 2 }).format(ratio)
+      expect(verdict, `${slug}: 倍率 ${printed} が無い`).toContain(`${printed}倍`)
+    }
+    expect(checked).toBeGreaterThan(0)
+  })
+
+  it('小さな比率が丸めで潰れず、差が読める形で出る', async () => {
+    // 2桁だと「0.03 対 0.02」になり、1.87倍という肝心の情報が消えていた。
+    const ja = verdictOf(await itemPageHtml('ja', 'high-speed-connector'))
+    expect(ja).toContain('0.0333個対0.0179個')
+    expect(ja).toContain('1.87倍')
+    const en = verdictOf(await itemPageHtml('en', 'high-speed-connector'))
+    expect(en).toContain('0.0333 against 0.0179')
+    expect(en).toContain('1.87×')
+    // 桁が増えても、値が大きいアイテムの表記は今までどおり。
+    expect(verdictOf(await itemPageHtml('ja', 'iron-plate'))).toContain('3.00個対2.00個')
+  })
+
+  it('鉄板の結論は台数1位と材料効率1位が別レシピであることを言う', async () => {
+    const ja = verdictOf(await itemPageHtml('ja', 'iron-plate'))
+    expect(ja).toContain('代替: 被覆鉄板')
+    expect(ja).toContain('代替: 鋳造鋼板')
+    const en = verdictOf(await itemPageHtml('en', 'iron-plate'))
+    expect(en).toContain('Alternate: Coated Iron Plate')
+    expect(en).toContain('Alternate: Steel Cast Plate')
+    // 英語は日本語の直訳ではなく、それぞれの言語で書き下ろしてある。
+    expect(en).not.toContain('個/分')
+  })
+})
+
+describe('アイテムページの関連ガイド', () => {
+  const guideLinksOf = (html: string): readonly string[] => {
+    const section = /(?:関連記事|Related guides)<\/h2>\s*<ul class="link-list">([\s\S]*?)<\/ul>/.exec(
+      html,
+    )
+    if (section?.[1] === undefined) return []
+    return [...section[1].matchAll(/href="([^"]+)"/g)].map((match) => match[1] ?? '')
+  }
+
+  it('関連ガイドのリンク先がすべて実在する記事ページになる', async () => {
+    const generated = new Set(manifest.urls)
+    let linked = 0
+    for (const locale of ['ja', 'en'] as const) {
+      for (const slug of manifest.itemSlugs) {
+        for (const href of guideLinksOf(await itemPageHtml(locale, slug))) {
+          linked += 1
+          expect(generated.has(`https://satisfactory-planner.net${href}`), href).toBe(true)
+          expect(href.startsWith(locale === 'ja' ? '/articles/' : '/en/articles/')).toBe(true)
+        }
+      }
+    }
+    expect(linked).toBeGreaterThan(0)
+  })
+
+  it('1ページのリンクは3件までで、関係のないアイテムには節を出さない', async () => {
+    let withGuides = 0
+    for (const slug of manifest.itemSlugs) {
+      const links = guideLinksOf(await itemPageHtml('ja', slug))
+      expect(links.length).toBeLessThanOrEqual(3)
+      expect(new Set(links).size).toBe(links.length)
+      if (links.length > 0) withGuides += 1
+    }
+    expect(withGuides).toBeGreaterThan(0)
+    expect(withGuides).toBeLessThan(items.length)
+    // どの記事とも関係がないアイテムには節そのものを出さない。
+    expect(guideLinksOf(await itemPageHtml('ja', 'bp-equipment-descriptor-jet-pack'))).toEqual([])
+  })
+
+  it('記事が名指ししているアイテムと、データから引ける関係の両方をリンクする', async () => {
+    // 記事側の relatedItemIds による名指し（鉄板 → 生産計画チュートリアル）
+    expect(guideLinksOf(await itemPageHtml('ja', 'iron-plate'))).toContain(
+      '/articles/production-planning-tutorial/',
+    )
+    // 発電機の燃料・補助流体（水 → 発電計画）
+    expect(guideLinksOf(await itemPageHtml('en', 'water'))).toContain(
+      '/en/articles/power-generation-planning/',
+    )
+    // ボーキサイト系の材料を持つ（シリカ → アルミ生産ガイド）
+    expect(guideLinksOf(await itemPageHtml('ja', 'silica'))).toContain(
+      '/articles/aluminum-production-guide/',
+    )
+  })
+})
+
+describe('公式名トークンの解決', () => {
+  it('生成したどのページにも未置換の {{Desc_…}} トークンが残らない', async () => {
+    const pattern = /\{\{[A-Za-z0-9_]+\}\}/
+    const visit = async (directory: string): Promise<void> => {
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        const path = join(directory, entry.name)
+        if (entry.isDirectory()) {
+          await visit(path)
+          continue
+        }
+        if (!entry.name.endsWith('.html')) continue
+        const html = await readFile(path, 'utf8')
+        const found = pattern.exec(html)
+        expect(found?.[0], `${path} に未置換トークン ${found?.[0] ?? ''}`).toBeUndefined()
+      }
+    }
+    await visit(outputDirectory)
   })
 })
