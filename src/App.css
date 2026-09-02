@@ -78,7 +78,8 @@
 
 .header__language {
   flex: 0 0 auto;
-  max-width: 8.5em;
+  /* 最長の「Português (Brasil)」が国旗込みで収まる幅。狭いと末尾が切れる */
+  max-width: 12.5em;
   min-height: 29px;
   padding: 4px 24px 4px 8px;
   border: 1px solid var(--border-strong);
