@@ -124,6 +124,168 @@ const jaLabels = {
   consumingEmpty:
     'このアイテムを材料として使う自動化レシピは、現在のゲームデータに収録されていません。',
 
+  /** 名前を列挙するときの区切り（結論の文中で材料を並べるのに使う）。 */
+  joinList: (names: readonly string[]): string => names.join('・'),
+
+  /**
+   * アイテムページの結論。状況の判定は scripts/static-pages/item-insights.ts。
+   *
+   * **状況ごとに別の関数**にしてある。1つの型枠に数値を差し替えるだけの文を198ページに
+   * 貼ると、それこそが「量産された薄いページ」になるため。
+   * 収録するのは「表を読み比べないと分からないこと」だけで、下の表を言い換えるだけの
+   * 状況は item-insights.ts 側で落としてある（結果、結論が付くのは198件中の少数）。
+   * 数値はすべて表と同じ値を同じ書式で整形したもの。
+   */
+  itemSummary: {
+    generatorByproduct: (v: {
+      name: string
+      generator: string
+      fuel: string
+      rate: string
+      power: string
+      consumingCount: number
+    }): string =>
+      `${v.name}を作るレシピはありません。${v.generator}が${v.fuel}を燃やすと、${v.power} MWの発電と一緒に${v.rate}が出てきます。生産計画では調達するものではなく行き先を決めるもので、下の使い道${v.consumingCount}件がその引き取り先です。`,
+
+    byproductOnly: (v: {
+      name: string
+      recipe: string
+      building: string
+      mainProduct: string
+      /** レシピ名が生成物名と同じか（同じなら製品名を繰り返さない）。 */
+      recipeNamesProduct: boolean
+      rate: string
+    }): string =>
+      `${v.name}だけを目的にしたレシピはありません。${v.recipeNamesProduct ? `「${v.recipe}」` : `${v.mainProduct}を作る「${v.recipe}」`}が${v.building}1台につき${v.rate}こぼすだけなので、${v.name}を使う工程は${v.mainProduct}のラインにぶら下げる形になります。`,
+
+    rawByproduct: (v: {
+      name: string
+      sourceCount: number
+      topRecipe: string
+      topMainProduct: string
+      topRecipeNamesProduct: boolean
+      topRate: string
+      secondRecipe?: string
+      secondRate?: string
+    }): string => {
+      const top = v.topRecipeNamesProduct
+        ? `「${v.topRecipe}」レシピの${v.topRate}`
+        : `${v.topMainProduct}を作る「${v.topRecipe}」の${v.topRate}`
+      const second =
+        v.secondRecipe === undefined || v.secondRate === undefined
+          ? ''
+          : `、次いで「${v.secondRecipe}」の${v.secondRate}`
+      return `${v.name}はマップから汲み上げる資源ですが、${v.sourceCount}件のレシピが副産物として返してきます。最も多いのは${top}${second}。これを上流へ戻せば、そのぶん汲み上げ設備を減らせます。`
+    },
+
+    soleRouteWithByproducts: (v: {
+      name: string
+      recipe: string
+      building: string
+      rate: string
+      byproductCount: number
+      topRecipe: string
+      topMainProduct: string
+      topRecipeNamesProduct: boolean
+      topRate: string
+      /** 副産物1台のほうが専用レシピ1台より多いか。 */
+      byproductIsLarger: boolean
+      /** 副産物1台 ÷ 専用レシピ1台。同数のときは倍率を出さない。 */
+      ratio?: string
+    }): string => {
+      const others =
+        v.byproductCount === 1
+          ? `別のレシピ1件が${v.name}を副産物として出します`
+          : `別のレシピ${v.byproductCount}件が${v.name}を副産物として出します`
+      const top = v.topRecipeNamesProduct
+        ? `「${v.topRecipe}」`
+        : `${v.topMainProduct}を作る「${v.topRecipe}」`
+      if (v.byproductIsLarger) {
+        const times = v.ratio === undefined ? '' : `＝専用レシピの${v.ratio}倍`
+        return `${v.name}を目的に作るレシピは${v.building}の「${v.recipe}」（${v.rate}）の1件だけですが、${others}。${top}は1台で${v.topRate}${times}。専用ラインを建てる前に、工場が今こぼしている量を数えたほうが早いことがあります。`
+      }
+      return `${v.name}を目的に作るレシピは${v.building}の「${v.recipe}」（${v.rate}）の1件だけです。ただし${others}。${top}は${v.topRate}なので、必要量が小さければ専用ラインを建てずに済みます。`
+    },
+
+    soleAlternate: (v: {
+      name: string
+      recipe: string
+      building: string
+      rate: string
+    }): string =>
+      `収録されている作り方は代替レシピ「${v.recipe}」の1件だけで、${v.building}で${v.rate}です。この代替レシピを解放していないと、${v.name}を自動化ラインに組み込む手段はありません。`,
+
+    identicalRoutes: (v: {
+      routeCount: number
+      building: string
+      rate: string
+      perPower: string
+      ingredients: string
+    }): string =>
+      `${v.routeCount}件とも${v.building}で${v.rate}、電力あたり${v.perPower}と、このページの数値はすべて同じです。違うのは入れる材料（${v.ingredients}）だけなので、選ぶ基準は効率ではなく、どれが手に入るかになります。`,
+
+    sameOutputDifferentCost: (v: {
+      rate: string
+      efficientRecipe: string
+      efficientBuilding: string
+      efficientPerPower: string
+      efficientIngredient?: string
+      otherBuilding: string
+      otherPerPower: string
+      otherIngredient?: string
+    }): string => {
+      const swap =
+        v.efficientIngredient === undefined || v.otherIngredient === undefined
+          ? `${v.efficientBuilding}で作るか${v.otherBuilding}で作るか`
+          : `${v.efficientIngredient}を${v.efficientBuilding}に入れるか、${v.otherIngredient}を${v.otherBuilding}に入れるか`
+      return `2件は同じ名前で、産出も材料の量も同じ${v.rate}です。分かれるのは${swap}だけ。電力あたりでは前者が${v.efficientPerPower}、後者が${v.otherPerPower}なので、材料をどちらの形で運ぶかが決まっているなら、そこで選んで構いません。`
+    },
+
+    tiedLeaders: (v: {
+      rate: string
+      firstRecipe: string
+      firstBuilding: string
+      firstIngredients: string
+      secondRecipe: string
+      secondBuilding: string
+      secondIngredients: string
+      runnerUpRecipe: string
+      runnerUpRate: string
+    }): string =>
+      `産出が最も多いのは「${v.firstRecipe}」と「${v.secondRecipe}」で、どちらも${v.rate}——3番手の「${v.runnerUpRecipe}」（${v.runnerUpRate}）を上回ります。並んだ2件を分けるのは材料と設備だけで、前者は${v.firstBuilding}で${v.firstIngredients}、後者は${v.secondBuilding}で${v.secondIngredients}を要求します。`,
+
+    splitWinners: (v: {
+      throughputRecipe: string
+      throughputBuilding: string
+      throughputRate: string
+      throughputPerIngredient: string
+      efficiencyRecipe: string
+      efficiencyPerIngredient: string
+      sharedIngredient: string
+      /** 共通材料の数え方（個 / m³）。 */
+      amountUnit: string
+      /** 産出側の数え方（個 / m³）。 */
+      outputAmountUnit: string
+      /** 材料効率1位が台数1位の何倍か。読者が行動に移すのはこの差の大きさ。 */
+      ratio: string
+    }): string =>
+      `機械1台あたりの産出が最大なのは${v.throughputBuilding}の「${v.throughputRecipe}」で${v.throughputRate}。ただし${v.sharedIngredient}1${v.amountUnit}あたりで見ると勝つのは「${v.efficiencyRecipe}」で、${v.efficiencyPerIngredient}${v.outputAmountUnit}対${v.throughputPerIngredient}${v.outputAmountUnit}——${v.ratio}倍の開きがあります。`,
+
+    recyclingPair: (v: {
+      name: string
+      throughputRecipe: string
+      throughputBuilding: string
+      throughputRate: string
+      baselineRecipe: string
+      baselineRate: string
+      loopIngredient: string
+      otherIngredients?: string
+    }): string => {
+      const others = v.otherIngredients === undefined ? '' : `（ほかに${v.otherIngredients}も要ります）`
+      return `産出が最も多いのは${v.throughputBuilding}の「${v.throughputRecipe}」で${v.throughputRate}、「${v.baselineRecipe}」の${v.baselineRate}を大きく上回ります。ただし材料の${v.loopIngredient}は${v.name}から作られるものです${others}。この2つは対になっていて単独では起動できないので、先に相手側の工程を回してから循環に入れてください。`
+    },
+  },
+
   ingredientComparisonHeading: '材料1単位あたりの比較',
   noIngredients: '材料を使わないレシピです。',
   none: 'なし',
@@ -283,6 +445,9 @@ const jaLabels = {
 
 export type StaticPageLabels = typeof jaLabels
 
+/** 英語の不定冠詞。建物名は母音始まりが Assembler だけなので、頭文字の判定で足りる。 */
+const an = (name: string): string => (/^[aeiou]/i.test(name) ? `an ${name}` : `a ${name}`)
+
 const enLabels: StaticPageLabels = {
   siteName: 'Satisfactory Production Planner',
   // 英語はゲーム名の別綴りが無いので、<title> のサイト名も siteName と同じにする。
@@ -348,6 +513,71 @@ const enLabels: StaticPageLabels = {
 
   producingEmpty: 'No automated recipe in the current game data produces this item.',
   consumingEmpty: 'No automated recipe in the current game data uses this item as an ingredient.',
+
+  joinList: (names: readonly string[]): string =>
+    names.length <= 1
+      ? (names[0] ?? '')
+      : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`,
+
+  // 英語は日本語の訳ではなく、英語で読んで自然な言い回しで書き下ろす（faq.ts と同じ方針）。
+  itemSummary: {
+    generatorByproduct: (v): string =>
+      `Nothing is built to make ${v.name}. A ${v.generator} burning ${v.fuel} hands back ${v.rate} alongside its ${v.power} MW, so a plan does not source it — it has to route it away. ${v.consumingCount === 1 ? 'The one recipe under uses below is where it can go.' : `The ${v.consumingCount} recipes under uses below are the places it can go.`}`,
+
+    byproductOnly: (v): string =>
+      `No recipe exists to produce ${v.name} on its own. It falls out of “${v.recipe}”${v.recipeNamesProduct ? '' : `, which is really making ${v.mainProduct}`}, at ${v.rate} per ${v.building}. Anything that consumes it has to hang off a ${v.mainProduct} line rather than run on a line of its own.`,
+
+    rawByproduct: (v): string => {
+      const top = v.topRecipeNamesProduct
+        ? `the ${v.topRecipe} recipe, which releases ${v.topRate}`
+        : `“${v.topRecipe}”, which releases ${v.topRate} while it makes ${v.topMainProduct}`
+      const second =
+        v.secondRecipe === undefined || v.secondRate === undefined
+          ? ''
+          : `, then “${v.secondRecipe}” at ${v.secondRate}`
+      return `${v.name} is pumped straight off the map, but ${v.sourceCount} recipes give it back as a byproduct. The largest return comes from ${top}${second}. Piping that back upstream is what lets a line cut its extractor count.`
+    },
+
+    soleRouteWithByproducts: (v): string => {
+      const others =
+        v.byproductCount === 1
+          ? 'one other recipe sheds it as a byproduct'
+          : `${v.byproductCount} other recipes shed it as a byproduct`
+      const top = v.topRecipeNamesProduct
+        ? `“${v.topRecipe}”`
+        : `“${v.topRecipe}”, making ${v.topMainProduct},`
+      if (v.byproductIsLarger) {
+        const times = v.ratio === undefined ? '' : `, ${v.ratio}× the dedicated recipe`
+        return `Only one recipe is built for ${v.name}: “${v.recipe}”, ${v.rate} per ${v.building}. But ${others}, and ${top} alone gives ${v.topRate}${times}. Count what the factory already spills before building a line for it.`
+      }
+      return `The one recipe built for ${v.name} is “${v.recipe}”, ${v.rate} per ${v.building}. It also arrives without asking: ${others}, with ${top} returning ${v.topRate} — often enough on its own when the demand is small.`
+    },
+
+    soleAlternate: (v): string =>
+      `The only recipe on record is the alternate “${v.recipe}”, ${v.rate} from ${an(v.building)}. Until that alternate is unlocked there is no way to put ${v.name} into an automated line at all.`,
+
+    identicalRoutes: (v): string =>
+      `All ${v.routeCount} recipes run in ${an(v.building)} at ${v.rate} and ${v.perPower}; every figure on this page is the same for each of them. The only thing that differs is what goes in — ${v.ingredients} — so choose by what you can actually collect, not by efficiency.`,
+
+    sameOutputDifferentCost: (v): string => {
+      const swap =
+        v.efficientIngredient === undefined || v.otherIngredient === undefined
+          ? `whether you run it in ${an(v.efficientBuilding)} or ${an(v.otherBuilding)}`
+          : `whether ${v.efficientIngredient} goes into ${an(v.efficientBuilding)} or ${v.otherIngredient} into ${an(v.otherBuilding)}`
+      return `The two recipes share a name, take the same ingredients at the same rates, and both give ${v.rate}. All that differs is ${swap}. On power the first is ahead, ${v.efficientPerPower} against ${v.otherPerPower}, so pick whichever form the ingredient already arrives in.`
+    },
+
+    tiedLeaders: (v): string =>
+      `Two recipes tie for the highest output, “${v.firstRecipe}” and “${v.secondRecipe}”, both at ${v.rate} — ahead of “${v.runnerUpRecipe}” at ${v.runnerUpRate}. All that separates them is feedstock and building: the first wants ${v.firstIngredients} in ${an(v.firstBuilding)}, the second ${v.secondIngredients} in ${an(v.secondBuilding)}.`,
+
+    splitWinners: (v): string =>
+      `“${v.throughputRecipe}” in ${an(v.throughputBuilding)} makes the most per machine, ${v.throughputRate}. Per unit of ${v.sharedIngredient}, though, “${v.efficiencyRecipe}” is the one ahead instead: ${v.efficiencyPerIngredient} against ${v.throughputPerIngredient}, a gap of ${v.ratio}×.`,
+
+    recyclingPair: (v): string => {
+      const others = v.otherIngredients === undefined ? '' : ` (it also needs ${v.otherIngredients})`
+      return `“${v.throughputRecipe}” is by far the fastest, ${v.throughputRate} in ${an(v.throughputBuilding)} against ${v.baselineRate} for “${v.baselineRecipe}”. The catch is that the ${v.loopIngredient} it runs on is itself made from ${v.name}${others}. The two are a pair and neither starts from nothing, so run the partner step first and close the loop once it is turning.`
+    },
+  },
 
   ingredientComparisonHeading: 'Output per unit of ingredient',
   noIngredients: 'This recipe uses no ingredients.',

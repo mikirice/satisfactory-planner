@@ -25,6 +25,7 @@ import {
   meta,
   ratePerMin,
   recipes,
+  recipesById,
 } from '../src/data/index.ts'
 import type { Item, ItemAmount, Recipe } from '../src/data/types.ts'
 import type { UiDictionary } from '../src/i18n/types.ts'
@@ -49,6 +50,8 @@ import {
 import { solveProduction } from '../src/solver/index.ts'
 import type { ObjectiveWeights, Solution, SolveResult } from '../src/solver/index.ts'
 import { faqPageSchema, renderFaqHtml } from './static-pages/faq.ts'
+import { itemInsight, relatedGuideSlugs } from './static-pages/item-insights.ts'
+import type { GuideSource } from './static-pages/item-insights.ts'
 import {
   EN_LANDING,
   STATIC_LOCALES,
@@ -133,6 +136,14 @@ type Ctx = {
   fmtPower: (value: number) => string
   fmtInteger: (value: number) => string
   fmtPercent: (value: number) => string
+  /**
+   * 有効数字3桁。小さい比率を小数2桁で丸めると差が消えてしまう場面で使う
+   * （材料1個あたり 0.0333 対 0.0179 は、2桁だと「0.03 対 0.02」になり
+   *   1.87倍という肝心の情報が落ちる）。
+   */
+  fmtSignificant: (value: number) => string
+  /** 「1.87倍」「2倍」のような倍率。末尾の 0 は出さない。 */
+  fmtRatio: (value: number) => string
   sortedItems: readonly Item[]
   itemGroups: readonly ItemGroup[]
 }
@@ -155,6 +166,14 @@ function createContext(locale: StaticLocale): Ctx {
     style: 'percent',
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
+  })
+  const significantFormat = new Intl.NumberFormat(numberLocale, {
+    minimumSignificantDigits: 3,
+    maximumSignificantDigits: 3,
+  })
+  const ratioFormat = new Intl.NumberFormat(numberLocale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   })
   const format = (formatter: Intl.NumberFormat) => (value: number) =>
     formatter.format(cleanNumber(value))
@@ -196,6 +215,8 @@ function createContext(locale: StaticLocale): Ctx {
     fmtPower: format(rateFormat),
     fmtInteger: format(integerFormat),
     fmtPercent: format(percentFormat),
+    fmtSignificant: format(significantFormat),
+    fmtRatio: format(ratioFormat),
     sortedItems,
     itemGroups,
   }
@@ -428,6 +449,205 @@ function renderProducingRecipe(ctx: Ctx, recipe: Recipe, outputItem: Item): stri
   </article>`
 }
 
+// ---------------------------------------------------------------------------
+// アイテムページの結論（Job A）
+// ---------------------------------------------------------------------------
+
+/** 「20.00 個/分」。表の「機械1台あたり」と同じ値・同じ書式にする。 */
+function rateText(ctx: Ctx, itemId: string, value: number): string {
+  return `${ctx.fmtRate(value)} ${rateUnit(ctx, itemId)}`
+}
+
+/** 「5.00 個/分 / MW」。表の「電力あたり」と同じ値・同じ書式にする。 */
+function perPowerText(ctx: Ctx, itemId: string, value: number): string {
+  return `${ctx.fmtRate(value)} ${ctx.L.perPowerUnit(rateUnit(ctx, itemId))}`
+}
+
+/**
+ * 「材料1単位あたりの比較」の値。表と同じ数値を**有効数字3桁**で出す。
+ *
+ * 表は小数2桁だが、この比較は値が小さいレシピが多く、2桁では
+ * 「0.03 対 0.02」のように差が丸めで潰れてしまう（実際には 1.87 倍ある）。
+ * 差の大きさこそがこの文の存在理由なので、ここだけ桁を増やす。
+ * 単位は付けない（日本語は「3.00個」、英語は「per unit of …: 3.00」と付ける位置が違うため）。
+ */
+function perIngredientText(ctx: Ctx, value: number): string {
+  return ctx.fmtSignificant(value)
+}
+
+/** レシピ名がその生成物名と同じか（「アルミのスクラップを作る『アルミのスクラップ』」を避ける）。 */
+function namesItsProduct(ctx: Ctx, fact: { recipeId: string; mainProductId: string }): boolean {
+  return gameName(ctx, fact.recipeId) === gameName(ctx, fact.mainProductId)
+}
+
+function gameName(ctx: Ctx, id: string): string {
+  const name = itemsById.get(id)?.name ?? recipesById.get(id)?.name ?? buildingsById.get(id)?.name
+  if (name === undefined) throw new Error(`item summary references unknown id: ${id}`)
+  return name[ctx.locale]
+}
+
+function nameList(ctx: Ctx, ids: readonly string[]): string {
+  return ctx.L.joinList(ids.map((id) => gameName(ctx, id)))
+}
+
+/**
+ * 「結局どのレシピを使えばいいか」を1〜3文で言う段落。
+ *
+ * 状況の判定と数値は item-insights.ts、文面は labels.ts の itemSummary。
+ * ここは**数値の整形と名前の解決だけ**を行う。数値は必ず下の表と同じ整形関数を通す
+ * （表と文章で違う数字が出ると、ページ全体の信用が消える）。
+ * 言うことが無いアイテムでは insight が null になり、この節ごと出ない。
+ */
+function renderItemSummary(ctx: Ctx, item: Item): string {
+  const insight = itemInsight(item)
+  if (insight === null) return ''
+  const S = ctx.L.itemSummary
+  const rate = (value: number): string => rateText(ctx, item.id, value)
+  const perPower = (value: number): string => perPowerText(ctx, item.id, value)
+  const perIngredient = (value: number): string => perIngredientText(ctx, value)
+
+  const text = ((): string => {
+    switch (insight.kind) {
+      case 'generatorByproduct':
+        return S.generatorByproduct({
+          name: item.name[ctx.locale],
+          generator: gameName(ctx, insight.generatorId),
+          fuel: gameName(ctx, insight.fuelItemId),
+          rate: rate(insight.ratePerMin),
+          power: ctx.fmtInteger(insight.generatorPowerMW),
+          consumingCount: insight.consumingCount,
+        })
+      case 'byproductOnly':
+        return S.byproductOnly({
+          name: item.name[ctx.locale],
+          recipe: gameName(ctx, insight.top.recipeId),
+          building: gameName(ctx, insight.buildingId),
+          mainProduct: gameName(ctx, insight.top.mainProductId),
+          recipeNamesProduct: namesItsProduct(ctx, insight.top),
+          rate: rate(insight.top.ratePerMin),
+        })
+      case 'rawByproduct':
+        return S.rawByproduct({
+          name: item.name[ctx.locale],
+          sourceCount: insight.sourceCount,
+          topRecipe: gameName(ctx, insight.top.recipeId),
+          topMainProduct: gameName(ctx, insight.top.mainProductId),
+          topRecipeNamesProduct: namesItsProduct(ctx, insight.top),
+          topRate: rate(insight.top.ratePerMin),
+          ...(insight.second === undefined
+            ? {}
+            : {
+                secondRecipe: gameName(ctx, insight.second.recipeId),
+                secondRate: rate(insight.second.ratePerMin),
+              }),
+        })
+      case 'soleRouteWithByproducts':
+        return S.soleRouteWithByproducts({
+          name: item.name[ctx.locale],
+          recipe: gameName(ctx, insight.route.recipeId),
+          building: gameName(ctx, insight.route.buildingId),
+          rate: rate(insight.route.ratePerMin),
+          byproductCount: insight.byproductCount,
+          topRecipe: gameName(ctx, insight.top.recipeId),
+          topMainProduct: gameName(ctx, insight.top.mainProductId),
+          topRecipeNamesProduct: namesItsProduct(ctx, insight.top),
+          topRate: rate(insight.top.ratePerMin),
+          byproductIsLarger: insight.ratio >= 1,
+          // 同数のときに「1.00倍」と書いても意味がないので、そのときは倍率を出さない。
+          ...(Math.abs(insight.ratio - 1) < 0.005 ? {} : { ratio: ctx.fmtRate(insight.ratio) }),
+        })
+      case 'soleAlternate':
+        return S.soleAlternate({
+          name: item.name[ctx.locale],
+          recipe: gameName(ctx, insight.route.recipeId),
+          building: gameName(ctx, insight.route.buildingId),
+          rate: rate(insight.route.ratePerMin),
+        })
+      case 'identicalRoutes':
+        return S.identicalRoutes({
+          routeCount: insight.routeCount,
+          building: gameName(ctx, insight.buildingId),
+          rate: rate(insight.ratePerMin),
+          perPower: perPower(insight.outputPerMW),
+          ingredients: nameList(ctx, insight.distinctIngredientIds),
+        })
+      case 'sameOutputDifferentCost':
+        return S.sameOutputDifferentCost({
+          rate: rate(insight.ratePerMin),
+          efficientRecipe: gameName(ctx, insight.efficient.recipeId),
+          efficientBuilding: gameName(ctx, insight.efficient.buildingId),
+          efficientPerPower: perPower(insight.efficient.outputPerMW),
+          otherBuilding: gameName(ctx, insight.other.buildingId),
+          otherPerPower: perPower(insight.other.outputPerMW),
+          ...(insight.swappedIngredient === undefined
+            ? {}
+            : {
+                efficientIngredient: gameName(ctx, insight.swappedIngredient.efficientId),
+                otherIngredient: gameName(ctx, insight.swappedIngredient.otherId),
+              }),
+        })
+      case 'tiedLeaders': {
+        const [first, second] = insight.leaders
+        const [firstIngredients, secondIngredients] = insight.distinguishingIngredientIds
+        if (first === undefined || second === undefined) return ''
+        return S.tiedLeaders({
+          rate: rate(insight.ratePerMin),
+          firstRecipe: gameName(ctx, first.recipeId),
+          firstBuilding: gameName(ctx, first.buildingId),
+          firstIngredients: nameList(ctx, firstIngredients ?? []),
+          secondRecipe: gameName(ctx, second.recipeId),
+          secondBuilding: gameName(ctx, second.buildingId),
+          secondIngredients: nameList(ctx, secondIngredients ?? []),
+          runnerUpRecipe: gameName(ctx, insight.runnerUp.recipeId),
+          runnerUpRate: rate(insight.runnerUp.ratePerMin),
+        })
+      }
+      case 'splitWinners':
+        return S.splitWinners({
+          throughputRecipe: gameName(ctx, insight.throughput.recipeId),
+          throughputBuilding: gameName(ctx, insight.throughput.buildingId),
+          throughputRate: rate(insight.throughput.ratePerMin),
+          throughputPerIngredient: perIngredient(insight.throughputPerIngredient),
+          efficiencyRecipe: gameName(ctx, insight.efficiency.recipeId),
+          efficiencyPerIngredient: perIngredient(insight.efficiencyBest),
+          sharedIngredient: gameName(ctx, insight.sharedIngredientId),
+          amountUnit: amountUnit(ctx, insight.sharedIngredientId),
+          outputAmountUnit: amountUnit(ctx, item.id),
+          ratio: ctx.fmtRatio(insight.efficiencyBest / insight.throughputPerIngredient),
+        })
+      case 'recyclingPair':
+        return S.recyclingPair({
+          name: item.name[ctx.locale],
+          throughputRecipe: gameName(ctx, insight.throughput.recipeId),
+          throughputBuilding: gameName(ctx, insight.throughput.buildingId),
+          throughputRate: rate(insight.throughput.ratePerMin),
+          baselineRecipe: gameName(ctx, insight.baseline.recipeId),
+          baselineRate: rate(insight.baseline.ratePerMin),
+          loopIngredient: gameName(ctx, insight.loopIngredientId),
+          ...(insight.otherIngredientIds.length === 0
+            ? {}
+            : { otherIngredients: nameList(ctx, insight.otherIngredientIds) }),
+        })
+    }
+  })()
+
+  if (text === '') return ''
+  return `<p class="item-verdict">${escapeHtml(text)}</p>`
+}
+
+/** アイテムページ → 解説記事。関係のあるアイテムだけにブロックが付く（Job B）。 */
+const GUIDE_SOURCE: GuideSource = {
+  articles: handwrittenArticles.map((article) => ({
+    slug: article.slug,
+    relatedItemIds: article.relatedItemIds,
+  })),
+  loops: loopSamples.map((sample) => ({
+    slug: sample.id,
+    targetItemIds: sample.snapshot.t.map(([itemId]) => itemId),
+    iconItemId: sample.icon,
+  })),
+}
+
 function renderConsumingRecipe(ctx: Ctx, recipe: Recipe, consumedItem: Item): string {
   const building = buildingsById.get(recipe.producedIn)
   const browser = ctx.ui.recipeBrowser
@@ -554,6 +774,7 @@ export function renderItemPage(ctx: Ctx, item: Item): string {
         <p class="eyebrow">${escapeHtml(ctx.L.itemEyebrow)}</p>
         <h1>${escapeHtml(name)}</h1>
         <p class="lead">${escapeHtml(intro)}</p>
+        ${renderItemSummary(ctx, item)}
         <div class="meta-row">
           <span class="tag accent">${escapeHtml(category)}</span>
           <span class="tag">${escapeHtml(ctx.L.sinkTag(sink))}</span>
@@ -573,6 +794,7 @@ export function renderItemPage(ctx: Ctx, item: Item): string {
     <h2 id="consuming-heading" class="section-heading">${escapeHtml(ctx.ui.recipeBrowser.consuming)} <span class="count">${escapeHtml(ctx.L.recipeCount(indexed.consuming.length))}</span></h2>
     ${consuming}
   </section>
+  ${renderRelatedArticles(ctx, relatedGuideSlugs(item, GUIDE_SOURCE))}
   ${scopeSection}`
 
   return renderDocument(
