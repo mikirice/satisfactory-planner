@@ -742,7 +742,8 @@ export const EN_LANDING = {
   title: 'Satisfactory Production Planner — Solver, Flow Chart and Excel Export',
   description:
     'Free unofficial planner for Satisfactory factories. Enter a target rate per minute and a linear programming solver returns the recipes, machine counts, power draw and raw resources, with a flow chart, a build list and an Excel export. Runs in the browser, nothing to install.',
-  eyebrow: 'Satisfactory production planner',
+  // 他ページと同じくカテゴリ名にする。見出しと同じ文字列だと重複して読める
+  eyebrow: 'Free unofficial web tool',
   heading: 'Satisfactory Production Planner',
   lead: 'Say what you want to produce and how much of it per minute. A linear programming solver works out the recipes, the number of machines, the power draw and the raw resources the line needs — in the browser, with nothing to install and no account to create.',
   ctaLabel: 'Open the planner',
