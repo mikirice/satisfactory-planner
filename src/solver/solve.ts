@@ -3,8 +3,6 @@
  */
 import {
   buildingsById,
-  generators,
-  generatorsById,
   itemsById,
   ratePerMin,
   recipes,
@@ -14,11 +12,17 @@ import { CLOCK_MAX, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.
 import type { ItemAmount, Recipe } from '../data/types.ts'
 import type { LpBackend, LpResult } from './lp.ts'
 import { glpkBackend } from './glpk-backend.ts'
-import type { GeneratorVariant, ProductionModel, SupplySource } from './model.ts'
+import type {
+  BuildModelOptions,
+  GeneratorVariant,
+  ProductionModel,
+  SupplySource,
+} from './model.ts'
 import {
   DEFAULT_TOLERANCE,
   buildProductionModel,
   defaultEnabledRecipeIds,
+  fuelHasByproduct,
   maximizeVarKey,
   overflowVarKey,
   recipeVarKey,
@@ -71,6 +75,102 @@ export async function solveProduction(
   return solveMaximize(input, input.maximize, backend, tolerance)
 }
 
+/**
+ * モデルを解く。発電計画が有効で、かつ需要駆動の発電機（発電計画で許可していないが
+ * 副産物を出す発電機 × 燃料）があるときだけ2段階になる:
+ *
+ *   1段目: 需要駆動の発電量を電力の制約に**数えずに**解き、副産物の需要ぶんの台数を確定する。
+ *          数えたまま解くと、LP が「廃棄物の消費先（再処理）を余分に建てて廃棄物の需要を
+ *          作り出し、許可していない原子力を発電に流用する」抜け道を見つけてしまう
+ *          （石炭だけを許可した 300MW の計画が原子力で解かれる）。
+ *   2段目: 需要駆動の変数を1段目の台数に固定し、その発電量を電力の制約に数えて解き直す。
+ *          廃棄物の需要で回る原子力の電力ぶんだけ、許可した発電機（石炭など）の台数が減る。
+ *          このとき副産物から派生するアイテム（廃棄物 → ペレット → 燃料棒 …）の余りは
+ *          1段目の値までに抑える。抑えないと、許可した発電機の燃料チェーン自体が廃棄物の
+ *          消費先のとき（プルトニウム燃料棒だけを許可した原子力など）に、LP が許可した
+ *          発電機をやめて燃料棒やペレットを捨てる解（需要駆動の発電量だけで目標を満たす）を選ぶ。
+ *
+ * 1段目の解は2段目でも実行可能（固定値と余りの上限は1段目の値そのもの・電力の行は
+ * 左辺が増えるだけ）なので、2段目が最適解を返さないのは数値的な事故だけ。
+ * その場合は1段目の解にフォールバックする。
+ */
+async function solveModel(
+  input: SolveInput,
+  options: BuildModelOptions,
+  model: ProductionModel,
+  backend: LpBackend,
+  tolerance: number,
+): Promise<{ model: ProductionModel; result: LpResult }> {
+  const demandDriven = model.generatorVariants.filter((variant) => variant.demandDriven)
+  if (!model.powerPlan.active || demandDriven.length === 0) {
+    return { model, result: await backend.solve(model.lp) }
+  }
+  const first = buildProductionModel(input, { ...options, creditDemandDrivenPower: false })
+  const firstResult = await backend.solve(first.lp)
+  if (firstResult.status !== 'optimal') return { model: first, result: firstResult }
+
+  const levels = new Map<string, number>()
+  let running = false
+  for (const variant of demandDriven) {
+    const level = firstResult.values.get(variant.key) ?? 0
+    if (level > tolerance) running = true
+    levels.set(variant.key, level > tolerance ? level : 0)
+  }
+  // 需要駆動の発電機が1台も回らないなら、数え直す発電量が無いので1段目がそのまま答え
+  if (!running) return { model: first, result: firstResult }
+
+  // 副産物から派生するアイテムの余りを1段目の値で抑える（上のコメント参照）
+  const surplusCaps = new Map<string, number>()
+  for (const itemId of downstreamOfByproducts(first, demandDriven)) {
+    const row = first.lp.constraints.find((c) => c.key === `balance:${itemId}`)
+    if (!row) continue
+    let net = 0
+    for (const [key, coefficient] of row.coefficients) {
+      net += coefficient * (firstResult.values.get(key) ?? 0)
+    }
+    const surplus = net - (first.targets.get(itemId) ?? 0)
+    surplusCaps.set(itemId, Math.max(0, surplus))
+  }
+
+  const second = buildProductionModel(input, {
+    ...options,
+    demandDrivenLevels: levels,
+    surplusCaps,
+  })
+  const secondResult = await backend.solve(second.lp)
+  return secondResult.status === 'optimal'
+    ? { model: second, result: secondResult }
+    : { model: first, result: firstResult }
+}
+
+/**
+ * 需要駆動の発電機が出す副産物から、有効レシピをたどって作られうるアイテムの集合
+ * （副産物そのものを含む・前方到達）。
+ */
+function downstreamOfByproducts(
+  model: ProductionModel,
+  demandDriven: readonly GeneratorVariant[],
+): Set<string> {
+  const downstream = new Set<string>()
+  for (const variant of demandDriven) {
+    if (fuelHasByproduct(variant.fuel)) downstream.add(variant.fuel.byproduct!.item)
+  }
+  const candidates = [...model.recipes, ...model.somersloopRecipes]
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const recipe of candidates) {
+      if (!recipe.ingredients.some((ingredient) => downstream.has(ingredient.item))) continue
+      for (const product of recipe.products) {
+        if (downstream.has(product.item)) continue
+        downstream.add(product.item)
+        changed = true
+      }
+    }
+  }
+  return downstream
+}
+
 /** レート指定の目標だけを満たす通常の解（従来の経路）。 */
 async function solveCost(
   input: SolveInput,
@@ -90,11 +190,11 @@ async function solveCost(
   const fuelless = findUnusableGenerators(input, model)
   if (fuelless.length > 0) return infeasible(fuelless)
 
-  const result = await backend.solve(model.lp)
+  const { model: solved, result } = await solveModel(input, {}, model, backend, tolerance)
 
   switch (result.status) {
     case 'optimal': {
-      const solution = buildSolution(model, result, tolerance, maxClock)
+      const solution = buildSolution(solved, result, tolerance, maxClock)
       // 定式化から漏れたアイテムがあった場合の保険（本来ここには落ちない）
       const short = solution.targets.filter(
         (t) =>
@@ -159,7 +259,7 @@ async function solveMaximize(
   const fuelless = findUnusableGenerators(base, model)
   if (fuelless.length > 0) return infeasible(fuelless)
 
-  const result = await backend.solve(model.lp)
+  const { result } = await solveModel(base, { maximize: item }, model, backend, tolerance)
   switch (result.status) {
     case 'unbounded':
       return infeasible([
@@ -530,21 +630,23 @@ function buildSolution(
     .map(([item, amount]) => ({ item, amount }))
     .sort((a, b) => b.amount - a.amount || a.item.localeCompare(b.item))
 
-  // 発電計画のサマリー（発電機を LP に入れたときだけ）
-  const powerGeneration: PowerGenerationSummary | undefined = model.powerPlan.active
-    ? {
-        targetMW: model.powerPlan.targetMW,
-        coverFactoryPower: model.powerPlan.coverFactoryPower,
-        totalMW: totalPowerProductionMW,
-        totalGeneratorCount: generatorBuildingCount,
-        totalGeneratorMachineCount: generatorMachineCount,
-        fuelUsage: [...fuelUsed]
-          .map(([item, ratePerMin]) => ({ item, ratePerMin }))
-          .sort((a, b) => b.ratePerMin - a.ratePerMin || a.item.localeCompare(b.item)),
-        factoryPowerMW: totalPowerMW,
-        netMW: totalPowerProductionMW - totalPowerMW,
-      }
-    : undefined
+  // 発電計画のサマリー。発電計画が有効なとき、または（無効でも）副産物の需要で
+  // 発電機が1台でも回ったときに出す（発電量と差引を正直に見せるため）。
+  const powerGeneration: PowerGenerationSummary | undefined =
+    model.powerPlan.active || generatorMachineCount > 0
+      ? {
+          targetMW: model.powerPlan.targetMW,
+          coverFactoryPower: model.powerPlan.coverFactoryPower,
+          totalMW: totalPowerProductionMW,
+          totalGeneratorCount: generatorBuildingCount,
+          totalGeneratorMachineCount: generatorMachineCount,
+          fuelUsage: [...fuelUsed]
+            .map(([item, ratePerMin]) => ({ item, ratePerMin }))
+            .sort((a, b) => b.ratePerMin - a.ratePerMin || a.item.localeCompare(b.item)),
+          factoryPowerMW: totalPowerMW,
+          netMW: totalPowerProductionMW - totalPowerMW,
+        }
+      : undefined
 
   return {
     status: 'optimal',
@@ -600,13 +702,9 @@ function infeasible(reasons: InfeasibleReason[]): InfeasibleResult {
  * 有効レシピと供給可能な原料だけから到達できるアイテム集合を求め、
  * 目標がそこに含まれなければ「作れない」と判定する（前方到達可能性）。
  *
- * `generatorVariants` を渡すと、発電機の副産物（ウラン廃棄物・プルトニウム廃棄物）も
- * 供給源として数える。これらはレシピでは作れず**発電機を回したときだけ出る**ので、
- * 渡さないと再処理チェーン（プルトニウム / FICSONIUM 系）が丸ごと「作れない」と
- * 誤判定される。
- *
- * 発電計画が無効なままそのチェーンを目標にした場合は「レシピ不足」ではなく
- * `requiresGeneratorByproduct`（どの副産物がどの発電機・燃料から出るかを持つ）を返す。
+ * `generatorVariants` には `model.generatorVariants` を渡す。副産物（核廃棄物）を出す
+ * 発電機 × 燃料は発電計画の有無に関係なく常にモデルに入っている（需要駆動）ので、
+ * 再処理チェーン（プルトニウム / FICSONIUM 系）も発電計画なしで到達可能になる。
  */
 export function findUnreachableTargets(
   input: SolveInput,
@@ -614,113 +712,13 @@ export function findUnreachableTargets(
   generatorVariants: readonly GeneratorVariant[] = [],
 ): InfeasibleReason[] {
   const available = reachableItems(input, supplies, generatorVariants)
-  const unreachable = input.targets.filter(
-    (target) => target.ratePerMin > 0 && !available.has(target.item),
-  )
-  if (unreachable.length === 0) return []
-
-  // 発電機の副産物（核廃棄物）はレシピでは作れないので、発電計画を有効にしていないと
-  // その先のチェーン（プルトニウム / FICSONIUM 系）が丸ごと「レシピ不足」に見える。
-  // 利用者の設定に関係なく全発電機 × 全燃料で判定し直し、それで届くなら原因を名指しする。
-  const hypothetical = allGeneratorVariants()
-  const withGenerators = reachableItems(input, supplies, hypothetical)
-
-  return unreachable.map((target) => {
-    const byproductReason = generatorByproductReason(
-      input,
-      supplies,
-      target.item,
-      available,
-      withGenerators,
-      hypothetical,
-    )
-    return (
-      byproductReason ?? {
-        kind: 'unproducibleItem' as const,
-        item: target.item,
-        message: `${jaName(target.item)} は有効なレシピと利用できる原料からは生産できません`,
-      }
-    )
-  })
-}
-
-/** 全発電機 × 全燃料の仮想バリアント（利用者の発電計画の設定は見ない）。 */
-function allGeneratorVariants(): GeneratorVariant[] {
-  return generators.flatMap((generator) =>
-    generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
-  )
-}
-
-/** 副産物を出す燃料だけを残す（ratePerMin が 0 の燃料は供給源として数えない）。 */
-const producesByproduct = (variant: GeneratorVariant, byproduct?: string): boolean =>
-  variant.fuel.byproduct !== undefined &&
-  variant.fuel.byproduct.ratePerMin > 0 &&
-  (byproduct === undefined || variant.fuel.byproduct.item === byproduct)
-
-/**
- * 「発電機を回さないと手に入らない材料が要るせいで作れない」ケースを見分ける。
- *
- * どの副産物が効いているかは**データから導く**。その副産物を出す発電機をすべて外して
- * 到達可能性を計算し直し、目標に届かなくなるものだけを「必要な副産物」として挙げる
- * （プルトニウム・ペレットならウラン廃棄物だけ。プルトニウム廃棄物は要らない）。
- */
-function generatorByproductReason(
-  input: SolveInput,
-  supplies: readonly SupplySource[],
-  item: string,
-  available: ReadonlySet<string>,
-  withGenerators: ReadonlySet<string>,
-  hypothetical: readonly GeneratorVariant[],
-): InfeasibleReason | null {
-  if (!withGenerators.has(item)) return null
-
-  const candidates = [
-    ...new Set(
-      hypothetical
-        .filter((variant) => producesByproduct(variant))
-        .map((variant) => variant.fuel.byproduct!.item),
-    ),
-  ].filter((byproduct) => !available.has(byproduct))
-
-  const essential = candidates.filter(
-    (byproduct) =>
-      !reachableItems(
-        input,
-        supplies,
-        hypothetical.filter((variant) => !producesByproduct(variant, byproduct)),
-      ).has(item),
-  )
-  // どれか1つを外しただけでは届かなくならない（別経路がある）ときは、
-  // 発電機で新たに手に入るようになった副産物をまとめて挙げる。
-  const byproducts =
-    essential.length > 0 ? essential : candidates.filter((entry) => withGenerators.has(entry))
-  if (byproducts.length === 0) return null
-
-  const sources = byproducts.flatMap((byproduct) =>
-    hypothetical
-      .filter((variant) => producesByproduct(variant, byproduct))
-      .map((variant) => ({ generator: variant.generator.id, fuel: variant.fuel.item, byproduct })),
-  )
-  const sourceLabels = sources.map(
-    (source) =>
-      `${generatorsById.get(source.generator)?.name.ja ?? source.generator}（${jaName(source.fuel)}）`,
-  )
-
-  // 目標そのものが廃棄物のときは「材料の…」と言わない（同じ名前が2回出て読みにくい）
-  const subject = byproducts.includes(item)
-    ? `${jaName(item)} は、`
-    : `${jaName(item)} の材料の ${byproducts.map(jaName).join(' / ')} は、`
-
-  return {
-    kind: 'requiresGeneratorByproduct',
-    item,
-    byproducts,
-    sources,
-    message:
-      subject +
-      `${sourceLabels.join(' / ')} を稼働させたときの副産物としてしか得られません` +
-      '（発電計画を有効にして、その発電機と燃料を許可してください）',
-  }
+  return input.targets
+    .filter((target) => target.ratePerMin > 0 && !available.has(target.item))
+    .map((target) => ({
+      kind: 'unproducibleItem' as const,
+      item: target.item,
+      message: `${jaName(target.item)} は有効なレシピと利用できる原料からは生産できません`,
+    }))
 }
 
 /**
@@ -745,9 +743,7 @@ function reachableItems(
   }
 
   const remaining = new Set(enabledIds)
-  const remainingVariants = new Set(
-    generatorVariants.filter((v) => v.fuel.byproduct && v.fuel.byproduct.ratePerMin > 0),
-  )
+  const remainingVariants = new Set(generatorVariants.filter((v) => fuelHasByproduct(v.fuel)))
   let changed = true
   while (changed) {
     changed = false
@@ -782,6 +778,10 @@ function reachableItems(
  * 発電計画を有効にしたのに、許可した発電機の燃料（と水）が1つも作れないケースを弾く。
  * LP に任せると「原料上限を無視しても解が無い」という漠然としたメッセージになるので、
  * どの発電機の何が足りないかを先に出す。
+ *
+ * 判定対象は発電計画で**許可した**変数（`demandDriven: false`）だけ。需要駆動の変数は
+ * 副産物の供給源としては数える（FICSONIUM燃料棒はプルトニウム廃棄物が要る）が、
+ * 「発電に使える方式」ではないので usable には入れない。
  */
 export function findUnusableGenerators(
   input: SolveInput,
@@ -794,60 +794,36 @@ export function findUnusableGenerators(
   ): boolean =>
     available.has(fuel.item) &&
     (!fuel.supplementalItem || available.has(fuel.supplementalItem))
-  // 発電機の副産物も供給源に数える（FICSONIUM燃料棒はプルトニウム廃棄物が要る）
+  // 発電機の副産物（需要駆動の変数も含む）を供給源に数える
   const available = reachableItems(input, model.supplies, model.generatorVariants)
-  const usable = model.generatorVariants.filter((variant) =>
-    isFuelAvailable(available, variant.fuel),
+  const usable = model.generatorVariants.filter(
+    (variant) => !variant.demandDriven && isFuelAvailable(available, variant.fuel),
   )
   if (usable.length > 0) return []
 
-  // 「同じ発電機の別の燃料を燃やして出る副産物」が足りないだけのケースを見分ける。
-  // 例: FICSONIUM燃料棒はプルトニウム廃棄物（＝プルトニウム燃料棒の副産物）が要るので、
-  // FICSONIUM燃料棒だけを選ぶと絶対に解けない。外した燃料を名指しして案内する。
-  const withAllFuels = reachableItems(
-    input,
-    model.supplies,
-    model.powerPlan.generators.flatMap((generator) =>
-      generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
-    ),
-  )
-  const withAllRecipesAndFuels = reachableItems(
+  const withAllRecipes = reachableItems(
     { ...input, enabledRecipes: recipes.map((recipe) => recipe.id) },
     model.supplies,
-    model.powerPlan.generators.flatMap((generator) =>
-      generator.fuels.map((fuel) => ({ generator, fuel, key: `${generator.id}:${fuel.item}` })),
-    ),
+    model.generatorVariants,
   )
 
   return model.powerPlan.generators.map((generator) => {
     // 燃料を絞っている場合は「絞ったせいで解けない」ことが分かるよう、許可した燃料だけを挙げる
     const allowed = model.powerPlan.allowedFuels.get(generator.id) ?? generator.fuels
     const restricted = allowed.length < generator.fuels.length
-    const unlocked = allowed.filter((fuel) => isFuelAvailable(withAllFuels, fuel))
-    // 外している燃料のうち、副産物（廃棄物）を出すもの＝ふさがっている供給源
-    const missing = generator.fuels.filter(
-      (f) => f.byproduct !== undefined && !allowed.some((a) => a.item === f.item),
-    )
-    const manualOnlyFuels = allowed.filter(
-      (fuel) => !isFuelAvailable(withAllRecipesAndFuels, fuel),
-    )
+    const manualOnlyFuels = allowed.filter((fuel) => !isFuelAvailable(withAllRecipes, fuel))
     const manualInputs = manualOnlyFuels.flatMap((fuel) => [
-      ...nearestUnavailableIngredients(fuel.item, withAllRecipesAndFuels),
-      ...(fuel.supplementalItem && !withAllRecipesAndFuels.has(fuel.supplementalItem)
+      ...nearestUnavailableIngredients(fuel.item, withAllRecipes),
+      ...(fuel.supplementalItem && !withAllRecipes.has(fuel.supplementalItem)
         ? [fuel.supplementalItem]
         : []),
     ])
     const manualInputNames = [...new Set(manualInputs.map(jaName))].join(' / ')
     const hint =
-      restricted && unlocked.length > 0 && missing.length > 0
-        ? `（${unlocked.map((f) => jaName(f.item)).join(' / ')} の材料には ` +
-          `${[...new Set(missing.map((f) => jaName(f.byproduct!.item)))].join(' / ')} が要ります。` +
-          `これはレシピでは作れず ${missing.map((f) => jaName(f.item)).join(' / ')} を燃やしたときの` +
-          '副産物なので、その燃料も一緒に許可してください）'
-        : manualInputs.length > 0 && manualOnlyFuels.length === allowed.length
-          ? `（材料の「${manualInputNames}」は、` +
-            'マップ原料と自動化レシピだけでは用意できません。' +
-            `「既にあるアイテム」に「${manualInputNames}」を追加してください）`
+      manualInputs.length > 0 && manualOnlyFuels.length === allowed.length
+        ? `（材料の「${manualInputNames}」は、` +
+          'マップ原料と自動化レシピだけでは用意できません。' +
+          `「既にあるアイテム」に「${manualInputNames}」を追加してください）`
         : restricted
           ? '（選択中の燃料だけで判定しています。他の燃料も許可すると解けることがあります）'
           : ''
@@ -881,7 +857,9 @@ async function diagnose(
   backend: LpBackend,
   tolerance: number,
 ): Promise<InfeasibleReason[]> {
-  const elastic = buildProductionModel(input, { elastic: true })
+  // 2段階解法の1段目と同じ扱い（需要駆動の発電量は電力に数えない）。
+  // ここに来るのは1段目が実行不能だったときだけなので、診断もその条件に揃える。
+  const elastic = buildProductionModel(input, { elastic: true, creditDemandDrivenPower: false })
   const result = await backend.solve(elastic.lp)
   if (result.status !== 'optimal') {
     return [

@@ -259,27 +259,6 @@ const infeasible: InfeasibleResult = {
   message: 'この条件では生産できません。',
 }
 
-/** ウラン廃棄物が要るせいで作れない（発電計画が無効）ときの結果。 */
-const generatorByproduct: InfeasibleResult = {
-  status: 'infeasible',
-  reasons: [
-    {
-      kind: 'requiresGeneratorByproduct',
-      item: 'Desc_PlutoniumPellet_C',
-      byproducts: ['Desc_NuclearWaste_C'],
-      sources: [
-        {
-          generator: 'Build_GeneratorNuclear_C',
-          fuel: 'Desc_NuclearFuelRod_C',
-          byproduct: 'Desc_NuclearWaste_C',
-        },
-      ],
-      message: 'ソルバー側のログ文言（画面はこれを使わない）',
-    },
-  ],
-  message: 'この条件では生産できません。',
-}
-
 describe('画面の骨格', () => {
   it('タイトルとサイドバーの各セクションが出る', async () => {
     const container = await render(<App />)
@@ -1123,21 +1102,6 @@ describe('結果テーブル', () => {
     expect(text).toContain('原料不足')
     expect(text).toContain('鉄鉱石 が足りません')
     expect(text).toContain('原料上限を上げるか、目標レートを下げてください。')
-  })
-
-  it('発電機の副産物が要るときは、副産物と発電機・燃料を名指しして発電計画を案内する', async () => {
-    const container = await render(<InfeasiblePanel result={generatorByproduct} />)
-    const text = container.textContent ?? ''
-    expect(text).toContain('発電機の副産物が必要')
-    // ゲーム用語は名前データから解決する（画面に手書きしない）
-    expect(text).toContain('プルトニウム・ペレット')
-    expect(text).toContain('ウラン廃棄物')
-    expect(text).toContain('原子力発電所（ウラン燃料棒）')
-    expect(text).toContain('発電計画を有効にし')
-    // 「代替レシピを有効に」という的外れな対処は出さない
-    expect(text).not.toContain('代替レシピ')
-    // ソルバー側のログ文言は画面に出さない（表示は辞書から作る）
-    expect(text).not.toContain('ソルバー側のログ文言')
   })
 })
 

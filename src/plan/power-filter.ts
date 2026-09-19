@@ -11,7 +11,9 @@
  * 判定は**工場側を伸ばす**向きで行う（発電側を伸ばすと、循環レシピが
  * 「互いに相手が未確定」で永遠に確定しないため）:
  *   1. 目標産出のアイテムを作っている非発電ステップを工場とみなす
- *   2. 工場ステップの投入を作っているステップも工場（不動点まで伝播）
+ *   2. 工場ステップの投入を作っているステップも工場（不動点まで伝播）。
+ *      副産物（核廃棄物）が工場の材料になっている発電機もここで工場に入る
+ *      （発電計画なしでも廃棄物の需要で回る原子力は、工場の一部として残す）
  *   3. 残り（＝発電機と、発電機の燃料にしか流れないステップ）が非表示対象
  *
  * 種を「目標産出」に限るのが大事なところ。燃料の精製は原油 → 燃料 のついでに
@@ -62,23 +64,26 @@ export function findPowerOnlySteps(solution: Solution): PowerVisibilityFilter {
   })
 
   // 1) 種: 目標産出のアイテムを作っている非発電ステップ（産出最大化のアイテムも targets に入る）
+  //    発電機は種にしない（廃棄物そのものが目標でも、発電機を種にすると燃料チェーンが
+  //    丸ごと工場になって何も隠れなくなる。ただし 2) で工場の材料を出していれば工場に入る）
   const factory = new Set<number>()
   const queue: number[] = []
-  const markFactory = (index: number): void => {
-    if (isGenerator[index] || factory.has(index)) return
+  const markFactory = (index: number, allowGenerator: boolean): void => {
+    if ((isGenerator[index] && !allowGenerator) || factory.has(index)) return
     factory.add(index)
     queue.push(index)
   }
   for (const target of solution.targets) {
-    for (const index of producers.get(target.item) ?? []) markFactory(index)
+    for (const index of producers.get(target.item) ?? []) markFactory(index, false)
   }
 
-  // 2) 工場ステップの投入を作っているステップも工場（発電機は決して工場に入れない）
+  // 2) 工場ステップの投入を作っているステップも工場。副産物が工場の材料になっている発電機
+  //    （廃棄物の需要で回る原子力）もここで工場に入り、その燃料チェーンまで伝播する
   while (queue.length > 0) {
     const index = queue.pop()!
     for (const flow of steps[index]!.inputs) {
       if (flow.ratePerMin <= MIN_RATE) continue
-      for (const producer of producers.get(flow.item) ?? []) markFactory(producer)
+      for (const producer of producers.get(flow.item) ?? []) markFactory(producer, true)
     }
   }
 

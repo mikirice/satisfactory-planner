@@ -98,6 +98,15 @@ describe('発電専用チェーンの判定', () => {
     expect(filter.hiddenStepCount).toBeGreaterThan(0)
   })
 
+  it('副産物（核廃棄物）が工場の材料になっている発電機は、燃料チェーンごと工場として残す', async () => {
+    // 発電計画なし: 原子力発電所はプルトニウム・ペレットの材料（ウラン廃棄物）のために回る
+    const solution = await solveOk({ targets: [{ item: 'Desc_PlutoniumPellet_C', ratePerMin: 10 }] })
+    const filter = findPowerOnlySteps(solution)
+    expect(filter.hiddenStepCount).toBe(0)
+    expect(solution.steps.some((step) => step.buildingId === NUCLEAR)).toBe(true)
+    expect(visibleSteps(solution.steps, filter)).toHaveLength(solution.steps.length)
+  })
+
   it('発電機のいない解では何も隠さない（従来どおりの表示）', async () => {
     const solution = await solveOk({ targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }] })
     const filter = findPowerOnlySteps(solution)

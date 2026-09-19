@@ -85,7 +85,7 @@ const jaLabels = {
   /** CTA の共有URLに載せるプラン名（開いた直後の見出しになる）。 */
   itemPlanName: (name: string): string => `${name} 生産計画`,
   itemCtaNotice:
-    '目標は読み込めますが、自動化レシピだけでは入手できない材料、発電副産物、手動入手品などが途中にあるため、外部供給や発電条件を追加しないと解が出ない場合があります。',
+    '目標は読み込めますが、自動化レシピだけでは入手できない材料や手動入手品などが途中にあるため、外部供給を追加しないと解が出ない場合があります。',
 
   itemDescriptionBoth: (
     name: string,
@@ -475,7 +475,7 @@ const enLabels: StaticPageLabels = {
   itemCta: 'Plan this item in the planner',
   itemPlanName: (name: string): string => `${name} production plan`,
   itemCtaNotice:
-    'The target loads, but the chain passes through ingredients that no automated recipe produces, power byproducts or hand-gathered items, so it may need an external supply or a power setup before it can be solved.',
+    'The target loads, but the chain passes through ingredients that no automated recipe produces or hand-gathered items, so it may need an external supply before it can be solved.',
 
   // 英語ページの meta description に日本語名は出さない（読者に意味がないため）。
   // 日本語名はページ内の「Japanese: …」タグと収録範囲の説明にだけ残す。

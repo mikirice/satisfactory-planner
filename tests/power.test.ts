@@ -7,7 +7,9 @@
  * の行を張る（src/solver/model.ts）。燃料はアイテム収支に入るので、
  * 石炭の採掘・燃料の精製・ウラン燃料棒の製造まで同じ LP が同時に解く。
  *
- * いちばん大事なのは**発電OFF時の回帰**（LP を1変数も変えないこと）。
+ * いちばん大事なのは**発電OFF時の回帰**（廃棄物を使わない計画の解が変わらないこと）。
+ * 副産物（核廃棄物）を出す発電機 × 燃料は発電計画の有無に関係なく常に LP に入るが
+ * （需要駆動・tests/generator-byproduct.test.ts）、廃棄物の需要が無ければ 0 のままになる。
  */
 import { describe, expect, it } from 'vitest'
 
@@ -18,6 +20,7 @@ import {
   POWER_COVER_ROW,
   POWER_TARGET_ROW,
   buildProductionModel,
+  fuelHasByproduct,
   generatorStepId,
   generatorVarKey,
   resolvePowerPlan,
@@ -40,6 +43,10 @@ const rateOf = (entries: readonly { item: string; ratePerMin: number }[], item: 
 
 const generatorSteps = (solution: Solution): SolutionStep[] =>
   solution.steps.filter((s) => (s.powerProductionMW ?? 0) > 0)
+
+/** 発電計画で許可した（需要駆動でない）発電機の変数キー */
+const allowedVariantKeys = (model: ReturnType<typeof buildProductionModel>): string[] =>
+  model.generatorVariants.filter((v) => !v.demandDriven).map((v) => v.key)
 
 const IRON_PLATE_60: SolveInput = { targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 60 }] }
 
@@ -171,8 +178,13 @@ describe('発電OFF（既定）', () => {
     )
   })
 
-  it('LP の変数・制約・目的係数が発電機能の追加前と完全に一致する', () => {
+  it('LP の変数・制約・目的係数が発電計画の指定の有無で変わらない（需要駆動の発電機だけが載る）', () => {
     const base = buildProductionModel(IRON_PLATE_60)
+    // 発電計画が無効でも、副産物を出す発電機 × 燃料（原子力 × ウラン/プルトニウム燃料棒）は
+    // 需要駆動の変数として常に載る。許可した（制限なしの）変数は 1本も無い
+    expect(base.generatorVariants.every((v) => v.demandDriven)).toBe(true)
+    expect(base.generatorVariants.every((v) => fuelHasByproduct(v.fuel))).toBe(true)
+    expect(base.generatorVariants.length).toBeGreaterThan(0)
     for (const power of [
       undefined,
       {},
@@ -181,9 +193,9 @@ describe('発電OFF（既定）', () => {
       { generators: allGenerators, targetMW: 0, coverFactoryPower: false },
     ]) {
       const model = buildProductionModel({ ...IRON_PLATE_60, power })
-      expect(model.generatorVariants, JSON.stringify(power)).toEqual([])
+      expect(allowedVariantKeys(model), JSON.stringify(power)).toEqual([])
       expect(model.lp.variables).toEqual(base.lp.variables)
-      expect(model.lp.constraints.map((c) => c.key)).toEqual(base.lp.constraints.map((c) => c.key))
+      expect(model.lp.constraints).toEqual(base.lp.constraints)
       for (const row of [POWER_TARGET_ROW, POWER_COVER_ROW]) {
         expect(model.lp.constraints.some((c) => c.key === row)).toBe(false)
       }
@@ -228,7 +240,7 @@ describe('LP モデル', () => {
 
   it('発電機 × 燃料ごとに1変数を作る', () => {
     const model = buildProductionModel(input)
-    expect(model.generatorVariants.map((v) => v.key)).toEqual([
+    expect(allowedVariantKeys(model)).toEqual([
       generatorVarKey(COAL, 'Desc_Coal_C'),
       generatorVarKey(COAL, 'Desc_CompactedCoal_C'),
       generatorVarKey(COAL, 'Desc_PetroleumCoke_C'),
@@ -522,9 +534,12 @@ describe('燃料の選択', () => {
       targets: [],
       power: { generators: [NUCLEAR], fuels: { [NUCLEAR]: ['Desc_NuclearFuelRod_C'] }, targetMW: 2500 },
     })
-    expect(model.generatorVariants.map((v) => v.key)).toEqual([
-      generatorVarKey(NUCLEAR, 'Desc_NuclearFuelRod_C'),
-    ])
+    expect(allowedVariantKeys(model)).toEqual([generatorVarKey(NUCLEAR, 'Desc_NuclearFuelRod_C')])
+    // 許可しなかったプルトニウム燃料棒は需要駆動の変数として残る（廃棄物の需要が無ければ 0）
+    const plutonium = model.generatorVariants.find(
+      (v) => v.key === generatorVarKey(NUCLEAR, 'Desc_PlutoniumFuelRod_C'),
+    )!
+    expect(plutonium.demandDriven).toBe(true)
     expect(model.powerPlan.allowedFuels.get(NUCLEAR)!.map((f) => f.item)).toEqual([
       'Desc_NuclearFuelRod_C',
     ])
@@ -571,7 +586,7 @@ describe('燃料の選択', () => {
       ...IRON_PLATE_60,
       power: { generators: [COAL], fuels: { [COAL]: [] }, targetMW: 300 },
     })
-    expect(alone.generatorVariants).toEqual([])
+    expect(allowedVariantKeys(alone)).toEqual([])
     expect(alone.lp.variables).toEqual(buildProductionModel(IRON_PLATE_60).lp.variables)
 
     // 他の方式が残っていれば、その方式の変数だけが立つ
@@ -580,7 +595,9 @@ describe('燃料の選択', () => {
       power: { generators: [COAL, FUEL], fuels: { [COAL]: [] }, targetMW: 250 },
     })
     expect(model.powerPlan.generators.map((g) => g.id)).toEqual([FUEL])
-    expect(model.generatorVariants.every((v) => v.generator.id === FUEL)).toBe(true)
+    expect(
+      model.generatorVariants.filter((v) => !v.demandDriven).every((v) => v.generator.id === FUEL),
+    ).toBe(true)
 
     const solution = await solveOk({
       targets: [],
@@ -675,8 +692,8 @@ describe('FICSONIUM燃料棒（廃棄物の再処理チェーン）', () => {
     expect(recipeIds).toContain('Recipe_QuantumEnergy_C')
   })
 
-  it('FICSONIUM燃料棒だけに絞ると解けないが、足りない副産物と燃料を名指しする', async () => {
-    const result = await solveProduction({
+  it('FICSONIUM燃料棒だけに絞っても、廃棄物を出す燃料棒の発電機が需要駆動で回って解ける', async () => {
+    const solution = await solveOk({
       targets: [],
       power: {
         generators: [NUCLEAR],
@@ -684,22 +701,30 @@ describe('FICSONIUM燃料棒（廃棄物の再処理チェーン）', () => {
         targetMW: 2500,
       },
     })
-    // 実ゲームでも FICSONIUM燃料棒はプルトニウム廃棄物（＝プルトニウム燃料棒を
-    // 燃やしたときだけ出る）が要るので、単独では成立しない
-    expect(result.status).toBe('infeasible')
-    if (result.status !== 'infeasible') return
-    expect(result.message).toContain('プルトニウム廃棄物')
-    expect(result.message).toContain('プルトニウム燃料棒')
-    expect(result.message).toContain('副産物')
+    // FICSONIUM燃料棒はプルトニウム廃棄物（プルトニウム燃料棒の副産物）が要り、
+    // プルトニウム燃料棒はウラン廃棄物（ウラン燃料棒の副産物）が要る。
+    // どちらの発電機も廃棄物の需要ぶんだけ回り、その発電量も目標に数える
+    const fuels = generatorSteps(solution).map((s) => s.fuelItem)
+    expect(fuels).toContain('Desc_FicsoniumFuelRod_C')
+    expect(fuels).toContain('Desc_PlutoniumFuelRod_C')
+    expect(fuels).toContain('Desc_NuclearFuelRod_C')
+    expect(solution.powerGeneration!.totalMW).toBeGreaterThanOrEqual(2500 - 1e-6)
+    // 需要駆動の発電機が出した廃棄物は余らない
+    for (const waste of ['Desc_NuclearWaste_C', 'Desc_PlutoniumWaste_C']) {
+      expect(rateOf(solution.byproducts, waste), waste).toBeCloseTo(0, 6)
+    }
   })
 
-  it('目標にした FICSONIUM燃料棒は、発電計画が無ければ従来どおり作れないと報告する', async () => {
-    const result = await solveProduction({
+  it('目標にした FICSONIUM燃料棒は、発電計画が無くても解ける（発電機は需要駆動で回る）', async () => {
+    const solution = await solveOk({
       targets: [{ item: 'Desc_FicsoniumFuelRod_C', ratePerMin: 1 }],
     })
-    expect(result.status).toBe('infeasible')
-    if (result.status !== 'infeasible') return
-    expect(result.message).toContain('FICSONIUM燃料棒')
+    expect(
+      solution.targets.find((t) => t.item === 'Desc_FicsoniumFuelRod_C')!.producedPerMin,
+    ).toBeCloseTo(1, 6)
+    expect(solution.powerGeneration).toBeDefined()
+    expect(solution.powerGeneration!.targetMW).toBe(0)
+    expect(solution.powerGeneration!.totalMW).toBeGreaterThan(0)
   })
 })
 

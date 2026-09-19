@@ -22,7 +22,9 @@ export {
   POWER_TARGET_ROW,
   SCARCITY_REFERENCE_RATE,
   buildProductionModel,
+  byproductBoundRow,
   defaultEnabledRecipeIds,
+  fuelHasByproduct,
   generatorVarKey,
   maximizeVarKey,
   netRatePerMin,
@@ -78,7 +80,6 @@ export type { LpBackend, LpConstraint, LpModel, LpResult, LpStatus, LpVariable }
 
 export type {
   ExternalInputUsage,
-  GeneratorByproductSource,
   InfeasibleReason,
   InfeasibleResult,
   ItemBalance,

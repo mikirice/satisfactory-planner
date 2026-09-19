@@ -393,6 +393,8 @@ export const esES = {
     powerGenerationNet: 'Electricidad neta',
     powerGenerationFuel: 'Consumo de combustible',
     powerGenerationCover: 'La cobertura del consumo de la fábrica está activada.',
+    powerGenerationDemandDriven:
+      'La planificación eléctrica está desactivada. Los generadores funcionan solo en la medida en que se necesitan sus subproductos (residuos nucleares); la energía producida se muestra pero no se restringe.',
     powerGenerationShort: (short: string): string =>
       `Faltan ${short} MW para cubrir el consumo de producción. La electricidad de la extracción queda fuera.`,
     powerGenerationExtractionNote:
@@ -512,7 +514,6 @@ export const esES = {
     hint: 'Revisa alguno de estos ajustes.',
     reason: {
       unproducibleItem: 'Falta una receta',
-      requiresGeneratorByproduct: 'Se necesita un subproducto de generación',
       resourceLimit: 'Faltan recursos',
       unbounded: 'Objetivo de optimización',
       solverError: 'Solucionador',
@@ -520,14 +521,6 @@ export const esES = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `${name} no se puede producir con las recetas activadas y los recursos disponibles.`,
-      requiresGeneratorByproduct: (
-        name: string,
-        byproducts: readonly string[],
-        sources: readonly string[],
-      ): string =>
-        `${name} necesita ${byproducts.join(', ')}, que solo se obtiene como subproducto al hacer funcionar ${sources.join(', ')}.`,
-      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
-        `${name} solo se obtiene como subproducto al hacer funcionar ${sources.join(', ')}.`,
       resourceLimit: (name: string): string => `No hay suficiente ${name}.`,
       unbounded: 'La producción no se puede maximizar sin límites de recursos.',
       solverError: 'El solucionador no ha devuelto ninguna solución.',
@@ -535,14 +528,10 @@ export const esES = {
     advice: {
       unproducibleItem:
         'Activa alguna receta alternativa o comprueba si algún recurso necesario tiene el límite a 0.',
-      requiresGeneratorByproduct: (sources: readonly string[]): string =>
-        `Activa la generación de electricidad y permite ${sources.join(', ')}.`,
       resourceLimit: 'Sube el límite del recurso o baja el ritmo objetivo.',
       unbounded: 'Define límites de recursos y vuelve a maximizar la producción.',
       solverError: 'Simplifica los datos e inténtalo de nuevo.',
     },
-    /** Origen de un subproducto: generador y combustible. */
-    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Límite ${limit} / necesario ${required} / déficit ${shortfall}`,
   },

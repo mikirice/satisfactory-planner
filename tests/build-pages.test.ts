@@ -193,7 +193,7 @@ describe('アイテム静的ページ', () => {
         enabledRecipes: [...standardRecipeIds, ...Object.keys(parsed.input.enabledAlternates)],
       })
       const hasNotice = html.includes(
-        '外部供給や発電条件を追加しないと解が出ない場合があります',
+        '外部供給を追加しないと解が出ない場合があります',
       )
       expect(hasNotice, item.id).toBe(result.status !== 'optimal')
     }
@@ -236,16 +236,16 @@ describe('アイテム静的ページ', () => {
     expect(html).not.toContain('必要材料、毎分レート、設備、電力、材料効率を')
   })
 
-  it('手動入手品や発電副産物が上流に必要なCTAは追加条件を明示する', async () => {
+  it('手動入手品が上流に必要なCTAは追加条件を明示し、発電副産物は解けるので明示しない', async () => {
     const fabric = await readFile(join(outputDirectory, 'items/fabric/index.html'), 'utf8')
     const nuclearWaste = await readFile(
       join(outputDirectory, 'items/nuclear-waste/index.html'),
       'utf8',
     )
 
-    for (const html of [fabric, nuclearWaste]) {
-      expect(html).toContain('外部供給や発電条件を追加しないと解が出ない場合があります')
-    }
+    expect(fabric).toContain('外部供給を追加しないと解が出ない場合があります')
+    // 核廃棄物は発電計画なしでも原子力発電所が需要駆動で回って作れる（tests/generator-byproduct.test.ts）
+    expect(nuclearWaste).not.toContain('外部供給を追加しないと解が出ない場合があります')
   })
 })
 

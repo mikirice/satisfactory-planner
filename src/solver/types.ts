@@ -43,8 +43,10 @@ export type ResourceWeightSpec = 'uniform' | 'scarcity' | Readonly<Record<string
  * 燃料もアイテム収支の制約に入るので、石炭発電なら石炭の採掘、燃料式なら原油チェーン、
  * 原子力ならウラン燃料棒の製造までが同じ LP で同時に解ける。
  *
- * **無効時は LP を1変数も変えない**（`generators` が空、または目標も自給もオフのとき）。
- * これは既存プランの解が発電機能の追加で変わらないための約束（tests/power.test.ts）。
+ * 無効時（`generators` が空、または目標も自給もオフのとき）は電力の制約行を作らない。
+ * ただし副産物（核廃棄物）を出す発電機 × 燃料は発電計画の有無に関係なく常に LP に入り、
+ * 副産物が消費される量までだけ稼働できる（需要駆動）。廃棄物を使わない計画の解は
+ * 発電計画の有無で変わらない（tests/power.test.ts）。
  */
 export type PowerPlanInput = {
   /**
@@ -240,13 +242,14 @@ export type ExternalInputUsage = ItemRate & {
 }
 
 /**
- * 発電計画の集計（`SolveInput.power` を有効にしたときだけ Solution に入る）。
+ * 発電計画の集計。`SolveInput.power` を有効にしたとき、または発電計画が無効でも
+ * 副産物（核廃棄物）の需要で発電機が1台でも回ったときに Solution に入る。
  * 発電機の内訳そのものは `Solution.steps` の中に（`powerProductionMW` を持つ行として）並ぶ。
  */
 export type PowerGenerationSummary = {
-  /** 指定した目標発電量(MW)。0 = 指定なし */
+  /** 指定した目標発電量(MW)。0 = 指定なし（発電計画が無効のときも 0） */
   targetMW: number
-  /** 「工場の消費電力ぶんを賄う」を有効にしたか */
+  /** 「工場の消費電力ぶんを賄う」を有効にしたか（発電計画が無効のときは false） */
   coverFactoryPower: boolean
   /** 総発電量(MW)。稼働台数ベース（＝ LP が決めた値。建てる台数の切り上げ分は含まない） */
   totalMW: number
@@ -311,43 +314,16 @@ export type Solution = {
    */
   maximizedOutput?: ItemRate
   /**
-   * 発電計画を有効にしたときだけ入る（`SolveInput.power`）。
-   * 発電機を LP に入れていない従来どおりの解では undefined。
+   * 発電計画を有効にしたとき（`SolveInput.power`）、または副産物の需要で発電機が回ったときに入る。
+   * 発電機が1台も回らない従来どおりの解では undefined。
    */
   powerGeneration?: PowerGenerationSummary
-}
-
-/**
- * 発電機の副産物（核廃棄物）の出どころ。
- * 「この発電機をこの燃料で回したときだけ出る」という組み合わせを指す。
- */
-export type GeneratorByproductSource = {
-  /** 発電機の Building.id（例: "Build_GeneratorNuclear_C"） */
-  generator: string
-  /** 燃料の Item.id（例: "Desc_NuclearFuelRod_C"） */
-  fuel: string
-  /** その燃料を燃やすと出る副産物の Item.id（例: "Desc_NuclearWaste_C"） */
-  byproduct: string
 }
 
 export type InfeasibleReason =
   | {
       kind: 'unproducibleItem'
       item: string
-      message: string
-    }
-  | {
-      /**
-       * 発電機の副産物（ウラン廃棄物・プルトニウム廃棄物）が要るせいで作れない。
-       * 発電計画を有効にして該当の発電機と燃料を許可すれば作れるようになる。
-       */
-      kind: 'requiresGeneratorByproduct'
-      /** 作れなかった目標アイテムの Item.id */
-      item: string
-      /** レシピでは作れず、発電機を回さないと手に入らない材料の Item.id */
-      byproducts: string[]
-      /** その副産物を出す発電機 × 燃料の組み合わせ */
-      sources: GeneratorByproductSource[]
       message: string
     }
   | {
