@@ -169,6 +169,10 @@ export const ja = {
     powerIdle: '目標発電量を入れるか「工場の消費電力ぶんを賄う」をオンにすると計算します。',
     powerNoMethod: '発電方式を1つ以上選んでください。',
     powerClockNote: '発電機のクロックは100%固定です（発電側のオーバークロックは未対応）。',
+    powerByproducts: '副産物の扱い',
+    powerByproductZero: '残さない（全量を再処理で消費）',
+    powerByproductsHint:
+      'チェックした廃棄物は余らせず、消費する再処理（プルトニウム・FICSONIUM のチェーン）まで計画に含めます。再処理でできた燃料棒を燃やす発電方式も許可してください。発電計画がオフでも有効です。',
 
     alternates: '代替レシピ',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} 有効`,
@@ -508,6 +512,7 @@ export const ja = {
       resourceLimit: '原料不足',
       unbounded: '目的関数',
       solverError: 'ソルバー',
+      byproductMustBeConsumed: '副産物の余り',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -515,12 +520,19 @@ export const ja = {
       resourceLimit: (name: string): string => `${name} が足りません。`,
       unbounded: '原料上限がないため最大化できません。',
       solverError: 'ソルバーが解を返しませんでした。',
+      byproductMustBeConsumed: (name: string): string => `${name} を「残さない」設定にしていますが、この条件では消費しきれません。`,
     },
     advice: {
       unproducibleItem: '代替レシピを有効にするか、原料上限を 0 にしていないか確認してください。',
       resourceLimit: '原料上限を上げるか、目標レートを下げてください。',
       unbounded: '原料上限を設定してから、もう一度最大化してください。',
       solverError: '入力を単純にして再試行してください。',
+      byproductMustBeConsumed:
+        '「残さない」のチェックを外すか、廃棄物を消費するレシピと、再処理でできた燃料棒を燃やす発電方式を許可してください。',
+    },
+    byproductCause: {
+      noEnabledConsumer: '消費する有効なレシピがありません。',
+      consumerChainUnavailable: '再処理でできるアイテムの行き先がありません（燃やす発電方式が許可されていないか、必要なレシピが無効です）。',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `上限 ${limit} / 必要 ${required} / 不足 ${shortfall}`,
@@ -605,6 +617,7 @@ export const ja = {
       generatorsRunning: '発電機（稼働台数）',
       fuelRate: '消費レート',
       noFuel: '燃料を使っていません',
+      zeroSurplusByproducts: '余りを許さない副産物',
       powerNote:
         '※ 発電機のクロックは100%固定です。採掘設備の電力は発電計画に含めていません。',
       runningMachines: '稼働台数（小数）',

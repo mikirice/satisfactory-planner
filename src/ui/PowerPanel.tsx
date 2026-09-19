@@ -9,6 +9,7 @@
  */
 import {
   allowedFuelItems,
+  generatorByproducts,
   isPowerPlanActive,
   powerGenerators,
   usePlanner,
@@ -28,6 +29,8 @@ export function PowerPanel() {
   const setGeneratorFuel = usePlanner((s) => s.setGeneratorFuel)
   const setPowerTargetMW = usePlanner((s) => s.setPowerTargetMW)
   const setCoverFactoryPower = usePlanner((s) => s.setCoverFactoryPower)
+  const zeroSurplusByproducts = usePlanner((s) => s.zeroSurplusByproducts)
+  const setZeroSurplusByproduct = usePlanner((s) => s.setZeroSurplusByproduct)
 
   const anyGenerator = Object.keys(enabledGenerators).length > 0
   const active = isPowerPlanActive({
@@ -123,6 +126,35 @@ export function PowerPanel() {
       )}
       {anyGenerator && !active && <p className="hint">{T.sidebar.powerIdle}</p>}
       <p className="hint">{T.sidebar.powerClockNote}</p>
+
+      {/* 副産物（核廃棄物）の扱い。発電計画のオン/オフに関係なく出す:
+          需要駆動の発電機は発電計画なしでも廃棄物を出しうるため（src/solver/model.ts） */}
+      {generatorByproducts.length > 0 && (
+        <div className="checkbox-list byproduct-list">
+          <p className="target-group__head">{T.sidebar.powerByproducts}</p>
+          {generatorByproducts.map((item) => {
+            const name = itemName(item)
+            const on = zeroSurplusByproducts[item] === true
+            return (
+              <label className={on ? 'checkbox checkbox--on' : 'checkbox'} key={item}>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={(e) => setZeroSurplusByproduct(item, e.target.checked)}
+                />
+                <span className="checkbox__body">
+                  <span className="checkbox__label">
+                    <ItemIcon id={item} name={name} size={CELL_ICON} />
+                    <span>{name}</span>
+                  </span>
+                  <span className="checkbox__hint">{T.sidebar.powerByproductZero}</span>
+                </span>
+              </label>
+            )
+          })}
+          <p className="hint">{T.sidebar.powerByproductsHint}</p>
+        </div>
+      )}
     </CollapsiblePanel>
   )
 }

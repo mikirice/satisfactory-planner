@@ -29,6 +29,7 @@ import {
   somersloopPowerFactor,
   somersloopVarKey,
   variablePowerRange,
+  zeroSurplusChain,
 } from './model.ts'
 import { clockedPowerMW, powerShardsForClock } from './overclock.ts'
 import type {
@@ -862,6 +863,9 @@ async function diagnose(
   const elastic = buildProductionModel(input, { elastic: true, creditDemandDrivenPower: false })
   const result = await backend.solve(elastic.lp)
   if (result.status !== 'optimal') {
+    // 「余りを許さない副産物」が原因なら、原料上限より先にそれを言う
+    const byproducts = await diagnoseZeroSurplus(input, elastic, backend)
+    if (byproducts.length > 0) return byproducts
     return [
       {
         kind: 'solverError',
@@ -893,4 +897,98 @@ async function diagnose(
       : 0,
   )
   return reasons
+}
+
+/**
+ * 「余りを許さない副産物」（`power.zeroSurplusByproducts`）のせいで解けていないかを調べる。
+ *
+ * 弾性モデル（原料上限なし）でも実行不能だったときに呼ぶ。等式をすべて外した弾性モデルが
+ * 解けるなら原因はこの制約にある。どの副産物かは:
+ *   1. 静的に原因が分かるもの（消費する有効レシピが無い / 消費レシピの他の材料が用意できない）
+ *      があればそれだけを挙げる（原因つき）
+ *   2. 無ければ、1つだけ等式を外して解けるようになる副産物を挙げる（原因なし）
+ *   3. それでも1つも無ければ、指定した副産物すべてを挙げる
+ * 副産物が出ない計画（発電所を回さない）なら等式は元から満たせるので、ここには落ちない。
+ */
+async function diagnoseZeroSurplus(
+  input: SolveInput,
+  elastic: ProductionModel,
+  backend: LpBackend,
+): Promise<InfeasibleReason[]> {
+  const constrained = [...elastic.powerPlan.zeroSurplusByproducts].sort()
+  if (constrained.length === 0) return []
+  const withZeroSurplus = (items: readonly string[]): SolveInput => ({
+    ...input,
+    power: { ...input.power, zeroSurplusByproducts: items },
+  })
+  const solvable = async (items: readonly string[]): Promise<boolean> => {
+    const model = buildProductionModel(withZeroSurplus(items), {
+      elastic: true,
+      creditDemandDrivenPower: false,
+    })
+    return (await backend.solve(model.lp)).status === 'optimal'
+  }
+  if (!(await solvable([]))) return []
+
+  const available = reachableItems(input, elastic.supplies, elastic.generatorVariants)
+  const candidates = [...elastic.recipes, ...elastic.somersloopRecipes]
+  const constrainedSet = new Set(constrained)
+  /**
+   * 静的に分かる原因。
+   * - b を消費する有効レシピが1つも無い → noEnabledConsumer
+   * - b とその再処理チェーン（zeroSurplusChain）のどれかに行き先が無い → consumerChainUnavailable。
+   *   行き先 = 材料の揃う消費レシピ / 発電計画で許可した発電機 /
+   *   需要駆動の発電機のうち副産物も「残さない」指定のもの（消費先ができれば回れる）
+   */
+  const causeOf = (item: string): 'noEnabledConsumer' | 'consumerChainUnavailable' | undefined => {
+    const consumersOf = (id: string): Recipe[] =>
+      candidates.filter((recipe) => recipe.ingredients.some((ingredient) => ingredient.item === id))
+    if (consumersOf(item).length === 0) return 'noEnabledConsumer'
+    const chain = zeroSurplusChain(
+      new Set([item]),
+      candidates,
+      elastic.generatorVariants,
+      elastic.supplies,
+    )
+    for (const id of chain) {
+      const recipeSink = consumersOf(id).some((recipe) =>
+        recipe.ingredients.every((ingredient) => available.has(ingredient.item)),
+      )
+      const generatorSink = elastic.generatorVariants.some(
+        (variant) =>
+          variant.fuel.item === id &&
+          (!variant.demandDriven ||
+            (fuelHasByproduct(variant.fuel) &&
+              constrainedSet.has(variant.fuel.byproduct!.item))),
+      )
+      if (!recipeSink && !generatorSink) return 'consumerChainUnavailable'
+    }
+    return undefined
+  }
+  const reasonFor = (
+    item: string,
+    cause: 'noEnabledConsumer' | 'consumerChainUnavailable' | undefined,
+  ): InfeasibleReason => ({
+    kind: 'byproductMustBeConsumed',
+    item,
+    ...(cause === undefined ? {} : { cause }),
+    message:
+      `${jaName(item)} を「残さない」設定にしていますが、この条件では消費しきれません` +
+      (cause === 'noEnabledConsumer'
+        ? '（消費する有効なレシピがありません）'
+        : cause === 'consumerChainUnavailable'
+          ? '（再処理でできるアイテムの行き先がありません。燃料棒を燃やす発電方式を許可するか、必要なレシピを有効にしてください）'
+          : ''),
+  })
+
+  const explained = constrained
+    .map((item) => ({ item, cause: causeOf(item) }))
+    .filter((entry) => entry.cause !== undefined)
+  if (explained.length > 0) return explained.map((e) => reasonFor(e.item, e.cause))
+
+  const culprits: string[] = []
+  for (const item of constrained) {
+    if (await solvable(constrained.filter((other) => other !== item))) culprits.push(item)
+  }
+  return (culprits.length > 0 ? culprits : constrained).map((item) => reasonFor(item, undefined))
 }

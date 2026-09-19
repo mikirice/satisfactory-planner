@@ -102,6 +102,7 @@ describe('プランのシリアライズ', () => {
       enabledFuels: {},
       powerTargetMW: 0,
       coverFactoryPower: false,
+      zeroSurplusByproducts: {},
       planName: '鉄板ライン',
       beltId: 'Build_ConveyorBeltMk1_C',
       pipeId: DEFAULT_PIPE_ID,

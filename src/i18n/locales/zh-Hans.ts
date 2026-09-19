@@ -165,6 +165,10 @@ export const zhHans = {
     powerIdle: '请输入发电目标，或开启覆盖工厂耗电。',
     powerNoMethod: '请至少选择一种发电方式。',
     powerClockNote: '发电机时钟频率固定为 100 %，不支持发电机超频。',
+    powerByproducts: '副产物处理',
+    powerByproductZero: '不留余量（全部消耗）',
+    powerByproductsHint:
+      '勾选的废料不会有剩余：计划会包含消耗它的再处理流程（钚和 Ficsonium 链）。请同时允许燃烧所得燃料棒的发电方式。即使关闭发电计划也生效。',
 
     alternates: '替代配方',
     alternatesCount: (on: number, all: number): string => `已启用 ${on} / ${all}`,
@@ -496,6 +500,7 @@ export const zhHans = {
       resourceLimit: '资源不足',
       unbounded: '优化目标',
       solverError: '求解器',
+      byproductMustBeConsumed: '副产物剩余',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -503,12 +508,21 @@ export const zhHans = {
       resourceLimit: (name: string): string => `${name}不足。`,
       unbounded: '没有资源上限时无法最大化产量。',
       solverError: '求解器没有返回结果。',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} 已设为“不留余量”，但在当前条件下无法全部消耗。`,
     },
     advice: {
       unproducibleItem: '启用某个替代配方，或检查所需资源的上限是否被设为 0。',
       resourceLimit: '提高资源上限，或降低目标速率。',
       unbounded: '先设置资源上限，再重新最大化产量。',
       solverError: '请简化输入后重试。',
+      byproductMustBeConsumed:
+        '取消勾选“不留余量”，或启用消耗该废料的配方并允许燃烧所得燃料棒的发电方式。',
+    },
+    byproductCause: {
+      noEnabledConsumer: '没有已启用的配方消耗它。',
+      consumerChainUnavailable:
+        '再处理链没有去向（燃烧其燃料棒的发电方式未被允许，或所需配方已禁用）。',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `上限 ${limit} / 需要 ${required} / 缺口 ${shortfall}`,
@@ -592,6 +606,7 @@ export const zhHans = {
       generatorsRunning: '运行中的发电机',
       fuelRate: '消耗速率',
       noFuel: '未使用燃料',
+      zeroSurplusByproducts: '不留余量的副产物',
       powerNote: '发电机时钟频率固定为 100 %。开采用电不计入发电方案。',
       runningMachines: '运行台数',
       builtMachines: '需建造台数',

@@ -171,6 +171,10 @@ export const de = {
     powerNoMethod: 'Wählen Sie mindestens eine Erzeugungsart.',
     powerClockNote:
       'Der Takt der Generatoren liegt fest bei 100 %. Übertakten von Generatoren wird nicht unterstützt.',
+    powerByproducts: 'Nebenprodukte',
+    powerByproductZero: 'Nichts übrig lassen (vollständig verbrauchen)',
+    powerByproductsHint:
+      'Markierter Abfall bleibt nie übrig: Der Plan enthält die Wiederaufbereitung, die ihn verbraucht (Plutonium- und Ficsonium-Kette). Erlauben Sie auch die Erzeugungsmethode, die die entstehenden Brennstäbe verbrennt. Gilt auch, wenn die Stromerzeugung aus ist.',
 
     alternates: 'Alternativrezepte',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} aktiv`,
@@ -517,6 +521,7 @@ export const de = {
       resourceLimit: 'Rohstoffmangel',
       unbounded: 'Optimierungsziel',
       solverError: 'Solver',
+      byproductMustBeConsumed: 'Nebenprodukt-Überschuss',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -524,6 +529,8 @@ export const de = {
       resourceLimit: (name: string): string => `Nicht genug ${name}.`,
       unbounded: 'Ohne Rohstoffgrenzen lässt sich der Ausstoß nicht maximieren.',
       solverError: 'Der Solver hat keine Lösung geliefert.',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} ist auf „nichts übrig lassen“ gesetzt, kann unter diesen Bedingungen aber nicht vollständig verbraucht werden.`,
     },
     advice: {
       unproducibleItem:
@@ -531,6 +538,13 @@ export const de = {
       resourceLimit: 'Erhöhen Sie die Rohstoffgrenze oder senken Sie die Zielrate.',
       unbounded: 'Setzen Sie Rohstoffgrenzen und maximieren Sie den Ausstoß erneut.',
       solverError: 'Vereinfachen Sie die Eingaben und versuchen Sie es erneut.',
+      byproductMustBeConsumed:
+        'Entfernen Sie die Markierung „nichts übrig lassen“ oder aktivieren Sie die Rezepte, die den Abfall verbrauchen, und erlauben Sie die Erzeugungsmethode, die die entstehenden Brennstäbe verbrennt.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Kein aktiviertes Rezept verbraucht es.',
+      consumerChainUnavailable:
+        'Die Wiederaufbereitungskette hat keinen Abnehmer (die Erzeugungsmethode für ihre Brennstäbe ist nicht erlaubt oder ein benötigtes Rezept ist deaktiviert).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Grenze ${limit} / benötigt ${required} / fehlend ${shortfall}`,
@@ -615,6 +629,7 @@ export const de = {
       generatorsRunning: 'Laufende Generatoren',
       fuelRate: 'Verbrauchsrate',
       noFuel: 'Kein Brennstoff genutzt',
+      zeroSurplusByproducts: 'Nebenprodukte ohne Überschuss',
       powerNote:
         'Der Takt der Generatoren liegt fest bei 100 %. Der Strom für den Abbau bleibt im Erzeugungsplan außen vor.',
       runningMachines: 'Laufende Maschinen',

@@ -10,6 +10,7 @@
  *   制約（アイテム i ごと）
  *     Σ_r (産出_{i,r} - 消費_{i,r})·x_r + Σ_v (副産物_{i,v} - 燃料_{i,v})·g_v + s_i >= 目標産出_i
  *     目標でないアイテムは右辺 0（過剰生産＝副産物は許容する）
+ *     「余りを許さない副産物」（power.zeroSurplusByproducts）は >= ではなく = にする
  *
  *   制約（需要駆動の発電機が出す副産物 b ごと）
  *     Σ_{v: 需要駆動} 副産物_{b,v}·g_v - Σ_r 消費_{b,r}·x_r <= 目標産出_b
@@ -206,6 +207,123 @@ export type GeneratorVariant = {
 export const fuelHasByproduct = (fuel: GeneratorFuel): boolean =>
   fuel.byproduct !== undefined && fuel.byproduct.ratePerMin > 0
 
+/**
+ * 何らかの発電機の燃料が副産物として出すアイテム（Item.id）。generators.json の宣言順で重複なし。
+ * 「余りを許さない副産物」（`PowerPlanInput.zeroSurplusByproducts`）に指定できるのはこの集合だけ。
+ * アイテム ID はここに書かず、データから導く。
+ */
+export function generatorByproductItems(): string[] {
+  const out: string[] = []
+  for (const generator of generators) {
+    for (const fuel of generator.fuels) {
+      if (!fuelHasByproduct(fuel)) continue
+      const item = fuel.byproduct!.item
+      if (!out.includes(item)) out.push(item)
+    }
+  }
+  return out
+}
+
+/**
+ * 「余りを許さない」副産物 b から、収支を等式にするアイテムの集合を求める。
+ *
+ * b そのものに加えて、**b が無ければ作れないアイテム**（再処理の中間生成物: 非核分裂性ウラン →
+ * プルトニウム・ペレット → セル → 燃料棒 …）も余らせない。b の行だけを等式にすると、LP は
+ * 「廃棄物をペレットにして、ペレットを捨てる」解で等式を満たしてしまい、再処理を最後まで
+ * 建てる（燃料棒を燃やす）という設定の意図が実現しないため。
+ *
+ * 集合の求め方（データから導く。アイテム ID はここに書かない）:
+ *   1. baseline = b を出す発電機を除いた前方到達集合（原料・持ち込み・有効レシピ・他の発電機）
+ *   2. b を起点に、材料が baseline ∪ 集合 で揃うレシピ / 燃料が揃う発電機をたどって広げる。
+ *      baseline にあるアイテム（他の経路でも作れる。水など）は集合に入れない
+ *   3. **他の副産物アイテムで止める**（プルトニウム燃料棒を燃やして出るプルトニウム廃棄物は
+ *      別のチェックボックスの管轄。そこから先は指定があればその b' の集合が担う）
+ */
+export function zeroSurplusChain(
+  constrained: ReadonlySet<string>,
+  recipes: readonly Recipe[],
+  generatorVariants: readonly GeneratorVariant[],
+  supplies: readonly SupplySource[],
+): Set<string> {
+  const out = new Set<string>()
+  if (constrained.size === 0) return out
+  const byproductItems = new Set(generatorByproductItems())
+  const seed = new Set<string>()
+  for (const supply of supplies) {
+    if (supply.limit === null || supply.limit > 0) seed.add(supply.item)
+  }
+  for (const item of constrained) {
+    const baseline = forwardReachable(seed, recipes, generatorVariants, (variant) =>
+      fuelHasByproduct(variant.fuel) && variant.fuel.byproduct!.item === item,
+    )
+    const chain = new Set<string>([item])
+    let changed = true
+    while (changed) {
+      changed = false
+      const available = (id: string): boolean => baseline.has(id) || chain.has(id)
+      const add = (id: string): void => {
+        if (baseline.has(id) || chain.has(id) || byproductItems.has(id)) return
+        chain.add(id)
+        changed = true
+      }
+      for (const recipe of recipes) {
+        if (!recipe.ingredients.some((ingredient) => chain.has(ingredient.item))) continue
+        if (!recipe.ingredients.every((ingredient) => available(ingredient.item))) continue
+        for (const product of recipe.products) add(product.item)
+      }
+      for (const variant of generatorVariants) {
+        const { fuel } = variant
+        if (!fuelHasByproduct(fuel) || !chain.has(fuel.item)) continue
+        if (fuel.supplementalItem && !available(fuel.supplementalItem)) continue
+        add(fuel.byproduct!.item)
+      }
+    }
+    for (const id of chain) out.add(id)
+  }
+  return out
+}
+
+/**
+ * 前方到達集合。原料・持ち込み（seed）から、有効レシピと発電機（燃料 → 副産物）でたどれる
+ * アイテム。`skipVariant` が true を返す発電機 × 燃料は生産者として数えない。
+ */
+function forwardReachable(
+  seed: ReadonlySet<string>,
+  recipes: readonly Recipe[],
+  generatorVariants: readonly GeneratorVariant[],
+  skipVariant: (variant: GeneratorVariant) => boolean = () => false,
+): Set<string> {
+  const available = new Set(seed)
+  const remaining = new Set(recipes)
+  const remainingVariants = new Set(
+    generatorVariants.filter((v) => fuelHasByproduct(v.fuel) && !skipVariant(v)),
+  )
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const recipe of [...remaining]) {
+      if (!recipe.ingredients.every((i) => available.has(i.item))) continue
+      remaining.delete(recipe)
+      for (const p of recipe.products) {
+        if (available.has(p.item)) continue
+        available.add(p.item)
+        changed = true
+      }
+    }
+    for (const variant of [...remainingVariants]) {
+      const { fuel } = variant
+      if (!available.has(fuel.item)) continue
+      if (fuel.supplementalItem && !available.has(fuel.supplementalItem)) continue
+      remainingVariants.delete(variant)
+      const byproduct = fuel.byproduct!.item
+      if (available.has(byproduct)) continue
+      available.add(byproduct)
+      changed = true
+    }
+  }
+  return available
+}
+
 /** 解決済みの発電計画（LP に実際に反映される形）。 */
 export type ResolvedPowerPlan = {
   /**
@@ -223,6 +341,11 @@ export type ResolvedPowerPlan = {
   coverFactoryPower: boolean
   /** LP に発電機の変数と制約を足すか（false なら発電機能を使わない従来の LP） */
   active: boolean
+  /**
+   * 余りを許さない副産物（Item.id）。収支行を等式にする。`active` とは独立に効く
+   * （需要駆動の発電機は発電計画なしでも副産物を出しうるため）。
+   */
+  zeroSurplusByproducts: Set<string>
 }
 
 /**
@@ -267,12 +390,21 @@ export function resolvePowerPlan(power: PowerPlanInput | undefined): ResolvedPow
     allowedFuels.set(generator.id, fuels)
   }
   generators.sort((a, b) => a.id.localeCompare(b.id))
+  const eligible = generatorByproductItems()
+  const zeroSurplusByproducts = new Set<string>()
+  for (const item of power?.zeroSurplusByproducts ?? []) {
+    if (!eligible.includes(item)) {
+      throw new Error(`not a generator byproduct item: ${item}`)
+    }
+    zeroSurplusByproducts.add(item)
+  }
   return {
     generators,
     allowedFuels,
     targetMW,
     coverFactoryPower,
     active: generators.length > 0 && (targetMW > 0 || coverFactoryPower),
+    zeroSurplusByproducts,
   }
 }
 
@@ -292,6 +424,11 @@ export type ProductionModel = {
   generatorVariants: GeneratorVariant[]
   /** 解決済みの発電計画 */
   powerPlan: ResolvedPowerPlan
+  /**
+   * 収支行を等式にしたアイテム（`powerPlan.zeroSurplusByproducts` と、そこからしか作れない
+   * 再処理の中間生成物）。`zeroSurplusChain` 参照。指定が無ければ空
+   */
+  zeroSurplusItems: Set<string>
   /** 外部供給変数（原料 + ユーザー投入） */
   supplies: SupplySource[]
   /** 原料の上限（ユーザー投入は含まない） */
@@ -570,10 +707,20 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   for (const itemId of targets.keys()) rowFor(itemId)
   if (maximize !== undefined) rowFor(maximize).set(maximizeVarKey(maximize), -1)
 
+  // 「余りを許さない副産物」とその再処理の中間生成物は収支行を等式（産出 - 消費 = 目標）にする。
+  // 産出側は許可した発電機・需要駆動の発電機・レシピのどれでもよく、消費側も同じ。
+  // 2段階解法の2段目で余りの上限（surplusCaps）が来ても、等式のほうが強いのでそのまま。
+  const zeroSurplusItems = zeroSurplusChain(
+    powerPlan.zeroSurplusByproducts,
+    [...recipes, ...somersloopRecipes],
+    generatorVariants,
+    supplies,
+  )
+
   const constraints: LpConstraint[] = []
   for (const [itemId, coefficients] of [...rows].sort(([a], [b]) => a.localeCompare(b))) {
     const lower = targets.get(itemId) ?? 0
-    const surplusCap = options.surplusCaps?.get(itemId)
+    const surplusCap = zeroSurplusItems.has(itemId) ? 0 : options.surplusCaps?.get(itemId)
     constraints.push({
       key: `balance:${itemId}`,
       coefficients,
@@ -679,6 +826,7 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     somersloopLimit,
     generatorVariants,
     powerPlan,
+    zeroSurplusItems,
     supplies,
     limits,
     resourceWeights,

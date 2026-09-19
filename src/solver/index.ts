@@ -25,6 +25,7 @@ export {
   byproductBoundRow,
   defaultEnabledRecipeIds,
   fuelHasByproduct,
+  generatorByproductItems,
   generatorVarKey,
   maximizeVarKey,
   netRatePerMin,
@@ -35,6 +36,7 @@ export {
   somersloopVarKey,
   supportsSomersloop,
   variablePowerRange,
+  zeroSurplusChain,
 } from './model.ts'
 export type {
   GeneratorVariant,

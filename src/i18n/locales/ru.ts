@@ -170,6 +170,10 @@ export const ru = {
     powerNoMethod: 'Выберите хотя бы один способ выработки.',
     powerClockNote:
       'Частота генераторов зафиксирована на 100 %. Разгон генераторов не поддерживается.',
+    powerByproducts: 'Побочные продукты',
+    powerByproductZero: 'Ничего не оставлять (потреблять полностью)',
+    powerByproductsHint:
+      'Отмеченные отходы никогда не остаются: план включает переработку, которая их потребляет (цепочки плутония и фиксония). Разрешите также способ генерации, сжигающий полученные топливные стержни. Действует даже при выключенной генерации.',
 
     alternates: 'Альтернативные рецепты',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} включено`,
@@ -515,6 +519,7 @@ export const ru = {
       resourceLimit: 'Нехватка сырья',
       unbounded: 'Цель оптимизации',
       solverError: 'Решатель',
+      byproductMustBeConsumed: 'Избыток побочного продукта',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -522,6 +527,8 @@ export const ru = {
       resourceLimit: (name: string): string => `Не хватает: ${name}.`,
       unbounded: 'Без лимитов сырья выпуск невозможно максимизировать.',
       solverError: 'Решатель не вернул решение.',
+      byproductMustBeConsumed: (name: string): string =>
+        `Для ${name} задано «ничего не оставлять», но при этих условиях его нельзя потребить полностью.`,
     },
     advice: {
       unproducibleItem:
@@ -529,6 +536,13 @@ export const ru = {
       resourceLimit: 'Увеличьте лимит сырья или снизьте целевую скорость.',
       unbounded: 'Задайте лимиты сырья и снова максимизируйте выпуск.',
       solverError: 'Упростите исходные данные и повторите расчёт.',
+      byproductMustBeConsumed:
+        'Снимите флажок «ничего не оставлять» либо включите рецепты, потребляющие отходы, и разрешите способ генерации, сжигающий полученные топливные стержни.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Ни один включённый рецепт его не потребляет.',
+      consumerChainUnavailable:
+        'У цепочки переработки нет потребителя (способ генерации для её топливных стержней не разрешён или нужный рецепт выключен).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Лимит ${limit} / требуется ${required} / нехватка ${shortfall}`,
@@ -613,6 +627,7 @@ export const ru = {
       generatorsRunning: 'Работающие генераторы',
       fuelRate: 'Скорость расхода',
       noFuel: 'Топливо не используется',
+      zeroSurplusByproducts: 'Побочные продукты без избытка',
       powerNote:
         'Частота генераторов зафиксирована на 100 %. Энергия добычи в план выработки не входит.',
       runningMachines: 'Работающие машины',

@@ -30,6 +30,10 @@ export function InfeasiblePanel({ result }: Props) {
 }
 
 function detail(reason: InfeasibleReason) {
+  if (reason.kind === 'byproductMustBeConsumed') {
+    if (reason.cause === undefined) return null
+    return <p className="reason__detail">{T.infeasible.byproductCause[reason.cause]}</p>
+  }
   if (reason.kind !== 'resourceLimit') return null
   return (
     <dl className="kv">
@@ -46,7 +50,9 @@ function detail(reason: InfeasibleReason) {
 }
 
 function reasonMessage(reason: InfeasibleReason): string {
-  return reason.kind === 'unproducibleItem' || reason.kind === 'resourceLimit'
+  return reason.kind === 'unproducibleItem' ||
+    reason.kind === 'resourceLimit' ||
+    reason.kind === 'byproductMustBeConsumed'
     ? T.infeasible.reasonMessage[reason.kind](itemName(reason.item))
     : T.infeasible.reasonMessage[reason.kind]
 }

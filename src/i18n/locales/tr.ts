@@ -170,6 +170,10 @@ export const tr = {
     powerNoMethod: 'En az bir üretim yöntemi seç.',
     powerClockNote:
       'Jeneratörlerin saat hızı %100’de sabittir. Jeneratör hızaşırtma desteklenmez.',
+    powerByproducts: 'Yan ürünler',
+    powerByproductZero: 'Hiç bırakma (tamamını tüket)',
+    powerByproductsHint:
+      'İşaretlenen atık asla artmaz: plan, onu tüketen yeniden işlemeyi (plütonyum ve Ficsonium zincirleri) içerir. Ortaya çıkan yakıt çubuklarını yakan üretim yöntemine de izin ver. Enerji üretimi kapalıyken de geçerlidir.',
 
     alternates: 'Alternatif tarifler',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} açık`,
@@ -514,6 +518,7 @@ export const tr = {
       resourceLimit: 'Kaynak yetersiz',
       unbounded: 'Eniyileme hedefi',
       solverError: 'Çözücü',
+      byproductMustBeConsumed: 'Yan ürün fazlası',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -521,6 +526,8 @@ export const tr = {
       resourceLimit: (name: string): string => `Yeterli ${name} yok.`,
       unbounded: 'Kaynak sınırları olmadan üretim en üst düzeye çıkarılamaz.',
       solverError: 'Çözücü bir sonuç döndürmedi.',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} "hiç bırakma" olarak ayarlandı ama bu koşullarda tamamı tüketilemiyor.`,
     },
     advice: {
       unproducibleItem:
@@ -528,6 +535,13 @@ export const tr = {
       resourceLimit: 'Kaynak sınırını yükselt ya da hedef hızı düşür.',
       unbounded: 'Kaynak sınırlarını belirle, sonra üretimi yeniden en üst düzeye çıkar.',
       solverError: 'Girdileri sadeleştirip yeniden dene.',
+      byproductMustBeConsumed:
+        '"Hiç bırakma" işaretini kaldır ya da atığı tüketen tarifleri etkinleştirip ortaya çıkan yakıt çubuklarını yakan üretim yöntemine izin ver.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Etkin hiçbir tarif bunu tüketmiyor.',
+      consumerChainUnavailable:
+        'Yeniden işleme zincirinin çıkışı yok (yakıt çubuklarını yakan üretim yöntemine izin verilmemiş ya da gerekli bir tarif devre dışı).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Sınır ${limit} / gereken ${required} / eksik ${shortfall}`,
@@ -611,6 +625,7 @@ export const tr = {
       generatorsRunning: 'Çalışan jeneratörler',
       fuelRate: 'Tüketim hızı',
       noFuel: 'Yakıt kullanılmıyor',
+      zeroSurplusByproducts: 'Fazlası sıfır olan yan ürünler',
       powerNote:
         'Jeneratörlerin saat hızı %100’de sabittir. Çıkarma gücü üretim planına dahil değildir.',
       runningMachines: 'Çalışan makineler',

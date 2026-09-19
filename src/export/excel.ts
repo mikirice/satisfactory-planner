@@ -67,6 +67,8 @@ export type ExcelExportInput = {
   enabledAlternateIds?: readonly string[]
   /** 固体ノードの採掘機 Building.id（サマリーに出す） */
   minerId?: string
+  /** 「残さない（全量を消費）」にした副産物の Item.id。空なら行を出さない */
+  zeroSurplusByproducts?: readonly string[]
   /** 生成日時。既定 new Date()（テストから固定できるように） */
   generatedAt?: Date
 }
@@ -361,6 +363,15 @@ function writeSummarySheet(
       row.getCell(2).numFmt = NUM_FMT.rate
     }
     ws.addRow([t.summary.powerNote])
+  }
+  // 3.8) 余りを許さない副産物（指定があるときだけ1行）
+  const zeroSurplus = input.zeroSurplusByproducts ?? []
+  if (zeroSurplus.length > 0) {
+    addKeyValue(
+      ws,
+      t.summary.zeroSurplusByproducts,
+      zeroSurplus.map((item) => itemName(item, context)).join(' / '),
+    )
   }
 
   // 4) 建物

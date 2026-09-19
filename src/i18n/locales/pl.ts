@@ -170,6 +170,10 @@ export const pl = {
     powerNoMethod: 'Wybierz co najmniej jeden sposób wytwarzania.',
     powerClockNote:
       'Taktowanie generatorów jest ustalone na 100 %. Podkręcanie generatorów nie jest obsługiwane.',
+    powerByproducts: 'Produkty uboczne',
+    powerByproductZero: 'Nic nie zostawiać (zużyć wszystko)',
+    powerByproductsHint:
+      'Zaznaczone odpady nigdy nie zostają: plan obejmuje przetwarzanie, które je zużywa (łańcuchy plutonu i Ficsonium). Zezwól też na metodę wytwarzania, która spala powstałe pręty paliwowe. Działa nawet przy wyłączonym planowaniu energii.',
 
     alternates: 'Receptury alternatywne',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} włączonych`,
@@ -513,6 +517,7 @@ export const pl = {
       resourceLimit: 'Niedobór surowca',
       unbounded: 'Cel optymalizacji',
       solverError: 'Solver',
+      byproductMustBeConsumed: 'Nadwyżka produktu ubocznego',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -520,6 +525,8 @@ export const pl = {
       resourceLimit: (name: string): string => `Za mało: ${name}.`,
       unbounded: 'Bez limitów surowców produkcji nie da się zmaksymalizować.',
       solverError: 'Solver nie zwrócił rozwiązania.',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} ma ustawienie „nic nie zostawiać”, ale w tych warunkach nie da się go zużyć w całości.`,
     },
     advice: {
       unproducibleItem:
@@ -527,6 +534,13 @@ export const pl = {
       resourceLimit: 'Zwiększ limit surowca lub zmniejsz docelowe tempo.',
       unbounded: 'Ustaw limity surowców i ponownie zmaksymalizuj produkcję.',
       solverError: 'Uprość dane wejściowe i spróbuj ponownie.',
+      byproductMustBeConsumed:
+        'Odznacz „nic nie zostawiać” albo włącz receptury zużywające odpady i zezwól na metodę wytwarzania, która spala powstałe pręty paliwowe.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Żadna włączona receptura go nie zużywa.',
+      consumerChainUnavailable:
+        'Łańcuch przetwarzania nie ma odbiorcy (metoda wytwarzania spalająca jego pręty paliwowe nie jest dozwolona albo wymagana receptura jest wyłączona).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limit ${limit} / wymagane ${required} / brakuje ${shortfall}`,
@@ -611,6 +625,7 @@ export const pl = {
       generatorsRunning: 'Generatory pracujące',
       fuelRate: 'Tempo zużycia',
       noFuel: 'Nie użyto paliwa',
+      zeroSurplusByproducts: 'Produkty uboczne bez nadwyżki',
       powerNote:
         'Taktowanie generatorów jest ustalone na 100 %. Energia wydobycia nie wchodzi do planu wytwarzania.',
       runningMachines: 'Maszyny pracujące',
