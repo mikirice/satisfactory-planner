@@ -329,21 +329,28 @@ describe('原子力のサンプルテンプレート', () => {
         fuels,
         targetMW: input.powerTargetMW,
         coverFactoryPower: input.coverFactoryPower,
+        zeroSurplusByproducts: Object.keys(input.zeroSurplusByproducts),
       },
     })
   }
 
+  // ③ FICSONIUM で完全循環（旧「原子力と再処理」を置き換え。FICSONIUM 0.1/min の併産目標は廃止し、
+  // 「残さない」でウラン廃棄物・プルトニウム廃棄物を全量消費させる）
   it('nuclear-reprocessing の主要な数値が変わらない', async () => {
     const solution = await solveSample('nuclear-reprocessing')
-    expect(solution.objectiveValue).toBeCloseTo(1892.0669041622289, 5)
-    expect(solution.totalMachineCount).toBeCloseTo(19.405157407407337, 6)
-    expect(solution.totalBuildingCount).toBe(67)
-    expect(solution.totalPowerMW).toBeCloseTo(833.5291296296256, 6)
+    expect(solution.objectiveValue).toBeCloseTo(1768.0527813794672, 5)
+    expect(solution.totalMachineCount).toBeCloseTo(23.701031746031703, 6)
+    expect(solution.totalBuildingCount).toBe(69)
+    expect(solution.totalPowerMW).toBeCloseTo(864.5474603174586, 6)
     expect(solution.powerGeneration!.totalMW).toBeCloseTo(5000, 6)
-    expect(solution.powerGeneration!.totalGeneratorCount).toBe(3)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.2666666666666647, 6)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBeCloseTo(0.06666666666666618, 6)
-    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeCloseTo(511.126667, 5)
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(4)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.22857142857142856, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBeCloseTo(0.05714285714285714, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, 'Desc_FicsoniumFuelRod_C')).toBeCloseTo(0.2857142857142857, 6)
+    expect(rateOf(solution.rawResources, 'Desc_OreUranium_C')).toBeCloseTo(22.857142857142858, 6)
+    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeCloseTo(522.27, 2)
+    expect(solution.byproducts.map((entry) => entry.item)).not.toContain('Desc_NuclearWaste_C')
+    expect(solution.byproducts.map((entry) => entry.item)).not.toContain('Desc_PlutoniumWaste_C')
     expect(solution.steps).toHaveLength(62)
   })
 

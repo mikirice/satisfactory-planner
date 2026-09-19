@@ -1,5 +1,5 @@
 /**
- * English text of the seven loop-template guides (計画書 §5).
+ * English text of the loop-template guides (計画書 §5).
  *
  * The Japanese source lives with the templates themselves (`src/plan/samples.ts`, `SampleGuide`),
  * because the planner renders it next to the solved result. The English mirror is kept here
@@ -172,24 +172,71 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     ],
   },
 
-  'nuclear-reprocessing': {
-    title: 'Nuclear Power and Reprocessing',
-    headline: 'How Nuclear Power and Reprocessing Work and How to Build Them',
+  'nuclear-uranium': {
+    title: 'Nuclear, stage 1: uranium power',
+    headline: 'How a Uranium-Only Nuclear Plant Works and How to Build It',
     description:
-      '5,000 MW plus 0.1 Ficsonium Fuel Rod per minute, following every reprocessing stage that starts from nuclear waste.',
+      '5,000 MW from Uranium Fuel Rod alone: the smallest nuclear setup, and the one where the Uranium Waste has to be stored.',
     highlight:
-      'Watch the reprocessing line that runs from Uranium Waste all the way to Ficsonium Fuel Rod.',
+      'Watch the Uranium Waste leaving the Nuclear Power Plants: it feeds nothing and simply dead-ends.',
     mechanism: [
-      'Process Uranium into Uranium Fuel Rod and send it to the Nuclear Power Plants.',
-      'Route the Uranium Waste that comes back out into reprocessing, beginning with Non-Fissile Uranium.',
-      'Turn the reprocessed material into Plutonium Pellet, then Encased Plutonium Cell, then fuel rods.',
-      'Convert the plutonium waste into Ficsonium and carry it through to Ficsonium Fuel Rod.',
-      'The fuel rods chosen for power go to the Nuclear Power Plants, while Ficsonium Fuel Rod is taken out as the end of the reprocessing chain.',
+      'Mine Uranium and feed it into a Blender with Sulfuric Acid and Concrete to make Encased Uranium Cell. The Sulfuric Acid comes from Sulfur and Water in a Refinery.',
+      'In this plan the Sulfur and Caterium Ore are made in Converters from Reanimated SAM plus Iron Ore and Copper Ore; if you can mine them where you build, swap those steps for Miners.',
+      'Assemble Encased Industrial Beam from Steel Beam and Concrete, and Electromagnetic Control Rod from Stator and AI Limiter.',
+      'Feed Encased Uranium Cell, Encased Industrial Beam and Electromagnetic Control Rod into a Manufacturer to make Uranium Fuel Rod.',
+      'Send the fuel rods to Nuclear Power Plants, pipe in the cooling Water and generate.',
+      'The Uranium Waste that comes out has no use at this stage, so belt it away and keep it in storage containers.',
     ],
     tips: [
-      'Put a generous buffer in front of each waste stage so that a stall downstream never reaches the reactors.',
-      'Keep the radioactive area away from the factory proper, and protect yourself with walls, distance and Iodine-Infused Filters.',
-      'Before starting, run the acids, water and supporting materials in first and confirm that the reprocessing line can accept them.',
+      'Uranium Waste is worth 0 sink points and cannot go into the AWESOME Sink. It keeps piling up for as long as the plants run, so decide where the storage containers go before you build.',
+      'Uranium, Encased Uranium Cell, Uranium Fuel Rod and Uranium Waste are all radioactive: keep the belts and the storage away from walkways and wear an Iodine-Infused Filter.',
+      'This stage is the power plan with Uranium Fuel Rod as the only fuel and every “leave none behind” box unticked. To move on to reprocessing, add Plutonium Fuel Rod to the fuels and tick “leave none behind” for Uranium Waste — that is stage 2.',
+      'The resource limit for Uranium is set to unlimited. In the solver’s resource cost Uranium is the scarcest ore, and left alone it would rather make Uranium in a Converter from SAM and Bauxite than mine it. All three stages share this setting. If you also want the Sulfur and Caterium Ore mined, set the SAM limit to 0.',
+    ],
+  },
+
+  'nuclear-plutonium': {
+    title: 'Nuclear, stage 2: reprocess to plutonium',
+    headline: 'How Reprocessing Uranium Waste into Plutonium Fuel Works and How to Build It',
+    description:
+      '5,000 MW with every bit of Uranium Waste reprocessed into Plutonium Fuel Rod and burned, so that only Plutonium Waste remains.',
+    highlight:
+      'Watch the Uranium Waste enter the Non-Fissile Uranium step and come back to the plants as Plutonium Fuel Rod.',
+    mechanism: [
+      'Make Uranium Fuel Rod exactly as in stage 1 and burn it in Nuclear Power Plants.',
+      'Feed the Uranium Waste into a Blender with Silica, Nitric Acid and Sulfuric Acid to make Non-Fissile Uranium. The Nitric Acid comes from Nitrogen Gas, Water and Iron Plate in another Blender.',
+      'Put Non-Fissile Uranium and Uranium Waste into a Particle Accelerator to make Plutonium Pellet.',
+      'Assemble Encased Plutonium Cell from Plutonium Pellet and Concrete, then turn it into Plutonium Fuel Rod in a Manufacturer together with Steel Beam, Electromagnetic Control Rod and Heat Sink.',
+      'Burn the Plutonium Fuel Rod in a separate Nuclear Power Plant. That share of the power no longer has to come from Uranium Fuel Rod, so less Uranium is mined.',
+      'Burning Plutonium Fuel Rod leaves Plutonium Waste, which has no use at this stage and goes into storage.',
+    ],
+    tips: [
+      'The plan reprocesses all of the Uranium Waste. If the reprocessing line stalls, the waste backs up into the plants and the power goes with it — put containers in front of the Blenders as a buffer.',
+      'Plutonium Waste is also worth 0 sink points and cannot be disposed of. There is far less of it than Uranium Waste, so a few containers are enough.',
+      'Two acid pipes are needed, Sulfuric Acid and Nitric Acid. The Blenders are easy to mis-plumb, so colour or label the pipes before you start rearranging.',
+      'Only two settings differ from stage 1: Plutonium Fuel Rod was added to the fuels, and “leave none behind” is ticked for Uranium Waste. For stage 3, add Ficsonium Fuel Rod to the fuels and tick “leave none behind” for Plutonium Waste as well.',
+    ],
+  },
+
+  'nuclear-reprocessing': {
+    title: 'Nuclear, stage 3: closed loop with Ficsonium',
+    headline: 'How a Closed Nuclear Loop with Ficsonium Works and How to Build It',
+    description:
+      '5,000 MW with Plutonium Waste turned into Ficsonium Fuel Rod and burned as well, so that no nuclear waste is left at all.',
+    highlight:
+      'Watch the Plutonium Waste pass through Ficsonium into fuel rods, with all three kinds of fuel rod entering the plants.',
+    mechanism: [
+      'Make Uranium Fuel Rod as in stage 1 and Plutonium Fuel Rod as in stage 2, and burn each in Nuclear Power Plants.',
+      'Feed the Plutonium Waste into a Particle Accelerator with Singularity Cell and Dark Matter Residue to make Ficsonium.',
+      'Dark Matter Residue comes from Reanimated SAM in a Converter. Singularity Cell is built in a Manufacturer from Nuclear Pasta, Dark Matter Crystal, Iron Plate and Concrete.',
+      'Feed Ficsonium, Electromagnetic Control Rod, Ficsite Trigon and Excited Photonic Matter into a Quantum Encoder to make Ficsonium Fuel Rod. The Dark Matter Residue it gives back goes into the Ficsonium step.',
+      'Burn the Ficsonium Fuel Rod in a Nuclear Power Plant. This rod leaves no waste, so no nuclear waste ever leaves the site.',
+    ],
+    tips: [
+      'The plan reprocesses all of the Uranium Waste and all of the Plutonium Waste. A stall anywhere backs the waste up into the plants and stops the power, so put containers in front of each waste step as a buffer.',
+      'The radioactive materials now include three kinds of fuel rod and two kinds of waste. Keep the reprocessing block away from the factory proper, and protect yourself with walls, distance and Iodine-Infused Filters.',
+      'On top of Sulfuric Acid and Nitric Acid you need pipes for Excited Photonic Matter and Dark Matter Residue. Run the fluids and gases in before starting and confirm that the Particle Accelerators and the Quantum Encoder can accept them.',
+      'Only two settings differ from stage 2: Ficsonium Fuel Rod was added to the fuels, and “leave none behind” is ticked for Plutonium Waste. To stop at plutonium, undo those two.',
     ],
   },
 }

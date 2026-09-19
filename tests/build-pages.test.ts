@@ -250,11 +250,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き11本とループ8本、および記事indexを生成する', async () => {
+  it('手書き11本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(19)
+    expect(articleSlugs).toHaveLength(21)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -392,11 +392,11 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('8件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
+  it('10件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
     const loopSlugs = SAMPLE_PLANS.filter((sample) => sample.category === 'special').map(
       (sample) => sample.id,
     )
-    expect(loopSlugs).toHaveLength(8)
+    expect(loopSlugs).toHaveLength(10)
     const oil = await readFile(
       join(outputDirectory, 'articles/oil-loop-complete/index.html'),
       'utf8',
@@ -425,12 +425,46 @@ describe('記事静的ページ', () => {
     expect(battery).toContain('135.00 m³/min')
     expect(battery).toContain('バッテリー: <span class="num">90.00 m³/min')
     expect(battery).toContain('アルミのスクラップ: <span class="num">45.00 m³/min')
+    // 原子力の段階テンプレート: ① は基準なしの「ビルド時の計算結果」、②③ は ① との比較表。
+    // 数値は本文に書かず、build-time solver の実値だけが出る
+    const uranium = await readFile(
+      join(outputDirectory, 'articles/nuclear-uranium/index.html'),
+      'utf8',
+    )
+    expect(uranium).toContain('ビルド時の計算結果')
+    expect(uranium).toContain('発電機（建てる台数）: <span class="num">2台')
+    expect(uranium).toContain('ウラン廃棄物</a>: <span class="num">20.00 個/分')
+    expect(uranium).toContain('ウラン</a></td>')
+    expect(uranium).toContain('<td class="num">40.00</td>')
+    expect(uranium).not.toContain('との比較')
+    const plutonium = await readFile(
+      join(outputDirectory, 'articles/nuclear-plutonium/index.html'),
+      'utf8',
+    )
+    expect(plutonium).toContain('「原子力 ①: ウラン発電」との比較')
+    expect(plutonium).toContain('基準は「原子力 ①: ウラン発電」を同じ目標で再計算した結果です')
+    expect(plutonium).toContain('ウラン</a></td>')
+    expect(plutonium).toContain('40.00 → 26.67')
+    expect(plutonium).toContain('33.3%削減')
+    expect(plutonium).toContain('発電機（建てる台数）</td>')
+    expect(plutonium).toContain('2台 → 3台')
+    expect(plutonium).toContain('余る<a href="/items/nuclear-waste/">ウラン廃棄物</a></td>')
+    expect(plutonium).toContain('20.00 → 0.00 個/分')
+    expect(plutonium).toContain('残らない')
+    expect(plutonium).toContain('プルトニウム廃棄物</a></td>')
+    expect(plutonium).toContain('0.00 → 0.67 個/分')
+    expect(plutonium).toContain('新たに発生')
     const nuclear = await readFile(
       join(outputDirectory, 'articles/nuclear-reprocessing/index.html'),
       'utf8',
     )
-    expect(nuclear).toContain('FICSONIUM燃料棒は再処理チェーンの終点として取り出します')
-    expect(nuclear).not.toContain('FICSONIUM燃料棒を発電に使い')
+    expect(nuclear).toContain('「原子力 ①: ウラン発電」との比較')
+    expect(nuclear).toContain('40.00 → 22.86')
+    expect(nuclear).toContain('2台 → 4台')
+    expect(nuclear).toContain('20.00 → 0.00 個/分')
+    expect(nuclear).not.toContain('プルトニウム廃棄物</a></td>')
+    expect(nuclear).toContain('FICSONIUM燃料棒にします')
+    expect(nuclear).not.toContain('再処理チェーンの終点として取り出します')
     // 簡略版は「代替レシピなしとの差」を build-time solver の実値で出す（本文に数値を書かない）
     const simplified = await readFile(
       join(outputDirectory, 'articles/nuclear-simplified/index.html'),
@@ -512,10 +546,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 223（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事19）
-    // ＋ 英語 222（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(445)
-    expect(manifest.urls).toHaveLength(445)
+    // 日本語 225（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事21）
+    // ＋ 英語 224（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(449)
+    expect(manifest.urls).toHaveLength(449)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -706,7 +740,7 @@ function mainSection(html: string): string {
 }
 
 describe('英語ミラーの生成', () => {
-  it('アイテム198件＋一覧、記事19本＋索引を /en/ に出す', async () => {
+  it('アイテム198件＋一覧、記事21本＋索引を /en/ に出す', async () => {
     const itemEntries = await readdir(join(outputDirectory, 'en/items'), { withFileTypes: true })
     const articleEntries = await readdir(join(outputDirectory, 'en/articles'), {
       withFileTypes: true,
@@ -828,13 +862,37 @@ describe('英語ミラーの生成', () => {
     expect(battery).toContain('135.00 m³/min')
     expect(battery).toContain('Battery: <span class="num">90.00 m³/min')
 
+    // 基準の無いテンプレート（原子力 ①）は「ビルド時の計算結果」側の表示になる
+    const uranium = await readFile(
+      join(outputDirectory, 'en/articles/nuclear-uranium/index.html'),
+      'utf8',
+    )
+    expect(uranium).toContain('Calculated at build time')
+    expect(uranium).toContain('Total power generated')
+    expect(uranium).toContain('Generators to build: <span class="num">2</span>')
+    expect(uranium).toContain('Uranium Waste</a> left over: <span class="num">20.00')
+    // ②③ は ① のテンプレートを基準にした比較表になる
+    const plutonium = await readFile(
+      join(outputDirectory, 'en/articles/nuclear-plutonium/index.html'),
+      'utf8',
+    )
+    expect(plutonium).toContain('Results compared with “Nuclear, stage 1: uranium power”')
+    expect(plutonium).toContain('Uranium</a></td>')
+    expect(plutonium).toContain('40.00 → 26.67')
+    expect(plutonium).toContain('Generators to build</td>')
+    expect(plutonium).toContain('2 → 3')
+    expect(plutonium).toContain('Uranium Waste</a> left over</td>')
+    expect(plutonium).toContain('None left')
+    expect(plutonium).toContain('Plutonium Waste</a> left over</td>')
+    expect(plutonium).toContain('Newly produced')
     const nuclear = await readFile(
       join(outputDirectory, 'en/articles/nuclear-reprocessing/index.html'),
       'utf8',
     )
-    // 代替レシピの基準構成が無いテンプレートは「ビルド時の計算結果」側の表示になる
-    expect(nuclear).toContain('Calculated at build time')
-    expect(nuclear).toContain('Total power generated')
+    expect(nuclear).toContain('Results compared with “Nuclear, stage 1: uranium power”')
+    expect(nuclear).toContain('40.00 → 22.86')
+    expect(nuclear).toContain('2 → 4')
+    expect(nuclear).not.toContain('Plutonium Waste</a> left over</td>')
   })
 
   it('英語の手書き記事は全文訳とCTAを持ち、共有URLが警告なく復元できる', async () => {
@@ -1350,7 +1408,7 @@ describe('ランディングの構成（/ と /en/）', () => {
 
   it('ループテンプレートのカードは各サンプルの snapshot を /app/ の共有URLで開く', async () => {
     const loops = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
-    expect(loops.length).toBeGreaterThan(0)
+    expect(loops).toHaveLength(10)
     for (const [, file, copy] of pages) {
       const html = await readFile(join(outputDirectory, file), 'utf8')
       const cards = [...html.matchAll(/<a class="template-card" href="([^"]+)">/g)].map((match) => match[1]!)
@@ -1365,6 +1423,20 @@ describe('ランディングの構成（/ と /en/）', () => {
         expect(parsed.warnings, `${file} ${sample.id}`).toEqual([])
         expect(parsed.input.targets.map((target) => target.item), `${file} ${sample.id}`).toEqual(
           sample.snapshot.t.map(([item]) => item),
+        )
+        // 発電計画の設定（原子力の段階テンプレートは燃料と「残さない」だけが違う）も共有URLに乗る
+        expect(parsed.input.powerTargetMW, `${file} ${sample.id}`).toBe(sample.snapshot.w ?? 0)
+        expect(
+          Object.fromEntries(
+            Object.entries(parsed.input.enabledFuels).map(([generator, fuels]) => [
+              generator,
+              Object.keys(fuels),
+            ]),
+          ),
+          `${file} ${sample.id}`,
+        ).toEqual(sample.snapshot.u ?? {})
+        expect(Object.keys(parsed.input.zeroSurplusByproducts), `${file} ${sample.id}`).toEqual(
+          sample.snapshot.z ?? [],
         )
       }
       expect(occurrences(html, `<small>${escapeHtml(copy.templatesOpenLabel)}</small>`), file).toBe(loops.length)

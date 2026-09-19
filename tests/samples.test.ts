@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest'
 
 import { generatorsById, itemsById, recipes, recipesById } from '../src/data/index.ts'
 import { buildPlanGraph } from '../src/plan/graph.ts'
-import { getLoopBaseline } from '../src/plan/loop-baseline.ts'
+import { getLoopBaseline, loopBaselineSample } from '../src/plan/loop-baseline.ts'
 import { SAMPLE_PLANS, TEMPLATE_CATEGORIES } from '../src/plan/samples.ts'
 import { PLAN_SCHEMA_VERSION, parsePlanSnapshot } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
@@ -43,6 +43,7 @@ async function solveSample(sample: (typeof SAMPLE_PLANS)[number]): Promise<Solut
       fuels,
       targetMW: input.powerTargetMW,
       coverFactoryPower: input.coverFactoryPower,
+      zeroSurplusByproducts: Object.keys(input.zeroSurplusByproducts),
     },
   }
   const result = await solveProduction(solveInput)
@@ -73,8 +74,8 @@ function hasDirectedCycle(solution: Solution): boolean {
 }
 
 describe('サンプルプランのスキーマ', () => {
-  it('11種類あり、IDと名前が重複せず、すべて有効なカテゴリに属する', () => {
-    expect(SAMPLE_PLANS).toHaveLength(11)
+  it('13種類あり、IDと名前が重複せず、すべて有効なカテゴリに属する', () => {
+    expect(SAMPLE_PLANS).toHaveLength(13)
     expect(new Set(SAMPLE_PLANS.map((s) => s.id)).size).toBe(SAMPLE_PLANS.length)
     expect(new Set(SAMPLE_PLANS.map((s) => s.title)).size).toBe(SAMPLE_PLANS.length)
     const categories = new Set(TEMPLATE_CATEGORIES.map((c) => c.id))
@@ -84,14 +85,14 @@ describe('サンプルプランのスキーマ', () => {
     )
     expect(TEMPLATE_CATEGORIES.map((category) => category.id)).toEqual(['basic', 'special'])
     expect(SAMPLE_PLANS.filter((sample) => sample.category === 'basic')).toHaveLength(3)
-    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(8)
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(10)
     expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special').every((s) => s.highlight))
       .toBe(true)
   })
 
-  it('8つの特殊テンプレートすべてに構造化された解説がある', () => {
+  it('10個の特殊テンプレートすべてに構造化された解説がある', () => {
     const special = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
-    expect(special).toHaveLength(8)
+    expect(special).toHaveLength(10)
     for (const sample of special) {
       expect(sample.guide?.sections.mechanism.length).toBeGreaterThanOrEqual(3)
       expect(sample.guide?.sections.mechanism.length).toBeLessThanOrEqual(6)
@@ -108,6 +109,29 @@ describe('サンプルプランのスキーマ', () => {
     expect(parsed.warnings).toEqual([])
     expect(parsed.input.targets.length > 0 || parsed.input.powerTargetMW > 0).toBe(true)
     expect(parsed.input.planName).toBe(sample.title)
+  })
+
+  it('原子力の段階テンプレートは ①→②→③ の順で並び、簡略版の前に置かれる', () => {
+    const specialIds = SAMPLE_PLANS.filter((s) => s.category === 'special').map((s) => s.id)
+    const start = specialIds.indexOf('nuclear-uranium')
+    expect(start).toBeGreaterThan(-1)
+    expect(specialIds.slice(start, start + 4)).toEqual([
+      'nuclear-uranium',
+      'nuclear-plutonium',
+      'nuclear-reprocessing',
+      'nuclear-simplified',
+    ])
+  })
+
+  it.each(SAMPLE_PLANS)('$id: 比較の基準テンプレートは実在し、自分自身ではない', (sample) => {
+    const baseline = loopBaselineSample(sample)
+    if (sample.baselineId === undefined) {
+      expect(baseline).toBeUndefined()
+      return
+    }
+    expect(baseline?.id).toBe(sample.baselineId)
+    expect(baseline?.id).not.toBe(sample.id)
+    expect(baseline?.category).toBe(sample.category)
   })
 
   it.each(SAMPLE_PLANS)('$id: 目標・代替レシピ・アイコンのIDが実在する', (sample) => {
@@ -188,14 +212,119 @@ describe('サンプルプランの求解', () => {
     expect(water.consumedPerMin).toBeGreaterThan(water.producedPerMin)
   })
 
-  it('原子力テンプレートは再処理チェーンを表示する', async () => {
-    const sample = SAMPLE_PLANS.find((s) => s.id === 'nuclear-reprocessing')!
-    const solution = await solveSample(sample)
-    const used = new Set(solution.steps.map((step) => step.recipeId))
-    expect(used).toContain('Recipe_Plutonium_C')
-    expect(used).toContain('Recipe_PlutoniumFuelRod_C')
-    expect(used).toContain('Recipe_Ficsonium_C')
-    expect(used).toContain('Recipe_FicsoniumFuelRod_C')
+  /**
+   * 原子力の3段階テンプレート。段の違いは「燃料の一覧」と「残さない」の2設定だけで、
+   * ① ウランで止める → ② プルトニウムまで再処理 → ③ FICSONIUMで完全循環 と進む。
+   * 解説文に書いた筋（どの燃料棒を燃やし、どの廃棄物が残るか）をソルバーの実出力で固定する。
+   * 目標発電量はどの段も 5,000 MW。
+   */
+  describe('原子力の段階テンプレート', () => {
+    const URANIUM_ORE = 'Desc_OreUranium_C'
+    const URANIUM_ROD = 'Desc_NuclearFuelRod_C'
+    const PLUTONIUM_ROD = 'Desc_PlutoniumFuelRod_C'
+    const FICSONIUM_ROD = 'Desc_FicsoniumFuelRod_C'
+    const URANIUM_WASTE = 'Desc_NuclearWaste_C'
+    const PLUTONIUM_WASTE = 'Desc_PlutoniumWaste_C'
+    const sampleOf = (id: string) => SAMPLE_PLANS.find((s) => s.id === id)!
+    const fuelsBurned = (solution: Solution) =>
+      solution.powerGeneration!.fuelUsage.filter((fuel) => fuel.ratePerMin > 1e-9).map((fuel) => fuel.item)
+    const surplusOf = (solution: Solution, item: string) =>
+      solution.byproducts.find((entry) => entry.item === item)?.ratePerMin ?? 0
+    const uraniumOre = (solution: Solution) =>
+      solution.rawResources.find((raw) => raw.item === URANIUM_ORE)?.ratePerMin ?? 0
+
+    it('3段とも発電計画は 5,000 MW・原子力発電所のみ・原料上限の設定が同じ', () => {
+      const stages = ['nuclear-uranium', 'nuclear-plutonium', 'nuclear-reprocessing'].map(sampleOf)
+      for (const stage of stages) {
+        expect(stage.snapshot.w).toBe(5000)
+        expect(stage.snapshot.g).toEqual(['Build_GeneratorNuclear_C'])
+        expect(stage.snapshot.t).toEqual([])
+        expect(stage.snapshot.a).toEqual([])
+        expect(stage.snapshot.l).toEqual(stages[0]!.snapshot.l)
+      }
+      // 段の違いは燃料の一覧と「残さない」だけ
+      expect(stages[0]!.snapshot.u).toEqual({ Build_GeneratorNuclear_C: [URANIUM_ROD] })
+      expect(stages[0]!.snapshot.z).toBeUndefined()
+      expect(stages[1]!.snapshot.u).toEqual({ Build_GeneratorNuclear_C: [URANIUM_ROD, PLUTONIUM_ROD] })
+      expect(stages[1]!.snapshot.z).toEqual([URANIUM_WASTE])
+      expect(stages[2]!.snapshot.u).toEqual({
+        Build_GeneratorNuclear_C: [URANIUM_ROD, PLUTONIUM_ROD, FICSONIUM_ROD],
+      })
+      expect(stages[2]!.snapshot.z).toEqual([URANIUM_WASTE, PLUTONIUM_WASTE])
+      // ②③ は ① を比較の基準にする
+      expect(stages[1]!.baselineId).toBe('nuclear-uranium')
+      expect(stages[2]!.baselineId).toBe('nuclear-uranium')
+      expect(stages[0]!.baselineId).toBeUndefined()
+    })
+
+    it('①: ウラン燃料棒だけを燃やし、ウラン廃棄物が残る（ウランを採掘する）', async () => {
+      const solution = await solveSample(sampleOf('nuclear-uranium'))
+      expect(solution.powerGeneration!.totalMW).toBeGreaterThanOrEqual(5000 - 1e-6)
+      expect(fuelsBurned(solution)).toEqual([URANIUM_ROD])
+      expect(surplusOf(solution, URANIUM_WASTE)).toBeGreaterThan(0)
+      expect(surplusOf(solution, PLUTONIUM_WASTE)).toBe(0)
+      // 変換機でウランを作らず、採掘したウランを使う
+      expect(uraniumOre(solution)).toBeGreaterThan(0)
+      expect(solution.steps.some((step) => step.recipeId === 'Recipe_Uranium_Bauxite_C')).toBe(false)
+      // 回帰値（2,500 MW/基 × 2 基、燃料棒 0.4/min → ウラン 40/min、廃棄物 20/min）
+      expect(solution.powerGeneration!.totalGeneratorCount).toBe(2)
+      expect(uraniumOre(solution)).toBeCloseTo(40, 6)
+      expect(surplusOf(solution, URANIUM_WASTE)).toBeCloseTo(20, 6)
+    })
+
+    it('②: ウランとプルトニウムの燃料棒を燃やし、ウラン廃棄物は残らず、プルトニウム廃棄物が残る', async () => {
+      const solution = await solveSample(sampleOf('nuclear-plutonium'))
+      expect(solution.powerGeneration!.totalMW).toBeGreaterThanOrEqual(5000 - 1e-6)
+      expect(fuelsBurned(solution).sort()).toEqual([PLUTONIUM_ROD, URANIUM_ROD].sort())
+      expect(surplusOf(solution, URANIUM_WASTE)).toBe(0)
+      expect(surplusOf(solution, PLUTONIUM_WASTE)).toBeGreaterThan(0)
+      const used = new Set(solution.steps.map((step) => step.recipeId))
+      expect(used).toContain('Recipe_NonFissileUranium_C')
+      expect(used).toContain('Recipe_Plutonium_C')
+      expect(used).toContain('Recipe_PlutoniumCell_C')
+      expect(used).toContain('Recipe_PlutoniumFuelRod_C')
+      expect(used).not.toContain('Recipe_Ficsonium_C')
+      // ① より少ないウランで同じ 5,000 MW
+      const stage1 = await solveSample(sampleOf('nuclear-uranium'))
+      expect(uraniumOre(solution)).toBeLessThan(uraniumOre(stage1))
+      // 回帰値
+      expect(solution.powerGeneration!.totalGeneratorCount).toBe(3)
+      expect(uraniumOre(solution)).toBeCloseTo(26.666666666666668, 6)
+      expect(surplusOf(solution, PLUTONIUM_WASTE)).toBeCloseTo(0.6666666666666666, 6)
+    })
+
+    it('③: 3種類の燃料棒を燃やし、核廃棄物もFICSONIUM燃料棒も残らない', async () => {
+      const solution = await solveSample(sampleOf('nuclear-reprocessing'))
+      expect(solution.powerGeneration!.totalMW).toBeGreaterThanOrEqual(5000 - 1e-6)
+      expect(fuelsBurned(solution).sort()).toEqual([FICSONIUM_ROD, PLUTONIUM_ROD, URANIUM_ROD].sort())
+      expect(surplusOf(solution, URANIUM_WASTE)).toBe(0)
+      expect(surplusOf(solution, PLUTONIUM_WASTE)).toBe(0)
+      expect(surplusOf(solution, FICSONIUM_ROD)).toBe(0)
+      expect(surplusOf(solution, 'Desc_Ficsonium_C')).toBe(0)
+      const used = new Set(solution.steps.map((step) => step.recipeId))
+      expect(used).toContain('Recipe_Plutonium_C')
+      expect(used).toContain('Recipe_PlutoniumFuelRod_C')
+      expect(used).toContain('Recipe_Ficsonium_C')
+      expect(used).toContain('Recipe_FicsoniumFuelRod_C')
+      // ① より少ないウランで同じ 5,000 MW
+      const stage1 = await solveSample(sampleOf('nuclear-uranium'))
+      expect(uraniumOre(solution)).toBeLessThan(uraniumOre(stage1))
+      // 回帰値
+      expect(solution.powerGeneration!.totalGeneratorCount).toBe(4)
+      expect(uraniumOre(solution)).toBeCloseTo(22.857142857142858, 6)
+    })
+
+    it('②③ の比較の基準は ① をそのままの設定で解いた結果', async () => {
+      const stage1 = await solveSample(sampleOf('nuclear-uranium'))
+      for (const id of ['nuclear-plutonium', 'nuclear-reprocessing']) {
+        const baseline = await getLoopBaseline(sampleOf(id))
+        if (baseline.status !== 'optimal') throw new Error(`比較が実行不能: ${baseline.message}`)
+        expect(fuelsBurned(baseline)).toEqual([URANIUM_ROD])
+        expect(uraniumOre(baseline)).toBeCloseTo(uraniumOre(stage1), 9)
+        expect(surplusOf(baseline, URANIUM_WASTE)).toBeCloseTo(surplusOf(stage1, URANIUM_WASTE), 9)
+        expect(baseline.powerGeneration!.totalGeneratorCount).toBe(2)
+      }
+    })
   })
 
   /**
