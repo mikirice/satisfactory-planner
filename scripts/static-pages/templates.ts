@@ -576,8 +576,6 @@ p { margin: 0 0 14px; }
 .feature-row + .feature-row { margin-top: 16px; }
 .feature-row--flip .feature-row__text { order: 2; }
 .feature-row--flip .landing-shot { order: 1; }
-.feature-row--stacked { grid-template-columns: minmax(0, 1fr); }
-.feature-row--stacked .feature-row__text { max-width: 760px; }
 .feature-row .landing-shot { margin: 0; }
 .feature-row h3 { margin: 0 0 12px; font-size: 19px; }
 .feature-row p { margin: 0 0 12px; line-height: 1.85; }
