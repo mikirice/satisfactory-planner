@@ -26,6 +26,7 @@ import {
 import type { PlanInput } from '../plan/serialize.ts'
 import {
   DEFAULT_MINER_ID,
+  generatorByproductItems,
   planExtraction,
   solveProduction,
 } from '../solver/index.ts'
@@ -119,6 +120,12 @@ export function allowedFuelItems(
   return generator.fuels.filter((f) => selection[f.item] === true).map((f) => f.item)
 }
 
+/**
+ * 「残さない」を指定できる副産物（発電機の燃料が出す核廃棄物など）。generators.json から導く。
+ * 発電計画のオン/オフに関係なく表示する（需要駆動の発電機は発電計画なしでも廃棄物を出しうる）。
+ */
+export const generatorByproducts: readonly string[] = generatorByproductItems()
+
 /** 代替レシピの一覧。表示側が選択中の locale でソートする。 */
 export const alternateRecipes = recipes.filter((r) => r.isAlternate)
 
@@ -160,6 +167,11 @@ export type PlannerState = {
   powerTargetMW: number
   /** 工場（製造建物）の消費電力ぶんを発電で賄うか */
   coverFactoryPower: boolean
+  /**
+   * 余りを許さない副産物（Item.id の集合）。指定した廃棄物は解のなかで1つも余らせず、
+   * 消費する再処理（プルトニウム / FICSONIUM のチェーン）まで必ず建てる。既定は空
+   */
+  zeroSurplusByproducts: Record<string, true>
   /** Excel のファイル名に使うプラン名。空なら 'plan' */
   planName: string
   /** 物流の本数換算に使うベルト（Belt.id） */
@@ -213,6 +225,8 @@ export type PlannerState = {
   setPowerTargetMW: (mw: number) => void
   /** 「工場の消費電力ぶんを賄う」の切り替え */
   setCoverFactoryPower: (cover: boolean) => void
+  /** 副産物の「残さない（全量を消費）」を切り替える（Item.id） */
+  setZeroSurplusByproduct: (item: string, enabled: boolean) => void
   setPlanName: (name: string) => void
   setBeltId: (id: string) => void
   setPipeId: (id: string) => void
@@ -314,6 +328,7 @@ export function hasAnyInput(state: Pick<
   | 'enabledFuels'
   | 'powerTargetMW'
   | 'coverFactoryPower'
+  | 'zeroSurplusByproducts'
 >): boolean {
   return (
     state.targets.length > 0 ||
@@ -322,7 +337,8 @@ export function hasAnyInput(state: Pick<
     Object.keys(state.enabledGenerators).length > 0 ||
     Object.keys(state.enabledFuels).length > 0 ||
     state.powerTargetMW > 0 ||
-    state.coverFactoryPower
+    state.coverFactoryPower ||
+    Object.keys(state.zeroSurplusByproducts).length > 0
   )
 }
 
@@ -342,6 +358,10 @@ export function toSolveInput(state: PlannerState): SolveInput {
     if (!i.item || !(i.ratePerMin > 0)) continue
     inputs[i.item] = (inputs[i.item] ?? 0) + i.ratePerMin
   }
+  // 候補外の ID（古い保存データなど）はソルバーに渡さない（渡すと例外になる）
+  const zeroSurplusByproducts = Object.keys(state.zeroSurplusByproducts).filter((item) =>
+    generatorByproducts.includes(item),
+  )
   return {
     targets: state.targets
       .filter((t) => t.item && t.ratePerMin > 0 && t.mode !== 'max')
@@ -358,6 +378,7 @@ export function toSolveInput(state: PlannerState): SolveInput {
       ...(Object.keys(fuels).length === 0 ? {} : { fuels }),
       targetMW: state.powerTargetMW,
       coverFactoryPower: state.coverFactoryPower,
+      ...(zeroSurplusByproducts.length === 0 ? {} : { zeroSurplusByproducts }),
     },
   }
 }
@@ -381,6 +402,7 @@ export function toExcelInput(state: PlannerState): ExcelExportInput | null {
     objectiveId: state.objective,
     enabledAlternateIds: Object.keys(state.enabledAlternates),
     minerId: state.minerId,
+    zeroSurplusByproducts: Object.keys(state.zeroSurplusByproducts),
   }
 }
 
@@ -409,6 +431,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
     enabledFuels: {},
     powerTargetMW: DEFAULT_POWER_TARGET_MW,
     coverFactoryPower: DEFAULT_COVER_FACTORY_POWER,
+    zeroSurplusByproducts: {},
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
@@ -522,6 +545,14 @@ export const usePlanner = create<PlannerState>((set, get) => {
 
     setCoverFactoryPower: (cover) => change({ coverFactoryPower: cover }),
 
+    setZeroSurplusByproduct: (item, enabled) => {
+      if (!generatorByproducts.includes(item)) return
+      const next = { ...get().zeroSurplusByproducts }
+      if (enabled) next[item] = true
+      else delete next[item]
+      change({ zeroSurplusByproducts: next })
+    },
+
     // プラン名・搬送手段は解に影響しないので再計算しない（set のまま）
     setPlanName: (name) => set({ planName: name }),
     setBeltId: (id) => set({ beltId: id }),
@@ -544,6 +575,7 @@ export const usePlanner = create<PlannerState>((set, get) => {
         ),
         powerTargetMW: clampPowerTargetMW(input.powerTargetMW),
         coverFactoryPower: input.coverFactoryPower,
+        zeroSurplusByproducts: { ...(input.zeroSurplusByproducts ?? {}) },
         planName: input.planName,
         beltId: input.beltId,
         pipeId: input.pipeId,

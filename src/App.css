@@ -982,6 +982,15 @@
   color: var(--text-muted);
 }
 
+/* 副産物（核廃棄物）の「残さない」チェック。発電方式の一覧の下に続ける */
+.byproduct-list {
+  margin-top: 8px;
+}
+
+.byproduct-list .checkbox__label {
+  align-items: center;
+}
+
 /* --- チェックリスト（代替レシピ） ---------------------------------------- */
 
 .check-list {
@@ -1794,6 +1803,12 @@
 }
 
 .reason__advice {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 分かる範囲での原因（副産物の余りなど）。メッセージと対処の間に出す */
+.reason__detail {
   font-size: 12px;
   color: var(--text-muted);
 }

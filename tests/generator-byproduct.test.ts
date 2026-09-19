@@ -428,14 +428,21 @@ describe('発電計画なしの需要駆動の発電機の表示', () => {
       infeasible: { reason: object; reasonMessage: object; advice: object }
       summary: { powerGenerationDemandDriven: string }
     }
-    // 実行不能の理由は InfeasibleReason.kind の4種だけ（発電機の副産物を理由にする項目は無い）
+    // 実行不能の理由は InfeasibleReason.kind の5種だけ（「発電機の副産物が作れない」という
+    // 廃止済みの項目は無い。byproductMustBeConsumed は「残さない」設定の理由で別物）
     for (const section of [
       dictionary.infeasible.reason,
       dictionary.infeasible.reasonMessage,
       dictionary.infeasible.advice,
     ]) {
       expect(Object.keys(section).sort()).toEqual(
-        ['unproducibleItem', 'resourceLimit', 'unbounded', 'solverError'].sort(),
+        [
+          'unproducibleItem',
+          'resourceLimit',
+          'unbounded',
+          'solverError',
+          'byproductMustBeConsumed',
+        ].sort(),
       )
     }
     expect(dictionary.summary.powerGenerationDemandDriven.length).toBeGreaterThan(0)

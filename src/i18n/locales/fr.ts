@@ -171,6 +171,10 @@ export const fr = {
     powerNoMethod: 'Sélectionnez au moins un mode de production.',
     powerClockNote:
       "La cadence des générateurs est fixée à 100 %. La surcadence des générateurs n'est pas prise en charge.",
+    powerByproducts: 'Sous-produits',
+    powerByproductZero: 'Ne rien laisser (tout consommer)',
+    powerByproductsHint:
+      'Les déchets cochés ne restent jamais en surplus : le plan inclut le retraitement qui les consomme (chaînes plutonium et Ficsonium). Autorisez aussi la méthode de production qui brûle les barres de combustible obtenues. S\'applique même si la production d\'électricité est désactivée.',
 
     alternates: 'Recettes alternatives',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} activées`,
@@ -518,6 +522,7 @@ export const fr = {
       resourceLimit: 'Ressource insuffisante',
       unbounded: "Objectif d'optimisation",
       solverError: 'Solveur',
+      byproductMustBeConsumed: 'Surplus de sous-produit',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -525,6 +530,8 @@ export const fr = {
       resourceLimit: (name: string): string => `Pas assez de ${name}.`,
       unbounded: 'La production ne peut pas être maximisée sans limites de ressources.',
       solverError: "Le solveur n'a renvoyé aucune solution.",
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} est réglé sur « ne rien laisser », mais ne peut pas être entièrement consommé dans ces conditions.`,
     },
     advice: {
       unproducibleItem:
@@ -532,6 +539,13 @@ export const fr = {
       resourceLimit: 'Augmentez la limite de ressource ou baissez le débit cible.',
       unbounded: 'Définissez des limites de ressources, puis maximisez à nouveau la production.',
       solverError: 'Simplifiez les entrées et relancez le calcul.',
+      byproductMustBeConsumed:
+        'Décochez « ne rien laisser », ou activez les recettes qui consomment ce déchet et autorisez la méthode de production qui brûle les barres de combustible obtenues.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Aucune recette activée ne le consomme.',
+      consumerChainUnavailable:
+        'La chaîne de retraitement n\'a pas de débouché (la méthode de production qui brûle ses barres de combustible n\'est pas autorisée, ou une recette nécessaire est désactivée).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limite ${limit} / requis ${required} / manque ${shortfall}`,
@@ -616,6 +630,7 @@ export const fr = {
       generatorsRunning: 'Générateurs en fonctionnement',
       fuelRate: 'Débit de consommation',
       noFuel: 'Aucun carburant utilisé',
+      zeroSurplusByproducts: 'Sous-produits sans surplus',
       powerNote:
         "La cadence des générateurs est fixée à 100 %. L'électricité de l'extraction est exclue du plan de production.",
       runningMachines: 'Machines en fonctionnement',

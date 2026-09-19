@@ -166,6 +166,10 @@ export const en = {
     powerIdle: 'Enter a generation target or enable factory power coverage to calculate.',
     powerNoMethod: 'Select at least one generation method.',
     powerClockNote: 'Generator clock speed is fixed at 100%. Generator overclocking is not supported.',
+    powerByproducts: 'Byproducts',
+    powerByproductZero: 'Leave none behind (consume it all)',
+    powerByproductsHint:
+      'Checked waste is never left over: the plan includes the reprocessing that consumes it (the Plutonium and Ficsonium chains). Also allow the generation method that burns the resulting fuel rods. Applies even when power generation is off.',
 
     alternates: 'Alternate recipes',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} enabled`,
@@ -498,6 +502,7 @@ export const en = {
       resourceLimit: 'Resource shortage',
       unbounded: 'Optimization goal',
       solverError: 'Solver',
+      byproductMustBeConsumed: 'Byproduct surplus',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -505,12 +510,19 @@ export const en = {
       resourceLimit: (name: string): string => `Not enough ${name}.`,
       unbounded: 'The output cannot be maximized without resource limits.',
       solverError: 'The solver did not return a solution.',
+      byproductMustBeConsumed: (name: string): string => `${name} is set to "leave none behind", but it cannot be fully consumed under these conditions.`,
     },
     advice: {
       unproducibleItem: 'Enable an alternate recipe or check whether a required resource limit is set to 0.',
       resourceLimit: 'Increase the resource limit or lower the target rate.',
       unbounded: 'Set resource limits, then maximize the output again.',
       solverError: 'Simplify the inputs and try again.',
+      byproductMustBeConsumed:
+        'Uncheck "leave none behind", or enable the recipes that consume the waste and allow the generation method that burns the resulting fuel rods.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'No enabled recipe consumes it.',
+      consumerChainUnavailable: 'The reprocessing chain has no outlet (the generation method that burns its fuel rods is not allowed, or a required recipe is disabled).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limit ${limit} / required ${required} / shortfall ${shortfall}`,
@@ -594,6 +606,7 @@ export const en = {
       generatorsRunning: 'Running generators',
       fuelRate: 'Consumption rate',
       noFuel: 'No fuel used',
+      zeroSurplusByproducts: 'Byproducts left at zero',
       powerNote:
         'Generator clock speed is fixed at 100%. Extraction power is excluded from the generation plan.',
       runningMachines: 'Running machines',

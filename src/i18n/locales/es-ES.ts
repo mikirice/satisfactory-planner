@@ -171,6 +171,10 @@ export const esES = {
     powerNoMethod: 'Selecciona al menos un método de generación.',
     powerClockNote:
       'La frecuencia de los generadores está fijada al 100 %. No se admite sobrefrecuenciar generadores.',
+    powerByproducts: 'Subproductos',
+    powerByproductZero: 'No dejar nada (consumirlo todo)',
+    powerByproductsHint:
+      'Los residuos marcados nunca sobran: el plan incluye el reprocesado que los consume (cadenas de plutonio y ficsonio). Permite también el método de generación que quema las barras de combustible resultantes. Se aplica aunque la generación eléctrica esté desactivada.',
 
     alternates: 'Recetas alternativas',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} activadas`,
@@ -517,6 +521,7 @@ export const esES = {
       resourceLimit: 'Faltan recursos',
       unbounded: 'Objetivo de optimización',
       solverError: 'Solucionador',
+      byproductMustBeConsumed: 'Excedente de subproducto',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -524,6 +529,8 @@ export const esES = {
       resourceLimit: (name: string): string => `No hay suficiente ${name}.`,
       unbounded: 'La producción no se puede maximizar sin límites de recursos.',
       solverError: 'El solucionador no ha devuelto ninguna solución.',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} está configurado como «no dejar nada», pero no se puede consumir por completo con estas condiciones.`,
     },
     advice: {
       unproducibleItem:
@@ -531,6 +538,13 @@ export const esES = {
       resourceLimit: 'Sube el límite del recurso o baja el ritmo objetivo.',
       unbounded: 'Define límites de recursos y vuelve a maximizar la producción.',
       solverError: 'Simplifica los datos e inténtalo de nuevo.',
+      byproductMustBeConsumed:
+        'Desmarca «no dejar nada», o activa las recetas que consumen el residuo y permite el método de generación que quema las barras de combustible resultantes.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Ninguna receta activada lo consume.',
+      consumerChainUnavailable:
+        'La cadena de reprocesado no tiene salida (el método de generación que quema sus barras de combustible no está permitido o falta una receta necesaria).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Límite ${limit} / necesario ${required} / déficit ${shortfall}`,
@@ -615,6 +629,7 @@ export const esES = {
       generatorsRunning: 'Generadores en funcionamiento',
       fuelRate: 'Ritmo de consumo',
       noFuel: 'No se usa combustible',
+      zeroSurplusByproducts: 'Subproductos sin excedente',
       powerNote:
         'La frecuencia de los generadores está fijada al 100 %. La electricidad de la extracción queda fuera del plan de generación.',
       runningMachines: 'Máquinas en funcionamiento',

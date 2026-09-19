@@ -170,6 +170,10 @@ export const ptBR = {
     powerNoMethod: 'Selecione ao menos uma forma de geração.',
     powerClockNote:
       'O clock dos geradores fica fixo em 100 %. Overclock de geradores não é suportado.',
+    powerByproducts: 'Subprodutos',
+    powerByproductZero: 'Não deixar nada (consumir tudo)',
+    powerByproductsHint:
+      'Resíduos marcados nunca sobram: o plano inclui o reprocessamento que os consome (cadeias de plutônio e Ficsonium). Permita também o método de geração que queima as barras de combustível resultantes. Vale mesmo com a geração de energia desligada.',
 
     alternates: 'Receitas alternativas',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} ativadas`,
@@ -513,6 +517,7 @@ export const ptBR = {
       resourceLimit: 'Recurso insuficiente',
       unbounded: 'Objetivo da otimização',
       solverError: 'Solucionador',
+      byproductMustBeConsumed: 'Excedente de subproduto',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -520,6 +525,8 @@ export const ptBR = {
       resourceLimit: (name: string): string => `Não há ${name} suficiente.`,
       unbounded: 'A produção não pode ser maximizada sem limites de recursos.',
       solverError: 'O solucionador não retornou nenhuma solução.',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name} está definido como "não deixar nada", mas não pode ser totalmente consumido nestas condições.`,
     },
     advice: {
       unproducibleItem:
@@ -527,6 +534,13 @@ export const ptBR = {
       resourceLimit: 'Aumente o limite do recurso ou reduza a taxa da meta.',
       unbounded: 'Defina limites de recursos e maximize a produção novamente.',
       solverError: 'Simplifique os dados e tente de novo.',
+      byproductMustBeConsumed:
+        'Desmarque "não deixar nada", ou ative as receitas que consomem o resíduo e permita o método de geração que queima as barras de combustível resultantes.',
+    },
+    byproductCause: {
+      noEnabledConsumer: 'Nenhuma receita ativada o consome.',
+      consumerChainUnavailable:
+        'A cadeia de reprocessamento não tem destino (o método de geração que queima suas barras de combustível não está permitido ou uma receita necessária está desativada).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Limite ${limit} / necessário ${required} / falta ${shortfall}`,
@@ -610,6 +624,7 @@ export const ptBR = {
       generatorsRunning: 'Geradores em operação',
       fuelRate: 'Taxa de consumo',
       noFuel: 'Nenhum combustível usado',
+      zeroSurplusByproducts: 'Subprodutos sem excedente',
       powerNote:
         'O clock dos geradores fica fixo em 100 %. A energia da extração fica fora do plano de geração.',
       runningMachines: 'Máquinas em operação',

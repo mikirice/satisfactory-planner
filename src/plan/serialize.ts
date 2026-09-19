@@ -19,7 +19,7 @@ import {
   EXTRACTION_CLOCK_CHOICES,
   MANUFACTURING_CLOCK_MIN,
 } from '../data/constants.ts'
-import { DEFAULT_MINER_ID, MINER_IDS } from '../solver/index.ts'
+import { DEFAULT_MINER_ID, MINER_IDS, generatorByproductItems } from '../solver/index.ts'
 import type { InputEntry, ObjectivePresetId, TargetEntry, TargetMode } from '../store/planner.ts'
 
 // lz-string 1.x は CommonJS。default import 経由なら Vite と build-time Node ESM の両方で動く。
@@ -81,14 +81,15 @@ export function clampPowerTargetMW(mw: number | undefined): number {
  *       （全選択・空選択も省略しない）。読み込みは版に関わらず
  *       「キーがある＝その配列が選択」「キーが無い＝全燃料許可（v5 以前の互換）」で、
  *       v1〜v5 の保存プラン・共有URLはこれまでどおりの解になる
+ * v7 … 「余りを許さない副産物」（z）を追加。空（既定）なら省略するので v1〜v6 もそのまま読める
  */
-export const PLAN_SCHEMA_VERSION = 6
+export const PLAN_SCHEMA_VERSION = 7
 
 /**
  * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
  * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
  */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, 6]
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, 6, 7]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -135,6 +136,11 @@ export type PlanSnapshot = {
   w?: number
   /** 工場の消費電力ぶんを賄うか。v4〜。既定 false なら省略 */
   f?: boolean
+  /**
+   * 余りを許さない副産物（核廃棄物）の Item.id。v7〜。空なら省略。
+   * 候補は発電機の燃料が出す副産物（`generatorByproductItems()`）だけ
+   */
+  z?: string[]
 }
 
 /** 復元して store に流し込む形（TargetEntry の key は store 側で採番する）。 */
@@ -159,6 +165,8 @@ export type PlanInput = {
   powerTargetMW: number
   /** 工場の消費電力ぶんを賄うか */
   coverFactoryPower: boolean
+  /** 余りを許さない副産物（Item.id の集合） */
+  zeroSurplusByproducts: Record<string, true>
   planName: string
   beltId: string
   pipeId: string
@@ -187,6 +195,8 @@ export type PlanSource = {
   powerTargetMW?: number
   /** 工場の消費電力ぶんを賄うか（省略時 false） */
   coverFactoryPower?: boolean
+  /** 余りを許さない副産物（v6 以前のデータには無いので省略可＝なし） */
+  zeroSurplusByproducts?: Record<string, true>
   planName: string
   beltId: string
   pipeId: string
@@ -241,6 +251,11 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
   const enabledFuels = toFuelSnapshot(state.enabledFuels ?? {})
   const powerTargetMW = clampPowerTargetMW(state.powerTargetMW ?? DEFAULT_POWER_TARGET_MW)
   const coverFactoryPower = state.coverFactoryPower ?? DEFAULT_COVER_FACTORY_POWER
+  // 候補（発電機の副産物）に無い ID は落とす（ゲームデータ更新で消えた場合の保険）
+  const byproductItems = generatorByproductItems()
+  const zeroSurplusByproducts = Object.keys(state.zeroSurplusByproducts ?? {})
+    .filter((item) => byproductItems.includes(item))
+    .sort()
   return {
     v: PLAN_SCHEMA_VERSION,
     n: state.planName,
@@ -266,6 +281,7 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
     ...(Object.keys(enabledFuels).length === 0 ? {} : { u: enabledFuels }),
     ...(powerTargetMW === DEFAULT_POWER_TARGET_MW ? {} : { w: powerTargetMW }),
     ...(coverFactoryPower === DEFAULT_COVER_FACTORY_POWER ? {} : { f: coverFactoryPower }),
+    ...(zeroSurplusByproducts.length === 0 ? {} : { z: zeroSurplusByproducts }),
   }
 }
 
@@ -285,6 +301,7 @@ export function defaultPlanInput(): PlanInput {
     enabledFuels: {},
     powerTargetMW: DEFAULT_POWER_TARGET_MW,
     coverFactoryPower: DEFAULT_COVER_FACTORY_POWER,
+    zeroSurplusByproducts: {},
     planName: '',
     beltId: DEFAULT_BELT_ID,
     pipeId: DEFAULT_PIPE_ID,
@@ -498,6 +515,19 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
   if (raw.f !== undefined) {
     if (typeof raw.f === 'boolean') input.coverFactoryPower = raw.f
     else warnings.push('発電計画の設定が不正なので既定に戻しました')
+  }
+  // --- 余りを許さない副産物（v7〜。無ければ既定＝なし） -----------------------
+  if (Array.isArray(raw.z)) {
+    const byproductItems = generatorByproductItems()
+    for (const item of raw.z) {
+      if (typeof item !== 'string' || !byproductItems.includes(item)) {
+        warnings.push(`副産物ではないアイテム「${String(item)}」の「残さない」設定を無視しました`)
+        continue
+      }
+      input.zeroSurplusByproducts[item] = true
+    }
+  } else if (raw.z !== undefined) {
+    warnings.push('副産物の設定が不正なので無視しました')
   }
 
   return { ok: true, input, warnings }

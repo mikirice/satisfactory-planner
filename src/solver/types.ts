@@ -77,6 +77,17 @@ export type PowerPlanInput = {
    * 採掘設備の電力は LP の外（後処理の planExtraction）なので**含まない**。
    */
   coverFactoryPower?: boolean
+  /**
+   * 「余りを許さない」副産物（Item.id）。発電機の燃料が出す副産物（核廃棄物）のうち、
+   * ここに挙げたものはアイテム収支を `>= 目標` ではなく `= 目標` にする＝解のなかで
+   * 1つも余らせない。発電所を回して廃棄物が出るなら、その全量を消費する再処理
+   * （プルトニウム / FICSONIUM のチェーン）を必ず建てることになる。
+   *
+   * 発電計画が無効（`generators` が空など）でも効く。需要駆動の発電機は元から余りを
+   * 作れないので矛盾はしないが、設定として保持し続けるためにここに置く。
+   * 副産物として出ないアイテムを渡すと例外（`generatorByproductItems()` が候補）。
+   */
+  zeroSurplusByproducts?: readonly string[]
 }
 
 export type SolveInput = {
@@ -341,6 +352,23 @@ export type InfeasibleReason =
       message: string
       /** この原因に固有の対処。未指定なら UI 側の既定文を使う */
       advice?: string
+    }
+  | {
+      /**
+       * 「余りを許さない」と指定した副産物を、この条件では消費しきれない。
+       * 副産物が出る（発電所を回す）のに、消費するレシピ（再処理）が使えないとき。
+       */
+      kind: 'byproductMustBeConsumed'
+      item: string
+      /**
+       * 分かる範囲での原因。
+       * - `noEnabledConsumer`        … このアイテムを消費する有効レシピが1つもない
+       * - `consumerChainUnavailable` … 消費するレシピはあるが、その他の材料が
+       *                                有効レシピ・利用できる原料・発電機からは用意できない
+       * 判定できないときは undefined（余りを許せば解ける、ということだけが分かっている）
+       */
+      cause?: 'noEnabledConsumer' | 'consumerChainUnavailable'
+      message: string
     }
   | {
       kind: 'solverError'

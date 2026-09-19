@@ -166,6 +166,10 @@ export const ko = {
     powerIdle: '발전 목표를 입력하거나 공장 전력 충당을 켜세요.',
     powerNoMethod: '발전 방식을 하나 이상 선택하세요.',
     powerClockNote: '발전기 클럭은 100 %로 고정입니다. 발전기 오버클럭은 지원하지 않습니다.',
+    powerByproducts: '부산물 처리',
+    powerByproductZero: '남기지 않음(전량 소비)',
+    powerByproductsHint:
+      '체크한 폐기물은 남기지 않고, 이를 소비하는 재처리(플루토늄·Ficsonium 체인)까지 계획에 포함합니다. 재처리로 만든 연료봉을 태우는 발전 방식도 허용하세요. 발전 계획이 꺼져 있어도 적용됩니다.',
 
     alternates: '대체 제조법',
     alternatesCount: (on: number, all: number): string => `${on} / ${all} 사용`,
@@ -498,6 +502,7 @@ export const ko = {
       resourceLimit: '자원 부족',
       unbounded: '최적화 목표',
       solverError: '계산기',
+      byproductMustBeConsumed: '부산물 잉여',
     },
     reasonMessage: {
       unproducibleItem: (name: string): string =>
@@ -505,12 +510,21 @@ export const ko = {
       resourceLimit: (name: string): string => `${name}이(가) 부족합니다.`,
       unbounded: '자원 상한이 없으면 생산량을 최대화할 수 없습니다.',
       solverError: '계산기가 해를 반환하지 않았습니다.',
+      byproductMustBeConsumed: (name: string): string =>
+        `${name}을(를) "남기지 않음"으로 설정했지만 이 조건에서는 전량 소비할 수 없습니다.`,
     },
     advice: {
       unproducibleItem: '대체 제조법을 켜거나, 필요한 자원의 상한이 0인지 확인하세요.',
       resourceLimit: '자원 상한을 올리거나 목표 속도를 낮추세요.',
       unbounded: '자원 상한을 설정한 뒤 다시 최대화하세요.',
       solverError: '입력을 단순하게 만든 뒤 다시 시도하세요.',
+      byproductMustBeConsumed:
+        '"남기지 않음" 체크를 해제하거나, 폐기물을 소비하는 레시피를 켜고 그 연료봉을 태우는 발전 방식을 허용하세요.',
+    },
+    byproductCause: {
+      noEnabledConsumer: '이를 소비하는 활성 레시피가 없습니다.',
+      consumerChainUnavailable:
+        '재처리 체인의 소비처가 없습니다(연료봉을 태우는 발전 방식이 허용되지 않았거나 필요한 레시피가 꺼져 있습니다).',
     },
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `상한 ${limit} / 필요 ${required} / 부족 ${shortfall}`,
@@ -594,6 +608,7 @@ export const ko = {
       generatorsRunning: '가동 발전기',
       fuelRate: '소비 속도',
       noFuel: '사용한 연료 없음',
+      zeroSurplusByproducts: '잉여 없는 부산물',
       powerNote: '발전기 클럭은 100 %로 고정입니다. 채취 전력은 발전 계획에서 제외합니다.',
       runningMachines: '가동 기계',
       builtMachines: '건설할 기계',
