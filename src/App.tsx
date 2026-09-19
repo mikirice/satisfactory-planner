@@ -4,6 +4,7 @@ import { meta } from './data/index.ts'
 import { SUPPORTED_LOCALES, useLocale } from './i18n/index.ts'
 import { localeSwitcherLabel } from './i18n/endonyms.ts'
 import type { Locale } from './i18n/index.ts'
+import { landingPagePath } from './plan/item-pages.ts'
 import { saveAutosaveNow } from './plan/persist.ts'
 import { LAST_OPENED_STORAGE_KEY } from './plan/storage.ts'
 import { defaultPlanInput } from './plan/serialize.ts'
@@ -63,7 +64,12 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1 className="header__title">{T.appTitle}</h1>
+        <h1 className="header__title">
+          <a className="header__brand" href={landingPagePath(locale)}>
+            <img src="/brand/mark.svg" alt="" width="28" height="28" aria-hidden="true" />
+            {T.appTitle}
+          </a>
+        </h1>
         <p className="header__status">
           <span className={`tag ${statusClass(status, result?.status)}`}>
             {statusLabel(status, result?.status)}

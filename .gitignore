@@ -27,3 +27,7 @@ dist-ssr
 data-source/*.json
 .claude/
 .vercel
+
+# Brand build fonts (OFL, downloaded at build time; Noto variable is ~10 MB)
+brand/fonts/
+!brand/dist/

@@ -1173,8 +1173,10 @@ describe('ツールへの導線とホームへの導線', () => {
     const item = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
     const itemEn = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
 
-    expect(item).toContain('<a class="brand" href="/">Satisfactory 生産計画ツール</a>')
-    expect(itemEn).toContain('<a class="brand" href="/en/">Satisfactory Production Planner</a>')
+    expect(item).toMatch(/<a class="brand" href="\/"><img [^>]+>Satisfactory 生産計画ツール<\/a>/)
+    expect(itemEn).toMatch(
+      /<a class="brand" href="\/en\/"><img [^>]+>Satisfactory Production Planner<\/a>/,
+    )
     expect(item).toContain('<li><a href="/">ホーム</a></li>')
     expect(itemEn).toContain('<li><a href="/en/">Home</a></li>')
     expect(graphNode(itemEn, 'BreadcrumbList')!.itemListElement).toEqual(
@@ -1443,9 +1445,20 @@ describe('OGP と Twitter カード', () => {
       expect(metaContent(head, 'twitter:description'), file).toBe(
         metaContent(head, 'description'),
       )
-      expect(metaContent(head, 'twitter:image'), file).toBe(
-        'https://satisfactory-planner.net/ogp.png',
+      // OGP 画像は言語別（/en/ 配下は英語ワードマークの ogp-en.png）
+      const expectedOgp = file.includes(`${sep}en${sep}`)
+        ? 'https://satisfactory-planner.net/ogp-en.png'
+        : 'https://satisfactory-planner.net/ogp-ja.png'
+      expect(metaContent(head, 'twitter:image'), file).toBe(expectedOgp)
+      expect(metaContent(head, 'og:image'), file).toBe(expectedOgp)
+      expect(metaContent(head, 'og:image:width'), file).toBe('1200')
+      expect(metaContent(head, 'og:image:height'), file).toBe('630')
+      expect(metaContent(head, 'og:image:alt'), file).toBe(
+        file.includes(`${sep}en${sep}`)
+          ? 'Production Planner for Satisfactory logo'
+          : '生産計画ツール for Satisfactory のロゴ',
       )
+      expect(html, file).not.toContain('/ogp.png')
       // og:* は twitter:* と同じ内容（別コピーを持たない）
       expect(metaContent(head, 'og:title'), file).toBe(titleText(html))
       expect(metaContent(head, 'og:description'), file).toBe(metaContent(head, 'description'))
@@ -1461,9 +1474,74 @@ describe('OGP と Twitter カード', () => {
 
     expect(metaContent(head, 'twitter:card')).toBe('summary_large_image')
     expect(metaContent(head, 'twitter:title')).toBe(titleText(html))
-    expect(metaContent(head, 'twitter:image')).toBe('https://satisfactory-planner.net/ogp.png')
+    // 言語はクライアント側で決まるページなので日本語版の画像で固定
+    expect(metaContent(head, 'twitter:image')).toBe('https://satisfactory-planner.net/ogp-ja.png')
+    expect(metaContent(head, 'og:image')).toBe('https://satisfactory-planner.net/ogp-ja.png')
+    expect(html).not.toContain('/ogp.png')
     expect(metaContent(head, 'og:url')).toBe('https://satisfactory-planner.net/app/')
     expect(html).toContain('<link rel="canonical" href="https://satisfactory-planner.net/app/" />')
+  })
+})
+
+describe('ブランド（ファビコン・ヘッダーのマーク）', () => {
+  const FAVICON_LINKS = [
+    '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />',
+    '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />',
+    '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+  ] as const
+  const BRAND_IMG = '<img src="/brand/mark.svg" alt="" width="28" height="28" aria-hidden="true" />'
+
+  it('生成した全ページと計画ツール本体にファビコン4種がある', async () => {
+    const files = [...(await htmlFiles(outputDirectory)), join(process.cwd(), 'app/index.html')]
+    for (const file of files) {
+      const head = headSection(await readFile(file, 'utf8'))
+      for (const link of FAVICON_LINKS) expect(head, file).toContain(link)
+    }
+  })
+
+  it('/ は ogp-ja.png、/en/ は ogp-en.png を使う', async () => {
+    const ja = await readFile(join(outputDirectory, 'index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en', 'index.html'), 'utf8')
+    expect(metaContent(headSection(ja), 'og:image')).toBe('https://satisfactory-planner.net/ogp-ja.png')
+    expect(metaContent(headSection(en), 'og:image')).toBe('https://satisfactory-planner.net/ogp-en.png')
+  })
+
+  it('ヘッダーのブランドはマーク（装飾・alt 空）＋サイト名テキストの1リンク', async () => {
+    for (const file of await htmlFiles(outputDirectory)) {
+      const html = await readFile(file, 'utf8')
+      const brand = html.match(/<a class="brand" href="[^"]+">(.*?)<\/a>/)?.[1]
+      expect(brand, file).toBeDefined()
+      expect(brand!.startsWith(BRAND_IMG), file).toBe(true)
+      // 名前はテキストのまま（画像に置き換えない）
+      expect(brand!.slice(BRAND_IMG.length).trim().length, file).toBeGreaterThan(0)
+    }
+  })
+
+  it('ランディングの WebApplication は brand/mark-512.png を image/logo に持つ', async () => {
+    for (const path of ['index.html', join('en', 'index.html')]) {
+      const html = await readFile(join(outputDirectory, path), 'utf8')
+      expect(html).toContain('"image":"https://satisfactory-planner.net/brand/mark-512.png"')
+      expect(html).toContain('"logo":"https://satisfactory-planner.net/brand/mark-512.png"')
+    }
+  })
+
+  it('参照しているブランドファイルが public/（vite がそのまま dist/ へ写す）に実在する', async () => {
+    const publicDir = join(process.cwd(), 'public')
+    for (const name of [
+      'favicon.svg',
+      'favicon-32.png',
+      'favicon-16.png',
+      'apple-touch-icon.png',
+      'ogp-ja.png',
+      'ogp-en.png',
+      join('brand', 'mark.svg'),
+      join('brand', 'mark-512.png'),
+    ]) {
+      await expect(readFile(join(publicDir, name)), name).resolves.toBeDefined()
+    }
+    // 旧 OGP 画像は撤去済み（参照も残さない）
+    await expect(readFile(join(publicDir, 'ogp.png'))).rejects.toThrow()
   })
 })
 

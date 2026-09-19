@@ -295,6 +295,18 @@ describe('画面の骨格', () => {
     expect(text).toContain('目標を追加すると計算します')
   })
 
+  it('ヘッダーはブランドマーク（装飾・alt 空）とサイト名テキストの1リンク', async () => {
+    const container = await render(<App />)
+    const brand = container.querySelector('h1.header__title a.header__brand')
+    expect(brand).not.toBeNull()
+    expect(brand!.getAttribute('href')).toBe('/')
+    const img = brand!.querySelector('img')
+    expect(img!.getAttribute('src')).toBe('/brand/mark.svg')
+    expect(img!.getAttribute('alt')).toBe('')
+    expect(img!.getAttribute('aria-hidden')).toBe('true')
+    expect(brand!.textContent).toContain('Satisfactory 生産計画ツール')
+  })
+
   it('サイドバー下部に物流の選択と Excel 出力がある', async () => {
     const container = await render(<App />)
     const text = container.textContent ?? ''
