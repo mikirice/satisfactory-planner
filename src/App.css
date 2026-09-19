@@ -23,11 +23,14 @@
 .header__title {
   font-size: 17px;
   letter-spacing: 0.01em;
+  /* 先頭がマーク画像になったので baseline 整列から外す（画像の下端が基準になり全体が 6px 下がる） */
+  align-self: center;
 }
 
 /* マーク＋サイト名で1つのリンク。マークは装飾（名前はテキストが担う）。ヘッダー高は変えない。 */
 .header__brand {
-  display: inline-flex;
+  /* inline-flex だと h1 の行ボックスが画像分だけ広がりヘッダーが 6px 高くなる。block-level の flex にする */
+  display: flex;
   align-items: center;
   gap: 8px;
   color: inherit;
