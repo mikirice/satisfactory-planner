@@ -41,10 +41,9 @@ import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
 import { renderLandingPageHtml } from '../scripts/build-pages.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
-import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
+import type { Solution } from '../src/solver/index.ts'
 import { usePlanner } from '../src/store/planner.ts'
 import { BuildListView } from '../src/ui/BuildListView.tsx'
-import { InfeasiblePanel } from '../src/ui/InfeasiblePanel.tsx'
 import { SummaryPanel } from '../src/ui/SummaryPanel.tsx'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -204,30 +203,6 @@ const ironPlate60: Solution = {
   totalFootprintAreaM2: 3 * smelter.footprint.areaM2 + 4 * constructor_.footprint.areaM2,
   sinkPointsPerMin: 120,
   objectiveValue: 90,
-}
-
-/**
- * 発電計画が無効なままプルトニウム・ペレットを目標にしたときの実行不能結果。
- * 表示は辞書と公式名だけで組み立てるので、ソルバー側の日本語メッセージは使わない。
- */
-const generatorByproduct: InfeasibleResult = {
-  status: 'infeasible',
-  reasons: [
-    {
-      kind: 'requiresGeneratorByproduct',
-      item: 'Desc_PlutoniumPellet_C',
-      byproducts: ['Desc_NuclearWaste_C'],
-      sources: [
-        {
-          generator: 'Build_GeneratorNuclear_C',
-          fuel: 'Desc_NuclearFuelRod_C',
-          byproduct: 'Desc_NuclearWaste_C',
-        },
-      ],
-      message: 'solver log text',
-    },
-  ],
-  message: 'solver log text',
 }
 
 /** 公式名にも辞書にも日本語の文字が出ない言語（CJK 圏は漢字を使うので除く）。 */
@@ -451,49 +426,6 @@ describe('言語ごとの表示スモーク（鉄板 60/min のサマリー）',
       expect(dictionary.summary.somersloops).toContain('{{Desc_WAT1_C}}')
       // 代替レシピ接頭辞は公式訳から採った表と一致する（src/i18n/alternate-prefixes.ts）
       expect(dictionary.alternateNamePrefix).toBe(ALTERNATE_NAME_PREFIXES[locale])
-    },
-  )
-
-  it.each(SUPPORTED_LOCALES)(
-    '%s: 発電機の副産物が要る実行不能の説明が、その言語と公式名で出る',
-    async (locale) => {
-      await preloadLocale(locale)
-      const dictionary = getDictionary(locale)
-      const pack = getLoadedGameNamePack(locale)
-      const container = await render(
-        <LocaleProvider initialLocale={locale}>
-          <InfeasiblePanel result={generatorByproduct} />
-        </LocaleProvider>,
-      )
-
-      const text = container.textContent ?? ''
-      expect(text).toContain(dictionary.infeasible.reason.requiresGeneratorByproduct)
-      // ゲーム用語（目標・副産物・発電機・燃料）はすべて公式名から解決する
-      for (const id of [
-        'Desc_PlutoniumPellet_C',
-        'Desc_NuclearWaste_C',
-        'Build_GeneratorNuclear_C',
-        'Desc_NuclearFuelRod_C',
-      ]) {
-        expect(text).toContain(resolveDisplayName(id, locale, pack))
-      }
-      // 対処は発電機と燃料を名指しした専用文（汎用の「代替レシピを…」ではない）
-      expect(text).toContain(
-        dictionary.infeasible.advice.requiresGeneratorByproduct([
-          dictionary.infeasible.generatorFuel(
-            resolveDisplayName('Build_GeneratorNuclear_C', locale, pack),
-            resolveDisplayName('Desc_NuclearFuelRod_C', locale, pack),
-          ),
-        ]),
-      )
-      expect(text).not.toContain(dictionary.infeasible.advice.unproducibleItem)
-      // 日本語の文言が他言語に混ざらない
-      if (locale !== 'ja') {
-        expect(text).not.toContain(getDictionary('ja').infeasible.reason.requiresGeneratorByproduct)
-        expect(text).not.toContain(getDictionary('ja').infeasible.hint)
-      }
-      // ラテン文字圏では日本語の文字そのものが出ない（公式名も英語にフォールバックする）
-      if (NON_CJK_LOCALES.includes(locale)) expect(text).not.toMatch(JAPANESE_CHARACTER)
     },
   )
 

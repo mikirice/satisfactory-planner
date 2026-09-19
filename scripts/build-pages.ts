@@ -21,6 +21,7 @@ import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
 import iconIdsJson from '../src/data/icons.json'
 import {
   buildingsById,
+  generators,
   items,
   itemsById,
   meta,
@@ -376,6 +377,22 @@ function defaultTargetIsAutomatable(item: Item): boolean {
   const reachable = new Set(
     items.filter((candidate) => candidate.isRawResource).map((candidate) => candidate.id),
   )
+  // 発電機の副産物（核廃棄物）はレシピでは作れないが、ツールは発電計画の有無に関係なく
+  // 「燃料(+水) → 副産物」として発電機を回せる（src/solver/model.ts の需要駆動の発電機）。
+  // ここでも同じ扱いにしないと、CTA の注意書きとツールの実際の挙動が食い違う。
+  const byproductSources = generators.flatMap((generator) =>
+    generator.fuels
+      .filter((fuel) => fuel.byproduct !== undefined && fuel.byproduct.ratePerMin > 0)
+      .map((fuel) => ({
+        ingredients: [
+          fuel.item,
+          ...(fuel.supplementalItem && fuel.supplementalRatePerMin > 0
+            ? [fuel.supplementalItem]
+            : []),
+        ],
+        product: fuel.byproduct!.item,
+      })),
+  )
 
   let changed = true
   while (changed) {
@@ -387,6 +404,12 @@ function defaultTargetIsAutomatable(item: Item): boolean {
         reachable.add(product.item)
         changed = true
       }
+    }
+    for (const source of byproductSources) {
+      if (!source.ingredients.every((ingredient) => reachable.has(ingredient))) continue
+      if (reachable.has(source.product)) continue
+      reachable.add(source.product)
+      changed = true
     }
   }
   return reachable.has(item.id)

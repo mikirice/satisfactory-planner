@@ -392,6 +392,8 @@ export const ru = {
     powerGenerationNet: 'Чистая энергия',
     powerGenerationFuel: 'Расход топлива',
     powerGenerationCover: 'Покрытие потребления фабрики включено.',
+    powerGenerationDemandDriven:
+      'Планирование энергии выключено. Генераторы работают лишь настолько, насколько нужны их побочные продукты (ядерные отходы); выработанная энергия показывается, но не ограничивается.',
     powerGenerationShort: (short: string): string =>
       `Не хватает ${short} МВт до потребления производства. Энергия добычи не учитывается.`,
     powerGenerationExtractionNote:
@@ -510,7 +512,6 @@ export const ru = {
     hint: 'Проверьте один из следующих параметров.',
     reason: {
       unproducibleItem: 'Нет рецепта',
-      requiresGeneratorByproduct: 'Нужен побочный продукт генератора',
       resourceLimit: 'Нехватка сырья',
       unbounded: 'Цель оптимизации',
       solverError: 'Решатель',
@@ -518,14 +519,6 @@ export const ru = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `«${name}» нельзя произвести из включённых рецептов и доступного сырья.`,
-      requiresGeneratorByproduct: (
-        name: string,
-        byproducts: readonly string[],
-        sources: readonly string[],
-      ): string =>
-        `Для «${name}» нужно: ${byproducts.join(', ')}. Это получается только как побочный продукт работы: ${sources.join(', ')}.`,
-      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
-        `«${name}» получается только как побочный продукт работы: ${sources.join(', ')}.`,
       resourceLimit: (name: string): string => `Не хватает: ${name}.`,
       unbounded: 'Без лимитов сырья выпуск невозможно максимизировать.',
       solverError: 'Решатель не вернул решение.',
@@ -533,14 +526,10 @@ export const ru = {
     advice: {
       unproducibleItem:
         'Включите альтернативный рецепт или проверьте, не выставлен ли лимит нужного сырья в 0.',
-      requiresGeneratorByproduct: (sources: readonly string[]): string =>
-        `Включите производство энергии и разрешите: ${sources.join(', ')}.`,
       resourceLimit: 'Увеличьте лимит сырья или снизьте целевую скорость.',
       unbounded: 'Задайте лимиты сырья и снова максимизируйте выпуск.',
       solverError: 'Упростите исходные данные и повторите расчёт.',
     },
-    /** Источник побочного продукта: генератор и топливо. */
-    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Лимит ${limit} / требуется ${required} / нехватка ${shortfall}`,
   },

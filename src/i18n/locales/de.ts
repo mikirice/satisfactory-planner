@@ -394,6 +394,8 @@ export const de = {
     powerGenerationNet: 'Nettostrom',
     powerGenerationFuel: 'Brennstoffverbrauch',
     powerGenerationCover: 'Die Deckung des Fabrikstroms ist aktiviert.',
+    powerGenerationDemandDriven:
+      'Die Stromplanung ist aus. Generatoren laufen nur so weit, wie ihre Nebenprodukte (Atommüll) gebraucht werden; die erzeugte Leistung wird angezeigt, aber nicht als Bedingung verwendet.',
     powerGenerationShort: (short: string): string =>
       `${short} MW fehlen zum Verbrauch der Produktion. Der Strom für den Abbau bleibt außen vor.`,
     powerGenerationExtractionNote:
@@ -512,7 +514,6 @@ export const de = {
     hint: 'Prüfen Sie eine der folgenden Einstellungen.',
     reason: {
       unproducibleItem: 'Fehlendes Rezept',
-      requiresGeneratorByproduct: 'Nebenprodukt der Stromerzeugung nötig',
       resourceLimit: 'Rohstoffmangel',
       unbounded: 'Optimierungsziel',
       solverError: 'Solver',
@@ -520,14 +521,6 @@ export const de = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `${name} lässt sich mit den aktivierten Rezepten und verfügbaren Rohstoffen nicht herstellen.`,
-      requiresGeneratorByproduct: (
-        name: string,
-        byproducts: readonly string[],
-        sources: readonly string[],
-      ): string =>
-        `${name} benötigt ${byproducts.join(', ')}. Das fällt nur als Nebenprodukt an, wenn ${sources.join(', ')} läuft.`,
-      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
-        `${name} fällt nur als Nebenprodukt an, wenn ${sources.join(', ')} läuft.`,
       resourceLimit: (name: string): string => `Nicht genug ${name}.`,
       unbounded: 'Ohne Rohstoffgrenzen lässt sich der Ausstoß nicht maximieren.',
       solverError: 'Der Solver hat keine Lösung geliefert.',
@@ -535,14 +528,10 @@ export const de = {
     advice: {
       unproducibleItem:
         'Aktivieren Sie ein Alternativrezept oder prüfen Sie, ob eine benötigte Rohstoffgrenze auf 0 steht.',
-      requiresGeneratorByproduct: (sources: readonly string[]): string =>
-        `Schalten Sie die Stromerzeugung ein und erlauben Sie ${sources.join(', ')}.`,
       resourceLimit: 'Erhöhen Sie die Rohstoffgrenze oder senken Sie die Zielrate.',
       unbounded: 'Setzen Sie Rohstoffgrenzen und maximieren Sie den Ausstoß erneut.',
       solverError: 'Vereinfachen Sie die Eingaben und versuchen Sie es erneut.',
     },
-    /** Herkunft eines Nebenprodukts: Generator und Brennstoff. */
-    generatorFuel: (generator: string, fuel: string): string => `${generator} (${fuel})`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `Grenze ${limit} / benötigt ${required} / fehlend ${shortfall}`,
   },

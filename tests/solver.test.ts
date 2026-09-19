@@ -699,7 +699,9 @@ describe('LP モデルの組み立て', () => {
       enabledRecipes: ALL_RECIPES,
     })
     expect(model.recipes).toHaveLength(recipes.length)
-    expect(model.lp.variables.length).toBe(recipes.length + 13)
+    // レシピ + 原料13種 + 需要駆動の発電機（副産物を出す発電機 × 燃料。原子力の2燃料）
+    expect(model.lp.variables.length).toBe(recipes.length + 13 + model.generatorVariants.length)
+    expect(model.generatorVariants.length).toBe(2)
     const solution = await solveOk({
       targets: [{ item: 'Desc_ModularFrameHeavy_C', ratePerMin: 10 }],
       enabledRecipes: ALL_RECIPES,

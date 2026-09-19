@@ -388,6 +388,8 @@ export const ja = {
     powerGenerationNet: '差引',
     powerGenerationFuel: '燃料の消費',
     powerGenerationCover: '工場の消費電力ぶんを賄う設定です',
+    powerGenerationDemandDriven:
+      '発電計画は無効です。発電機は副産物（核廃棄物）が要るぶんだけ稼働し、その発電量は制約には使っていません',
     powerGenerationShort: (short: string): string =>
       `製造の消費に対して ${short} MW 足りません（採掘設備の電力は含みません）`,
     powerGenerationExtractionNote:
@@ -503,7 +505,6 @@ export const ja = {
     hint: '次のどれかを見直してください。',
     reason: {
       unproducibleItem: 'レシピ不足',
-      requiresGeneratorByproduct: '発電機の副産物が必要',
       resourceLimit: '原料不足',
       unbounded: '目的関数',
       solverError: 'ソルバー',
@@ -511,28 +512,16 @@ export const ja = {
     reasonMessage: {
       unproducibleItem: (name: string): string =>
         `${name}は有効なレシピと利用できる原料から生産できません。`,
-      requiresGeneratorByproduct: (
-        name: string,
-        byproducts: readonly string[],
-        sources: readonly string[],
-      ): string =>
-        `${name}の材料の${byproducts.join('・')}は、${sources.join('・')}を稼働させたときの副産物としてのみ得られます。`,
-      requiresGeneratorByproductSelf: (name: string, sources: readonly string[]): string =>
-        `${name}は、${sources.join('・')}を稼働させたときの副産物としてのみ得られます。`,
       resourceLimit: (name: string): string => `${name} が足りません。`,
       unbounded: '原料上限がないため最大化できません。',
       solverError: 'ソルバーが解を返しませんでした。',
     },
     advice: {
       unproducibleItem: '代替レシピを有効にするか、原料上限を 0 にしていないか確認してください。',
-      requiresGeneratorByproduct: (sources: readonly string[]): string =>
-        `発電計画を有効にし、${sources.join('・')}を許可してください。`,
       resourceLimit: '原料上限を上げるか、目標レートを下げてください。',
       unbounded: '原料上限を設定してから、もう一度最大化してください。',
       solverError: '入力を単純にして再試行してください。',
     },
-    /** 副産物の出どころ（発電機と燃料）の表示名 */
-    generatorFuel: (generator: string, fuel: string): string => `${generator}（${fuel}）`,
     resourceLimitDetail: (limit: string, required: string, shortfall: string): string =>
       `上限 ${limit} / 必要 ${required} / 不足 ${shortfall}`,
   },

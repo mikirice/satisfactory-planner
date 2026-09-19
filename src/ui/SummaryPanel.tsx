@@ -139,6 +139,11 @@ export function SummaryPanel({ solution, extraction }: Props) {
           {solution.powerGeneration.coverFactoryPower && (
             <p className="hint">{T.summary.powerGenerationCover}</p>
           )}
+          {/* 発電計画が無効（目標も自給も無し）なのに発電機が回っている＝副産物の需要駆動 */}
+          {solution.powerGeneration.targetMW === 0 &&
+            !solution.powerGeneration.coverFactoryPower && (
+              <p className="hint">{T.summary.powerGenerationDemandDriven}</p>
+            )}
           {/* 発電機は建てる台数を切り上げるので、通常はここに落ちない（目標未達の保険） */}
           {solution.powerGeneration.netMW < -1e-6 && (
             <p className="callout callout--warn">

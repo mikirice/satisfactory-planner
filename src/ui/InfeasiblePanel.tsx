@@ -46,38 +46,11 @@ function detail(reason: InfeasibleReason) {
 }
 
 function reasonMessage(reason: InfeasibleReason): string {
-  if (reason.kind === 'requiresGeneratorByproduct') {
-    const sources = generatorFuelLabels(reason)
-    // 目標そのものが廃棄物のときは同じ名前を2回出さない
-    return reason.byproducts.includes(reason.item)
-      ? T.infeasible.reasonMessage.requiresGeneratorByproductSelf(itemName(reason.item), sources)
-      : T.infeasible.reasonMessage.requiresGeneratorByproduct(
-          itemName(reason.item),
-          reason.byproducts.map(itemName),
-          sources,
-        )
-  }
   return reason.kind === 'unproducibleItem' || reason.kind === 'resourceLimit'
     ? T.infeasible.reasonMessage[reason.kind](itemName(reason.item))
     : T.infeasible.reasonMessage[reason.kind]
 }
 
 function reasonAdvice(reason: InfeasibleReason): string {
-  if (reason.kind === 'requiresGeneratorByproduct') {
-    return T.infeasible.advice.requiresGeneratorByproduct(generatorFuelLabels(reason))
-  }
   return T.infeasible.advice[reason.kind]
-}
-
-/** 「原子力発電所（ウラン燃料棒）」のような、副産物の出どころの表示名。 */
-function generatorFuelLabels(
-  reason: Extract<InfeasibleReason, { kind: 'requiresGeneratorByproduct' }>,
-): string[] {
-  return [
-    ...new Set(
-      reason.sources.map((source) =>
-        T.infeasible.generatorFuel(itemName(source.generator), itemName(source.fuel)),
-      ),
-    ),
-  ]
 }

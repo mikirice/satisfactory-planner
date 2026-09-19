@@ -3,6 +3,10 @@
  *
  * データに燃料を追加したら自動的にケースも増える。全レシピを有効にした条件で、
  * 解けるか、ゲーム上避けられない理由を名指しして実行不能になることを保証する。
+ *
+ * 副産物（核廃棄物）が材料に要る燃料（プルトニウム燃料棒・FICSONIUM燃料棒）は、
+ * その廃棄物を出す発電機が需要駆動で一緒に回るので単独でも解ける。
+ * その場合は選んだ燃料の発電機に加えて、廃棄物を出す発電機のステップも並ぶ。
  */
 import { describe, expect, it } from 'vitest'
 
@@ -20,21 +24,6 @@ const ALLOWED_FAILURES: Readonly<Record<string, AllowedFailure>> = {
   [pairKey('Build_GeneratorFuel_C', 'Desc_LiquidBiofuel_C')]: {
     item: 'Desc_LiquidBiofuel_C',
     messageIncludes: ['液体バイオ燃料', '固体バイオ燃料', '自動化レシピ', '既にあるアイテム'],
-  },
-  [pairKey('Build_GeneratorNuclear_C', 'Desc_FicsoniumFuelRod_C')]: {
-    item: 'Desc_FicsoniumFuelRod_C',
-    messageIncludes: [
-      'FICSONIUM燃料棒',
-      'ウラン廃棄物',
-      'プルトニウム廃棄物',
-      'ウラン燃料棒',
-      'プルトニウム燃料棒',
-      '副産物',
-    ],
-  },
-  [pairKey('Build_GeneratorNuclear_C', 'Desc_PlutoniumFuelRod_C')]: {
-    item: 'Desc_PlutoniumFuelRod_C',
-    messageIncludes: ['プルトニウム燃料棒', 'ウラン廃棄物', 'ウラン燃料棒', '副産物'],
   },
 }
 
@@ -71,12 +60,31 @@ describe('発電機 × 燃料の総当たり', () => {
       expect(result.powerGeneration!.totalMW).toBeGreaterThanOrEqual(
         generator.powerProductionMW - 1e-6,
       )
-      expect(result.powerGeneration!.totalGeneratorMachineCount).toBeCloseTo(1, 6)
-      expect(result.powerGeneration!.fuelUsage.map((entry) => entry.item)).toEqual([fuel.item])
+      expect(result.powerGeneration!.fuelUsage.map((entry) => entry.item)).toContain(fuel.item)
       const generatorSteps = result.steps.filter((step) => step.fuelItem !== undefined)
-      expect(generatorSteps).toHaveLength(1)
-      expect(generatorSteps[0].buildingId).toBe(generator.id)
-      expect(generatorSteps[0].fuelItem).toBe(fuel.item)
+      const chosen = generatorSteps.filter((step) => step.fuelItem === fuel.item)
+      expect(chosen).toHaveLength(1)
+      expect(chosen[0].buildingId).toBe(generator.id)
+      expect(chosen[0].machineCount).toBeGreaterThan(0)
+      // 選んだ燃料以外のステップは、副産物（核廃棄物）を出す燃料の需要駆動の発電機だけ
+      const others = generatorSteps.filter((step) => step.fuelItem !== fuel.item)
+      for (const step of others) {
+        const source = generator.fuels.find((f) => f.item === step.fuelItem)
+        expect(source?.byproduct, `${key}: ${step.fuelItem}`).toBeDefined()
+        expect(step.buildingId).toBe(generator.id)
+      }
+      if (others.length === 0) {
+        expect(result.powerGeneration!.totalGeneratorMachineCount).toBeCloseTo(1, 6)
+        expect(result.powerGeneration!.fuelUsage.map((entry) => entry.item)).toEqual([fuel.item])
+      }
+      // 需要駆動の発電機が出す廃棄物は余らない
+      for (const step of others) {
+        const waste = generator.fuels.find((f) => f.item === step.fuelItem)!.byproduct!.item
+        expect(
+          result.byproducts.find((entry) => entry.item === waste)?.ratePerMin ?? 0,
+          `${key}: ${waste}`,
+        ).toBeCloseTo(0, 6)
+      }
 
       if (fuel.item === 'Desc_IonizedFuel_C') {
         const recipeIds = new Set(result.steps.map((step) => step.recipeId))

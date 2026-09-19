@@ -4,10 +4,16 @@
  *   決定変数
  *     x_r  … レシピ r の稼働台数（連続値・0以上）。部分稼働はアンダークロックと解釈する
  *     s_i  … 原料 i の外部供給量（0 <= s_i <= 上限）。採掘はレシピに無いのでここで表す
+ *     g_v  … 発電機 × 燃料 v の稼働台数。発電計画で許可したもの（制限なし）と、
+ *            副産物（核廃棄物）を出すもの（常に入る・需要駆動）の2種類
  *
  *   制約（アイテム i ごと）
- *     Σ_r (産出_{i,r} - 消費_{i,r})·x_r + s_i >= 目標産出_i
+ *     Σ_r (産出_{i,r} - 消費_{i,r})·x_r + Σ_v (副産物_{i,v} - 燃料_{i,v})·g_v + s_i >= 目標産出_i
  *     目標でないアイテムは右辺 0（過剰生産＝副産物は許容する）
+ *
+ *   制約（需要駆動の発電機が出す副産物 b ごと）
+ *     Σ_{v: 需要駆動} 副産物_{b,v}·g_v - Σ_r 消費_{b,r}·x_r <= 目標産出_b
+ *     （需要駆動の発電機は副産物の余りを作れない＝廃棄物が要るぶんだけ回る）
  *
  *   目的関数（最小化）
  *     w_res·Σ_i (資源重み_i · s_i) + w_pow·Σ_r (電力_r · x_r) + w_bld·Σ_r x_r + ε·Σ_r x_r
@@ -21,6 +27,7 @@
  */
 import {
   buildingsById,
+  generators,
   generatorsById,
   itemsById,
   ratePerMin,
@@ -71,6 +78,11 @@ export const generatorVarKey = (generatorId: string, fuelItem: string): string =
 
 /** 目標発電量の制約行（総発電量 >= 目標MW） */
 export const POWER_TARGET_ROW = 'power:target'
+/**
+ * 需要駆動の発電機に対する副産物の上限行（副産物ごと）。
+ * 「需要駆動の発電機が出す副産物 <= レシピの消費 + 目標産出 (+ 取り出し量)」
+ */
+export const byproductBoundRow = (byproductItem: string): string => `byproduct:${byproductItem}`
 /** 自給の制約行（総発電量 - 製造建物の総消費電力 >= 0） */
 export const POWER_COVER_ROW = 'power:cover'
 
@@ -182,7 +194,17 @@ export type GeneratorVariant = {
   fuel: GeneratorFuel
   /** LP 変数キー */
   key: string
+  /**
+   * true なら**需要駆動**の変数。発電計画で許可されていないが副産物（核廃棄物）を出す
+   * 発電機 × 燃料で、副産物が消費される量までしか稼働できない（`byproductBoundRow`）。
+   * false なら発電計画で許可された変数で、稼働量に制限は無い（従来どおり）。
+   */
+  demandDriven: boolean
 }
+
+/** この燃料は副産物（核廃棄物など）を出すか。 */
+export const fuelHasByproduct = (fuel: GeneratorFuel): boolean =>
+  fuel.byproduct !== undefined && fuel.byproduct.ratePerMin > 0
 
 /** 解決済みの発電計画（LP に実際に反映される形）。 */
 export type ResolvedPowerPlan = {
@@ -208,7 +230,8 @@ export type ResolvedPowerPlan = {
  *
  * 「燃料を使える発電機が1つ以上あり、かつ目標発電量か自給のどちらかが指定されている」
  * ときだけ有効。どちらも無いと発電機を建てる理由が無く、変数を足しても必ず 0 になるので、
- * LP を従来と1変数も変えないほうが安全（回帰の担保）。
+ * 許可した発電機の変数も電力の制約行も作らない（副産物を出す発電機の需要駆動の変数だけは
+ * 発電計画と無関係に常に載る。buildProductionModel 参照）。
  *
  * 燃料の指定（`power.fuels`）は発電機ごとの絞り込み。キーが無ければ全燃料許可なので、
  * 指定しなければ従来とまったく同じモデルになる。
@@ -261,7 +284,11 @@ export type ProductionModel = {
   somersloopRecipes: Recipe[]
   /** 使用可能な Somersloop 数（0 = バリアントなし） */
   somersloopLimit: number
-  /** 発電機の変数（発電計画が無効なら空） */
+  /**
+   * 発電機の変数。発電計画で許可した発電機 × 燃料（`demandDriven: false`）に加えて、
+   * 副産物を出す発電機 × 燃料は発電計画の有無に関係なく**常に**入る（`demandDriven: true`）。
+   * 後者は副産物の需要ぶんだけ稼働できる（核廃棄物を材料にする計画を発電計画なしでも解くため）。
+   */
   generatorVariants: GeneratorVariant[]
   /** 解決済みの発電計画 */
   powerPlan: ResolvedPowerPlan
@@ -295,6 +322,28 @@ export type BuildModelOptions = {
    * 呼び出し側が明示する）。
    */
   maximize?: string
+  /**
+   * 需要駆動の発電機（`GeneratorVariant.demandDriven`）の発電量を電力の制約行
+   * （`power:target` / `power:cover`）に数えるか。既定 true。
+   *
+   * false にすると、需要駆動の発電機は副産物の供給源としてだけ働き、電力の制約には
+   * 寄与しない。solve.ts の2段階解法の1段目で使う: 電力に数えると LP が「廃棄物の
+   * 消費先を余分に建てて原子力を発電に流用する」抜け道を見つけてしまうため、
+   * まず数えずに廃棄物の需要ぶんの台数を確定させる。
+   */
+  creditDemandDrivenPower?: boolean
+  /**
+   * 需要駆動の発電機の稼働台数を固定する（変数キー → 台数）。2段階解法の2段目で、
+   * 1段目で決まった「副産物の需要ぶんの台数」に固定したうえで発電量を電力の制約に
+   * 数え直すために使う。指定の無い需要駆動の変数は 0 に固定する。
+   */
+  demandDrivenLevels?: ReadonlyMap<string, number>
+  /**
+   * アイテムの余り（正味産出 - 目標）の上限（Item.id → 毎分レート）。指定したアイテムの
+   * 収支行に上限を足す。2段階解法の2段目で、副産物から派生するアイテムの余りを1段目の
+   * 値までに抑え、「廃棄物の消費先だけ残して燃料棒やペレットを捨てる」解を封じるために使う。
+   */
+  surplusCaps?: ReadonlyMap<string, number>
 }
 
 export function buildProductionModel(input: SolveInput, options: BuildModelOptions = {}): ProductionModel {
@@ -375,7 +424,8 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   const somersloopRecipes = somersloopLimit > 0 ? recipes.filter(supportsSomersloop) : []
 
   // --- 発電計画 --------------------------------------------------------------
-  // 無効なら変数も制約も作らない（＝ 従来と完全に同じ LP になる）
+  // 発電計画で許可した発電機 × 燃料は制限なしの変数（従来どおり）。
+  // 無効なら電力の制約行は作らない。
   const powerPlan = resolvePowerPlan(input.power)
   const generatorVariants: GeneratorVariant[] = powerPlan.active
     ? powerPlan.generators.flatMap((generator) =>
@@ -383,9 +433,24 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
           generator,
           fuel,
           key: generatorVarKey(generator.id, fuel.item),
+          demandDriven: false,
         })),
       )
     : []
+  // 副産物（核廃棄物）を出す発電機 × 燃料は、発電計画の設定に関係なく常に変数にする。
+  // 廃棄物はレシピでは作れず発電機を回したときだけ出るので、これが無いと
+  // プルトニウム / FICSONIUM のチェーンが発電計画なしでは永遠に「作れない」ままになる。
+  // 発電計画で許可済みの組み合わせは1本の変数（制限なし）にまとめ、二重には作らない。
+  // 許可されていない組み合わせは需要駆動（副産物の消費量までしか稼働できない）。
+  // 発電機やアイテムの ID はここに書かず、generators.json の byproduct から導く。
+  for (const generator of generators) {
+    for (const fuel of generator.fuels) {
+      if (!fuelHasByproduct(fuel)) continue
+      const key = generatorVarKey(generator.id, fuel.item)
+      if (generatorVariants.some((variant) => variant.key === key)) continue
+      generatorVariants.push({ generator, fuel, key, demandDriven: true })
+    }
+  }
 
   // --- 変数 -----------------------------------------------------------------
   const variables: LpVariable[] = []
@@ -419,10 +484,17 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     variables.push({ key: somersloopVarKey(recipe.id), objective })
   }
   for (const variant of generatorVariants) {
-    // 発電機は電力を消費しないので power 項は 0。建物ではあるので buildings 項は 1台ぶん。
+    // 発電機は電力を消費しないので power 項は 0（発電量を負の消費として目的関数に入れると、
+    // 「電力の最小化」で発電機を建てるほど得になり発散するので入れない）。
+    // 建物ではあるので buildings 項は 1台ぶん。需要駆動の変数も同じ係数（区別は制約行で行う）。
     // ε で「意味のない発電機を建てる」退化解を潰す（燃料コストがあるので本来は有界）。
     const objective =
       maximize !== undefined ? 0 : options.elastic ? epsilon : weights.buildings + epsilon
+    if (variant.demandDriven && options.demandDrivenLevels) {
+      const level = options.demandDrivenLevels.get(variant.key) ?? 0
+      variables.push({ key: variant.key, objective, lower: level, upper: level })
+      continue
+    }
     variables.push({ key: variant.key, objective })
   }
   for (const supply of supplies) {
@@ -500,10 +572,56 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
 
   const constraints: LpConstraint[] = []
   for (const [itemId, coefficients] of [...rows].sort(([a], [b]) => a.localeCompare(b))) {
+    const lower = targets.get(itemId) ?? 0
+    const surplusCap = options.surplusCaps?.get(itemId)
     constraints.push({
       key: `balance:${itemId}`,
       coefficients,
-      lower: targets.get(itemId) ?? 0,
+      lower,
+      ...(surplusCap === undefined ? {} : { upper: lower + surplusCap }),
+    })
+  }
+
+  // --- 需要駆動の発電機に対する副産物の上限 ------------------------------------
+  // 副産物 b ごとに1行:
+  //   Σ_{需要駆動 v が b を出す} (副産物レート_v × v)
+  //     - Σ_{レシピ r が b を消費} (消費レート_r × x_r)   （Somersloop バリアント含む）
+  //     - y_b（b が産出最大化の対象のとき）
+  //   <= 目標産出_b
+  // つまり「需要駆動の発電機が出す副産物は、消費される量（レシピ消費 + 目標 + 取り出し）を
+  // 超えられない」＝需要駆動の発電機が副産物の余りを作ることはできない。
+  // 発電計画で許可された（制限なしの）発電機が同じ副産物を出す場合、その分はこの行に
+  // 入れない。許可された発電機は「発電所がたまたま廃棄物を出す」のであって余りは許容する。
+  // その代わり需要駆動側は許可側の産出とは無関係に「レシピ消費 + 目標」までに縛られる。
+  const byproductRows = new Map<string, Map<string, number>>()
+  for (const variant of generatorVariants) {
+    if (!variant.demandDriven) continue
+    const byproduct = variant.fuel.byproduct!
+    let row = byproductRows.get(byproduct.item)
+    if (!row) {
+      row = new Map<string, number>()
+      byproductRows.set(byproduct.item, row)
+    }
+    row.set(variant.key, (row.get(variant.key) ?? 0) + byproduct.ratePerMin)
+  }
+  const consumptionPerMin = (recipe: Recipe, itemId: string): number =>
+    recipe.ingredients
+      .filter((ingredient) => ingredient.item === itemId)
+      .reduce((sum, ingredient) => sum + ratePerMin(ingredient.amount, recipe.durationSec), 0)
+  for (const [itemId, row] of [...byproductRows].sort(([a], [b]) => a.localeCompare(b))) {
+    for (const recipe of recipes) {
+      const consumed = consumptionPerMin(recipe, itemId)
+      if (consumed > 0) row.set(recipeVarKey(recipe.id), -consumed)
+    }
+    for (const recipe of somersloopRecipes) {
+      const consumed = consumptionPerMin(recipe, itemId)
+      if (consumed > 0) row.set(somersloopVarKey(recipe.id), -consumed)
+    }
+    if (maximize === itemId) row.set(maximizeVarKey(itemId), -1)
+    constraints.push({
+      key: byproductBoundRow(itemId),
+      coefficients: row,
+      upper: targets.get(itemId) ?? 0,
     })
   }
 
@@ -512,9 +630,14 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   //   目標: Σ(発電量_g × g) >= 目標MW
   //   自給: Σ(発電量_g × g) - Σ(消費電力_r × x_r) >= 0
   // 自給側は「発電のために増えた建物の消費」も左辺に入るので、循環は LP が同時に解く。
-  if (generatorVariants.length > 0) {
+  // 需要駆動の発電機（廃棄物の需要で回る原子力）の発電量もここに数える。
+  // 物理的にはその電力も系に入るので、石炭だけを許可した計画でも原子力ぶんは差し引かれる。
+  // 発電計画が無効なら行は作らない（発電量は結果に報告するだけで制約にはしない）。
+  if (powerPlan.active) {
+    const creditDemandDriven = options.creditDemandDrivenPower ?? true
     const production = new Map<string, number>()
     for (const variant of generatorVariants) {
+      if (variant.demandDriven && !creditDemandDriven) continue
       production.set(variant.key, variant.generator.powerProductionMW)
     }
     if (powerPlan.targetMW > 0) {
