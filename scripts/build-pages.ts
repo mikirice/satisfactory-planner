@@ -1045,10 +1045,8 @@ function landingHeading(ctx: Ctx, text: string): string {
 }
 
 function renderLandingFeature(ctx: Ctx, feature: LandingFeature, index: number): string {
-  const stacked = feature.stacked === true
-  const classes = ['feature-row', stacked ? 'feature-row--stacked' : index % 2 === 1 ? 'feature-row--flip' : '']
-    .filter((name) => name !== '')
-    .join(' ')
+  // 本文と画像を左右に並べ、1行おきに左右を入れ替える（画像はどれも主パネルの切り出しで縦横比が近い）
+  const classes = index % 2 === 1 ? 'feature-row feature-row--flip' : 'feature-row'
   return `<div class="${classes}">
       <div class="feature-row__text">
         <h3 class="landing-heading">${landingHeading(ctx, feature.heading)}</h3>

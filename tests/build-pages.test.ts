@@ -1298,12 +1298,53 @@ describe('ランディングの構成（/ と /en/）', () => {
       // 画像は他言語のものを混ぜない
       expect(html, file).not.toContain(`/landing/${locale === 'ja' ? 'en' : 'ja'}-`)
       // 画像ファイルが実際に配布物に入る（public/ からコピーされる）
-      for (const name of ['flowchart', 'infeasible', 'buildlist', 'summary']) {
+      for (const name of ['flowchart', 'nuclear', 'buildlist', 'summary']) {
         await expect(
           readFile(join(process.cwd(), 'public/landing', `${locale}-${name}.webp`)),
           `${locale}-${name}`,
         ).resolves.toBeDefined()
       }
+      // 旧「実行不能の説明カード」の画像は残さない（発電機の副産物は普通の工程として解けるようになった。
+      // public/ は vite build がそのまま dist/ にコピーするので、ここで無ければ配布物にも入らない）
+      await expect(readFile(join(process.cwd(), 'public/landing', `${locale}-infeasible.webp`))).rejects.toThrow()
+      expect(html, file).not.toContain('-infeasible.webp')
+    }
+  })
+
+  it('特長1は原子力の廃棄物を工程として解く話で、画像は建設リストの切り出しを実寸（1060×718）で出す', async () => {
+    for (const [locale, file, copy] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const feature = copy.features[0]
+      expect(feature.image).toBe('nuclear')
+      expect(feature.heading).toBe(
+        locale === 'ja' ? '原子力の|廃棄物まで、|ふつうの|工程として|解く' : 'Nuclear waste is solved like any other step',
+      )
+      const image = html.match(new RegExp(`<img src="/landing/${locale}-nuclear\.webp"[^>]*>`))?.[0]
+      expect(image, file).toBeDefined()
+      expect(image, file).toContain('width="1060" height="718"')
+      expect(image, file).toContain('loading="lazy"')
+      // alt は写っているもの（機械・廃棄物のレート・発電所の台数と MW）を公式名で述べる
+      const alt = image!.match(/alt="([^"]*)"/)![1]!
+      for (const expected of locale === 'ja'
+        ? ['混合機', '粒子加速器', 'ウラン廃棄物', '25.00', '8.33', '原子力発電所', '4', '33.33', '8,333.33 MW']
+        : ['Blender', 'Particle Accelerator', 'Uranium Waste', '25.00', '8.33', 'Nuclear Power Plant', '4', '33.33', '8,333.33 MW']) {
+        expect(alt, `${file} alt`).toContain(expected)
+      }
+      // 特長1も他と同じ左右並び（全幅の stacked レイアウトは廃止）
+      expect(html, file).not.toContain('feature-row--stacked')
+      // 旧文面（発電計画を有効にする、という直し方）は本文に残さない
+      expect(html, file).not.toContain(locale === 'ja' ? '発電計画を有効にして' : 'turn on power generation')
+    }
+  })
+
+  it('生成ページのどこにも、廃止した実行不能理由「発電機の副産物が必要」が出ない', async () => {
+    const files = await htmlFiles(outputDirectory)
+    expect(files.length).toBeGreaterThan(100)
+    for (const file of files) {
+      const html = await readFile(file, 'utf8')
+      expect(html, file).not.toContain('副産物が必要')
+      expect(html, file).not.toContain('Generator byproduct required')
+      expect(html, file).not.toContain('byproduct required')
     }
   })
 

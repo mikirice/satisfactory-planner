@@ -145,7 +145,7 @@ const jaLabels = {
       power: string
       consumingCount: number
     }): string =>
-      `${v.name}を作るレシピはありません。${v.generator}が${v.fuel}を燃やすと、${v.power} MWの発電と一緒に${v.rate}が出てきます。生産計画では調達するものではなく行き先を決めるもので、下の使い道${v.consumingCount}件がその引き取り先です。`,
+      `${v.name}を作るレシピはありません。${v.generator}が${v.fuel}を燃やすと、${v.power} MWの発電と一緒に${v.rate}が出てきます。生産計画で${v.name}を使う工程を目標にすると、発電計画を有効にしなくても${v.generator}がその消費量に見合う台数だけ工程として並びます。下の使い道${v.consumingCount}件がその行き先です。`,
 
     byproductOnly: (v: {
       name: string
@@ -522,7 +522,7 @@ const enLabels: StaticPageLabels = {
   // 英語は日本語の訳ではなく、英語で読んで自然な言い回しで書き下ろす（faq.ts と同じ方針）。
   itemSummary: {
     generatorByproduct: (v): string =>
-      `Nothing is built to make ${v.name}. A ${v.generator} burning ${v.fuel} hands back ${v.rate} alongside its ${v.power} MW, so a plan does not source it — it has to route it away. ${v.consumingCount === 1 ? 'The one recipe under uses below is where it can go.' : `The ${v.consumingCount} recipes under uses below are the places it can go.`}`,
+      `Nothing is built to make ${v.name}. A ${v.generator} burning ${v.fuel} hands back ${v.rate} alongside its ${v.power} MW. Target a recipe that consumes ${v.name} and the planner adds the ${v.generator} as a step, sized to that demand, without power planning being switched on. ${v.consumingCount === 1 ? 'The one recipe under uses below is where it goes.' : `The ${v.consumingCount} recipes under uses below are the places it can go.`}`,
 
     byproductOnly: (v): string =>
       `No recipe exists to produce ${v.name} on its own. It falls out of “${v.recipe}”${v.recipeNamesProduct ? '' : `, which is really making ${v.mainProduct}`}, at ${v.rate} per ${v.building}. Anything that consumes it has to hang off a ${v.mainProduct} line rather than run on a line of its own.`,
@@ -733,7 +733,7 @@ export const STATIC_PAGE_LABELS: Readonly<Record<StaticLocale, StaticPageLabels>
  * 1440×900 のスクリーンショットを主パネルだけに切り出したもの）。寸法は生成時にファイルから読む。
  * 日本語ページには日本語UIの画像、英語ページには英語UIの画像を使う（混ぜない）。
  */
-export type LandingImageName = 'flowchart' | 'infeasible' | 'buildlist' | 'summary'
+export type LandingImageName = 'flowchart' | 'nuclear' | 'buildlist' | 'summary'
 
 export type LandingFeature = {
   readonly heading: string
@@ -742,11 +742,6 @@ export type LandingFeature = {
   readonly image: LandingImageName
   /** 画像の内容を言葉で説明する alt（何の画面で、何が写っているか）。 */
   readonly imageAlt: string
-  /**
-   * 画像を本文の下に全幅で置く（既定は本文と画像を左右に並べる）。
-   * 横長で文字の小さい画像（実行不能の説明カード）は横に並べると読めないので、こちらにする。
-   */
-  readonly stacked?: true
 }
 
 export type LandingStep = {
@@ -818,7 +813,7 @@ export const LANDING_GUIDE_SLUGS = [
  *
  * 計画ツール本体は /app/ にあり、トップは静的なランディング。日本語として自然に読める文を
  * 書き、英語版の訳にはしない（節の構成だけ EN_LANDING と同じ）。
- * 事実（シート数・言語数・保存先・実行不能メッセージの内容）はリポジトリで裏を取ってから書く。
+ * 事実（シート数・言語数・保存先・実行不能メッセージの内容・発電機の副産物の扱い）はリポジトリで裏を取ってから書く。
  * title と description は Search Console の再評価中のため凍結（変更しない）。
  * 見出し・本文の主張は /about/ と食い違わないようにする。
  */
@@ -840,15 +835,14 @@ export const JA_LANDING = {
   featuresHeading: 'ほかの|計算ツールには|ない|3つのこと',
   features: [
     {
-      heading: '作れないときは、|理由と|直し方を|言葉で|示す',
+      heading: '原子力の|廃棄物まで、|ふつうの|工程として|解く',
       paragraphs: [
-        '条件が足りないと、ただ「解なし」で止まるツールが多いですが、このツールは何が足りないかを文で説明します。たとえば{{Desc_PlutoniumPellet_C}}を目標にすると、材料の{{Desc_NuclearWaste_C}}は{{Build_GeneratorNuclear_C}}を稼働させたときの副産物としてしか得られない、と原因を名指しし、「発電計画を有効にして{{Build_GeneratorNuclear_C}}を許可する」という直し方まで添えます。',
-        '足りないレシピ・原料の上限・目的関数の設定など、行き詰まりの種類ごとに見直す場所が書かれるので、原因を探して設定をいじり回す時間がなくなります。',
+        '{{Desc_NuclearWaste_C}}や{{Desc_PlutoniumWaste_C}}を「作れないもの」として扱い、その先にある{{Desc_PlutoniumPellet_C}}・{{Desc_Ficsonium_C}}・再処理チェーンを丸ごと「生産できない」と返す計算ツールが多くあります。このツールは、これらが稼働中の{{Build_GeneratorNuclear_C}}からしか出てこないことを知っているので、{{Build_GeneratorNuclear_C}}を工程のひとつとして計画に組み込み、ラインが実際に消費する廃棄物の量に合わせて台数を決めます。発電の目標を入れる必要はなく、そのとき生まれる発電量はサマリーにそのまま報告します。',
+        '条件が本当に足りないときも、ただ「解なし」で止まらず、原因を文で示します。原料の上限を超えたときは上限・必要量・不足分の数値を、レシピが足りないときは作れないアイテムの名前を挙げ、見直す設定を添えます。',
       ],
-      image: 'infeasible',
+      image: 'nuclear',
       imageAlt:
-        '「この条件では生産できません」の説明カード。{{Desc_PlutoniumPellet_C}} 60/分を目標にしたとき、材料の{{Desc_NuclearWaste_C}}が{{Build_GeneratorNuclear_C}}の副産物としてしか得られないことと、発電計画を有効にして許可するという直し方が書かれている',
-      stacked: true,
+        '建設リストのタブ。{{Desc_PlutoniumPellet_C}} 10/分の計画で、{{Build_Blender_C}}が{{Desc_NuclearWaste_C}}を 25.00/分、{{Build_HadronCollider_C}}が 8.33/分消費し、その下の「発電」の節には{{Build_GeneratorNuclear_C}} ×4台が{{Desc_NuclearFuelRod_C}} 0.67/分から{{Desc_NuclearWaste_C}} 33.33/分を産出して 8,333.33 MW を発電すると書かれている',
     },
     {
       heading: '建てる|順番に|並んだ|建設リスト',
@@ -928,15 +922,14 @@ export const EN_LANDING = {
   featuresHeading: 'Three things other calculators do not do',
   features: [
     {
-      heading: 'When a plan is impossible, it tells you why and what to change',
+      heading: 'Nuclear waste is solved like any other step',
       paragraphs: [
-        'Most calculators stop at "infeasible". This one explains what is missing in plain words. Ask for {{Desc_PlutoniumPellet_C}}, for example, and it says that the {{Desc_NuclearWaste_C}} it needs is only produced as a byproduct of running a {{Build_GeneratorNuclear_C}}, then tells you the fix: turn on power generation and allow the {{Build_GeneratorNuclear_C}}.',
-        'Missing recipes, resource limits and an optimisation goal that cannot be met each get their own explanation and the setting to review, so you stop guessing at which switch to flip.',
+        'Most calculators treat {{Desc_NuclearWaste_C}} and {{Desc_PlutoniumWaste_C}} as items that cannot be made, so anything downstream of them, from {{Desc_PlutoniumPellet_C}} and {{Desc_Ficsonium_C}} to the whole reprocessing chain, comes back as impossible. This planner knows those items only come out of a running {{Build_GeneratorNuclear_C}}, so it puts the plant into the plan as a step and sizes it to the waste the line actually consumes. No power target is needed, and the MW the plant generates along the way is reported honestly in the summary.',
+        'When a plan really cannot be met, it still says why instead of stopping at "infeasible": a resource limit that is exceeded is shown with the limit, the amount required and the shortfall, and a missing recipe names the item it cannot make, each with the setting to review.',
       ],
-      image: 'infeasible',
+      image: 'nuclear',
       imageAlt:
-        'The "No production plan meets these conditions" card for a {{Desc_PlutoniumPellet_C}} target of 60 per minute. It states that {{Desc_NuclearWaste_C}} is only produced as a byproduct of a running {{Build_GeneratorNuclear_C}} and advises turning on power generation and allowing that generator.',
-      stacked: true,
+        'The Build list tab for a {{Desc_PlutoniumPellet_C}} plan at 10 per minute. A {{Build_Blender_C}} consumes 25.00 {{Desc_NuclearWaste_C}} per minute and a {{Build_HadronCollider_C}} 8.33; below them the Power generation section lists {{Build_GeneratorNuclear_C}} ×4 turning 0.67 {{Desc_NuclearFuelRod_C}} per minute into 33.33 {{Desc_NuclearWaste_C}} while generating 8,333.33 MW.',
     },
     {
       heading: 'A build list in build order',
