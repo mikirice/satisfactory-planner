@@ -9,6 +9,7 @@
  * 数値はロケール別の Intl でフォーマットし、ソルバーの計算そのものは日英で共有する
  * （同じ計画を2回解かない＝日英で数値が食い違わない）。
  */
+import { readFileSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -50,20 +51,29 @@ import {
   PLAN_HASH_PARAM,
   toPlanSnapshot,
 } from '../src/plan/serialize.ts'
+import { LAST_OPENED_STORAGE_KEY } from '../src/plan/storage.ts'
 import { solveProduction } from '../src/solver/index.ts'
 import type { ObjectiveWeights, Solution, SolveResult } from '../src/solver/index.ts'
-import { faqPageSchema, renderFaqHtml } from './static-pages/faq.ts'
+import { faqPageSchema, renderFaqHtml, resolveOfficialNames } from './static-pages/faq.ts'
 import { itemInsight, relatedGuideSlugs } from './static-pages/item-insights.ts'
 import type { GuideSource } from './static-pages/item-insights.ts'
 import {
   EN_LANDING,
+  HEADING_BREAK_MARKER,
   HTML_LANG,
   JA_LANDING,
+  LANDING_GUIDE_SLUGS,
   STATIC_LOCALES,
   STATIC_PAGE_LABELS,
   UI_DICTIONARIES,
 } from './static-pages/labels.ts'
-import type { LandingCopy, StaticLocale, StaticPageLabels } from './static-pages/labels.ts'
+import type {
+  LandingCopy,
+  LandingFeature,
+  LandingImageName,
+  StaticLocale,
+  StaticPageLabels,
+} from './static-pages/labels.ts'
 import {
   escapeHtml,
   LANDING_HEAD_SCRIPTS,
@@ -921,19 +931,149 @@ export function legacyShareRedirectScript(): string {
   return `<script>if(/(?:^#|&)${key}=/.test(location.hash))location.replace('${appPagePath()}' + location.hash)</script>`
 }
 
+/** ランディングの画像ファイル（public/landing/）。ロケール別・名前別に1枚ずつ。 */
+const LANDING_IMAGE_DIRECTORY = resolve(fileURLToPath(import.meta.url), '../../public/landing')
+
+function landingImagePath(locale: StaticLocale, name: LandingImageName): string {
+  return `/landing/${locale}-${name}.webp`
+}
+
+/**
+ * WebP の寸法をヘッダーから読む（VP8 / VP8L / VP8X の3形式）。
+ * <img> に width/height を出してレイアウトシフトを防ぐため。依存を増やさずに済ませる。
+ */
+function webpDimensions(bytes: Uint8Array): { width: number; height: number } {
+  const ascii = (offset: number, length: number): string =>
+    String.fromCharCode(...bytes.subarray(offset, offset + length))
+  if (ascii(0, 4) !== 'RIFF' || ascii(8, 4) !== 'WEBP') throw new Error('WebP ではありません')
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  const chunk = ascii(12, 4)
+  if (chunk === 'VP8X') {
+    const read24 = (offset: number): number =>
+      bytes[offset]! | (bytes[offset + 1]! << 8) | (bytes[offset + 2]! << 16)
+    return { width: read24(24) + 1, height: read24(27) + 1 }
+  }
+  if (chunk === 'VP8L') {
+    const bits = view.getUint32(21, true)
+    return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 }
+  }
+  if (chunk === 'VP8 ') {
+    return { width: view.getUint16(26, true) & 0x3fff, height: view.getUint16(28, true) & 0x3fff }
+  }
+  throw new Error(`未対応の WebP チャンク: ${chunk}`)
+}
+
+const landingImageSizeCache = new Map<string, { width: number; height: number }>()
+
+/** 画像の実寸（生成時にファイルから読む。書き写しだと画像を差し替えたときにずれる）。 */
+function landingImageSize(locale: StaticLocale, name: LandingImageName): { width: number; height: number } {
+  const key = `${locale}-${name}`
+  const cached = landingImageSizeCache.get(key)
+  if (cached !== undefined) return cached
+  const file = resolve(LANDING_IMAGE_DIRECTORY, `${key}.webp`)
+  const size = webpDimensions(readFileSync(file))
+  landingImageSizeCache.set(key, size)
+  return size
+}
+
+function landingImage(
+  ctx: Ctx,
+  name: LandingImageName,
+  alt: string,
+  loading: 'eager' | 'lazy',
+): string {
+  const { width, height } = landingImageSize(ctx.locale, name)
+  const attrs = [
+    `src="${escapeHtml(landingImagePath(ctx.locale, name))}"`,
+    `width="${width}"`,
+    `height="${height}"`,
+    `alt="${escapeHtml(resolveOfficialNames(alt, ctx.locale))}"`,
+    `loading="${loading}"`,
+    'decoding="async"',
+  ]
+  return `<figure class="landing-shot"><img ${attrs.join(' ')} /></figure>`
+}
+
+/**
+ * ランディングの「前回の続きを開く」。ツール本体が localStorage に開いた記録を置くので
+ * （src/App.tsx）、記録があるときだけ hidden を外す。ランディングにある JS はこれと
+ * 旧共有URLの救済（legacyShareRedirectScript）と GA だけ。
+ */
+export const CONTINUE_LINK_ID = 'continue-link'
+
+export function continueLinkScript(): string {
+  return `<script>try{if(localStorage.getItem('${LAST_OPENED_STORAGE_KEY}'))document.addEventListener('DOMContentLoaded',function(){var a=document.getElementById('${CONTINUE_LINK_ID}');if(a)a.hidden=false})}catch(e){}</script>`
+}
+
+/** ランディングの文中の `{{Desc_…}}` をゲーム内公式名に置き換えたうえでエスケープする。 */
+function landingText(ctx: Ctx, text: string): string {
+  return escapeHtml(resolveOfficialNames(text, ctx.locale))
+}
+
+/**
+ * 見出し。文節の境のマーカー（HEADING_BREAK_MARKER）をエスケープ後に <wbr> へ変える。
+ * CSS 側（.landing-heading: word-break: keep-all）で、ブラウザが日本語を文字単位で
+ * 折らないようにしてあるので、折り返しはここで置いた位置と約物の後だけになる。
+ */
+function landingHeading(ctx: Ctx, text: string): string {
+  return landingText(ctx, text).replaceAll(HEADING_BREAK_MARKER, '<wbr>')
+}
+
+function renderLandingFeature(ctx: Ctx, feature: LandingFeature, index: number): string {
+  const stacked = feature.stacked === true
+  const classes = ['feature-row', stacked ? 'feature-row--stacked' : index % 2 === 1 ? 'feature-row--flip' : '']
+    .filter((name) => name !== '')
+    .join(' ')
+  return `<div class="${classes}">
+      <div class="feature-row__text">
+        <h3 class="landing-heading">${landingHeading(ctx, feature.heading)}</h3>
+        ${feature.paragraphs.map((paragraph) => `<p>${landingText(ctx, paragraph)}</p>`).join('')}
+      </div>
+      ${landingImage(ctx, feature.image, feature.imageAlt, 'lazy')}
+    </div>`
+}
+
+/**
+ * ループテンプレートのカード。リンクはループ記事の「ツールで開く」と同じ作り
+ * （buildShareUrl(appPagePath(), snapshot)）で、開くとその条件が読み込まれた状態になる。
+ * 見出しと説明は samples.ts（ja）／content/loop-guides/en.ts（en）から取り、ここでは書かない。
+ */
+function renderLandingTemplates(ctx: Ctx, copy: LandingCopy): string {
+  const cards = loopSamples
+    .map((sample) => {
+      const content = loopContent(ctx, sample)
+      const href = buildShareUrl(appPagePath(), sample.snapshot)
+      return `<li><a class="template-card" href="${escapeHtml(href)}">
+          <strong class="landing-heading">${landingText(ctx, content.title)}</strong>
+          <span>${landingText(ctx, content.description)}</span>
+          <small>${escapeHtml(copy.templatesOpenLabel)}</small>
+        </a></li>`
+    })
+    .join('')
+  return `<ul class="template-grid">${cards}</ul>`
+}
+
+function renderLandingGuides(ctx: Ctx, copy: LandingCopy): string {
+  const cards = LANDING_GUIDE_SLUGS.map(
+    (slug) =>
+      `<li><a class="guide-card" href="${escapeHtml(articlePagePath(slug, ctx.locale))}"><strong class="landing-heading">${escapeHtml(articleHeadline(ctx, slug))}</strong></a></li>`,
+  ).join('')
+  return `<ul class="guide-grid">${cards}</ul>
+    <p class="section-more"><a href="${escapeHtml(articlesIndexPath(ctx.locale))}">${escapeHtml(copy.guidesAllLabel)}</a></p>`
+}
+
+/**
+ * 節の順番（日英で同じ）: ヒーロー → 他のツールに無い3つのこと → 3ステップ →
+ * ループテンプレート → 解説記事 → FAQ → フッター（templates.ts）。
+ *
+ * 動きはほぼ入れない（意図した判断）。静的な説明ページに要る演出は CTA とカードの
+ * hover だけで、スクロール連動やループするアニメは置かない
+ * （company/design/spells/patterns.md「効かせどころ」: 動かす主役が無い画面は動かさない）。
+ */
 function renderLandingPage(ctx: Ctx, copy: LandingCopy): string {
   const { locale } = ctx
   const path = landingPagePath(locale)
   const breadcrumbId = `${path}#breadcrumb`
-  const links: readonly (readonly [string, string])[] = [
-    [itemsIndexPath(locale), copy.itemsLinkLabel],
-    [articlesIndexPath(locale), copy.articlesLinkLabel],
-    [aboutPagePath(locale), copy.aboutLinkLabel],
-    [privacyPagePath(locale), copy.privacyLinkLabel],
-    ...(copy.otherLandingLinkLabel === undefined
-      ? []
-      : [[landingPagePath(ctx.other), copy.otherLandingLinkLabel] as const]),
-  ]
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -950,46 +1090,56 @@ function renderLandingPage(ctx: Ctx, copy: LandingCopy): string {
         offers: { '@type': 'Offer', price: '0', priceCurrency: locale === 'ja' ? 'JPY' : 'USD' },
         inLanguage: locale,
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
+        screenshot: `${SITE_URL}${landingImagePath(locale, 'flowchart')}`,
       },
     ],
   }
 
-  const body = `<header class="hero">
-    <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
-    <h1>${escapeHtml(copy.heading)}</h1>
-    <p class="lead">${escapeHtml(copy.lead)}</p>
-    <a class="cta" href="${escapeHtml(appPagePath())}">${escapeHtml(copy.ctaLabel)}</a>
-    <p class="version">${escapeHtml(copy.ctaNote)}</p>
+  const otherLanding =
+    copy.otherLandingLinkLabel === undefined
+      ? ''
+      : ` · <a href="${escapeHtml(landingPagePath(ctx.other))}" lang="${HTML_LANG[ctx.other]}">${escapeHtml(copy.otherLandingLinkLabel)}</a>`
+
+  const body = `<header class="hero landing-hero">
+    <div class="landing-hero__text">
+      <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
+      <h1 class="landing-heading">${landingHeading(ctx, copy.heading)}</h1>
+      <p class="lead">${landingText(ctx, copy.lead)}</p>
+      <p class="cta-row">
+        <a class="cta" href="${escapeHtml(appPagePath())}">${escapeHtml(copy.ctaLabel)}</a>
+        <a class="continue-link" id="${CONTINUE_LINK_ID}" href="${escapeHtml(appPagePath())}" hidden>${escapeHtml(copy.continueLabel)}</a>
+      </p>
+      <p class="version">${escapeHtml(copy.ctaNote)}</p>
+    </div>
+    ${landingImage(ctx, 'flowchart', copy.heroImageAlt, 'eager')}
   </header>
-  <article class="article-body">
-    <section>
-      <h2>${escapeHtml(copy.overviewHeading)}</h2>
-      ${copy.overviewParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-    </section>
-    <section>
-      <h2>${escapeHtml(copy.featuresHeading)}</h2>
-      <ul>${copy.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>
-    </section>
-    <section>
-      <h2>${escapeHtml(copy.dataHeading)}</h2>
-      ${copy.dataParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-    </section>
-    <section aria-labelledby="faq-heading">
-      ${renderFaqHtml(locale)}
-    </section>
-    <section>
-      <h2>${escapeHtml(copy.linksHeading)}</h2>
-      <ul class="link-list">
-        ${links
-          .map(
-            ([href, label]) =>
-              `<li><a href="${escapeHtml(href)}"${href === landingPagePath(ctx.other) ? ` lang="${HTML_LANG[ctx.other]}"` : ''}>${escapeHtml(label)}</a></li>`,
-          )
-          .join('')}
-      </ul>
-    </section>
-    <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
-  </article>`
+  <section class="landing-section" aria-labelledby="features-heading">
+    <h2 id="features-heading" class="landing-heading">${landingHeading(ctx, copy.featuresHeading)}</h2>
+    ${copy.features.map((feature, index) => renderLandingFeature(ctx, feature, index)).join('')}
+  </section>
+  <section class="landing-section" aria-labelledby="steps-heading">
+    <h2 id="steps-heading" class="landing-heading">${landingHeading(ctx, copy.stepsHeading)}</h2>
+    <ol class="steps">${copy.steps
+      .map(
+        (step, index) =>
+          `<li><span class="step-number" aria-hidden="true">${index + 1}</span><h3 class="landing-heading">${landingHeading(ctx, step.heading)}</h3><p>${landingText(ctx, step.body)}</p></li>`,
+      )
+      .join('')}</ol>
+  </section>
+  <section class="landing-section" aria-labelledby="templates-heading">
+    <h2 id="templates-heading" class="landing-heading">${landingHeading(ctx, copy.templatesHeading)}</h2>
+    <p class="section-intro">${landingText(ctx, copy.templatesIntro)}</p>
+    ${renderLandingTemplates(ctx, copy)}
+  </section>
+  <section class="landing-section" aria-labelledby="guides-heading">
+    <h2 id="guides-heading" class="landing-heading">${landingHeading(ctx, copy.guidesHeading)}</h2>
+    <p class="section-intro">${landingText(ctx, copy.guidesIntro)}</p>
+    ${renderLandingGuides(ctx, copy)}
+  </section>
+  <section class="landing-section landing-faq" aria-labelledby="faq-heading">
+    ${renderFaqHtml(locale)}
+  </section>
+  <p class="version landing-meta">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}${otherLanding}</p>`
 
   return renderDocument(
     {
@@ -1001,7 +1151,7 @@ function renderLandingPage(ctx: Ctx, copy: LandingCopy): string {
       structuredData,
       // FAQPage は @graph とは別ブロックで出す（本文の Q&A と同じ定義から作る）。
       extraStructuredData: [faqPageSchema(locale, `${SITE_URL}${path}`)],
-      headStart: legacyShareRedirectScript(),
+      headStart: `${legacyShareRedirectScript()}${continueLinkScript()}`,
       headEnd: LANDING_HEAD_SCRIPTS,
     },
     body,
@@ -1068,7 +1218,7 @@ export function renderAboutPage(ctx: Ctx): string {
           '@type': 'WebApplication',
           '@id': `${SITE_URL}/#webapp`,
           name: ctx.site,
-          url: SITE_URL,
+          url: `${SITE_URL}${appPagePath()}`,
           applicationCategory: 'UtilitiesApplication',
           operatingSystem: 'Web browser',
         },

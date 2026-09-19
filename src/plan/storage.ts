@@ -16,6 +16,12 @@ export const DB_VERSION = 1
 const PLAN_STORE = 'plans'
 const META_STORE = 'meta'
 const AUTOSAVE_KEY = 'autosave'
+/**
+ * ツール本体を最後に開いた日時（ISO 文字列）を置く localStorage の鍵。
+ * ランディング（/ と /en/）が「前回の続きを開く」を出すかどうかの判定にだけ使う。
+ * 書き込みは src/App.tsx のマウント時（失敗しても無視）。
+ */
+export const LAST_OPENED_STORAGE_KEY = 'satisfactory-planner:last-opened'
 
 /** 保存済みプランの1件。 */
 export type SavedPlan = {

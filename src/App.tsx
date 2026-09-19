@@ -5,6 +5,7 @@ import { SUPPORTED_LOCALES, useLocale } from './i18n/index.ts'
 import { localeSwitcherLabel } from './i18n/endonyms.ts'
 import type { Locale } from './i18n/index.ts'
 import { saveAutosaveNow } from './plan/persist.ts'
+import { LAST_OPENED_STORAGE_KEY } from './plan/storage.ts'
 import { defaultPlanInput } from './plan/serialize.ts'
 import { disposeGlpk } from './solver/index.ts'
 import { hasAnyInput, usePlanner } from './store/planner.ts'
@@ -31,6 +32,15 @@ function App() {
 
   // ブラウザ版 glpk.js は Web Worker で動くので、アンマウント時に止める
   useEffect(() => () => void disposeGlpk(), [])
+
+  // 開いた記録だけ残す（ランディングの「前回の続きを開く」用）。保存に失敗してもアプリには影響させない。
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LAST_OPENED_STORAGE_KEY, new Date().toISOString())
+    } catch {
+      // localStorage が使えない環境（プライベートモード等）では黙って諦める
+    }
+  }, [])
 
   const createPlanFromRecipe = async (request: RecipePlanRequest): Promise<void> => {
     if (hasWork && !window.confirm(T.recipeBrowser.confirmReplace(itemName(request.itemId)))) {
