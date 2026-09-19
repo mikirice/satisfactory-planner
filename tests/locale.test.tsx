@@ -38,6 +38,7 @@ import {
 import { LOCALE_ENDONYMS, LOCALE_FLAGS } from '../src/i18n/endonyms.ts'
 import type { Locale } from '../src/i18n/index.ts'
 import { encodePlan, toPlanSnapshot } from '../src/plan/serialize.ts'
+import { renderLandingPageHtml } from '../scripts/build-pages.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import { clockedPowerMW, planExtraction } from '../src/solver/index.ts'
 import type { InfeasibleResult, Solution } from '../src/solver/index.ts'
@@ -585,20 +586,36 @@ describe('言語スイッチャーの選択肢', () => {
 
 describe('hreflang', () => {
   /**
-   * SPA なので全言語が同じURLを指す。index.html は静的なので、対応言語を増やしたときの
-   * 追記漏れをここで機械検出する（計画書 §5）。
+   * 計画ツール本体（/app/）は1つのURLで全言語を切り替えるので、hreflang を宣言しない
+   * （どの言語も同じURLを指す宣言には意味がない）。言語別の玄関はトップ（/）と /en/ の
+   * 静的ランディングで、その2枚だけが相互に指し合う。他10言語のランディングは無い。
    */
   // jsdom 環境では import.meta.url が http URL になるので、プロジェクトルートから読む。
-  const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8')
+  const appHtml = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8')
 
-  it.each(SUPPORTED_LOCALES)('%s の alternate link がある', (locale) => {
-    expect(html).toContain(`<link rel="alternate" hreflang="${locale}" href=`)
+  function alternateLinks(html: string): Record<string, string> {
+    const matches = [
+      ...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)" \/>/g),
+    ]
+    return Object.fromEntries(matches.map((match) => [match[1]!, match[2]!]))
+  }
+
+  it('計画ツール本体（app/index.html）は hreflang を持たず、canonical は /app/', () => {
+    expect(appHtml).not.toContain('hreflang=')
+    expect(appHtml).toContain('<link rel="canonical" href="https://satisfactory-planner.net/app/" />')
+    expect(appHtml).toContain('<html lang="ja">')
   })
 
-  it('x-default があり、余分な hreflang が無い', () => {
-    expect(html).toContain('hreflang="x-default"')
-    const tags = [...html.matchAll(/hreflang="([^"]+)"/g)].map((match) => match[1])
-    expect(tags).toEqual([...SUPPORTED_LOCALES, 'x-default'])
+  it('トップ（/）と /en/ が相互に指し合い、x-default は / で、他の言語は宣言しない', () => {
+    const expected = {
+      ja: 'https://satisfactory-planner.net/',
+      en: 'https://satisfactory-planner.net/en/',
+      'x-default': 'https://satisfactory-planner.net/',
+    }
+    expect(alternateLinks(renderLandingPageHtml('ja'))).toEqual(expected)
+    expect(alternateLinks(renderLandingPageHtml('en'))).toEqual(expected)
+    const others = SUPPORTED_LOCALES.filter((locale) => locale !== 'ja' && locale !== 'en')
+    expect(others.length).toBe(10)
   })
 })
 

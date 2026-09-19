@@ -1,5 +1,5 @@
 /**
- * トップ（/）と英語ランディング（/en/）に出す FAQ。
+ * トップ（/）と英語ランディング（/en/）に出す FAQ（どちらも scripts/build-pages.ts が生成する）。
  *
  * 表示する本文と FAQPage の構造化データを**同じ定義から作る**ので、片方だけ古くなることがない。
  * 数値とゲーム内の名前は書き写さずデータから引く:
@@ -21,7 +21,7 @@ import { buildings, buildingsById, itemsById, meta, recipes } from '../../src/da
 import { SUPPORTED_LOCALES } from '../../src/i18n/types.ts'
 import { UI_DICTIONARIES } from './labels.ts'
 import type { StaticLocale } from './labels.ts'
-import { escapeHtml, jsonLdScript } from './templates.ts'
+import { escapeHtml } from './templates.ts'
 
 export type FaqEntry = {
   readonly question: string
@@ -189,25 +189,4 @@ export function faqPageSchema(locale: StaticLocale, pageUrl: string): unknown {
       acceptedAnswer: { '@type': 'Answer', text: entry.answer },
     })),
   }
-}
-
-/** index.html（トップ）の差し込み位置。ここが無ければビルドを止める。 */
-export const FAQ_CONTENT_PLACEHOLDER = '<!--faq-content-->'
-export const FAQ_JSONLD_PLACEHOLDER = '<!--faq-jsonld-->'
-
-/**
- * トップの index.html に FAQ を差し込む（本文と FAQPage の両方）。
- *
- * トップは SPA の入れ物で静的生成の対象外なので、vite のプラグイン
- * （vite.config.ts の faqSection）から dev・build の両方でこれを通す。
- */
-export function injectFaqIntoIndexHtml(html: string, siteUrl: string): string {
-  for (const placeholder of [FAQ_CONTENT_PLACEHOLDER, FAQ_JSONLD_PLACEHOLDER]) {
-    if (!html.includes(placeholder)) {
-      throw new Error(`index.html に FAQ の差し込み位置 ${placeholder} がありません`)
-    }
-  }
-  return html
-    .replace(FAQ_CONTENT_PLACEHOLDER, renderFaqHtml('ja'))
-    .replace(FAQ_JSONLD_PLACEHOLDER, jsonLdScript(faqPageSchema('ja', `${siteUrl}/`)))
 }

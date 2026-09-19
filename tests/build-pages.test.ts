@@ -13,24 +13,27 @@ import { generators, items, recipes } from '../src/data/index.ts'
 import { SUPPORTED_LOCALES } from '../src/i18n/types.ts'
 import {
   aboutPagePath,
+  appPagePath,
   articlePagePath,
   articlesIndexPath,
   itemPagePath,
   itemsIndexPath,
+  landingPagePath,
 } from '../src/plan/item-pages.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
-import { decodePlan, readPlanParam } from '../src/plan/serialize.ts'
+import { decodePlan, PLAN_HASH_PARAM, readPlanParam } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
 import {
   articleSlugs,
   generateStaticPages,
   itemSlug,
+  legacyShareRedirectScript,
   sitemapPaths,
 } from '../scripts/build-pages.ts'
 import type { StaticPagesManifest } from '../scripts/build-pages.ts'
 import { faqEntries } from '../scripts/static-pages/faq.ts'
 import { itemInsight } from '../scripts/static-pages/item-insights.ts'
-import { escapeHtml } from '../scripts/static-pages/templates.ts'
+import { escapeHtml, GA_MEASUREMENT_ID } from '../scripts/static-pages/templates.ts'
 
 /**
  * `as const satisfies` で絞られたリテラル型のままだと、任意プロパティ
@@ -247,7 +250,7 @@ describe('記事静的ページ', () => {
     for (const slug of articleSlugs) {
       const html = await readFile(join(outputDirectory, 'articles', slug, 'index.html'), 'utf8')
       expect(html, slug).toContain('"@type":"Article"')
-      expect(html, slug).toContain('class="cta" href="/#plan=')
+      expect(html, slug).toContain('class="cta" href="/app/#plan=')
     }
   })
 
@@ -499,13 +502,15 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 222（トップ・privacy・about・一覧2・アイテム198・記事19）
-    // ＋ 英語 222（トップの代わりに静的ランディング /en/）
-    expect(sitemapPaths()).toHaveLength(444)
-    expect(manifest.urls).toHaveLength(444)
+    // 日本語 223（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事19）
+    // ＋ 英語 222（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(445)
+    expect(manifest.urls).toHaveLength(445)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
+    expect(locations).toContain('https://satisfactory-planner.net/app/')
+    expect(locations.filter((location) => location.endsWith('/app/'))).toHaveLength(1)
     expect(locations).toContain('https://satisfactory-planner.net/privacy')
     expect(locations).toContain('https://satisfactory-planner.net/about/')
     expect(locations).toContain('https://satisfactory-planner.net/en/about/')
@@ -519,7 +524,7 @@ describe('sitemap', () => {
     expect(locations).toContain(
       'https://satisfactory-planner.net/en/articles/production-planning-tutorial/',
     )
-    // SPA のトップ（/）は日本語の静的説明しか持たないので、英語側は静的な /en/ を載せる
+    // トップは日英とも静的ランディング（/ と /en/）
     expect(locations).toContain('https://satisfactory-planner.net/en/')
     // プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
     expect(locations).toContain('https://satisfactory-planner.net/en/privacy')
@@ -895,41 +900,39 @@ describe('hreflang', () => {
   })
 
   /**
-   * トップ（/）と英語ランディング（/en/）は「同じツールの日英ページ」なので相互に指し合う。
-   * トップの hreflang は index.html に静的に書いてあるので、生成側と食い違わないように
-   * ここでファイルを直接読んで突き合わせる。
+   * トップ（/）と英語ランディング（/en/）は「同じツールの日英の玄関」なので相互に指し合う。
+   * 他10言語のランディングは無いので宣言しない（以前は SPA の / を全言語で指していたが、
+   * 日本語の静的ページを他言語版として申告する形になっていたのでやめた）。
    */
-  it('トップと /en/ が相互に指し合い、他10言語はトップのままになる', async () => {
-    const root = await readFile(join(process.cwd(), 'index.html'), 'utf8')
+  it('トップと /en/ が相互に指し合い、他の言語は宣言しない', async () => {
+    const root = await readFile(join(outputDirectory, 'index.html'), 'utf8')
     const landing = await readFile(join(outputDirectory, 'en/index.html'), 'utf8')
-    const rootLinks = alternateLinks(root)
-
-    // トップ側: ja と x-default は自分、en だけ /en/ を指す
-    expect(rootLinks.ja).toBe('https://satisfactory-planner.net/')
-    expect(rootLinks.en).toBe('https://satisfactory-planner.net/en/')
-    expect(rootLinks['x-default']).toBe('https://satisfactory-planner.net/')
-    // 残り10言語は SPA が1URLで賄うのでトップのまま（漏れ・付け間違いを検出する）
-    const spaLocales = SUPPORTED_LOCALES.filter((locale) => locale !== 'ja' && locale !== 'en')
-    for (const locale of spaLocales) {
-      expect(rootLinks[locale], locale).toBe('https://satisfactory-planner.net/')
-    }
-    expect(Object.keys(rootLinks)).toEqual([...SUPPORTED_LOCALES, 'x-default'])
-
-    // /en/ 側: 相互に指し返す
-    expect(alternateLinks(landing)).toEqual({
+    const expected = {
       ja: 'https://satisfactory-planner.net/',
       en: 'https://satisfactory-planner.net/en/',
       'x-default': 'https://satisfactory-planner.net/',
-    })
+    }
+
+    expect(alternateLinks(root)).toEqual(expected)
+    expect(alternateLinks(landing)).toEqual(expected)
+    for (const locale of SUPPORTED_LOCALES.filter((entry) => entry !== 'ja' && entry !== 'en')) {
+      expect(root, locale).not.toContain(`hreflang="${locale}"`)
+    }
+  })
+
+  /** 計画ツール本体（/app/）は1URLで全言語を切り替えるので hreflang を持たない。 */
+  it('計画ツール本体（app/index.html）は hreflang を持たない', async () => {
+    const app = await readFile(join(process.cwd(), 'app/index.html'), 'utf8')
+    expect(alternateLinks(app)).toEqual({})
+    expect(app).not.toContain('hreflang=')
   })
 
   /** hreflang の相手先が実在するファイルであること（404 を指す hreflang を防ぐ）。 */
   it('生成ページの hreflang が実在する生成ファイルを指す', async () => {
     const files = await htmlFiles(outputDirectory)
     const generated = new Set(manifest.urls)
-    // / と /en/privacy はビルド成果物の外（SPA と public/）なので実在扱いにする
+    // /privacy と /en/privacy はビルド成果物の外（public/）なので実在扱いにする
     const external = new Set([
-      'https://satisfactory-planner.net/',
       'https://satisfactory-planner.net/privacy',
       'https://satisfactory-planner.net/en/privacy',
     ])
@@ -977,8 +980,8 @@ describe('英語ランディング（/en/）', () => {
       '<link rel="canonical" href="https://satisfactory-planner.net/en/" />',
     )
     expect(html).toContain('<h1>Satisfactory Production Planner</h1>')
-    // 主導線は SPA のトップ。英語ブラウザで自動的に英語UIになることを1行で断る
-    expect(html).toContain('<a class="cta" href="/">Open the planner</a>')
+    // 主導線は計画ツール本体（/app/）。英語ブラウザで自動的に英語UIになることを1行で断る
+    expect(html).toContain('<a class="cta" href="/app/">Open the planner</a>')
     expect(html).toContain('The planner opens in English when your browser is set to English')
     // 機能一覧とデータ出典（/en/about/ と同じ主張に揃える）
     expect(html).toContain('linear programming solver, weighted toward raw resources')
@@ -1000,7 +1003,7 @@ describe('英語ランディング（/en/）', () => {
 
     expect(app).toBeDefined()
     expect(app!.inLanguage).toBe('en')
-    expect(app!.url).toBe('https://satisfactory-planner.net')
+    expect(app!.url).toBe('https://satisfactory-planner.net/app/')
     expect(app!.applicationCategory).toBe('UtilitiesApplication')
     expect(breadcrumb).toBeDefined()
     expect(breadcrumb!.itemListElement).toEqual([
@@ -1057,6 +1060,164 @@ describe('英語ランディング（/en/）', () => {
   })
 })
 
+describe('日本語トップ（/）', () => {
+  /**
+   * トップは計画ツール本体（/app/）へ送り出す静的なランディング。文面は旧トップの
+   * site-intro と head の説明をそのまま移したもの（JA_LANDING）。
+   */
+  it('旧トップの title・description・説明本文と、計画ツールへの導線を出す', async () => {
+    const html = await readFile(join(outputDirectory, 'index.html'), 'utf8')
+
+    expect(html).toContain('<html lang="ja">')
+    expect(titleText(html)).toBe(
+      'サティスファクトリー（Satisfactory）生産計画ツール — 日本語ソルバー＆Excel出力',
+    )
+    expect(metaContent(html, 'description')).toContain('Satisfactory の生産ラインを日本語で計算する非公式ツール')
+    expect(html).toContain('<link rel="canonical" href="https://satisfactory-planner.net/" />')
+    expect(html).toContain('<h1>Satisfactory 生産計画ツール</h1>')
+    expect(html).toContain('<a class="cta" href="/app/">計画ツールを使う</a>')
+    expect(html).toContain('<h2>Satisfactory 生産計画ツールについて</h2>')
+    expect(html).toContain('線形計画法のソルバーが必要なレシピ、機械の台数、消費電力、原料の量を計算します')
+    expect(html).toContain('<li>日本語を含む12言語対応</li>')
+    expect(html).toContain('ゲームの公式データ（バージョン1.1系）')
+    for (const href of ['/items/', '/articles/', '/about/', '/privacy']) {
+      expect(html, href).toContain(`href="${href}"`)
+    }
+    expect(html).toContain('<a href="/en/" lang="en">English</a>')
+    // ヘッダーの「計画ツール」も /app/
+    expect(html).toContain('<a href="/app/">計画ツール</a>')
+    expect(html).not.toContain('type="module"')
+    expect(html).not.toContain('id="root"')
+  })
+
+  it('WebApplication（ja）・BreadcrumbList・FAQPage を持つ', async () => {
+    const html = await readFile(join(outputDirectory, 'index.html'), 'utf8')
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+      .map((match) => JSON.parse(match[1]!.replaceAll('\\u003c', '<')) as Record<string, unknown>)
+    const kinds = blocks.flatMap((block) =>
+      Array.isArray(block['@graph'])
+        ? (block['@graph'] as Record<string, unknown>[]).map((node) => node['@type'])
+        : [block['@type']],
+    )
+
+    expect(kinds).toEqual(expect.arrayContaining(['WebApplication', 'BreadcrumbList', 'FAQPage']))
+    const app = graphNode(html, 'WebApplication')
+    expect(app!.inLanguage).toBe('ja')
+    expect(app!.url).toBe('https://satisfactory-planner.net/app/')
+    expect(graphNode(html, 'BreadcrumbList')!.itemListElement).toEqual([
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: 'https://satisfactory-planner.net/' },
+    ])
+    const faq = blocks.find((block) => block['@type'] === 'FAQPage')!
+    expect(faq['@id']).toBe('https://satisfactory-planner.net/#faq')
+    const questions = faq.mainEntity as { name: string }[]
+    expect(questions.map((question) => question.name)).toEqual(
+      faqEntries('ja').map((entry) => entry.question),
+    )
+    for (const question of questions) {
+      expect(html).toContain(`<h3>${escapeHtml(question.name)}</h3>`)
+    }
+  })
+})
+
+describe('ツールへの導線とホームへの導線', () => {
+  /** パスの正典は src/plan/item-pages.ts。ツールは言語を問わず /app/、ホームは言語別のランディング。 */
+  it('appPagePath は /app/、landingPagePath は言語別のトップ', () => {
+    expect(appPagePath()).toBe('/app/')
+    expect(landingPagePath()).toBe('/')
+    expect(landingPagePath('ja')).toBe('/')
+    expect(landingPagePath('en')).toBe('/en/')
+    expect(landingPagePath('de')).toBe('/en/')
+  })
+
+  it('アイテムページ・記事・about のツールへのリンクが /app/ を指す', async () => {
+    const item = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
+    const itemEn = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
+    const article = await readFile(
+      join(outputDirectory, 'articles/coal-power-startup/index.html'),
+      'utf8',
+    )
+    const about = await readFile(join(outputDirectory, 'about/index.html'), 'utf8')
+    const aboutEn = await readFile(join(outputDirectory, 'en/about/index.html'), 'utf8')
+
+    expect(item).toContain('class="cta" href="/app/#plan=')
+    expect(itemEn).toContain('class="cta" href="/app/#plan=')
+    expect(article).toContain('class="cta" href="/app/#plan=')
+    expect(about).toContain('<a href="/app/">計画ツールを使う</a>')
+    expect(aboutEn).toContain('<a href="/app/">Open the planner</a>')
+    // ヘッダーの「計画ツール」も両言語で /app/
+    expect(item).toContain('<a href="/app/">計画ツール</a>')
+    expect(itemEn).toContain('<a href="/app/">Planner</a>')
+  })
+
+  it('ブランド名とパンくずのホームは、その言語のトップを指す', async () => {
+    const item = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
+    const itemEn = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
+
+    expect(item).toContain('<a class="brand" href="/">Satisfactory 生産計画ツール</a>')
+    expect(itemEn).toContain('<a class="brand" href="/en/">Satisfactory Production Planner</a>')
+    expect(item).toContain('<li><a href="/">ホーム</a></li>')
+    expect(itemEn).toContain('<li><a href="/en/">Home</a></li>')
+    expect(graphNode(itemEn, 'BreadcrumbList')!.itemListElement).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ position: 1, item: 'https://satisfactory-planner.net/en/' }),
+      ]),
+    )
+  })
+})
+
+describe('旧共有URL（/#plan=…）の救済', () => {
+  /**
+   * ツールが / から /app/ へ移ったので、既に配られた `/#plan=…` を開いたときは
+   * ランディングの先頭スクリプトがハッシュごと /app/ へ送る。
+   */
+  it('両ランディングの head の最初のスクリプトが plan パラメータを見て /app/ へ送る', async () => {
+    for (const file of ['index.html', 'en/index.html']) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const head = headSection(html)
+      const firstScript = head.match(/<script[^>]*>/)?.[0]
+      const script = legacyShareRedirectScript()
+
+      expect(head, file).toContain(script)
+      expect(script).toContain(`${PLAN_HASH_PARAM}=`)
+      expect(script).toContain("location.replace('/app/' + location.hash)")
+      // 他のどのスクリプトよりも先（GA や JSON-LD より前）
+      expect(head.indexOf(script), file).toBe(head.indexOf(firstScript!))
+    }
+  })
+
+  it('スクリプトの判定は readPlanParam と同じ鍵で、plan 以外のハッシュには反応しない', () => {
+    const pattern = new RegExp(legacyShareRedirectScript().match(/if\((\/.*?\/)\.test/)![1]!.slice(1, -1))
+    expect(pattern.test('#plan=abc')).toBe(true)
+    expect(pattern.test('#foo=1&plan=abc')).toBe(true)
+    expect(pattern.test('#plane=abc')).toBe(false)
+    expect(pattern.test('#foo=plan=')).toBe(false)
+    expect(pattern.test('')).toBe(false)
+    expect(pattern.test('#main-content')).toBe(false)
+  })
+
+  it('両ランディングだけが旧トップの GA4 タグと vercel.app の noindex を引き継ぐ', async () => {
+    const app = await readFile(join(process.cwd(), 'app/index.html'), 'utf8')
+    for (const file of ['index.html', 'en/index.html']) {
+      const head = headSection(await readFile(join(outputDirectory, file), 'utf8'))
+      expect(head, file).toContain(`gtag/js?id=${GA_MEASUREMENT_ID}`)
+      expect(head, file).toContain(`gtag('config', '${GA_MEASUREMENT_ID}')`)
+      expect(head, file).toContain("location.hostname.endsWith('.vercel.app')")
+    }
+    expect(app).toContain(`gtag('config', '${GA_MEASUREMENT_ID}')`)
+    const item = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
+    expect(item).not.toContain('gtag')
+  })
+
+  it('生成した全ページに旧形式（/#plan=）のリンクが残っていない', async () => {
+    const files = await htmlFiles(outputDirectory)
+    expect(files.length).toBeGreaterThan(430)
+    for (const file of files) {
+      const html = await readFile(file, 'utf8')
+      expect(html, file).not.toContain('href="/#plan=')
+    }
+  })
+})
+
 describe('OGP と Twitter カード', () => {
   /**
    * 共有リンクのプレビューは全ページで出す。og:* と twitter:* は同じ文言のミラーにして、
@@ -1088,15 +1249,15 @@ describe('OGP と Twitter カード', () => {
     }
   })
 
-  it('SPA のトップ（index.html）にも同じカードがある', async () => {
-    const html = await readFile(join(process.cwd(), 'index.html'), 'utf8')
+  it('計画ツール本体（app/index.html）にも同じカードがある', async () => {
+    const html = await readFile(join(process.cwd(), 'app/index.html'), 'utf8')
     const head = headSection(html)
 
     expect(metaContent(head, 'twitter:card')).toBe('summary_large_image')
     expect(metaContent(head, 'twitter:title')).toBe(titleText(html))
     expect(metaContent(head, 'twitter:image')).toBe('https://satisfactory-planner.net/ogp.png')
-    expect(metaContent(head, 'og:url')).toBe('https://satisfactory-planner.net/')
-    expect(html).toContain('<link rel="canonical" href="https://satisfactory-planner.net/" />')
+    expect(metaContent(head, 'og:url')).toBe('https://satisfactory-planner.net/app/')
+    expect(html).toContain('<link rel="canonical" href="https://satisfactory-planner.net/app/" />')
   })
 })
 
@@ -1241,9 +1402,11 @@ describe('カタカナのゲーム名', () => {
     }
   })
 
-  it('SPA のトップ（index.html）にもカタカナとラテン表記が両方入る', async () => {
-    const html = await readFile(join(process.cwd(), 'index.html'), 'utf8')
-    const title = titleText(html)
+  it('計画ツール本体（app/index.html）とトップ（/）にカタカナとラテン表記が両方入る', async () => {
+    const app = await readFile(join(process.cwd(), 'app/index.html'), 'utf8')
+    const root = await readFile(join(outputDirectory, 'index.html'), 'utf8')
+    expect(titleText(root)).toBe(titleText(app))
+    const title = titleText(app)
 
     expect(title).toBe(
       'サティスファクトリー（Satisfactory）生産計画ツール — 日本語ソルバー＆Excel出力',

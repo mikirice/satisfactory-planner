@@ -31,11 +31,13 @@ import type { Item, ItemAmount, Recipe } from '../src/data/types.ts'
 import type { UiDictionary } from '../src/i18n/types.ts'
 import {
   aboutPagePath,
+  appPagePath,
   articlePagePath,
   articlesIndexPath,
   itemPagePath,
   itemSlug,
   itemsIndexPath,
+  landingPagePath,
   privacyPagePath,
 } from '../src/plan/item-pages.ts'
 import { getRecipesForItem, recipeMetrics } from '../src/plan/recipe-index.ts'
@@ -45,6 +47,7 @@ import {
   buildShareUrl,
   defaultPlanInput,
   parsePlanSnapshot,
+  PLAN_HASH_PARAM,
   toPlanSnapshot,
 } from '../src/plan/serialize.ts'
 import { solveProduction } from '../src/solver/index.ts'
@@ -54,13 +57,16 @@ import { itemInsight, relatedGuideSlugs } from './static-pages/item-insights.ts'
 import type { GuideSource } from './static-pages/item-insights.ts'
 import {
   EN_LANDING,
+  HTML_LANG,
+  JA_LANDING,
   STATIC_LOCALES,
   STATIC_PAGE_LABELS,
   UI_DICTIONARIES,
 } from './static-pages/labels.ts'
-import type { StaticLocale, StaticPageLabels } from './static-pages/labels.ts'
+import type { LandingCopy, StaticLocale, StaticPageLabels } from './static-pages/labels.ts'
 import {
   escapeHtml,
+  LANDING_HEAD_SCRIPTS,
   renderBreadcrumbs,
   renderDocument,
   siteName,
@@ -344,7 +350,7 @@ function targetPlanHref(
     somersloops: options.somersloops ?? 0,
     planName: ctx.L.itemPlanName(item.name[ctx.locale]),
   })
-  return buildShareUrl('/', snapshot)
+  return buildShareUrl(appPagePath(), snapshot)
 }
 
 /**
@@ -733,7 +739,7 @@ export function renderItemPage(ctx: Ctx, item: Item): string {
     '@graph': [
       breadcrumbSchema(
         [
-          { name: ctx.L.home, path: '/' },
+          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
           { name: ctx.ui.footer.items, path: itemsIndexPath(ctx.locale) },
           { name, path },
         ],
@@ -761,7 +767,7 @@ export function renderItemPage(ctx: Ctx, item: Item): string {
 
   const body = `${renderBreadcrumbs(
     [
-      { label: ctx.L.home, href: '/' },
+      { label: ctx.L.home, href: landingPagePath(ctx.locale) },
       { label: ctx.ui.footer.items, href: itemsIndexPath(ctx.locale) },
       { label: name },
     ],
@@ -837,7 +843,7 @@ function renderItemIndex(ctx: Ctx): string {
     '@graph': [
       breadcrumbSchema(
         [
-          { name: ctx.L.home, path: '/' },
+          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
           { name: ctx.ui.footer.items, path },
         ],
         breadcrumbId,
@@ -864,7 +870,7 @@ function renderItemIndex(ctx: Ctx): string {
     ],
   }
   const body = `${renderBreadcrumbs(
-    [{ label: ctx.L.home, href: '/' }, { label: ctx.ui.footer.items }],
+    [{ label: ctx.L.home, href: landingPagePath(ctx.locale) }, { label: ctx.ui.footer.items }],
     ctx.locale,
   )}
     <header class="hero">
@@ -887,26 +893,46 @@ function renderItemIndex(ctx: Ctx): string {
 }
 
 // ---------------------------------------------------------------------------
-// 英語ランディング（/en/）
+// ランディング（/ と /en/）
 // ---------------------------------------------------------------------------
 
 /**
- * 英語のトップページ。トップ（/）は SPA ＋日本語の静的説明しか持たないため、
- * 英語圏のクローラからは「日本語のページ」に見え、ツール本体が英語検索で拾われない。
- * ここはミラーではなく**ツール本体の英語の玄関**で、/ の SPA へ送り出すのが仕事。
+ * トップ（/）と英語ランディング（/en/）。どちらも静的で、計画ツール本体（/app/）へ送り出すのが仕事。
  *
- * hreflang は index.html と相互に指し合う（ja → /、en → /en/、x-default → /）。
+ * 以前はトップに SPA を置き、日本語の静的説明を #root の下に足していたが、クローラの
+ * 第一印象が「空のツール」になるため、ツールは /app/ へ移し、トップは説明本文が主のページにした。
+ * 日英は同じテンプレート・同じ節構成で、文面だけ JA_LANDING / EN_LANDING から取る。
+ *
+ * hreflang はこの2ページで相互に指し合う（ja → /、en → /en/、x-default → /）。
+ * 他10言語のランディングは無いので宣言しない（1URLのツール本体には hreflang を付けない）。
  */
-export const EN_LANDING_PATH = '/en/'
+export const JA_LANDING_PATH = landingPagePath('ja')
+export const EN_LANDING_PATH = landingPagePath('en')
 
-export function renderEnLandingPage(ctx: Ctx): string {
-  const path = EN_LANDING_PATH
+/**
+ * 旧共有URL（/#plan=…）の救済。ツールが / から /app/ へ移ったので、
+ * 既に配られたリンクで開かれたときはハッシュごと /app/ へ送る。
+ * head の先頭に置き、他のスクリプトや描画より先に走らせる。
+ * パラメータ名は src/plan/serialize.ts の PLAN_HASH_PARAM（アプリ側の読み取りと同じ鍵）。
+ */
+export function legacyShareRedirectScript(): string {
+  const key = PLAN_HASH_PARAM
+  if (!/^[a-z]+$/.test(key)) throw new Error(`PLAN_HASH_PARAM は正規表現に直接埋め込める形にする: ${key}`)
+  return `<script>if(/(?:^#|&)${key}=/.test(location.hash))location.replace('${appPagePath()}' + location.hash)</script>`
+}
+
+function renderLandingPage(ctx: Ctx, copy: LandingCopy): string {
+  const { locale } = ctx
+  const path = landingPagePath(locale)
   const breadcrumbId = `${path}#breadcrumb`
   const links: readonly (readonly [string, string])[] = [
-    [itemsIndexPath('en'), EN_LANDING.itemsLinkLabel],
-    [articlesIndexPath('en'), EN_LANDING.articlesLinkLabel],
-    [aboutPagePath('en'), EN_LANDING.aboutLinkLabel],
-    [privacyPagePath('en'), EN_LANDING.privacyLinkLabel],
+    [itemsIndexPath(locale), copy.itemsLinkLabel],
+    [articlesIndexPath(locale), copy.articlesLinkLabel],
+    [aboutPagePath(locale), copy.aboutLinkLabel],
+    [privacyPagePath(locale), copy.privacyLinkLabel],
+    ...(copy.otherLandingLinkLabel === undefined
+      ? []
+      : [[landingPagePath(ctx.other), copy.otherLandingLinkLabel] as const]),
   ]
 
   const structuredData = {
@@ -917,44 +943,49 @@ export function renderEnLandingPage(ctx: Ctx): string {
         '@type': 'WebApplication',
         '@id': `${SITE_URL}/#webapp`,
         name: ctx.site,
-        url: SITE_URL,
-        description: EN_LANDING.description,
+        url: `${SITE_URL}${appPagePath()}`,
+        description: copy.description,
         applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Web browser',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        inLanguage: 'en',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: locale === 'ja' ? 'JPY' : 'USD' },
+        inLanguage: locale,
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
       },
     ],
   }
 
   const body = `<header class="hero">
-    <p class="eyebrow">${escapeHtml(EN_LANDING.eyebrow)}</p>
-    <h1>${escapeHtml(EN_LANDING.heading)}</h1>
-    <p class="lead">${escapeHtml(EN_LANDING.lead)}</p>
-    <a class="cta" href="/">${escapeHtml(EN_LANDING.ctaLabel)}</a>
-    <p class="version">${escapeHtml(EN_LANDING.ctaNote)}</p>
+    <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
+    <h1>${escapeHtml(copy.heading)}</h1>
+    <p class="lead">${escapeHtml(copy.lead)}</p>
+    <a class="cta" href="${escapeHtml(appPagePath())}">${escapeHtml(copy.ctaLabel)}</a>
+    <p class="version">${escapeHtml(copy.ctaNote)}</p>
   </header>
   <article class="article-body">
     <section>
-      <h2>${escapeHtml(EN_LANDING.overviewHeading)}</h2>
-      ${EN_LANDING.overviewParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      <h2>${escapeHtml(copy.overviewHeading)}</h2>
+      ${copy.overviewParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
     </section>
     <section>
-      <h2>${escapeHtml(EN_LANDING.featuresHeading)}</h2>
-      <ul>${EN_LANDING.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>
+      <h2>${escapeHtml(copy.featuresHeading)}</h2>
+      <ul>${copy.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>
     </section>
     <section>
-      <h2>${escapeHtml(EN_LANDING.dataHeading)}</h2>
-      ${EN_LANDING.dataParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      <h2>${escapeHtml(copy.dataHeading)}</h2>
+      ${copy.dataParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
     </section>
     <section aria-labelledby="faq-heading">
-      ${renderFaqHtml('en')}
+      ${renderFaqHtml(locale)}
     </section>
     <section>
-      <h2>${escapeHtml(EN_LANDING.linksHeading)}</h2>
+      <h2>${escapeHtml(copy.linksHeading)}</h2>
       <ul class="link-list">
-        ${links.map(([href, label]) => `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a></li>`).join('')}
+        ${links
+          .map(
+            ([href, label]) =>
+              `<li><a href="${escapeHtml(href)}"${href === landingPagePath(ctx.other) ? ` lang="${HTML_LANG[ctx.other]}"` : ''}>${escapeHtml(label)}</a></li>`,
+          )
+          .join('')}
       </ul>
     </section>
     <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
@@ -962,18 +993,37 @@ export function renderEnLandingPage(ctx: Ctx): string {
 
   return renderDocument(
     {
-      locale: 'en',
-      title: EN_LANDING.title,
-      description: EN_LANDING.description,
+      locale,
+      title: copy.title,
+      description: copy.description,
       canonicalPath: path,
-      // SPA のトップが日本語側の対になる（/ は日本語の静的説明を持つ同じツール）。
-      alternates: { ja: '/', en: path },
+      alternates: { ja: JA_LANDING_PATH, en: EN_LANDING_PATH },
       structuredData,
       // FAQPage は @graph とは別ブロックで出す（本文の Q&A と同じ定義から作る）。
-      extraStructuredData: [faqPageSchema('en', `${SITE_URL}${path}`)],
+      extraStructuredData: [faqPageSchema(locale, `${SITE_URL}${path}`)],
+      headStart: legacyShareRedirectScript(),
+      headEnd: LANDING_HEAD_SCRIPTS,
     },
     body,
   )
+}
+
+/** ロケールを指定してランディングを1枚だけ描く（テストや単発の確認用。文脈は内部で作る）。 */
+export function renderLandingPageHtml(locale: StaticLocale): string {
+  const ctx = createContext(locale)
+  return locale === 'ja' ? renderJaLandingPage(ctx) : renderEnLandingPage(ctx)
+}
+
+/** 日本語のトップ（/）。 */
+export function renderJaLandingPage(ctx: Ctx): string {
+  if (ctx.locale !== 'ja') throw new Error('renderJaLandingPage は ja の文脈で呼ぶ')
+  return renderLandingPage(ctx, JA_LANDING)
+}
+
+/** 英語のランディング（/en/）。 */
+export function renderEnLandingPage(ctx: Ctx): string {
+  if (ctx.locale !== 'en') throw new Error('renderEnLandingPage は en の文脈で呼ぶ')
+  return renderLandingPage(ctx, EN_LANDING)
 }
 
 // ---------------------------------------------------------------------------
@@ -1001,7 +1051,7 @@ export function renderAboutPage(ctx: Ctx): string {
     '@graph': [
       breadcrumbSchema(
         [
-          { name: ctx.L.home, path: '/' },
+          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
           { name: ctx.L.aboutTitle, path },
         ],
         breadcrumbId,
@@ -1027,7 +1077,7 @@ export function renderAboutPage(ctx: Ctx): string {
   }
 
   const body = `${renderBreadcrumbs(
-    [{ label: ctx.L.home, href: '/' }, { label: ctx.L.aboutTitle }],
+    [{ label: ctx.L.home, href: landingPagePath(ctx.locale) }, { label: ctx.L.aboutTitle }],
     ctx.locale,
   )}
     <header class="hero">
@@ -1057,7 +1107,7 @@ export function renderAboutPage(ctx: Ctx): string {
       <section>
         <h2>${escapeHtml(ctx.L.aboutLinksHeading)}</h2>
         <ul class="link-list">
-          <li><a href="/">${escapeHtml(ctx.L.aboutPlannerLinkLabel)}</a></li>
+          <li><a href="${escapeHtml(appPagePath())}">${escapeHtml(ctx.L.aboutPlannerLinkLabel)}</a></li>
           <li><a href="${escapeHtml(itemsIndexPath(ctx.locale))}">${escapeHtml(ctx.ui.footer.items)}</a></li>
           <li><a href="${escapeHtml(articlesIndexPath(ctx.locale))}">${escapeHtml(ctx.ui.footer.articles)}</a></li>
         </ul>
@@ -1131,7 +1181,7 @@ function articleSchema(
     '@graph': [
       breadcrumbSchema(
         [
-          { name: ctx.L.home, path: '/' },
+          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
           { name: ctx.ui.footer.articles, path: articlesIndexPath(ctx.locale) },
           { name: headline, path },
         ],
@@ -1159,7 +1209,7 @@ function articleCtaHref(ctx: Ctx, cta: ArticleCta): string {
   if (cta.kind === 'sample') {
     const sample = SAMPLE_PLANS.find((entry) => entry.id === cta.sampleId)
     if (sample === undefined) throw new Error(`unknown sample for article CTA: ${cta.sampleId}`)
-    return buildShareUrl('/', sample.snapshot)
+    return buildShareUrl(appPagePath(), sample.snapshot)
   }
   const item = itemsById.get(cta.itemId)
   if (item === undefined) throw new Error(`unknown item for article CTA: ${cta.itemId}`)
@@ -1231,7 +1281,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
     .join('')
   const body = `${renderBreadcrumbs(
     [
-      { label: ctx.L.home, href: '/' },
+      { label: ctx.L.home, href: landingPagePath(ctx.locale) },
       { label: ctx.ui.footer.articles, href: articlesIndexPath(ctx.locale) },
       { label: article.title },
     ],
@@ -1516,7 +1566,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
       : `${renderBaselineComparison(ctx, current, baseline)}<h3>${escapeHtml(ctx.L.loopTemplateResourcesHeading)}</h3>${renderRawResourceTable(ctx, current)}`
   const body = `${renderBreadcrumbs(
     [
-      { label: ctx.L.home, href: '/' },
+      { label: ctx.L.home, href: landingPagePath(ctx.locale) },
       { label: ctx.ui.footer.articles, href: articlesIndexPath(ctx.locale) },
       { label: content.headline },
     ],
@@ -1551,7 +1601,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
       <section>
         <h2>${escapeHtml(ctx.L.loopOpenHeading)}</h2>
         <p>${escapeHtml(ctx.L.loopOpenBody)}</p>
-        <a class="cta" href="${escapeHtml(buildShareUrl('/', sample.snapshot))}">${escapeHtml(ctx.L.loopOpenCta(content.title))}</a>
+        <a class="cta" href="${escapeHtml(buildShareUrl(appPagePath(), sample.snapshot))}">${escapeHtml(ctx.L.loopOpenCta(content.title))}</a>
       </section>
     </article>`
   return renderDocument(
@@ -1598,7 +1648,7 @@ function renderArticlesIndex(ctx: Ctx): string {
     '@graph': [
       breadcrumbSchema(
         [
-          { name: ctx.L.home, path: '/' },
+          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
           { name: ctx.ui.footer.articles, path },
         ],
         breadcrumbId,
@@ -1625,7 +1675,7 @@ function renderArticlesIndex(ctx: Ctx): string {
     ],
   }
   const body = `${renderBreadcrumbs(
-    [{ label: ctx.L.home, href: '/' }, { label: ctx.ui.footer.articles }],
+    [{ label: ctx.L.home, href: landingPagePath(ctx.locale) }, { label: ctx.ui.footer.articles }],
     ctx.locale,
   )}
     <header class="hero">
@@ -1659,15 +1709,17 @@ function renderArticlesIndex(ctx: Ctx): string {
 // ---------------------------------------------------------------------------
 
 /**
- * sitemap のパス。日本語（トップを含む）→ 英語ミラーの順。
- * SPA のトップ（/）は1URLで言語が切り替わるが、クローラには日本語の静的説明しか
- * 見えないので、英語側は静的なランディング（/en/）を別URLとして載せる。
+ * sitemap のパス。日本語（トップとツール本体 /app/ を含む）→ 英語ミラーの順。
+ * トップは日英とも静的なランディング（/ と /en/）。ツール本体（/app/）は1URLで
+ * 言語が切り替わるので1回だけ載せる。
  * プライバシーポリシーは日英で別ファイル（public/privacy.html と public/en/privacy.html）
  * を置いているので、両方を載せる。URLは拡張子なし（Cloudflare Pages が 308 で正規化）。
  */
 export function localeSitemapPaths(locale: StaticLocale): readonly string[] {
   return [
-    ...(locale === 'ja' ? ['/'] : [EN_LANDING_PATH]),
+    landingPagePath(locale),
+    // 計画ツール本体は言語を問わず1URL。日本語側の並びに1回だけ載せる
+    ...(locale === 'ja' ? [appPagePath()] : []),
     privacyPagePath(locale),
     aboutPagePath(locale),
     itemsIndexPath(locale),
@@ -1717,10 +1769,11 @@ export async function generateStaticPages(outputDirectory: string): Promise<Stat
     const ctx = createContext(locale)
     const directory = localeDirectory(output, locale)
     await Promise.all([
-      // 英語だけ、ツール本体の入口になる静的ランディングを /en/ に出す（日本語は SPA の / が入口）。
-      ...(locale === 'en'
-        ? [writeHtml(resolve(directory, 'index.html'), renderEnLandingPage(ctx))]
-        : []),
+      // トップ（/ と /en/）。ツール本体（/app/）は vite が出すので、ここでは触らない
+      writeHtml(
+        resolve(directory, 'index.html'),
+        locale === 'ja' ? renderJaLandingPage(ctx) : renderEnLandingPage(ctx),
+      ),
       writeHtml(resolve(directory, 'about/index.html'), renderAboutPage(ctx)),
       writeHtml(resolve(directory, 'items/index.html'), renderItemIndex(ctx)),
       ...items.map((item) =>
