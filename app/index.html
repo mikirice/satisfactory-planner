@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- ファビコン一式。正本は scripts/static-pages/templates.ts の FAVICON_LINKS（同じ4行）。 -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="canonical" href="https://satisfactory-planner.net/app/" />
     <!--
       計画ツール本体（SPA）。トップ（/）は静的なランディング（scripts/build-pages.ts の
@@ -26,8 +30,8 @@
     <meta name="theme-color" content="#101318" />
 
     <!--
-      OGP。og:image は絶対URLが要るクローラが多いので、公開ドメインが決まったら
-      /ogp.png を https://<ドメイン>/ogp.png に書き換える（画像の原本は public/ogp.svg）。
+      OGP。言語はクライアント側で決まるページなので画像は日本語版（ogp-ja.png）で固定。
+      画像の原本は brand/build_logo.py（brand/dist/ → public/ にコピー）。
     -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Satisfactory 生産計画ツール" />
@@ -36,10 +40,10 @@
       property="og:description"
       content="目標レートを入れるだけで、必要なレシピ・建物数・電力・原料を最適化。Excel出力とフローチャート付きの非公式ファンツールです。"
     />
-    <meta property="og:image" content="https://satisfactory-planner.net/ogp.png" />
+    <meta property="og:image" content="https://satisfactory-planner.net/ogp-ja.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Satisfactory 生産計画ツール" />
+    <meta property="og:image:alt" content="生産計画ツール for Satisfactory のロゴ" />
     <meta property="og:locale" content="ja_JP" />
     <meta property="og:url" content="https://satisfactory-planner.net/app/" />
 
@@ -49,7 +53,7 @@
       name="twitter:description"
       content="目標レートを入れるだけで、必要なレシピ・建物数・電力・原料を最適化。Excel出力とフローチャート付きの非公式ファンツールです。"
     />
-    <meta name="twitter:image" content="https://satisfactory-planner.net/ogp.png" />
+    <meta name="twitter:image" content="https://satisfactory-planner.net/ogp-ja.png" />
 
     <script type="application/ld+json">
       {
@@ -60,6 +64,8 @@
         "description": "Satisfactory の目標産出から必要なレシピ、建物、原料、電力、物流を日本語で計算する無料のWebアプリケーションです。",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Web browser",
+        "image": "https://satisfactory-planner.net/brand/mark-512.png",
+        "logo": "https://satisfactory-planner.net/brand/mark-512.png",
         "offers": {
           "@type": "Offer",
           "price": "0",

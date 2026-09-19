@@ -26,6 +26,28 @@ export function siteName(locale: StaticLocale): string {
   return STATIC_PAGE_LABELS[locale].siteName
 }
 
+/**
+ * ファビコン一式（原本は brand/build_logo.py → public/）。静的ページ全部と、
+ * Vite が別に扱う app/index.html（そちらは同じ4行を手で複製している）で共通。
+ */
+export const FAVICON_LINKS = `<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />`
+
+/** ブランドマーク（512px PNG）。構造化データの WebApplication.image / logo に使う。 */
+export const BRAND_MARK_URL = `${SITE_URL}/brand/mark-512.png`
+
+/** OGP 画像は言語別（ロゴのワードマークが日英で違う）。1200×630。 */
+export function ogImageUrl(locale: StaticLocale): string {
+  return `${SITE_URL}/ogp-${locale}.png`
+}
+
+const OG_IMAGE_ALT: Record<StaticLocale, string> = {
+  ja: '生産計画ツール for Satisfactory のロゴ',
+  en: 'Production Planner for Satisfactory logo',
+}
+
 export type Breadcrumb = {
   label: string
   href?: string
@@ -181,7 +203,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
     <meta charset="UTF-8" />
     ${meta.headStart ?? ''}
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    ${FAVICON_LINKS}
     <link rel="stylesheet" href="/static-pages.css" />
     <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />
     ${renderAlternateLinks(meta)}
@@ -193,16 +215,16 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
     <meta property="og:title" content="${escapeHtml(meta.title)}" />
     <meta property="og:description" content="${escapeHtml(meta.description)}" />
     <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
-    <meta property="og:image" content="${SITE_URL}/ogp.png" />
+    <meta property="og:image" content="${ogImageUrl(locale)}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="${escapeHtml(name)}" />
+    <meta property="og:image:alt" content="${escapeHtml(OG_IMAGE_ALT[locale])}" />
     <meta property="og:locale" content="${OG_LOCALE[locale]}" />
     ${articleMeta}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(meta.title)}" />
     <meta name="twitter:description" content="${escapeHtml(meta.description)}" />
-    <meta name="twitter:image" content="${SITE_URL}/ogp.png" />
+    <meta name="twitter:image" content="${ogImageUrl(locale)}" />
     ${structuredData}
     ${GA_HEAD_SCRIPT}
     ${meta.headEnd ?? ''}
@@ -210,7 +232,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
   <body>
     <a class="skip-link" href="#main-content">${escapeHtml(labels.skipToContent)}</a>
     <header class="site-header">
-      <a class="brand" href="${escapeHtml(homeHref)}">${escapeHtml(name)}</a>
+      <a class="brand" href="${escapeHtml(homeHref)}"><img src="/brand/mark.svg" alt="" width="28" height="28" aria-hidden="true" />${escapeHtml(name)}</a>
       <nav aria-label="${escapeHtml(labels.siteNavLabel)}">
         <a href="${escapeHtml(itemsHref)}">${escapeHtml(ui.footer.items)}</a>
         <a href="${escapeHtml(articlesHref)}">${escapeHtml(ui.footer.articles)}</a>
@@ -293,11 +315,16 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--strong);
   font-size: 15px;
   font-weight: 700;
   text-decoration: none;
 }
+/* ブランドマークは装飾（名前はテキストが担う）。ヘッダー高 58px は変えない。 */
+.brand img { width: 28px; height: 28px; flex: 0 0 auto; }
 
 .site-header nav,
 .site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
@@ -635,6 +662,7 @@ p { margin: 0 0 14px; }
 
 @media (max-width: 760px) {
   .site-header { align-items: flex-start; flex-direction: column; gap: 5px; padding: 10px 16px; }
+  .brand img { width: 24px; height: 24px; }
   .lang-switch { margin-left: 0; }
   main { margin-top: 20px; }
   .hero, .article-body { padding: 22px 20px; }
