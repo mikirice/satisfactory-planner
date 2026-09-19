@@ -42,19 +42,18 @@ import {
   landingPagePath,
   privacyPagePath,
 } from '../src/plan/item-pages.ts'
+import { hasLoopBaseline, loopBaselineSample, solveSampleSnapshot } from '../src/plan/loop-baseline.ts'
 import { getRecipesForItem, recipeMetrics } from '../src/plan/recipe-index.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
 import type { SamplePlan } from '../src/plan/samples.ts'
 import {
   buildShareUrl,
   defaultPlanInput,
-  parsePlanSnapshot,
   PLAN_HASH_PARAM,
   toPlanSnapshot,
 } from '../src/plan/serialize.ts'
 import { LAST_OPENED_STORAGE_KEY } from '../src/plan/storage.ts'
-import { solveProduction } from '../src/solver/index.ts'
-import type { ObjectiveWeights, Solution, SolveResult } from '../src/solver/index.ts'
+import type { Solution, SolveResult } from '../src/solver/index.ts'
 import { faqPageSchema, renderFaqHtml, resolveOfficialNames } from './static-pages/faq.ts'
 import { itemInsight, relatedGuideSlugs } from './static-pages/item-insights.ts'
 import type { GuideSource } from './static-pages/item-insights.ts'
@@ -93,13 +92,6 @@ const PUBLISHED_DATE = '2026-08-14'
 const CONTACT_URL = 'https://github.com/mikirice/satisfactory-planner/issues'
 const iconIds = new Set<string>(iconIdsJson)
 const baseRecipes = recipes.filter((recipe) => !recipe.isAlternate)
-const baseRecipeIds = baseRecipes.map((recipe) => recipe.id)
-
-const objectiveWeights: Readonly<Record<string, ObjectiveWeights>> = {
-  resources: { resources: 1, power: 0, buildings: 0 },
-  power: { resources: 0.01, power: 1, buildings: 0 },
-  buildings: { resources: 0.01, power: 0, buildings: 1 },
-}
 
 type ItemGroup = {
   id: 'raw' | 'solid' | 'liquid' | 'gas'
@@ -1501,50 +1493,26 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
   )
 }
 
-async function solveSample(sample: SamplePlan, includeAlternates: boolean): Promise<SolveResult> {
-  const parsed = parsePlanSnapshot(sample.snapshot)
-  if (!parsed.ok) throw new Error(parsed.error)
-  const { input } = parsed
-  const maximize = input.targets.find((target) => target.mode === 'max')?.item
-  const inputs = Object.fromEntries(input.inputs.map((entry) => [entry.item, entry.ratePerMin]))
-  const fuels = Object.fromEntries(
-    Object.entries(input.enabledFuels).map(([generator, selected]) => [
-      generator,
-      Object.keys(selected),
-    ]),
-  )
-  return solveProduction({
-    targets: input.targets
-      .filter((target) => target.mode !== 'max')
-      .map(({ item, ratePerMin: targetRate }) => ({ item, ratePerMin: targetRate })),
-    ...(maximize === undefined ? {} : { maximize }),
-    enabledRecipes: [
-      ...baseRecipeIds,
-      ...(includeAlternates ? Object.keys(input.enabledAlternates) : []),
-    ],
-    resourceLimits: input.limitOverrides,
-    inputs,
-    weights: objectiveWeights[input.objective],
-    maxClock: input.maxClock,
-    somersloops: input.somersloops,
-    power: {
-      generators: Object.keys(input.enabledGenerators),
-      ...(Object.keys(fuels).length === 0 ? {} : { fuels }),
-      targetMW: input.powerTargetMW,
-      coverFactoryPower: input.coverFactoryPower,
-    },
-  })
-}
-
-/** ループ記事の求解は言語に依存しないので、日英で1回の結果を共有する。 */
+/**
+ * ループ記事の求解は言語に依存しないので、日英で1回の結果を共有する。
+ * 比較の基準は src/plan/loop-baseline.ts と同じ規則:
+ *  - `baselineId` があれば、そのテンプレートをそのままの設定で解いた結果（原子力の段階テンプレート）
+ *  - なければ、代替レシピを持つテンプレートだけ「代替レシピなしの同じ目標」
+ */
 async function solveLoopArticles(): Promise<readonly SolvedLoopArticle[]> {
   const solved: SolvedLoopArticle[] = []
   for (const sample of loopSamples) {
-    const current = await solveSample(sample, true)
+    const current = await solveSampleSnapshot(sample.snapshot, { alternates: true })
     if (current.status !== 'optimal') {
       throw new Error(`loop article is infeasible: ${sample.id}: ${current.message}`)
     }
-    const baseline = sample.snapshot.a.length > 0 ? await solveSample(sample, false) : undefined
+    const baselineSample = loopBaselineSample(sample)
+    const baseline =
+      baselineSample !== undefined
+        ? await solveSampleSnapshot(baselineSample.snapshot, { alternates: true })
+        : hasLoopBaseline(sample)
+          ? await solveSampleSnapshot(sample.snapshot, { alternates: false })
+          : undefined
     solved.push({ sample, current, ...(baseline === undefined ? {} : { baseline }) })
   }
   return solved
@@ -1568,6 +1536,17 @@ function renderCurrentPlanMetrics(ctx: Ctx, solution: Solution): string {
   return `<ul>
     ${targets}
     ${generation}
+    ${
+      solution.powerGeneration && solution.powerGeneration.totalGeneratorCount > 0
+        ? `<li>${escapeHtml(ctx.L.loopGeneratorCount)}: <span class="num">${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(solution.powerGeneration.totalGeneratorCount)))}</span></li>`
+        : ''
+    }
+    ${solution.byproducts
+      .map(
+        (byproduct) =>
+          `<li>${ctx.L.loopByproductLeft(itemLink(ctx, byproduct.item))}: <span class="num">${ctx.fmtRate(byproduct.ratePerMin)} ${escapeHtml(rateUnit(ctx, byproduct.item))}</span></li>`,
+      )
+      .join('')}
     <li>${escapeHtml(ctx.L.loopProductionPower)}: <span class="num">${ctx.fmtPower(solution.totalClockedPowerMW)} MW</span></li>
     <li>${escapeHtml(ctx.L.loopBuildings)}: <span class="num">${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(solution.totalBuildingCount)))}</span></li>
   </ul>`
@@ -1589,7 +1568,12 @@ function renderRawResourceTable(ctx: Ctx, solution: Solution): string {
   </table></div>`
 }
 
-function renderBaselineComparison(ctx: Ctx, current: Solution, baseline: SolveResult): string {
+function renderBaselineComparison(
+  ctx: Ctx,
+  current: Solution,
+  baseline: SolveResult,
+  baselineTitle: string | undefined,
+): string {
   if (baseline.status !== 'optimal') {
     return `<p class="article-note">${escapeHtml(ctx.L.loopBaselineInfeasible)}</p>`
   }
@@ -1633,12 +1617,57 @@ function renderBaselineComparison(ctx: Ctx, current: Solution, baseline: SolveRe
     <td class="num">${ctx.fmtPower(baseline.totalClockedPowerMW)} → ${ctx.fmtPower(current.totalClockedPowerMW)} MW</td>
     <td class="num">${escapeHtml(powerChange)}</td>
   </tr>`
-  return `<p>${escapeHtml(ctx.L.loopComparisonIntro)}</p>
+  // 発電機の台数と余る副産物（核廃棄物）。段階テンプレートの比較で意味を持つ行なので、
+  // 差が無いときは出さない（既存テンプレートの表は変わらない）
+  const baselineGenerators = baseline.powerGeneration?.totalGeneratorCount ?? 0
+  const currentGenerators = current.powerGeneration?.totalGeneratorCount ?? 0
+  const generatorRow =
+    baselineGenerators === currentGenerators
+      ? ''
+      : `<tr>
+    <td>${escapeHtml(ctx.L.loopGeneratorCount)}</td>
+    <td class="num">${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(baselineGenerators)))} → ${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(currentGenerators)))}</td>
+    <td class="num">${escapeHtml(countChange(ctx, baselineGenerators, currentGenerators))}</td>
+  </tr>`
+  const baselineByproducts = new Map(baseline.byproducts.map((entry) => [entry.item, entry.ratePerMin]))
+  const currentByproducts = new Map(current.byproducts.map((entry) => [entry.item, entry.ratePerMin]))
+  const byproductRows = [...new Set([...baselineByproducts.keys(), ...currentByproducts.keys()])].flatMap(
+    (itemId) => {
+      const baselineRate = baselineByproducts.get(itemId) ?? 0
+      const currentRate = currentByproducts.get(itemId) ?? 0
+      if (Math.abs(baselineRate - currentRate) <= 0.005) return []
+      const change =
+        baselineRate <= 0.005
+          ? ctx.L.loopChangeAppears
+          : currentRate <= 0.005
+            ? ctx.L.loopChangeGone
+            : countChange(ctx, baselineRate, currentRate)
+      return [
+        `<tr>
+        <td>${ctx.L.loopByproductLeft(itemLink(ctx, itemId))}</td>
+        <td class="num">${ctx.fmtRate(baselineRate)} → ${ctx.fmtRate(currentRate)} ${escapeHtml(rateUnit(ctx, itemId))}</td>
+        <td class="num">${escapeHtml(change)}</td>
+      </tr>`,
+      ]
+    },
+  )
+  const intro =
+    baselineTitle === undefined
+      ? ctx.L.loopComparisonIntro
+      : ctx.L.loopStageComparisonIntro(baselineTitle)
+  return `<p>${escapeHtml(intro)}</p>
     <div class="table-wrap"><table class="comparison-table">
       <thead><tr><th scope="col">${escapeHtml(ctx.L.loopComparisonMetric)}</th><th scope="col">${escapeHtml(ctx.L.loopComparisonBaseline)}</th><th scope="col">${escapeHtml(ctx.L.loopComparisonChange)}</th></tr></thead>
-      <tbody>${resourceRows.join('')}${powerRow}</tbody>
+      <tbody>${resourceRows.join('')}${generatorRow}${byproductRows.join('')}${powerRow}</tbody>
     </table></div>
     <p class="version">${escapeHtml(ctx.L.loopComparisonPowerNote)}</p>`
+}
+
+function countChange(ctx: Ctx, baseline: number, current: number): string {
+  const ratio = baseline <= 0 ? 0 : Math.abs(current - baseline) / baseline
+  return current > baseline
+    ? ctx.L.loopChangeIncrease(ctx.fmtPercent(ratio))
+    : ctx.L.loopChangeDecrease(ctx.fmtPercent(ratio))
 }
 
 function loopRelatedItemIds(solution: Solution, sample: SamplePlan): readonly string[] {
@@ -1735,10 +1764,19 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
   const description = ctx.L.loopDescription(content.description, meta.gameVersion)
   const breadcrumbId = `${path}#breadcrumb`
   const circulation = renderWaterCirculation(ctx, content, current)
+  const baselineSample = loopBaselineSample(sample)
+  const baselineTitle =
+    baselineSample === undefined ? undefined : loopContent(ctx, baselineSample).title
   const comparison =
     baseline === undefined
       ? `<p>${escapeHtml(ctx.L.loopCurrentPlanNote)}</p>${renderCurrentPlanMetrics(ctx, current)}${renderRawResourceTable(ctx, current)}`
-      : `${renderBaselineComparison(ctx, current, baseline)}<h3>${escapeHtml(ctx.L.loopTemplateResourcesHeading)}</h3>${renderRawResourceTable(ctx, current)}`
+      : `${renderBaselineComparison(ctx, current, baseline, baselineTitle)}<h3>${escapeHtml(ctx.L.loopTemplateResourcesHeading)}</h3>${renderRawResourceTable(ctx, current)}`
+  const comparisonHeading =
+    baseline === undefined
+      ? ctx.L.loopResultHeading
+      : baselineTitle === undefined
+        ? ctx.L.loopComparisonHeading
+        : ctx.L.loopStageComparisonHeading(baselineTitle)
   const body = `${renderBreadcrumbs(
     [
       { label: ctx.L.home, href: landingPagePath(ctx.locale) },
@@ -1763,7 +1801,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
         <ol>${content.mechanism.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ol>
       </section>
       <section>
-        <h2>${escapeHtml(baseline === undefined ? ctx.L.loopResultHeading : ctx.L.loopComparisonHeading)}</h2>
+        <h2>${escapeHtml(comparisonHeading)}</h2>
         <p class="version">${escapeHtml(ctx.L.loopSolverNote(meta.gameVersion))}</p>
         ${comparison}
       </section>

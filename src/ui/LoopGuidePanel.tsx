@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
 import { useLocale } from '../i18n/index.ts'
-import { getLoopBaseline } from '../plan/loop-baseline.ts'
+import { getLoopBaseline, hasLoopBaseline } from '../plan/loop-baseline.ts'
 import type { SamplePlan } from '../plan/samples.ts'
 import type { Solution, SolveResult } from '../solver/index.ts'
-import { fmtPercent, fmtPower, fmtRate, itemName, itemUnit } from './format.ts'
+import { fmtInt, fmtPercent, fmtPower, fmtRate, itemName, itemUnit } from './format.ts'
 import { T } from './text.ts'
 
 type LoopGuidePanelProps = {
@@ -20,12 +20,13 @@ type BaselineState =
 export function LoopGuidePanel({ sample, solution }: LoopGuidePanelProps) {
   const { locale } = useLocale()
   const [open, setOpen] = useState(true)
-  const comparesAlternates = sample.snapshot.a.length > 0
+  // 代替レシピを持つテンプレートは「代替なし」と、段階テンプレートは基準テンプレートと比べる
+  const hasComparison = hasLoopBaseline(sample)
   const [baseline, setBaseline] = useState<BaselineState>({ status: 'loading' })
 
   useEffect(() => {
     setOpen(true)
-    if (locale !== 'ja' || !comparesAlternates) return
+    if (locale !== 'ja' || !hasComparison) return
 
     let cancelled = false
     setBaseline({ status: 'loading' })
@@ -40,7 +41,7 @@ export function LoopGuidePanel({ sample, solution }: LoopGuidePanelProps) {
     return () => {
       cancelled = true
     }
-  }, [comparesAlternates, locale, sample])
+  }, [hasComparison, locale, sample])
 
   if (sample.guide === undefined) return null
 
@@ -59,7 +60,7 @@ export function LoopGuidePanel({ sample, solution }: LoopGuidePanelProps) {
       <div className="loop-explanation__body">
         <GuideSection heading={T.loopGuide.mechanism} ordered lines={sample.guide.sections.mechanism} />
 
-        {comparesAlternates && (
+        {hasComparison && (
           <section>
             <h4>{T.loopGuide.savings}</h4>
             <SavingsComparison baseline={baseline} solution={solution} />
@@ -122,8 +123,17 @@ function SavingsComparison({
     return [{ item: raw.item, baseline: raw.ratePerMin, current }]
   })
   const powerChange = notablePowerChange(baseline.result.totalClockedPowerMW, solution.totalClockedPowerMW)
+  // 発電機の台数と、余る副産物（核廃棄物）。段階テンプレートの比較で意味を持つ行なので、
+  // 差が無いときは出さない（既存テンプレートの表示を変えない）
+  const generatorChange = generatorCountChange(baseline.result, solution)
+  const byproductChanges = byproductSurplusChanges(baseline.result, solution)
 
-  if (savings.length === 0 && powerChange === null) {
+  if (
+    savings.length === 0 &&
+    powerChange === null &&
+    generatorChange === null &&
+    byproductChanges.length === 0
+  ) {
     return <p className="hint">{T.loopGuide.noSavings}</p>
   }
 
@@ -136,6 +146,19 @@ function SavingsComparison({
             itemUnit(entry.item),
             fmtPercent((entry.baseline - entry.current) / entry.baseline),
           )}
+        </li>
+      ))}
+      {generatorChange !== null && (
+        <li>
+          {T.summary.powerGenerationCount} {fmtInt(generatorChange.baseline)} →{' '}
+          {fmtInt(generatorChange.current)}
+          {T.summary.powerGenerationCountUnit}
+        </li>
+      )}
+      {byproductChanges.map((entry) => (
+        <li key={entry.item}>
+          {T.summary.byproducts} {itemName(entry.item)} {fmtRate(entry.baseline)} →{' '}
+          {fmtRate(entry.current)} {itemUnit(entry.item)}
         </li>
       ))}
       {powerChange !== null && (
@@ -151,6 +174,25 @@ function SavingsComparison({
       )}
     </ul>
   )
+}
+
+function generatorCountChange(baseline: Solution, current: Solution) {
+  const before = baseline.powerGeneration?.totalGeneratorCount ?? 0
+  const after = current.powerGeneration?.totalGeneratorCount ?? 0
+  if (before === after) return null
+  return { baseline: before, current: after }
+}
+
+function byproductSurplusChanges(baseline: Solution, current: Solution) {
+  const before = new Map(baseline.byproducts.map((entry) => [entry.item, entry.ratePerMin]))
+  const after = new Map(current.byproducts.map((entry) => [entry.item, entry.ratePerMin]))
+  const items = [...new Set([...before.keys(), ...after.keys()])]
+  return items.flatMap((item) => {
+    const b = before.get(item) ?? 0
+    const c = after.get(item) ?? 0
+    if (Math.abs(b - c) <= 0.005) return []
+    return [{ item, baseline: b, current: c }]
+  })
 }
 
 function notablePowerChange(baseline: number, current: number) {

@@ -377,7 +377,7 @@ const jaLabels = {
   // --- 記事（共通） ---
   articlesIndexTitle: 'Satisfactory 解説記事',
   articlesIndexDescription:
-    'Satisfactoryの生産計画、代替レシピ、発電、アルミニウム、シンクポイント、Excel出力と、8種類の循環・燃料チェーンを日本語で解説します。',
+    'Satisfactoryの生産計画、代替レシピ、発電、アルミニウム、シンクポイント、Excel出力と、10種類の循環・燃料チェーンを日本語で解説します。',
   articlesIndexEyebrow: (count: number): string => `全${count}記事`,
   articlesIndexLead:
     'ツールの操作からレシピ比較、発電、循環ラインまで、実データと計算結果に沿って解説します。',
@@ -441,6 +441,14 @@ const jaLabels = {
   loopChangeNew: '新規使用',
   loopChangeIncrease: (percent: string): string => `${percent}増加`,
   loopChangeDecrease: (percent: string): string => `${percent}削減`,
+  loopChangeAppears: '新たに発生',
+  loopChangeGone: '残らない',
+  loopGeneratorCount: '発電機（建てる台数）',
+  loopByproductLeft: (name: string): string => `余る${name}`,
+  loopStageComparisonHeading: (baselineTitle: string): string =>
+    `「${baselineTitle}」との比較`,
+  loopStageComparisonIntro: (baselineTitle: string): string =>
+    `基準は「${baselineTitle}」を同じ目標で再計算した結果です。原料の増減・発電機の台数・余る廃棄物・製造電力の変化を一緒に判断してください。`,
 }
 
 export type StaticPageLabels = typeof jaLabels
@@ -661,7 +669,7 @@ const enLabels: StaticPageLabels = {
 
   articlesIndexTitle: 'Satisfactory guides',
   articlesIndexDescription:
-    'Guides to production planning, alternate recipes, power, aluminum, sink points and the Excel export in Satisfactory, plus eight loop and fuel chain templates.',
+    'Guides to production planning, alternate recipes, power, aluminum, sink points and the Excel export in Satisfactory, plus ten loop and fuel chain templates.',
   articlesIndexEyebrow: (count: number): string => `${count} guides`,
   articlesIndexLead:
     'From using the planner to comparing recipes, planning power and closing loops — every guide follows the real game data and the solved numbers.',
@@ -720,6 +728,14 @@ const enLabels: StaticPageLabels = {
   loopChangeNew: 'Newly used',
   loopChangeIncrease: (percent: string): string => `${percent} more`,
   loopChangeDecrease: (percent: string): string => `${percent} less`,
+  loopChangeAppears: 'Newly produced',
+  loopChangeGone: 'None left',
+  loopGeneratorCount: 'Generators to build',
+  loopByproductLeft: (name: string): string => `${name} left over`,
+  loopStageComparisonHeading: (baselineTitle: string): string =>
+    `Results compared with “${baselineTitle}”`,
+  loopStageComparisonIntro: (baselineTitle: string): string =>
+    `The baseline is “${baselineTitle}” solved again with the same target. Read the change in raw resources together with the generator count, the waste left over and the production power.`,
 }
 
 export const STATIC_PAGE_LABELS: Readonly<Record<StaticLocale, StaticPageLabels>> = {

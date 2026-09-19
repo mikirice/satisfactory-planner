@@ -54,6 +54,13 @@ export type SamplePlan = {
   hasCycle?: true
   /** ループモードで結果の上に表示する、このテンプレート固有の解説。 */
   guide?: SampleGuide
+  /**
+   * 比較の基準にする別テンプレートの id。
+   * 指定があれば「代替レシピなしの同じ目標」ではなく、そのテンプレートを解いた結果と比べる
+   * （原子力の段階テンプレートは 3 つとも「① ウラン発電」を基準にする）。
+   * 基準側は自身の代替レシピ・余りを許さない副産物の設定をそのまま使う。
+   */
+  baselineId?: string
   /** 投入する入力一式 */
   snapshot: PlanSnapshot
 }
@@ -342,6 +349,137 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     },
   },
   {
+    id: 'nuclear-uranium',
+    category: 'special',
+    title: '原子力 ①: ウラン発電',
+    description:
+      '5,000 MW。ウラン燃料棒だけを燃やす最小の原子力構成。ウラン廃棄物は保管するしかない。',
+    titleEn: 'Nuclear, stage 1: uranium power',
+    descriptionEn:
+      '5,000 MW from {{Desc_NuclearFuelRod_C}} alone, the smallest nuclear setup. The {{Desc_NuclearWaste_C}} has to be stored.',
+    highlight: '原子力発電所から出たウラン廃棄物が、どの工程にも戻らず行き止まりになる線に注目。',
+    icon: 'Desc_NuclearFuelRod_C',
+    guide: {
+      sections: {
+        mechanism: [
+          'ウランを採掘し、硫酸・コンクリートと一緒に混合機へ入れて被覆型ウラン・セルを作ります。硫酸は硫黄と水から精製機で作ります。',
+          '硫黄とカテリウム鉱石は、この計算ではSAMを活性SAMにして鉄鉱石・銅鉱石と一緒に変換機へ入れて作ります。採掘できる場所なら採掘機に置き換えられます。',
+          '鋼梁とコンクリートからコンクリート被覆型鋼梁を、固定子とAIリミッターから電磁制御棒を組み立てます。',
+          '被覆型ウラン・セル・コンクリート被覆型鋼梁・電磁制御棒を製造機へ入れ、ウラン燃料棒にします。',
+          'ウラン燃料棒を原子力発電所へ送り、冷却水を配管して発電します。',
+          '発電所から出るウラン廃棄物はどの工程にも使い道がないため、ベルトで運び出して保管庫に貯めます。',
+        ],
+        tips: [
+          'ウラン廃棄物はシンクポイントが0で、AWESOMEシンクに流せません。発電を続けるかぎり貯まり続けるので、保管庫を並べる場所を先に決めてください。',
+          'ウラン・被覆型ウラン・セル・ウラン燃料棒・ウラン廃棄物は放射線を出します。ベルトと保管庫は通路から離し、ヨウ素注入フィルターを着けて作業してください。',
+          '発電計画の燃料を「ウラン燃料棒」だけにし、「残さない」のチェックを全部外した状態がこの段階です。廃棄物の再処理まで進めるときは、燃料にプルトニウム燃料棒を足し、ウラン廃棄物の「残さない」にチェックを入れて ② へ進みます。',
+          '原料上限でウランを無制限にしています。原料コストの評価ではウランが最も希少になり、そのままだとSAMとボーキサイトを変換機に入れてウランを作る経路が選ばれるためです。3段とも同じ設定です。硫黄とカテリウム鉱石も採掘で賄いたいときは、SAMの上限を0にしてください。',
+        ],
+      },
+    },
+    snapshot: {
+      ...DEFAULTS,
+      n: '原子力 ①: ウラン発電',
+      t: [],
+      a: [],
+      // ウランの上限を外す（希少度コストで変換機経由のウラン生成が選ばれるのを避け、採掘したウランを使う）。
+      // 3 段とも同じ設定にして、段の違いを「燃料」と「残さない」だけにする。
+      l: { Desc_OreUranium_C: null },
+      g: ['Build_GeneratorNuclear_C'],
+      u: { Build_GeneratorNuclear_C: ['Desc_NuclearFuelRod_C'] },
+      w: 5000,
+    },
+  },
+  {
+    id: 'nuclear-plutonium',
+    category: 'special',
+    title: '原子力 ②: プルトニウムまで再処理',
+    description:
+      '5,000 MW。ウラン廃棄物を全量プルトニウム燃料棒にして燃やす。残るのはプルトニウム廃棄物だけ。',
+    titleEn: 'Nuclear, stage 2: reprocess to plutonium',
+    descriptionEn:
+      '5,000 MW. Every bit of {{Desc_NuclearWaste_C}} becomes {{Desc_PlutoniumFuelRod_C}} and is burned; only {{Desc_PlutoniumWaste_C}} remains.',
+    highlight: 'ウラン廃棄物が非核分裂性ウランへ入り、プルトニウム燃料棒として発電所へ戻る線に注目。',
+    icon: 'Desc_PlutoniumFuelRod_C',
+    baselineId: 'nuclear-uranium',
+    guide: {
+      sections: {
+        mechanism: [
+          '① と同じ工程でウラン燃料棒を作り、原子力発電所で燃やします。',
+          '発電所から出るウラン廃棄物を、シリカ・硝酸・硫酸と一緒に混合機へ入れて非核分裂性ウランにします。硝酸は窒素ガス・水・鉄板から混合機で作ります。',
+          '非核分裂性ウランとウラン廃棄物を粒子加速器へ入れ、プルトニウム・ペレットを作ります。',
+          'プルトニウム・ペレットとコンクリートから被覆型プルトニウム・セルを組み立て、鋼梁・電磁制御棒・ヒートシンクと一緒に製造機でプルトニウム燃料棒にします。',
+          'プルトニウム燃料棒を別の原子力発電所で燃やします。その分だけウラン燃料棒で賄う発電量が減り、ウランの採掘量も減ります。',
+          'プルトニウム燃料棒を燃やすと出るプルトニウム廃棄物は、この段階では使い道がないため保管庫に貯めます。',
+        ],
+        tips: [
+          'ウラン廃棄物は全量を再処理に回す設定です。再処理ラインが止まると廃棄物が発電所に詰まって発電まで止まるため、混合機の手前にコンテナを置いてバッファにしてください。',
+          'プルトニウム廃棄物もシンクポイントが0で処分できません。量はウラン廃棄物よりずっと少ないので、保管庫は少数で足ります。',
+          '硫酸と硝酸の2種類の配管が要ります。混合機に入る液体の種類を間違えやすいので、配管の色分けや名前付けをしておくと組み替えが楽になります。',
+          '① との違いは、燃料に「プルトニウム燃料棒」を足したことと、ウラン廃棄物の「残さない」にチェックを入れたことの2つだけです。③ へ進むときは燃料にFICSONIUM燃料棒を足し、プルトニウム廃棄物の「残さない」にもチェックを入れます。',
+        ],
+      },
+    },
+    snapshot: {
+      ...DEFAULTS,
+      n: '原子力 ②: プルトニウムまで再処理',
+      t: [],
+      a: [],
+      l: { Desc_OreUranium_C: null },
+      g: ['Build_GeneratorNuclear_C'],
+      u: { Build_GeneratorNuclear_C: ['Desc_NuclearFuelRod_C', 'Desc_PlutoniumFuelRod_C'] },
+      w: 5000,
+      z: ['Desc_NuclearWaste_C'],
+    },
+  },
+  {
+    id: 'nuclear-reprocessing',
+    category: 'special',
+    title: '原子力 ③: FICSONIUMで完全循環',
+    description:
+      '5,000 MW。プルトニウム廃棄物までFICSONIUM燃料棒にして燃やし、核廃棄物を1つも残さない。',
+    titleEn: 'Nuclear, stage 3: closed loop with {{Desc_Ficsonium_C}}',
+    descriptionEn:
+      '5,000 MW. {{Desc_PlutoniumWaste_C}} becomes {{Desc_FicsoniumFuelRod_C}} and is burned too, so no nuclear waste is left at all.',
+    highlight: 'プルトニウム廃棄物がFICSONIUMを経て燃料棒になり、3種類の燃料棒がすべて発電所へ入る線に注目。',
+    icon: 'Desc_FicsoniumFuelRod_C',
+    baselineId: 'nuclear-uranium',
+    guide: {
+      sections: {
+        mechanism: [
+          '① と同じ工程でウラン燃料棒を、② と同じ工程でプルトニウム燃料棒を作り、それぞれ原子力発電所で燃やします。',
+          'プルトニウム燃料棒から出るプルトニウム廃棄物を、シンギュラリティセル・ダークマターの残留物と一緒に粒子加速器へ入れてFICSONIUMにします。',
+          'ダークマターの残留物は活性SAMから変換機で作ります。シンギュラリティセルは核パスタ・ダークマターの結晶・鉄板・コンクリートから製造機で組み立てます。',
+          'FICSONIUM・電磁制御棒・FICSITEの三角板・励起フォトニック物質を量子エンコーダーへ入れ、FICSONIUM燃料棒にします。副産物のダークマターの残留物はFICSONIUMの工程へ戻します。',
+          'FICSONIUM燃料棒を原子力発電所で燃やします。この燃料棒は廃棄物を出さないので、敷地から出ていく核廃棄物がなくなります。',
+        ],
+        tips: [
+          'ウラン廃棄物とプルトニウム廃棄物の両方を全量再処理する設定です。どこかの工程が止まると廃棄物が上流に詰まって発電所まで止まるため、各廃棄物の手前にコンテナを置いてバッファにしてください。',
+          '放射性物質は3種類の燃料棒と2種類の廃棄物に増えます。再処理区画は工場本体から離し、壁・距離・ヨウ素注入フィルターで作業者を守ってください。',
+          '硫酸・硝酸に加えて、励起フォトニック物質とダークマターの残留物の配管が要ります。起動前に液体・気体を先に流し、粒子加速器と量子エンコーダーが受け入れ可能なことを確認してください。',
+          '② との違いは、燃料に「FICSONIUM燃料棒」を足したことと、プルトニウム廃棄物の「残さない」にチェックを入れたことの2つだけです。プルトニウムで止めるときはこの2つを戻します。',
+        ],
+      },
+    },
+    snapshot: {
+      ...DEFAULTS,
+      n: '原子力 ③: FICSONIUMで完全循環',
+      t: [],
+      a: [],
+      l: { Desc_OreUranium_C: null },
+      g: ['Build_GeneratorNuclear_C'],
+      u: {
+        Build_GeneratorNuclear_C: [
+          'Desc_NuclearFuelRod_C',
+          'Desc_PlutoniumFuelRod_C',
+          'Desc_FicsoniumFuelRod_C',
+        ],
+      },
+      w: 5000,
+      z: ['Desc_NuclearWaste_C', 'Desc_PlutoniumWaste_C'],
+    },
+  },
+  {
     id: 'nuclear-simplified',
     category: 'special',
     title: '原子力発電（代替レシピで簡略化）',
@@ -383,50 +521,6 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
       g: ['Build_GeneratorNuclear_C'],
       u: { Build_GeneratorNuclear_C: ['Desc_NuclearFuelRod_C'] },
       w: 2500,
-    },
-  },
-  {
-    id: 'nuclear-reprocessing',
-    category: 'special',
-    title: '原子力と再処理',
-    description:
-      '5,000 MWとFICSONIUM燃料棒 0.1/min。核廃棄物から続く再処理の全段をたどれる。',
-    titleEn: 'Nuclear Power and Reprocessing',
-    descriptionEn:
-      '5,000 MW and 0.1/min of {{Desc_FicsoniumFuelRod_C}}. Follow every reprocessing stage from nuclear waste.',
-    highlight: 'ウラン廃棄物からFICSONIUM燃料棒まで続く再処理の線に注目。',
-    icon: 'Desc_NuclearFuelRod_C',
-    guide: {
-      sections: {
-        mechanism: [
-          'ウランを加工してウラン燃料棒を作り、原子力発電所へ送ります。',
-          '発電後に出るウラン廃棄物を、非核分裂性ウランなどの再処理工程へ送ります。',
-          '再処理した材料からプルトニウム・ペレット、被覆型プルトニウム・セル、燃料棒を順に作ります。',
-          'プルトニウム廃棄物をFICSONIUMへ変換し、FICSONIUM燃料棒まで加工します。',
-          '発電用に選ばれた核燃料棒を原子力発電所へ送り、FICSONIUM燃料棒は再処理チェーンの終点として取り出します。',
-        ],
-        tips: [
-          '各廃棄物の前に十分なバッファを置き、後段の停止が発電所まで波及しないようにします。',
-          '放射線区域は工場本体から離し、壁・距離・ヨウ素注入フィルターで作業者を守ります。',
-          '起動前に酸・水・補助素材を先に流し、再処理ラインが受け入れ可能なことを確認してください。',
-        ],
-      },
-    },
-    snapshot: {
-      ...DEFAULTS,
-      n: '原子力と再処理',
-      // 発電目標だけでは資源最適解が FICSONIUM まで進まないため、少量の併産を指定する。
-      t: [['Desc_FicsoniumFuelRod_C', 0.1]],
-      a: [],
-      g: ['Build_GeneratorNuclear_C'],
-      u: {
-        Build_GeneratorNuclear_C: [
-          'Desc_NuclearFuelRod_C',
-          'Desc_PlutoniumFuelRod_C',
-          'Desc_FicsoniumFuelRod_C',
-        ],
-      },
-      w: 5000,
     },
   },
 ]
