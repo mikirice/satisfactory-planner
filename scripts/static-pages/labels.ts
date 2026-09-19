@@ -728,6 +728,87 @@ export const STATIC_PAGE_LABELS: Readonly<Record<StaticLocale, StaticPageLabels>
 }
 
 /**
+ * ランディング（/ と /en/）の文面の形。日英で同じ節構成（scripts/build-pages.ts の
+ * renderLandingPage が両方をこの形で受け取る）。
+ */
+export type LandingCopy = {
+  readonly title: string
+  readonly description: string
+  readonly eyebrow: string
+  readonly heading: string
+  readonly lead: string
+  readonly ctaLabel: string
+  readonly ctaNote: string
+  readonly overviewHeading: string
+  readonly overviewParagraphs: readonly string[]
+  readonly featuresHeading: string
+  readonly features: readonly string[]
+  readonly dataHeading: string
+  readonly dataParagraphs: readonly string[]
+  readonly linksHeading: string
+  readonly itemsLinkLabel: string
+  readonly articlesLinkLabel: string
+  readonly aboutLinkLabel: string
+  readonly privacyLinkLabel: string
+  /** 本文の末尾に置く、もう一方の言語のトップへのリンク（無いページは出さない）。 */
+  readonly otherLandingLinkLabel?: string
+}
+
+/**
+ * 日本語のトップページ（/）専用の文。
+ *
+ * 計画ツール本体は /app/ にあり、トップは静的なランディングとして「サイトの説明 →
+ * ツールへの導線 → 機能・データ・FAQ・サイト内リンク」を出す（構成は EN_LANDING と同じ）。
+ * 文面は旧トップ（index.html の site-intro）と head にあった説明をそのまま移したもの。
+ * 見出しはこのサイト内（/about/）で既に使っている語に揃える。
+ * 文言を変えるときは /about/（上の about*）と食い違わないようにする。
+ */
+export const JA_LANDING = {
+  /** 旧トップの <title>（カタカナ表記＝検索の実需要に合わせる。titleSiteName と同じ理由）。 */
+  title: 'サティスファクトリー（Satisfactory）生産計画ツール — 日本語ソルバー＆Excel出力',
+  /** 旧トップの meta description。 */
+  description:
+    'Satisfactory の生産ラインを日本語で計算する非公式ツール。目標レートを入れるだけで必要なレシピ・建物数・電力・原料を最適化し、Excel（6シート）とフローチャートで出力します。代替レシピ・クロック・サマースループにも対応。インストール不要・ブラウザだけで動きます。',
+  eyebrow: '無料の非公式Webツール',
+  heading: 'Satisfactory 生産計画ツール',
+  /** 旧トップの og:description。 */
+  lead: '目標レートを入れるだけで、必要なレシピ・建物数・電力・原料を最適化。Excel出力とフローチャート付きの非公式ファンツールです。',
+  ctaLabel: '計画ツールを使う',
+  ctaNote: 'インストール不要・ブラウザだけで動きます。',
+
+  overviewHeading: 'Satisfactory 生産計画ツールについて',
+  overviewParagraphs: [
+    'Satisfactory 生産計画ツールは、ゲーム「Satisfactory」の工場と生産ラインを設計するための無料の非公式Webツールです。作りたいアイテムと毎分の目標レートを入力すると、線形計画法のソルバーが必要なレシピ、機械の台数、消費電力、原料の量を計算します。インストールも会員登録も不要で、ブラウザだけで動きます。',
+    '「代替レシピを使うと原料はどれだけ減るのか」「この生産量に発電機は何台必要か」を数字で確かめたい方に向けたツールです。計算結果はフローチャートと表で確認でき、Excel に書き出したり、共有URLで別の端末やフレンドに渡したりできます。',
+  ],
+
+  featuresHeading: '主な機能',
+  features: [
+    '線形計画法による最適レシピの計算（原料・電力・設備数のどれを優先するか選択可能）',
+    '生産ライン全体をたどれるフローチャート表示',
+    'Excel ファイルへの書き出し（材料・工程・設備・電力をシート別に出力）',
+    '発電機と燃料を含めた発電計画の同時計算',
+    '石油の完全循環や水の再利用などのループ構成テンプレート',
+    '全アイテムのレシピ辞典（作り方・使い道・毎分レート・電力効率）',
+    '日本語を含む12言語対応',
+  ],
+
+  dataHeading: 'データについて',
+  dataParagraphs: [
+    'レシピや電力などの数値はゲームの公式データ（バージョン1.1系）に基づき、アイテム名はゲーム内の公式訳と一致させています。',
+  ],
+
+  linksHeading: 'サイト内の主なページ',
+  /** 2次リンク。パスは item-pages.ts の関数から作り、ここには文言だけ置く。 */
+  itemsLinkLabel: 'アイテム一覧（全198件のレシピ辞典）',
+  articlesLinkLabel: '解説記事',
+  aboutLinkLabel: 'このサイトについて',
+  privacyLinkLabel: 'プライバシーポリシー',
+  /** 英語版の入口（旧トップにもあった導線。ヘッダーの言語切替と二重だが、本文からも辿れるよう残す）。 */
+  otherLandingLinkLabel: 'English',
+} as const satisfies LandingCopy
+
+/**
  * 英語のランディングページ（/en/）専用の文。
  *
  * トップ（/）は SPA ＋日本語の静的説明なので、クローラからは「日本語のページ」に見え、
@@ -781,4 +862,4 @@ export const EN_LANDING = {
   articlesLinkLabel: 'Guides — planning, power, loops and the Excel export',
   aboutLinkLabel: 'About this site — who runs it, data sources and disclaimer',
   privacyLinkLabel: 'Privacy policy',
-} as const
+} as const satisfies LandingCopy

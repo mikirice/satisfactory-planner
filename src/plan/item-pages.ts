@@ -61,6 +61,24 @@ export function itemPagePath(itemId: string, locale: string = 'ja'): string | nu
   return slug === undefined ? null : `${staticPagePrefix(locale)}/items/${slug}/`
 }
 
+/**
+ * 計画ツール本体（SPA）のパス。言語を問わず1つのURL。
+ * トップ（/）は静的なランディングになったので、「ツールを開く」リンクは必ずここを通す
+ * （共有URLは `/app/#plan=…`。旧 `/#plan=…` はランディング側のスクリプトがここへ送る）。
+ */
+export function appPagePath(): string {
+  return '/app/'
+}
+
+/**
+ * その言語のトップ（静的ランディング）のパス。ja は /、それ以外は /en/。
+ * 「サイトのホームへ戻る」リンク（静的ページのブランド名・パンくずの先頭）に使う。
+ * ツールを開くリンクは appPagePath() で、こちらではない。
+ */
+export function landingPagePath(locale: string = 'ja'): string {
+  return `${staticPagePrefix(locale)}/`
+}
+
 /** アイテム一覧ページのパス。 */
 export function itemsIndexPath(locale: string = 'ja'): string {
   return `${staticPagePrefix(locale)}/items/`

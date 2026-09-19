@@ -1,7 +1,9 @@
 import {
   aboutPagePath,
+  appPagePath,
   articlesIndexPath,
   itemsIndexPath,
+  landingPagePath,
   privacyPagePath,
 } from '../../src/plan/item-pages.ts'
 import {
@@ -47,7 +49,44 @@ export type StaticPageMeta = {
    * FAQPage のように、ページ本体を表す @graph とは独立に置きたいものに使う。
    */
   extraStructuredData?: readonly unknown[]
+  /**
+   * <head> の先頭（charset の直後）に置く生の HTML。
+   * 旧共有URL（/#plan=…）を /app/ へ送るスクリプトのように、他のどのスクリプトよりも
+   * 先に走らせたいものだけに使う（呼び出し側でエスケープ済みであること）。
+   */
+  headStart?: string
+  /**
+   * <head> の末尾に置く生の HTML。旧トップ（SPA の index.html）にあった GA4 タグと
+   * テスト用ホストの noindex を、トップを引き継いだランディングだけに載せるために使う
+   * （他の静的ページはこれまで通り持たない）。
+   */
+  headEnd?: string
 }
+
+/** GA4 の測定ID（計画ツール本体 app/index.html と同じもの）。 */
+export const GA_MEASUREMENT_ID = 'G-YW0XFH86J7'
+
+/**
+ * 旧トップの head にあったスクリプト2つ。
+ * 1. *.vercel.app（プレビュー）だけ noindex にして、本番ドメインの評価が割れないようにする
+ * 2. GA4（gtag.js）
+ */
+export const LANDING_HEAD_SCRIPTS = `<script>
+      if (location.hostname.endsWith('.vercel.app')) {
+        var robots = document.createElement('meta')
+        robots.name = 'robots'
+        robots.content = 'noindex'
+        document.head.appendChild(robots)
+      }
+    </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${GA_MEASUREMENT_ID}');
+    </script>`
 
 export function escapeHtml(value: string): string {
   return value
@@ -116,6 +155,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
   const labels = STATIC_PAGE_LABELS[locale]
   const ui = UI_DICTIONARIES[locale]
   const name = siteName(locale)
+  const homeHref = landingPagePath(locale)
   const itemsHref = itemsIndexPath(locale)
   const articlesHref = articlesIndexPath(locale)
   const aboutHref = aboutPagePath(locale)
@@ -134,6 +174,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
 <html lang="${HTML_LANG[locale]}">
   <head>
     <meta charset="UTF-8" />
+    ${meta.headStart ?? ''}
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/static-pages.css" />
@@ -158,15 +199,16 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
     <meta name="twitter:description" content="${escapeHtml(meta.description)}" />
     <meta name="twitter:image" content="${SITE_URL}/ogp.png" />
     ${structuredData}
+    ${meta.headEnd ?? ''}
   </head>
   <body>
     <a class="skip-link" href="#main-content">${escapeHtml(labels.skipToContent)}</a>
     <header class="site-header">
-      <a class="brand" href="/">${escapeHtml(name)}</a>
+      <a class="brand" href="${escapeHtml(homeHref)}">${escapeHtml(name)}</a>
       <nav aria-label="${escapeHtml(labels.siteNavLabel)}">
         <a href="${escapeHtml(itemsHref)}">${escapeHtml(ui.footer.items)}</a>
         <a href="${escapeHtml(articlesHref)}">${escapeHtml(ui.footer.articles)}</a>
-        <a href="/">${escapeHtml(labels.planner)}</a>
+        <a href="${escapeHtml(appPagePath())}">${escapeHtml(labels.planner)}</a>
       </nav>
       ${renderLanguageSwitch(meta)}
     </header>
