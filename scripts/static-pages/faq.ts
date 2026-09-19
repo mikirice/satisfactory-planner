@@ -67,10 +67,15 @@ function officialName(id: string, locale: StaticLocale): string {
   return name[locale]
 }
 
-/** `{{Desc_…}}` を公式名に置き換える（UI辞書から借りた語に含まれるトークンもここで解ける）。 */
-function resolve(text: string, locale: StaticLocale): string {
+/**
+ * `{{Desc_…}}` / `{{Build_…}}` を公式名に置き換える（UI辞書から借りた語に含まれるトークンもここで解ける）。
+ * ランディングの文（labels.ts の JA_LANDING / EN_LANDING）も同じ規則で書くので、そちらからも使う。
+ */
+export function resolveOfficialNames(text: string, locale: StaticLocale): string {
   return text.replace(GAME_TERM_PATTERN, (_token, id: string) => officialName(id, locale))
 }
+
+const resolve = resolveOfficialNames
 
 function japaneseEntries(): readonly FaqEntry[] {
   const ui = UI_DICTIONARIES.ja

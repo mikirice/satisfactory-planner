@@ -728,9 +728,48 @@ export const STATIC_PAGE_LABELS: Readonly<Record<StaticLocale, StaticPageLabels>
 }
 
 /**
+ * ランディング（/ と /en/）に載せるスクリーンショット。
+ * 実物は public/landing/{ja,en}-{name}.webp（原本は 開発/Satisfactory生産計画ツール/screenshots/ の
+ * 1440×900 のスクリーンショットを主パネルだけに切り出したもの）。寸法は生成時にファイルから読む。
+ * 日本語ページには日本語UIの画像、英語ページには英語UIの画像を使う（混ぜない）。
+ */
+export type LandingImageName = 'flowchart' | 'infeasible' | 'buildlist' | 'summary'
+
+export type LandingFeature = {
+  readonly heading: string
+  /** 本文。`{{Desc_…}}` / `{{Build_…}}` はゲーム内公式名に置き換えて出す（faq.ts と同じ）。 */
+  readonly paragraphs: readonly string[]
+  readonly image: LandingImageName
+  /** 画像の内容を言葉で説明する alt（何の画面で、何が写っているか）。 */
+  readonly imageAlt: string
+  /**
+   * 画像を本文の下に全幅で置く（既定は本文と画像を左右に並べる）。
+   * 横長で文字の小さい画像（実行不能の説明カード）は横に並べると読めないので、こちらにする。
+   */
+  readonly stacked?: true
+}
+
+export type LandingStep = {
+  readonly heading: string
+  readonly body: string
+}
+
+/**
  * ランディング（/ と /en/）の文面の形。日英で同じ節構成（scripts/build-pages.ts の
  * renderLandingPage が両方をこの形で受け取る）。
+ *
+ * 節の順番: ヒーロー → 他のツールに無い3つのこと → 3ステップの使い方 →
+ * ループテンプレート → 解説記事 → FAQ（faq.ts）→ フッター（templates.ts）。
+ * テンプレートと記事の見出しはここに書かず、samples.ts / content/articles から取る。
  */
+/**
+ * 見出し用の改行位置マーカー。日本語の見出しは文節の境でだけ折り返したいので、
+ * 文節の境にこの文字を置き、renderer が（エスケープ後に）<wbr> に変える。
+ * 見出し以外の文（lead・本文・alt・説明）には置かない（そのまま表示されてしまう。テストで検査）。
+ * 英語の見出しには置かない（単語間の空白で折り返せる）。
+ */
+export const HEADING_BREAK_MARKER = '|'
+
 export type LandingCopy = {
   readonly title: string
   readonly description: string
@@ -739,127 +778,211 @@ export type LandingCopy = {
   readonly lead: string
   readonly ctaLabel: string
   readonly ctaNote: string
-  readonly overviewHeading: string
-  readonly overviewParagraphs: readonly string[]
+  /** 前回ツールを開いた記録（localStorage）があるときだけ見せる副導線。 */
+  readonly continueLabel: string
+  readonly heroImageAlt: string
+
   readonly featuresHeading: string
-  readonly features: readonly string[]
-  readonly dataHeading: string
-  readonly dataParagraphs: readonly string[]
-  readonly linksHeading: string
-  readonly itemsLinkLabel: string
-  readonly articlesLinkLabel: string
-  readonly aboutLinkLabel: string
-  readonly privacyLinkLabel: string
+  readonly features: readonly [LandingFeature, LandingFeature, LandingFeature]
+
+  readonly stepsHeading: string
+  readonly steps: readonly [LandingStep, LandingStep, LandingStep]
+
+  readonly templatesHeading: string
+  readonly templatesIntro: string
+  /** テンプレートカードの末尾に付ける「ツールで開く」の文言。 */
+  readonly templatesOpenLabel: string
+
+  readonly guidesHeading: string
+  readonly guidesIntro: string
+  readonly guidesAllLabel: string
+
   /** 本文の末尾に置く、もう一方の言語のトップへのリンク（無いページは出さない）。 */
   readonly otherLandingLinkLabel?: string
 }
 
 /**
+ * ランディングの「解説記事」節に出す4本（順番どおり）。slug は content/articles と一致させる
+ * （存在しない slug は build-pages の articleHeadline が投げて生成が止まる）。
+ * チュートリアル → 代替レシピ → 石炭発電 → 建設リスト。
+ */
+export const LANDING_GUIDE_SLUGS = [
+  'production-planning-tutorial',
+  'alternate-recipe-metrics',
+  'coal-power-startup',
+  'build-checklist-guide',
+] as const
+
+/**
  * 日本語のトップページ（/）専用の文。
  *
- * 計画ツール本体は /app/ にあり、トップは静的なランディングとして「サイトの説明 →
- * ツールへの導線 → 機能・データ・FAQ・サイト内リンク」を出す（構成は EN_LANDING と同じ）。
- * 文面は旧トップ（index.html の site-intro）と head にあった説明をそのまま移したもの。
- * 見出しはこのサイト内（/about/）で既に使っている語に揃える。
- * 文言を変えるときは /about/（上の about*）と食い違わないようにする。
+ * 計画ツール本体は /app/ にあり、トップは静的なランディング。日本語として自然に読める文を
+ * 書き、英語版の訳にはしない（節の構成だけ EN_LANDING と同じ）。
+ * 事実（シート数・言語数・保存先・実行不能メッセージの内容）はリポジトリで裏を取ってから書く。
+ * title と description は Search Console の再評価中のため凍結（変更しない）。
+ * 見出し・本文の主張は /about/ と食い違わないようにする。
  */
 export const JA_LANDING = {
-  /** 旧トップの <title>（カタカナ表記＝検索の実需要に合わせる。titleSiteName と同じ理由）。 */
+  /** 旧トップの <title>（カタカナ表記＝検索の実需要に合わせる。titleSiteName と同じ理由）。凍結。 */
   title: 'サティスファクトリー（Satisfactory）生産計画ツール — 日本語ソルバー＆Excel出力',
-  /** 旧トップの meta description。 */
+  /** 旧トップの meta description。凍結。 */
   description:
     'Satisfactory の生産ラインを日本語で計算する非公式ツール。目標レートを入れるだけで必要なレシピ・建物数・電力・原料を最適化し、Excel（6シート）とフローチャートで出力します。代替レシピ・クロック・サマースループにも対応。インストール不要・ブラウザだけで動きます。',
   eyebrow: '無料の非公式Webツール',
-  heading: 'Satisfactory 生産計画ツール',
-  /** 旧トップの og:description。 */
-  lead: '目標レートを入れるだけで、必要なレシピ・建物数・電力・原料を最適化。Excel出力とフローチャート付きの非公式ファンツールです。',
-  ctaLabel: '計画ツールを使う',
-  ctaNote: 'インストール不要・ブラウザだけで動きます。',
+  heading: 'Satisfactory の|生産ラインを、|目標レート|ひとつから|丸ごと|計算する',
+  lead: '作りたいアイテムと毎分の目標を入れると、線形計画法のソルバーが採掘から最終製品までの生産ライン全体を一度に解きます。どのレシピを何台の機械で回すか、電力はいくら要るか、原料は毎分いくつ掘るか。答えは表・フローチャート・建設リストで確認でき、Excel にも書き出せます。',
+  ctaLabel: '計画ツールを開く',
+  ctaNote: 'インストール不要・会員登録不要。ブラウザだけで動きます。',
+  continueLabel: '前回の続きを開く',
+  heroImageAlt:
+    'フローチャート表示: {{Desc_ModularFrameHeavy_C}} 10/分の生産ラインを16ノード・20フローで図示。各工程に機械の種類と台数・消費電力、線にはアイテムの毎分レートが書かれている',
 
-  overviewHeading: 'Satisfactory 生産計画ツールについて',
-  overviewParagraphs: [
-    'Satisfactory 生産計画ツールは、ゲーム「Satisfactory」の工場と生産ラインを設計するための無料の非公式Webツールです。作りたいアイテムと毎分の目標レートを入力すると、線形計画法のソルバーが必要なレシピ、機械の台数、消費電力、原料の量を計算します。インストールも会員登録も不要で、ブラウザだけで動きます。',
-    '「代替レシピを使うと原料はどれだけ減るのか」「この生産量に発電機は何台必要か」を数字で確かめたい方に向けたツールです。計算結果はフローチャートと表で確認でき、Excel に書き出したり、共有URLで別の端末やフレンドに渡したりできます。',
-  ],
-
-  featuresHeading: '主な機能',
+  featuresHeading: 'ほかの|計算ツールには|ない|3つのこと',
   features: [
-    '線形計画法による最適レシピの計算（原料・電力・設備数のどれを優先するか選択可能）',
-    '生産ライン全体をたどれるフローチャート表示',
-    'Excel ファイルへの書き出し（材料・工程・設備・電力をシート別に出力）',
-    '発電機と燃料を含めた発電計画の同時計算',
-    '石油の完全循環や水の再利用などのループ構成テンプレート',
-    '全アイテムのレシピ辞典（作り方・使い道・毎分レート・電力効率）',
-    '日本語を含む12言語対応',
+    {
+      heading: '作れないときは、|理由と|直し方を|言葉で|示す',
+      paragraphs: [
+        '条件が足りないと、ただ「解なし」で止まるツールが多いですが、このツールは何が足りないかを文で説明します。たとえば{{Desc_PlutoniumPellet_C}}を目標にすると、材料の{{Desc_NuclearWaste_C}}は{{Build_GeneratorNuclear_C}}を稼働させたときの副産物としてしか得られない、と原因を名指しし、「発電計画を有効にして{{Build_GeneratorNuclear_C}}を許可する」という直し方まで添えます。',
+        '足りないレシピ・原料の上限・目的関数の設定など、行き詰まりの種類ごとに見直す場所が書かれるので、原因を探して設定をいじり回す時間がなくなります。',
+      ],
+      image: 'infeasible',
+      imageAlt:
+        '「この条件では生産できません」の説明カード。{{Desc_PlutoniumPellet_C}} 60/分を目標にしたとき、材料の{{Desc_NuclearWaste_C}}が{{Build_GeneratorNuclear_C}}の副産物としてしか得られないことと、発電計画を有効にして許可するという直し方が書かれている',
+      stacked: true,
+    },
+    {
+      heading: '建てる|順番に|並んだ|建設リスト',
+      paragraphs: [
+        '計算結果を、採掘・給水から製造ライン、発電の順に並べ直したリストにします。上から順に建てていけば、次の工程に必要なものが先に揃います。項目ごとに建物の種類と台数、クロック、投入と産出の毎分レートが載ります。',
+        'それぞれの流れには、そのレートを1本で運べる最も低い等級のコンベア・ベルトかパイプラインが書かれるので、Mk.いくつのベルトを何本引くかを現地で計算し直さずに済みます。',
+      ],
+      image: 'buildlist',
+      imageAlt:
+        '建設リストのタブ。合計304台を「原料の採掘・給水」「製造ライン」の順に並べ、採鉱機 Mk.3 ×5台などの各行に鉱石の純度・クロック・産出レートと、必要なコンベア・ベルトの等級と本数が書かれている',
+    },
+    {
+      heading: 'ライン全体を|一度に|解き、|電力・|床面積・|建物数まで|出す',
+      paragraphs: [
+        'レシピを1つずつ手でたどるのではなく、生産ライン全体を1回の最適化で解きます。原料・消費電力・建物数のどれを節約するかを選ぶと、その基準で最も少なくなる組み合わせが返ります。サマリーには総消費電力、ファウンデーション換算の概算床面積、建物の台数、建設コスト、シンクポイントが並びます。',
+        '結果は Excel（サマリー・建物リスト・アイテム収支・原料・建設コスト・物流の6シート）に書き出せます。計画は共有URLにまとめて渡せるので、別の端末やフレンドの手元でも同じ条件をそのまま開けます。',
+      ],
+      image: 'summary',
+      imageAlt:
+        'サマリーのタブ。{{Desc_ModularFrameHeavy_C}} 10/分の計画について、総消費電力 2,586.10 MW、概算床面積 41,688 m²、建物 295 台、建設コストの内訳が表示されている',
+    },
   ],
 
-  dataHeading: 'データについて',
-  dataParagraphs: [
-    'レシピや電力などの数値はゲームの公式データ（バージョン1.1系）に基づき、アイテム名はゲーム内の公式訳と一致させています。',
+  stepsHeading: '使い方は|3ステップ',
+  steps: [
+    {
+      heading: '目標を|入れる',
+      body: '作りたいアイテムを検索して、毎分の目標レートを入力します。複数のアイテムを同時に目標にしたり、手持ちの在庫や別工場からの供給を「既にあるアイテム」として差し引いたりできます。',
+    },
+    {
+      heading: '条件を|選ぶ',
+      body: '使ってよい代替レシピを1件ずつ選び、発電計画を有効にするかを決め、原料・消費電力・建物数のどれを節約するかを指定します。変えるたびに結果がすぐ計算し直されます。',
+    },
+    {
+      heading: '結果を|読んで、|共有する',
+      body: 'サマリー・生産ステップ・原料・アイテム収支の表、フローチャート、建設リストで結果を確認します。Excel に書き出すか、共有URLをコピーして別の端末やフレンドに渡せます。',
+    },
   ],
 
-  linksHeading: 'サイト内の主なページ',
-  /** 2次リンク。パスは item-pages.ts の関数から作り、ここには文言だけ置く。 */
-  itemsLinkLabel: 'アイテム一覧（全198件のレシピ辞典）',
-  articlesLinkLabel: '解説記事',
-  aboutLinkLabel: 'このサイトについて',
-  privacyLinkLabel: 'プライバシーポリシー',
-  /** 英語版の入口（旧トップにもあった導線。ヘッダーの言語切替と二重だが、本文からも辿れるよう残す）。 */
+  templatesHeading: 'ループ|テンプレート',
+  templatesIntro:
+    '副産物を上流に戻す循環構成は、手計算で帳尻を合わせるのが一番難しいところです。石油製品の完全循環、水を再利用するアルミやバッテリー、原子力の再処理まで、条件を入れた状態でそのまま開けるテンプレートを用意しています。',
+  templatesOpenLabel: 'ツールで開く',
+
+  guidesHeading: '解説記事',
+  guidesIntro:
+    'ツールの使い方から、代替レシピの比較指標の読み方、石炭発電の数え方、建設リストの読み方まで。数値はすべてゲームの公式データから引いています。',
+  guidesAllLabel: '記事の一覧を見る',
+  /** 英語版の入口（ヘッダーの言語切替と二重だが、本文からも辿れるよう残す）。 */
   otherLandingLinkLabel: 'English',
 } as const satisfies LandingCopy
 
 /**
  * 英語のランディングページ（/en/）専用の文。
  *
- * トップ（/）は SPA ＋日本語の静的説明なので、クローラからは「日本語のページ」に見え、
- * 英語圏の検索では /en/items/… と /en/articles/… しか拾われない。ツール本体の
- * 入口として英語で読める静的ページを1枚だけ用意する（ミラーではなく英語の玄関）。
- *
- * ここは英語にしか出ない文なので StaticPageLabels（日英で同じ形）には入れず、
- * 独立した定数として持つ。文言はゲーム内公式名と /en/about/ の説明に揃える。
+ * トップ（/）は日本語なので、英語圏の入口として同じ構成の静的ページを1枚置く
+ * （ミラーではなく英語の玄関。文は英語で書き、日本語の訳にはしない）。
+ * ゲーム用語は `{{Desc_…}}` トークンで書き、公式の英語名に置き換えて出す。
+ * title と description は凍結（Search Console の再評価中）。
  */
 export const EN_LANDING = {
-  /** サイト名を後置しない（見出し自体がサイト名を含むため）。 */
+  /** サイト名を後置しない（見出し自体がサイト名を含むため）。凍結。 */
   title: 'Satisfactory Production Planner — Solver, Flow Chart and Excel Export',
+  /** 凍結。 */
   description:
     'Free unofficial planner for Satisfactory factories. Enter a target rate per minute and a linear programming solver returns the recipes, machine counts, power draw and raw resources, with a flow chart, a build list and an Excel export. Runs in the browser, nothing to install.',
   // 他ページと同じくカテゴリ名にする。見出しと同じ文字列だと重複して読める
   eyebrow: 'Free unofficial web tool',
-  heading: 'Satisfactory Production Planner',
-  lead: 'Say what you want to produce and how much of it per minute. A linear programming solver works out the recipes, the number of machines, the power draw and the raw resources the line needs — in the browser, with nothing to install and no account to create.',
+  heading: 'Plan a whole Satisfactory production line from one target rate',
+  lead: 'Type the item you want and how many per minute. A linear programming solver works out the entire line in one pass, from the ore nodes to the finished part: which recipes to run, how many machines of each, the power draw and the raw resources per minute. The result is shown as tables, a flow chart and a build list, and can be exported to Excel.',
   ctaLabel: 'Open the planner',
-  /** CTA のすぐ下。英語ブラウザでは自動で英語UIになることを1行で伝える。 */
-  ctaNote:
-    'The planner opens in English when your browser is set to English, and twelve interface languages are available from the switcher in the app.',
+  ctaNote: 'Nothing to install and no account to create. It runs in your browser.',
+  continueLabel: 'Continue where you left off',
+  heroImageAlt:
+    'Flow chart view: a {{Desc_ModularFrameHeavy_C}} line at 10 per minute drawn as 16 nodes and 20 flows. Each node lists the machine type, count and power draw, and each line carries the item rate per minute.',
 
-  overviewHeading: 'What the planner does',
-  overviewParagraphs: [
-    'The planner solves a whole production line in one pass instead of walking recipe by recipe. Give it a target — 60 Iron Plate per minute, a fixed amount of power from Fuel generators, or as much of an item as your resource limits allow — and it returns the recipes to run, how many machines of each, the clock speeds, the power draw, and the ore and fluids the line consumes at the map end.',
-    'It is meant for the point where a factory stops fitting in your head: when an alternate recipe changes the whole ingredient mix, when a byproduct has to go somewhere before it backs up a pipe, or when you want to know whether the nodes you have secured can really feed the build you are drawing. Everything is recalculated the moment you change a target, so it is quick to try the version you were not sure about.',
-  ],
-
-  featuresHeading: 'What it gives you',
+  featuresHeading: 'Three things other calculators do not do',
   features: [
-    'Optimal recipe selection with a linear programming solver, weighted toward raw resources, power or building count',
-    'A flow chart of the whole line, from raw resources through to the finished item',
-    'Excel export with the summary, building list, item balance, resources, construction cost and logistics on separate sheets',
-    'Power planning that solves generators, fuels and byproducts together with production',
-    'Loop templates such as complete oil recycling and byproduct water reuse',
-    'A build list in build order, with machine counts per step and the belt or pipe tier each flow needs',
-    'A recipe reference for every item: how it is made, what uses it, rates per minute and output per MW',
-    'Twelve interface languages',
+    {
+      heading: 'When a plan is impossible, it tells you why and what to change',
+      paragraphs: [
+        'Most calculators stop at "infeasible". This one explains what is missing in plain words. Ask for {{Desc_PlutoniumPellet_C}}, for example, and it says that the {{Desc_NuclearWaste_C}} it needs is only produced as a byproduct of running a {{Build_GeneratorNuclear_C}}, then tells you the fix: turn on power generation and allow the {{Build_GeneratorNuclear_C}}.',
+        'Missing recipes, resource limits and an optimisation goal that cannot be met each get their own explanation and the setting to review, so you stop guessing at which switch to flip.',
+      ],
+      image: 'infeasible',
+      imageAlt:
+        'The "No production plan meets these conditions" card for a {{Desc_PlutoniumPellet_C}} target of 60 per minute. It states that {{Desc_NuclearWaste_C}} is only produced as a byproduct of a running {{Build_GeneratorNuclear_C}} and advises turning on power generation and allowing that generator.',
+      stacked: true,
+    },
+    {
+      heading: 'A build list in build order',
+      paragraphs: [
+        'The solved plan is rearranged into a list that starts with mining and water extraction, then the production lines, then power generation. Build from the top and every step has its inputs ready before you need them. Each entry shows the building, how many to place, the clock speed, and the input and output rates per minute.',
+        'Every flow also names the lowest tier of Conveyor Belt or Pipeline that still carries the full rate on one line, so you do not have to work out on site which belt mark you need and how many of them.',
+      ],
+      image: 'buildlist',
+      imageAlt:
+        'The Build list tab: 304 machines in total, grouped into "Mining and water extraction" and "Production lines". Rows such as Miner Mk.3 ×5 show node purity, clock speed, output rate and the belt tier and number of lines required.',
+    },
+    {
+      heading: 'The whole line solved at once, with power, floor area and building counts',
+      paragraphs: [
+        'Instead of walking recipe by recipe, the solver optimises the entire line in a single pass. Choose whether to minimise raw resources, power or the number of buildings, and it returns the combination that is lowest by that measure. The summary lists total power draw, an estimated floor area in foundations, the building count, the build cost and sink points.',
+        'The result exports to Excel as six sheets: Summary, Building List, Item Balance, Resources, Build Cost and Logistics. A plan can also be packed into a share URL that reopens the same conditions on another device or for a friend.',
+      ],
+      image: 'summary',
+      imageAlt:
+        'The Summary tab for a {{Desc_ModularFrameHeavy_C}} plan at 10 per minute: total power 2,586.10 MW, estimated floor area 41,688 m², 295 buildings, and a build cost table.',
+    },
   ],
 
-  dataHeading: 'Where the numbers come from',
-  dataParagraphs: [
-    'Recipes, buildings, power figures and sink points are taken from the official game data (version 1.1.x), and item and recipe names use the official in-game English names, so the wording matches what you see on screen.',
-    'Your plans stay with you: they are solved in your browser and saved there, never uploaded. A finished plan can be packed into a share URL, which reopens the same conditions on another device or for someone else.',
+  stepsHeading: 'How to use it in three steps',
+  steps: [
+    {
+      heading: 'Enter a target',
+      body: 'Search for the item you want and type the rate per minute. You can add several targets at once, and subtract what you already have in storage or from another factory as external inputs.',
+    },
+    {
+      heading: 'Choose the conditions',
+      body: 'Switch on the alternate recipes you own, decide whether to plan power generation as well, and pick what to minimise: raw resources, power or buildings. The plan is recalculated every time you change something.',
+    },
+    {
+      heading: 'Read the result and share it',
+      body: 'Check the Summary, Production steps, Resources and Item balance tables, the flow chart and the build list. Export to Excel, or copy the share URL to open the same plan on another device or send it to a friend.',
+    },
   ],
 
-  linksHeading: 'More on this site',
-  /** 2次リンク。パスは item-pages.ts の関数から作り、ここには文言だけ置く。 */
-  itemsLinkLabel: 'Item list — recipes, uses and rates for every item',
-  articlesLinkLabel: 'Guides — planning, power, loops and the Excel export',
-  aboutLinkLabel: 'About this site — who runs it, data sources and disclaimer',
-  privacyLinkLabel: 'Privacy policy',
+  templatesHeading: 'Loop templates',
+  templatesIntro:
+    'Setups that feed a byproduct back upstream are the hardest to balance by hand. These templates open the planner with the conditions already filled in: complete oil recycling, water reuse for aluminium and batteries, and nuclear power with reprocessing.',
+  templatesOpenLabel: 'Open in the planner',
+
+  guidesHeading: 'Guides',
+  guidesIntro:
+    'From a first walkthrough of the planner to reading the alternate recipe metrics, counting coal generators and using the build list. Every number comes from the official game data.',
+  guidesAllLabel: 'See all guides',
 } as const satisfies LandingCopy

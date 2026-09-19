@@ -21,10 +21,13 @@ import {
   landingPagePath,
 } from '../src/plan/item-pages.ts'
 import { SAMPLE_PLANS } from '../src/plan/samples.ts'
-import { decodePlan, PLAN_HASH_PARAM, readPlanParam } from '../src/plan/serialize.ts'
+import { buildShareUrl, decodePlan, PLAN_HASH_PARAM, readPlanParam } from '../src/plan/serialize.ts'
+import { LAST_OPENED_STORAGE_KEY } from '../src/plan/storage.ts'
 import { solveProduction } from '../src/solver/index.ts'
 import {
   articleSlugs,
+  CONTINUE_LINK_ID,
+  continueLinkScript,
   generateStaticPages,
   itemSlug,
   legacyShareRedirectScript,
@@ -32,6 +35,13 @@ import {
 } from '../scripts/build-pages.ts'
 import type { StaticPagesManifest } from '../scripts/build-pages.ts'
 import { faqEntries } from '../scripts/static-pages/faq.ts'
+import {
+  EN_LANDING,
+  HEADING_BREAK_MARKER,
+  JA_LANDING,
+  LANDING_GUIDE_SLUGS,
+} from '../scripts/static-pages/labels.ts'
+import type { LandingCopy } from '../scripts/static-pages/labels.ts'
 import { itemInsight } from '../scripts/static-pages/item-insights.ts'
 import { escapeHtml, GA_MEASUREMENT_ID } from '../scripts/static-pages/templates.ts'
 
@@ -677,6 +687,11 @@ function graphNode(html: string, type: string): Record<string, unknown> | undefi
   return (graph as Record<string, unknown>[]).find((node) => node['@type'] === type)
 }
 
+/** ランディングの見出しの期待値: 文節マーカーは <wbr> になって出る。 */
+function headingHtml(text: string): string {
+  return escapeHtml(text).replaceAll(HEADING_BREAK_MARKER, '<wbr>')
+}
+
 function occurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1
 }
@@ -968,10 +983,11 @@ describe('英語ランディング（/en/）', () => {
    * トップ（/）の静的本文は日本語しかないため、英語圏のクローラにはツール本体が
    * 日本語ページに見える。/en/ はミラーではなく「英語の玄関」で、SPA の / へ送り出す。
    */
-  it('ツールの説明・機能・データ出典と、プランナーへの導線を英語で出す', async () => {
+  it('凍結した title/description のまま、英語の見出し・導線・3つの特長・3ステップを出す', async () => {
     const html = await readFile(join(outputDirectory, 'en/index.html'), 'utf8')
 
     expect(html).toContain('<html lang="en">')
+    // title と description は Search Console の再評価中のため凍結
     expect(html).toContain(
       '<title>Satisfactory Production Planner — Solver, Flow Chart and Excel Export</title>',
     )
@@ -979,16 +995,17 @@ describe('英語ランディング（/en/）', () => {
     expect(html).toContain(
       '<link rel="canonical" href="https://satisfactory-planner.net/en/" />',
     )
-    expect(html).toContain('<h1>Satisfactory Production Planner</h1>')
-    // 主導線は計画ツール本体（/app/）。英語ブラウザで自動的に英語UIになることを1行で断る
+    expect(html).toContain(`<h1 class="landing-heading">${EN_LANDING.heading}</h1>`)
+    // 主導線は計画ツール本体（/app/）
     expect(html).toContain('<a class="cta" href="/app/">Open the planner</a>')
-    expect(html).toContain('The planner opens in English when your browser is set to English')
-    // 機能一覧とデータ出典（/en/about/ と同じ主張に揃える）
-    expect(html).toContain('linear programming solver, weighted toward raw resources')
-    expect(html).toContain('Excel export with the summary, building list')
-    expect(html).toContain('official game data (version 1.1.x)')
-    expect(html).toContain('official in-game English names')
-    // 2次導線
+    expect(html).toContain('Nothing to install and no account to create')
+    // 3つの特長（実行不能の説明・建設リスト・一括最適化）と3ステップ
+    for (const feature of EN_LANDING.features) {
+      expect(html).toContain(`<h3 class="landing-heading">${feature.heading}</h3>`)
+    }
+    expect(html).toContain('Summary, Building List, Item Balance, Resources, Build Cost and Logistics')
+    expect(html).toContain('<h2 id="steps-heading" class="landing-heading">How to use it in three steps</h2>')
+    // 2次導線（記事一覧・ヘッダー/フッターのアイテム一覧・about・privacy）
     for (const href of ['/en/items/', '/en/articles/', '/en/about/', '/en/privacy']) {
       expect(html, href).toContain(`href="${href}"`)
     }
@@ -1065,21 +1082,24 @@ describe('日本語トップ（/）', () => {
    * トップは計画ツール本体（/app/）へ送り出す静的なランディング。文面は旧トップの
    * site-intro と head の説明をそのまま移したもの（JA_LANDING）。
    */
-  it('旧トップの title・description・説明本文と、計画ツールへの導線を出す', async () => {
+  it('凍結した title/description のまま、日本語の見出し・導線・3つの特長・3ステップを出す', async () => {
     const html = await readFile(join(outputDirectory, 'index.html'), 'utf8')
 
     expect(html).toContain('<html lang="ja">')
+    // title と description は Search Console の再評価中のため凍結
     expect(titleText(html)).toBe(
       'サティスファクトリー（Satisfactory）生産計画ツール — 日本語ソルバー＆Excel出力',
     )
     expect(metaContent(html, 'description')).toContain('Satisfactory の生産ラインを日本語で計算する非公式ツール')
     expect(html).toContain('<link rel="canonical" href="https://satisfactory-planner.net/" />')
-    expect(html).toContain('<h1>Satisfactory 生産計画ツール</h1>')
-    expect(html).toContain('<a class="cta" href="/app/">計画ツールを使う</a>')
-    expect(html).toContain('<h2>Satisfactory 生産計画ツールについて</h2>')
-    expect(html).toContain('線形計画法のソルバーが必要なレシピ、機械の台数、消費電力、原料の量を計算します')
-    expect(html).toContain('<li>日本語を含む12言語対応</li>')
-    expect(html).toContain('ゲームの公式データ（バージョン1.1系）')
+    expect(html).toContain(`<h1 class="landing-heading">${headingHtml(JA_LANDING.heading)}</h1>`)
+    expect(html).toContain('<a class="cta" href="/app/">計画ツールを開く</a>')
+    expect(html).toContain('インストール不要・会員登録不要')
+    for (const feature of JA_LANDING.features) {
+      expect(html).toContain(`<h3 class="landing-heading">${headingHtml(feature.heading)}</h3>`)
+    }
+    expect(html).toContain('サマリー・建物リスト・アイテム収支・原料・建設コスト・物流の6シート')
+    expect(html).toContain('<h2 id="steps-heading" class="landing-heading">使い方は<wbr>3ステップ</h2>')
     for (const href of ['/items/', '/articles/', '/about/', '/privacy']) {
       expect(html, href).toContain(`href="${href}"`)
     }
@@ -1195,7 +1215,7 @@ describe('旧共有URL（/#plan=…）の救済', () => {
     expect(pattern.test('#main-content')).toBe(false)
   })
 
-  it('両ランディングだけが旧トップの GA4 タグと vercel.app の noindex を引き継ぐ', async () => {
+  it('GA4 タグは生成した全ページに入り、vercel.app の noindex は両ランディングだけが持つ', async () => {
     const app = await readFile(join(process.cwd(), 'app/index.html'), 'utf8')
     for (const file of ['index.html', 'en/index.html']) {
       const head = headSection(await readFile(join(outputDirectory, file), 'utf8'))
@@ -1204,8 +1224,19 @@ describe('旧共有URL（/#plan=…）の救済', () => {
       expect(head, file).toContain("location.hostname.endsWith('.vercel.app')")
     }
     expect(app).toContain(`gtag('config', '${GA_MEASUREMENT_ID}')`)
-    const item = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
-    expect(item).not.toContain('gtag')
+    // アイテム／記事ページ（URL の大半）も計測する。1ページに1回だけ
+    for (const file of [
+      'items/iron-plate/index.html',
+      'en/items/iron-plate/index.html',
+      'articles/coal-power-startup/index.html',
+      'en/articles/oil-loop-complete/index.html',
+      'items/index.html',
+      'about/index.html',
+    ]) {
+      const head = headSection(await readFile(join(outputDirectory, file), 'utf8'))
+      expect(occurrences(head, `gtag('config', '${GA_MEASUREMENT_ID}')`), file).toBe(1)
+      expect(head, file).not.toContain("location.hostname.endsWith('.vercel.app')")
+    }
   })
 
   it('生成した全ページに旧形式（/#plan=）のリンクが残っていない', async () => {
@@ -1214,6 +1245,181 @@ describe('旧共有URL（/#plan=…）の救済', () => {
     for (const file of files) {
       const html = await readFile(file, 'utf8')
       expect(html, file).not.toContain('href="/#plan=')
+    }
+  })
+})
+
+describe('ランディングの構成（/ と /en/）', () => {
+  const pages: readonly (readonly ['ja' | 'en', string, LandingCopy])[] = [
+    ['ja', 'index.html', JA_LANDING],
+    ['en', 'en/index.html', EN_LANDING],
+  ]
+
+  it('7つの節がこの順で並ぶ（ヒーロー → 3つのこと → 3ステップ → テンプレート → 記事 → FAQ → フッター）', async () => {
+    for (const [, file] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const headingIds = [...html.matchAll(/<h2 id="([a-z-]+)"/g)].map((match) => match[1])
+      expect(headingIds, file).toEqual([
+        'features-heading',
+        'steps-heading',
+        'templates-heading',
+        'guides-heading',
+        'faq-heading',
+      ])
+      expect(html.indexOf('<h1 class="landing-heading">'), file).toBeLessThan(html.indexOf('<h2 id="features-heading"'))
+      expect(html.indexOf('<h2 id="faq-heading"'), file).toBeLessThan(html.indexOf('<footer class="site-footer">'))
+      // 節は7つ以上増やさない（ヒーロー1 + section 6）
+      expect(occurrences(mainSection(html), '<section '), file).toBe(5)
+    }
+  })
+
+  it('ヒーローに言語別のフローチャート画像を eager で、特長3つに lazy の画像を寸法付きで出す', async () => {
+    for (const [locale, file, copy] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const images = [...html.matchAll(/<img ([^>]*landing\/[^>]*)>/g)].map((match) => match[1]!)
+      expect(images, file).toHaveLength(4)
+      const hero = images[0]!
+      expect(hero, file).toContain(`src="/landing/${locale}-flowchart.webp"`)
+      expect(hero, file).toContain('loading="eager"')
+      expect(hero, file).toContain('width="1100"')
+      expect(hero, file).toContain('height="840"')
+      // alt はスクリーンショットの内容（ゲーム名は公式名に解決済み）
+      expect(hero, file).toContain(locale === 'ja' ? 'ヘビー・モジュラー・フレーム' : 'Heavy Modular Frame')
+      expect(hero, file).not.toContain('{{')
+      for (const [index, feature] of copy.features.entries()) {
+        const image = images[index + 1]!
+        expect(image, `${file} feature ${index}`).toContain(`src="/landing/${locale}-${feature.image}.webp"`)
+        expect(image, `${file} feature ${index}`).toContain('loading="lazy"')
+        expect(image, `${file} feature ${index}`).toMatch(/width="\d+" height="\d+"/)
+        expect(image, `${file} feature ${index}`).toMatch(/alt="[^"]{20,}"/)
+      }
+      // 画像は他言語のものを混ぜない
+      expect(html, file).not.toContain(`/landing/${locale === 'ja' ? 'en' : 'ja'}-`)
+      // 画像ファイルが実際に配布物に入る（public/ からコピーされる）
+      for (const name of ['flowchart', 'infeasible', 'buildlist', 'summary']) {
+        await expect(
+          readFile(join(process.cwd(), 'public/landing', `${locale}-${name}.webp`)),
+          `${locale}-${name}`,
+        ).resolves.toBeDefined()
+      }
+    }
+  })
+
+  it('ループテンプレートのカードは各サンプルの snapshot を /app/ の共有URLで開く', async () => {
+    const loops = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
+    expect(loops.length).toBeGreaterThan(0)
+    for (const [, file, copy] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const cards = [...html.matchAll(/<a class="template-card" href="([^"]+)">/g)].map((match) => match[1]!)
+      expect(cards, file).toHaveLength(loops.length)
+      for (const [index, sample] of loops.entries()) {
+        const href = cards[index]!
+        expect(href, `${file} ${sample.id}`).toBe(buildShareUrl(appPagePath(), sample.snapshot))
+        expect(href.startsWith(`/app/#${PLAN_HASH_PARAM}=`), `${file} ${sample.id}`).toBe(true)
+        const parsed = decodePlan(readPlanParam(href.slice(href.indexOf('#')))!)
+        expect(parsed.ok, `${file} ${sample.id}`).toBe(true)
+        if (!parsed.ok) continue
+        expect(parsed.warnings, `${file} ${sample.id}`).toEqual([])
+        expect(parsed.input.targets.map((target) => target.item), `${file} ${sample.id}`).toEqual(
+          sample.snapshot.t.map(([item]) => item),
+        )
+      }
+      expect(occurrences(html, `<small>${escapeHtml(copy.templatesOpenLabel)}</small>`), file).toBe(loops.length)
+    }
+  })
+
+  it('解説記事4本は生成済みの記事ページへ実際の見出しでリンクし、一覧へのリンクも持つ', async () => {
+    expect(LANDING_GUIDE_SLUGS).toHaveLength(4)
+    for (const [locale, file, copy] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const cards = [...html.matchAll(/<a class="guide-card" href="([^"]+)"><strong class="landing-heading">([^<]+)<\/strong>/g)]
+      expect(cards.map((match) => match[1]), file).toEqual(
+        LANDING_GUIDE_SLUGS.map((slug) => articlePagePath(slug, locale)),
+      )
+      for (const match of cards) {
+        const target = join(outputDirectory, match[1]!.slice(1), 'index.html')
+        const article = await readFile(target, 'utf8')
+        expect(article, match[1]).toContain(`<h1>${match[2]}</h1>`)
+      }
+      expect(html, file).toContain(`href="${articlesIndexPath(locale)}">${escapeHtml(copy.guidesAllLabel)}</a>`)
+    }
+  })
+
+  it('FAQ は7問のまま本文と FAQPage に出し、{{…}} トークンと旧形式リンクは残さない', async () => {
+    for (const [locale, file] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const faq = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+        .map((match) => JSON.parse(match[1]!.replaceAll('\\u003c', '<')) as Record<string, unknown>)
+        .find((block) => block['@type'] === 'FAQPage')!
+      expect((faq.mainEntity as unknown[]).length, file).toBe(7)
+      expect(faqEntries(locale), file).toHaveLength(7)
+      expect(html, file).not.toContain('{{')
+      expect(html, file).not.toContain('href="/#plan=')
+    }
+  })
+
+  it('「前回の続きを開く」は hidden で置き、救済スクリプトの直後の小さなスクリプトが localStorage を見て外す', async () => {
+    for (const [, file, copy] of pages) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const head = headSection(html)
+      expect(html, file).toContain(
+        `<a class="continue-link" id="${CONTINUE_LINK_ID}" href="/app/" hidden>${escapeHtml(copy.continueLabel)}</a>`,
+      )
+      const script = continueLinkScript()
+      expect(script).toContain(LAST_OPENED_STORAGE_KEY)
+      expect(script).toContain(CONTINUE_LINK_ID)
+      expect(head.indexOf(script), file).toBe(head.indexOf(legacyShareRedirectScript()) + legacyShareRedirectScript().length)
+      // ランディングの JS はこれと救済と GA と noindex だけ（他の <script src> や module は無い）
+      expect(html, file).not.toContain('type="module"')
+      const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>/g)].map((match) => match[0])
+      expect(scripts.filter((tag) => tag.includes(' src=')), file).toEqual([
+        `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}">`,
+      ])
+    }
+  })
+
+  it('日本語の見出しは文節マーカーが <wbr> になり、マーカー文字そのものは本文に残らない', async () => {
+    const ja = await readFile(join(outputDirectory, 'index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/index.html'), 'utf8')
+    // H1 は文節ごとに <wbr>（マーカーの数と一致）
+    const h1 = ja.match(/<h1 class="landing-heading">([\s\S]*?)<\/h1>/)![1]!
+    expect(h1).toContain('<wbr>')
+    expect(occurrences(h1, '<wbr>')).toBe(occurrences(JA_LANDING.heading, HEADING_BREAK_MARKER))
+    expect(occurrences(h1, '<wbr>')).toBeGreaterThanOrEqual(3)
+    // 節見出し・特長・ステップの見出しも同じ扱い（keep-all を効かせるクラス付き）
+    expect(ja).toContain('<h2 id="features-heading" class="landing-heading">ほかの<wbr>計算ツールには<wbr>ない<wbr>3つのこと</h2>')
+    for (const step of JA_LANDING.steps) {
+      expect(ja).toContain(`<h3 class="landing-heading">${headingHtml(step.heading)}</h3>`)
+    }
+    // マーカーは本文（<main>）のどこにも生で出ない（title の区切りやスクリプトは main の外）
+    expect(mainSection(ja)).not.toContain(HEADING_BREAK_MARKER)
+    expect(mainSection(en)).not.toContain(HEADING_BREAK_MARKER)
+    // 英語の見出しにはマーカーを置かない（置くと <wbr> が入るだけだが、方針として禁止）
+    expect(en).not.toContain('<wbr>')
+    // 見出し以外の文にマーカーを書くと生で表示されてしまうので、文面側でも禁止
+    for (const copy of [JA_LANDING, EN_LANDING]) {
+      const prose = [
+        copy.lead,
+        copy.ctaLabel,
+        copy.ctaNote,
+        copy.continueLabel,
+        copy.heroImageAlt,
+        copy.templatesIntro,
+        copy.templatesOpenLabel,
+        copy.guidesIntro,
+        copy.guidesAllLabel,
+        ...copy.features.flatMap((feature) => [...feature.paragraphs, feature.imageAlt]),
+        ...copy.steps.map((step) => step.body),
+      ]
+      for (const text of prose) expect(text).not.toContain(HEADING_BREAK_MARKER)
+    }
+  })
+
+  it('about の WebApplication も /app/ を指す', async () => {
+    for (const file of ['about/index.html', 'en/about/index.html']) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const about = graphNode(html, 'AboutPage')!
+      expect((about.mainEntity as { url: string }).url, file).toBe('https://satisfactory-planner.net/app/')
     }
   })
 })
