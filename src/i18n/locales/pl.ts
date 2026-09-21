@@ -207,7 +207,7 @@ export const pl = {
   samples: {
     heading: 'Zacznij od przykładu',
     hint: 'Wybierz przykład, aby wczytać jego dane i obliczyć wynik. Potem możesz zmienić każdą wartość.',
-    loopHeading: 'Szablony pętli',
+    loopHeading: 'Szablony pętli i energetyki',
     loopHint: 'Wybierz szablon, aby zastąpić bieżące dane i obliczyć wynik.',
     guideHeading: 'Pierwszy raz z pętlami produkcyjnymi?',
     guideLines: [

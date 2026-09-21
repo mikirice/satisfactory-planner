@@ -207,7 +207,7 @@ export const tr = {
   samples: {
     heading: 'Bir örnekle başla',
     hint: 'Girdilerini yükleyip sonucu hesaplamak için bir örnek seç. Sonrasında her değeri değiştirebilirsin.',
-    loopHeading: 'Döngü şablonları',
+    loopHeading: 'Döngü ve enerji şablonları',
     loopHint: 'Mevcut girdileri değiştirip hesaplamak için bir şablon seç.',
     guideHeading: 'Üretim döngüleri sana yeni mi?',
     guideLines: [

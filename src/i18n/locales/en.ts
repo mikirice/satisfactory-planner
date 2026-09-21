@@ -201,7 +201,7 @@ export const en = {
   samples: {
     heading: 'Start with an example',
     hint: 'Choose an example to load its inputs and calculate a result. You can change every value afterward.',
-    loopHeading: 'Loop templates',
+    loopHeading: 'Loop & Power Templates',
     loopHint: 'Choose a template to replace the current inputs and calculate it.',
     guideHeading: 'New to production loops?',
     guideLines: [

@@ -208,7 +208,7 @@ export const de = {
   samples: {
     heading: 'Mit einem Beispiel starten',
     hint: 'Wählen Sie ein Beispiel, um dessen Eingaben zu laden und zu berechnen. Danach lässt sich jeder Wert ändern.',
-    loopHeading: 'Kreislauf-Vorlagen',
+    loopHeading: 'Kreislauf- & Kraftwerksvorlagen',
     loopHint: 'Wählen Sie eine Vorlage, um die aktuellen Eingaben zu ersetzen und zu berechnen.',
     guideHeading: 'Neu bei Produktionskreisläufen?',
     guideLines: [

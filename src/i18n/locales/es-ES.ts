@@ -208,7 +208,7 @@ export const esES = {
   samples: {
     heading: 'Empezar con un ejemplo',
     hint: 'Elige un ejemplo para cargar sus datos y calcular el resultado. Después puedes cambiar cualquier valor.',
-    loopHeading: 'Plantillas de bucle',
+    loopHeading: 'Plantillas de bucle y energía',
     loopHint: 'Elige una plantilla para sustituir los datos actuales y calcularla.',
     guideHeading: '¿Es tu primer bucle de producción?',
     guideLines: [

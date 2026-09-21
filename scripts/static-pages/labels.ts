@@ -903,7 +903,7 @@ export const JA_LANDING = {
     },
   ],
 
-  templatesHeading: 'ループ|テンプレート',
+  templatesHeading: 'ループ・|発電|テンプレート',
   templatesIntro:
     '副産物を上流に戻す循環構成は、手計算で帳尻を合わせるのが一番難しいところです。石油製品の完全循環、水を再利用するアルミやバッテリー、原子力の再処理まで、条件を入れた状態でそのまま開けるテンプレートを用意しています。',
   templatesOpenLabel: 'ツールで開く',
@@ -990,7 +990,7 @@ export const EN_LANDING = {
     },
   ],
 
-  templatesHeading: 'Loop templates',
+  templatesHeading: 'Loop and power templates',
   templatesIntro:
     'Setups that feed a byproduct back upstream are the hardest to balance by hand. These templates open the planner with the conditions already filled in: complete oil recycling, water reuse for aluminium and batteries, and nuclear power with reprocessing.',
   templatesOpenLabel: 'Open in the planner',
