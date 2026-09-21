@@ -382,7 +382,8 @@ const jaLabels = {
   articlesIndexLead:
     'ツールの操作からレシピ比較、発電、循環ラインまで、実データと計算結果に沿って解説します。',
   articlesIndexToolSection: '計画ツールの使い方',
-  articlesIndexLoopSection: 'ループと燃料チェーン',
+  articlesIndexLoopSection: 'ループ構成',
+  articlesIndexPowerSection: '発電構成',
 
   articleEyebrow: 'Satisfactory 実践ガイド',
   publishedOn: (date: string): string => `公開日: ${date}`,
@@ -394,6 +395,8 @@ const jaLabels = {
 
   // --- ループ記事 ---
   loopEyebrow: 'ループ構成ガイド',
+  /** 発電テンプレート記事（循環ではない燃料・原子力チェーン）の eyebrow。 */
+  powerEyebrow: '発電構成ガイド',
   /**
    * ループ記事の見出し。英語は定型文だと不自然になる構成があるため、
    * en では content/loop-guides/en.ts の headline を使う（この関数は ja 専用の定型）。
@@ -674,7 +677,8 @@ const enLabels: StaticPageLabels = {
   articlesIndexLead:
     'From using the planner to comparing recipes, planning power and closing loops — every guide follows the real game data and the solved numbers.',
   articlesIndexToolSection: 'Using the planner',
-  articlesIndexLoopSection: 'Loops and fuel chains',
+  articlesIndexLoopSection: 'Loop setups',
+  articlesIndexPowerSection: 'Power setups',
 
   articleEyebrow: 'Satisfactory field guide',
   publishedOn: (date: string): string => `Published: ${date}`,
@@ -685,6 +689,7 @@ const enLabels: StaticPageLabels = {
     'Opens the planner with the conditions from this guide already loaded. Target rates and the recipes you allow can be changed once it is open.',
 
   loopEyebrow: 'Loop template guide',
+  powerEyebrow: 'Power setup guide',
   loopHeadline: (title: string): string => `How ${title} works and how to build it`,
   loopDescription: (description: string, gameVersion: string): string =>
     `${description} How the steps work, what to watch out for when you build it, and the raw resources and power recalculated on game data ${gameVersion}.`,

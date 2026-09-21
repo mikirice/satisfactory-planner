@@ -646,7 +646,7 @@ describe('空状態のサンプル', () => {
     const container = await render(<App />)
     const text = container.textContent ?? ''
     const basicSamples = SAMPLE_PLANS.filter((sample) => sample.category === 'basic')
-    const specialSamples = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
+    const specialSamples = SAMPLE_PLANS.filter((sample) => sample.category !== 'basic')
     expect(text).toContain('例から始める')
     for (const sample of basicSamples) {
       expect(text).toContain(sample.title)
@@ -703,12 +703,24 @@ describe('空状態のサンプル', () => {
     expect(loopButton.getAttribute('aria-pressed')).toBe('true')
     expect(container.querySelector('.sidebar')?.textContent).not.toContain('目標産出')
     expect(container.querySelectorAll('.samples--loop .sample')).toHaveLength(
-      SAMPLE_PLANS.filter((sample) => sample.category === 'special').length,
+      SAMPLE_PLANS.filter((sample) => sample.category !== 'basic').length,
     )
     for (const sample of SAMPLE_PLANS) {
       const sidebarText = container.querySelector('.sidebar')?.textContent ?? ''
-      expect(sidebarText.includes(sample.title)).toBe(sample.category === 'special')
+      expect(sidebarText.includes(sample.title)).toBe(sample.category !== 'basic')
     }
+    // 循環構成と発電チェーンは別見出しで、ループ → 発電の順に並ぶ
+    const headings = [...container.querySelectorAll('.samples--loop .samples__category h4')].map(
+      (heading) => heading.textContent,
+    )
+    expect(headings).toEqual(['ループテンプレート', '発電テンプレート'])
+    const sections = [...container.querySelectorAll('.samples--loop .samples__category')]
+    expect(sections[0]?.querySelectorAll('.sample')).toHaveLength(
+      SAMPLE_PLANS.filter((sample) => sample.category === 'special').length,
+    )
+    expect(sections[1]?.querySelectorAll('.sample')).toHaveLength(
+      SAMPLE_PLANS.filter((sample) => sample.category === 'power').length,
+    )
     expect(container.querySelector('.sidebar')?.textContent).toContain(
       '編集するには「通常レシピ」に切り替えてください',
     )

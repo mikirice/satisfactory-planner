@@ -63,7 +63,7 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
     viewMode === 'loop'
       ? SAMPLE_PLANS.find(
           (sample) =>
-            sample.id === loadedTemplateId && sample.category === 'special' && sample.guide !== undefined,
+            sample.id === loadedTemplateId && sample.category !== 'basic' && sample.guide !== undefined,
         )
       : undefined
 

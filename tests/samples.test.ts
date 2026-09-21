@@ -83,15 +83,36 @@ describe('サンプルプランのスキーマ', () => {
     expect(TEMPLATE_CATEGORIES.every((c) => SAMPLE_PLANS.some((s) => s.category === c.id))).toBe(
       true,
     )
-    expect(TEMPLATE_CATEGORIES.map((category) => category.id)).toEqual(['basic', 'special'])
+    expect(TEMPLATE_CATEGORIES.map((category) => category.id)).toEqual(['basic', 'special', 'power'])
     expect(SAMPLE_PLANS.filter((sample) => sample.category === 'basic')).toHaveLength(3)
-    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(10)
-    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special').every((s) => s.highlight))
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special')).toHaveLength(4)
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'power')).toHaveLength(6)
+    expect(SAMPLE_PLANS.filter((sample) => sample.category !== 'basic').every((s) => s.highlight))
       .toBe(true)
   })
 
+  it('ループカテゴリは循環（hasCycle）を持つものだけ、発電カテゴリは循環を持たない', () => {
+    expect(
+      SAMPLE_PLANS.filter((sample) => sample.category === 'special').map((sample) => sample.id),
+    ).toEqual(['oil-loop-complete', 'aluminum-water-loop', 'packaged-diluted-fuel-loop', 'battery-water-loop'])
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'special').every((s) => s.hasCycle))
+      .toBe(true)
+    expect(
+      SAMPLE_PLANS.filter((sample) => sample.category === 'power').map((sample) => sample.id),
+    ).toEqual([
+      'diluted-fuel-power',
+      'turbofuel-power',
+      'nuclear-uranium',
+      'nuclear-plutonium',
+      'nuclear-reprocessing',
+      'nuclear-simplified',
+    ])
+    expect(SAMPLE_PLANS.filter((sample) => sample.category === 'power').some((s) => s.hasCycle))
+      .toBe(false)
+  })
+
   it('10個の特殊テンプレートすべてに構造化された解説がある', () => {
-    const special = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
+    const special = SAMPLE_PLANS.filter((sample) => sample.category !== 'basic')
     expect(special).toHaveLength(10)
     for (const sample of special) {
       expect(sample.guide?.sections.mechanism.length).toBeGreaterThanOrEqual(3)
@@ -112,7 +133,7 @@ describe('サンプルプランのスキーマ', () => {
   })
 
   it('原子力の段階テンプレートは ①→②→③ の順で並び、簡略版の前に置かれる', () => {
-    const specialIds = SAMPLE_PLANS.filter((s) => s.category === 'special').map((s) => s.id)
+    const specialIds = SAMPLE_PLANS.filter((s) => s.category === 'power').map((s) => s.id)
     const start = specialIds.indexOf('nuclear-uranium')
     expect(start).toBeGreaterThan(-1)
     expect(specialIds.slice(start, start + 4)).toEqual([

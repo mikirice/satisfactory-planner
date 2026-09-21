@@ -2,7 +2,7 @@
  * 空状態とループモードのサイドバーで共用するテンプレートギャラリー。
  *
  * 初見の人は目標欄が空のまま止まりやすいので、クリックひとつで結果まで届く例を置く。
- * 空状態には基本サンプル、ループモードには特殊テンプレートだけを出す。
+ * 空状態には基本サンプル、ループモードにはループ・発電テンプレートだけを出す。
  *
  * 読み込みは保存/共有と同じ経路（parsePlanSnapshot → applyPlan）を通す。
  * サンプル専用の投入口を作らないので、ここが壊れるときは保存/共有も壊れている。
@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { resolveText, useLocale } from '../i18n/index.ts'
 import type { Locale } from '../i18n/index.ts'
 import { SAMPLE_PLANS, TEMPLATE_CATEGORIES } from '../plan/samples.ts'
-import type { SamplePlan } from '../plan/samples.ts'
+import type { SamplePlan, TemplateCategoryId } from '../plan/samples.ts'
 import { parsePlanSnapshot } from '../plan/serialize.ts'
 import { hasAnyInput, usePlanner } from '../store/planner.ts'
 import { itemName } from './format.ts'
@@ -52,36 +52,39 @@ export function SamplesPanel({ variant = 'empty' }: SamplesPanelProps) {
     }
   }
 
-  const categoryId = variant === 'loop' ? 'special' : 'basic'
-  const category = TEMPLATE_CATEGORIES.find((entry) => entry.id === categoryId)!
-  const samples = SAMPLE_PLANS.filter((sample) => sample.category === categoryId)
+  // ループモードは循環構成（special）と発電チェーン（power）を別見出しで順に出す
+  const categoryIds: readonly TemplateCategoryId[] =
+    variant === 'loop' ? ['special', 'power'] : ['basic']
+  const categories = TEMPLATE_CATEGORIES.filter((entry) => categoryIds.includes(entry.id))
   const gallery = (
     <div className={variant === 'loop' ? 'panel__body' : undefined}>
       <p className="hint">{variant === 'loop' ? T.samples.loopHint : T.samples.hint}</p>
-      <section className="samples__category">
-        <h4 className="card__subtitle">
-          {locale === 'ja' ? category.title : category.titleEn}
-        </h4>
-        <ul className="samples__list">
-          {samples.map((sample) => (
-            <li key={sample.id}>
-              <button type="button" className="button sample" onClick={() => load(sample)}>
-                <span className="sample__title">
-                  <ItemIcon id={sample.icon} name={itemName(sample.icon)} size={ROW_ICON} />
-                  {sampleTitle(sample, locale)}
-                </span>
-                <span className="sample__desc">{sampleDescription(sample, locale)}</span>
-                {locale === 'ja' && sample.highlight && (
-                  <span className="sample__highlight">
-                    <span className="sample__highlight-label">{T.samples.highlight}:</span>{' '}
-                    {sample.highlight}
+      {categories.map((category) => (
+        <section key={category.id} className="samples__category">
+          <h4 className="card__subtitle">
+            {locale === 'ja' ? category.title : category.titleEn}
+          </h4>
+          <ul className="samples__list">
+            {SAMPLE_PLANS.filter((sample) => sample.category === category.id).map((sample) => (
+              <li key={sample.id}>
+                <button type="button" className="button sample" onClick={() => load(sample)}>
+                  <span className="sample__title">
+                    <ItemIcon id={sample.icon} name={itemName(sample.icon)} size={ROW_ICON} />
+                    {sampleTitle(sample, locale)}
                   </span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+                  <span className="sample__desc">{sampleDescription(sample, locale)}</span>
+                  {locale === 'ja' && sample.highlight && (
+                    <span className="sample__highlight">
+                      <span className="sample__highlight-label">{T.samples.highlight}:</span>{' '}
+                      {sample.highlight}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   )
 

@@ -392,8 +392,42 @@ describe('記事静的ページ', () => {
     }
   })
 
+  it('ループ記事と発電記事は eyebrow と記事一覧の見出しで分かれる', async () => {
+    const eyebrow = (html: string): string | undefined =>
+      html.match(/<p class="eyebrow">([^<]+)<\/p>/)?.[1]
+    for (const [dir, loop, power] of [
+      ['articles', 'ループ構成ガイド', '発電構成ガイド'],
+      ['en/articles', 'Loop template guide', 'Power setup guide'],
+    ] as const) {
+      const oil = await readFile(join(outputDirectory, `${dir}/oil-loop-complete/index.html`), 'utf8')
+      expect(eyebrow(oil), dir).toBe(loop)
+      const fuel = await readFile(join(outputDirectory, `${dir}/diluted-fuel-power/index.html`), 'utf8')
+      expect(eyebrow(fuel), dir).toBe(power)
+      const nuclear = await readFile(join(outputDirectory, `${dir}/nuclear-uranium/index.html`), 'utf8')
+      expect(eyebrow(nuclear), dir).toBe(power)
+    }
+    for (const [file, loopSection, powerSection] of [
+      ['articles/index.html', 'ループ構成', '発電構成'],
+      ['en/articles/index.html', 'Loop setups', 'Power setups'],
+    ] as const) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      const loopAt = html.indexOf(`<h2>${loopSection}</h2>`)
+      const powerAt = html.indexOf(`<h2>${powerSection}</h2>`)
+      expect(loopAt, file).toBeGreaterThan(-1)
+      expect(powerAt, file).toBeGreaterThan(loopAt)
+      const loopBlock = html.slice(loopAt, powerAt)
+      const powerBlock = html.slice(powerAt)
+      for (const sample of SAMPLE_PLANS) {
+        if (sample.category === 'basic') continue
+        const link = `/articles/${sample.id}/`
+        expect(loopBlock.includes(link), `${file} ${sample.id}`).toBe(sample.category === 'special')
+        expect(powerBlock.includes(link), `${file} ${sample.id}`).toBe(sample.category === 'power')
+      }
+    }
+  })
+
   it('10件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
-    const loopSlugs = SAMPLE_PLANS.filter((sample) => sample.category === 'special').map(
+    const loopSlugs = SAMPLE_PLANS.filter((sample) => sample.category !== 'basic').map(
       (sample) => sample.id,
     )
     expect(loopSlugs).toHaveLength(10)
@@ -1407,7 +1441,11 @@ describe('ランディングの構成（/ と /en/）', () => {
   })
 
   it('ループテンプレートのカードは各サンプルの snapshot を /app/ の共有URLで開く', async () => {
-    const loops = SAMPLE_PLANS.filter((sample) => sample.category === 'special')
+    // ランディングでは循環（special）→ 発電（power）の順に別見出しで並ぶ
+    const loops = [
+      ...SAMPLE_PLANS.filter((sample) => sample.category === 'special'),
+      ...SAMPLE_PLANS.filter((sample) => sample.category === 'power'),
+    ]
     expect(loops).toHaveLength(10)
     for (const [, file, copy] of pages) {
       const html = await readFile(join(outputDirectory, file), 'utf8')

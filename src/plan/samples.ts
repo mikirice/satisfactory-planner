@@ -20,6 +20,7 @@ import type { PlanSnapshot } from './serialize.ts'
 export const TEMPLATE_CATEGORIES = [
   { id: 'basic', title: '基本ライン', titleEn: 'Basic Lines' },
   { id: 'special', title: 'ループテンプレート', titleEn: 'Loop Templates' },
+  { id: 'power', title: '発電テンプレート', titleEn: 'Power Templates' },
 ] as const
 
 export type TemplateCategoryId = (typeof TEMPLATE_CATEGORIES)[number]['id']
@@ -179,7 +180,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'diluted-fuel-power',
-    category: 'special',
+    category: 'power',
     title: '希釈燃料発電',
     description: '2,500 MW。原油から廃重油と希釈燃料を経て燃料式発電機へつなぐ流れを学べる。',
     titleEn: 'Efficient {{Desc_LiquidFuel_C}} Power',
@@ -213,7 +214,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'turbofuel-power',
-    category: 'special',
+    category: 'power',
     title: 'ターボ燃料発電',
     description: '2,000 MW。圧縮石炭と燃料からターボ燃料を作る発電チェーンを学べる。',
     titleEn: '{{Desc_LiquidTurboFuel_C}} Power',
@@ -350,7 +351,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'nuclear-uranium',
-    category: 'special',
+    category: 'power',
     title: '原子力 ①: ウラン発電',
     description:
       '5,000 MW。ウラン燃料棒だけを燃やす最小の原子力構成。ウラン廃棄物は保管するしかない。',
@@ -392,7 +393,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'nuclear-plutonium',
-    category: 'special',
+    category: 'power',
     title: '原子力 ②: プルトニウムまで再処理',
     description:
       '5,000 MW。ウラン廃棄物を全量プルトニウム燃料棒にして燃やす。残るのはプルトニウム廃棄物だけ。',
@@ -434,7 +435,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'nuclear-reprocessing',
-    category: 'special',
+    category: 'power',
     title: '原子力 ③: FICSONIUMで完全循環',
     description:
       '5,000 MW。プルトニウム廃棄物までFICSONIUM燃料棒にして燃やし、核廃棄物を1つも残さない。',
@@ -481,7 +482,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   },
   {
     id: 'nuclear-simplified',
-    category: 'special',
+    category: 'power',
     title: '原子力発電（代替レシピで簡略化）',
     description:
       '2,500 MW。注入型ウラン・セルで硫酸をなくし、ウラン燃料棒までをベルトだけでつなぐ。',
