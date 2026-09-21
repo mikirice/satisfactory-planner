@@ -250,11 +250,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き11本とループ10本、および記事indexを生成する', async () => {
+  it('手書き12本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(21)
+    expect(articleSlugs).toHaveLength(22)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -281,8 +281,8 @@ describe('記事静的ページ', () => {
     expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
   })
 
-  it('手書き記事11本の本文が各800〜3000文字に収まる（追加5本は1500文字以上）', () => {
-    expect(handwrittenArticles).toHaveLength(11)
+  it('手書き記事12本の本文が各800〜3000文字に収まる（追加5本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(12)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -295,7 +295,9 @@ describe('記事静的ページ', () => {
       expect(length, article.slug).toBeGreaterThanOrEqual(
         longFormSlugs.has(article.slug) ? 1500 : 800,
       )
-      expect(length, article.slug).toBeLessThanOrEqual(3000)
+      expect(length, article.slug).toBeLessThanOrEqual(
+        article.slug === 'strong-alternate-recipes' ? 3600 : 3000,
+      )
     }
     expect([...longFormSlugs].every((slug) =>
       handwrittenArticles.some((article) => article.slug === slug),
@@ -580,10 +582,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 225（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事21）
-    // ＋ 英語 224（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(449)
-    expect(manifest.urls).toHaveLength(449)
+    // 日本語 226（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事22）
+    // ＋ 英語 225（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(451)
+    expect(manifest.urls).toHaveLength(451)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -774,7 +776,7 @@ function mainSection(html: string): string {
 }
 
 describe('英語ミラーの生成', () => {
-  it('アイテム198件＋一覧、記事21本＋索引を /en/ に出す', async () => {
+  it('アイテム198件＋一覧、記事22本＋索引を /en/ に出す', async () => {
     const itemEntries = await readdir(join(outputDirectory, 'en/items'), { withFileTypes: true })
     const articleEntries = await readdir(join(outputDirectory, 'en/articles'), {
       withFileTypes: true,
@@ -1481,8 +1483,8 @@ describe('ランディングの構成（/ と /en/）', () => {
     }
   })
 
-  it('解説記事4本は生成済みの記事ページへ実際の見出しでリンクし、一覧へのリンクも持つ', async () => {
-    expect(LANDING_GUIDE_SLUGS).toHaveLength(4)
+  it('解説記事5本は生成済みの記事ページへ実際の見出しでリンクし、一覧へのリンクも持つ', async () => {
+    expect(LANDING_GUIDE_SLUGS).toHaveLength(5)
     for (const [locale, file, copy] of pages) {
       const html = await readFile(join(outputDirectory, file), 'utf8')
       const cards = [...html.matchAll(/<a class="guide-card" href="([^"]+)"><strong class="landing-heading">([^<]+)<\/strong>/g)]

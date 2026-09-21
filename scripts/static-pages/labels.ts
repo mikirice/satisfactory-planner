@@ -825,6 +825,7 @@ export type LandingCopy = {
 export const LANDING_GUIDE_SLUGS = [
   'production-planning-tutorial',
   'alternate-recipe-metrics',
+  'strong-alternate-recipes',
   'coal-power-startup',
   'build-checklist-guide',
 ] as const

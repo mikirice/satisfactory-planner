@@ -22,6 +22,7 @@ import { oilProductsBasicsArticleEn } from './oil-products-basics.ts'
 import { powerGenerationPlanningArticleEn } from './power-generation-planning.ts'
 import { productionPlanningTutorialArticleEn } from './production-planning-tutorial.ts'
 import { somersloopAndPowerShardsArticleEn } from './somersloop-and-power-shards.ts'
+import { strongAlternateRecipesArticleEn } from './strong-alternate-recipes.ts'
 
 export const handwrittenArticlesEn = [
   productionPlanningTutorialArticleEn,
@@ -35,6 +36,7 @@ export const handwrittenArticlesEn = [
   awesomeSinkPointsArticleEn,
   clockAndEfficiencyArticleEn,
   buildChecklistGuideArticleEn,
+  strongAlternateRecipesArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(
