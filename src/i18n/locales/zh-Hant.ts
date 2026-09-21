@@ -204,7 +204,7 @@ export const zhHant = {
   samples: {
     heading: '從範例開始',
     hint: '選擇範例即可載入輸入並算出結果，之後所有數值都能修改。',
-    loopHeading: '循環範本',
+    loopHeading: '循環與發電範本',
     loopHint: '選擇範本會取代目前的輸入並立即計算。',
     guideHeading: '第一次接觸生產循環嗎？',
     guideLines: [

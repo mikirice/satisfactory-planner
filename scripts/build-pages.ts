@@ -113,10 +113,16 @@ export type StaticPagesManifest = {
   locales: readonly StaticLocale[]
 }
 
+// ループ記事 = 基本ライン以外（循環構成 special ＋ 発電チェーン power）。URL は分類に依らず /articles/<id>/
 const loopSamples = SAMPLE_PLANS.filter(
   (sample): sample is SamplePlan & { guide: NonNullable<SamplePlan['guide']> } =>
-    sample.category === 'special' && sample.guide !== undefined,
+    sample.category !== 'basic' && sample.guide !== undefined,
 )
+/** 記事一覧・ランディングでループ記事を分けて並べるときの順（循環 → 発電）と見出し。 */
+const LOOP_ARTICLE_GROUPS = [
+  { category: 'special', heading: (L: StaticPageLabels): string => L.articlesIndexLoopSection },
+  { category: 'power', heading: (L: StaticPageLabels): string => L.articlesIndexPowerSection },
+] as const
 
 // slug の実装はアプリと共有する（src/plan/item-pages.ts が正典）。ここでは再輸出だけする。
 export { itemSlug } from '../src/plan/item-pages.ts'
@@ -1054,18 +1060,22 @@ function renderLandingFeature(ctx: Ctx, feature: LandingFeature, index: number):
  * 見出しと説明は samples.ts（ja）／content/loop-guides/en.ts（en）から取り、ここでは書かない。
  */
 function renderLandingTemplates(ctx: Ctx, copy: LandingCopy): string {
-  const cards = loopSamples
-    .map((sample) => {
-      const content = loopContent(ctx, sample)
-      const href = buildShareUrl(appPagePath(), sample.snapshot)
-      return `<li><a class="template-card" href="${escapeHtml(href)}">
+  return LOOP_ARTICLE_GROUPS.map((group) => {
+    const cards = loopSamples
+      .filter((sample) => sample.category === group.category)
+      .map((sample) => {
+        const content = loopContent(ctx, sample)
+        const href = buildShareUrl(appPagePath(), sample.snapshot)
+        return `<li><a class="template-card" href="${escapeHtml(href)}">
           <strong class="landing-heading">${landingText(ctx, content.title)}</strong>
           <span>${landingText(ctx, content.description)}</span>
           <small>${escapeHtml(copy.templatesOpenLabel)}</small>
         </a></li>`
-    })
-    .join('')
-  return `<ul class="template-grid">${cards}</ul>`
+      })
+      .join('')
+    return `<h3 class="landing-heading">${escapeHtml(group.heading(ctx.L))}</h3>
+    <ul class="template-grid">${cards}</ul>`
+  }).join('')
 }
 
 function renderLandingGuides(ctx: Ctx, copy: LandingCopy): string {
@@ -1786,7 +1796,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
     ctx.locale,
   )}
     <header class="hero">
-      <p class="eyebrow">${escapeHtml(ctx.L.loopEyebrow)}</p>
+      <p class="eyebrow">${escapeHtml(sample.category === 'power' ? ctx.L.powerEyebrow : ctx.L.loopEyebrow)}</p>
       <h1>${escapeHtml(content.headline)}</h1>
       <p class="lead">${escapeHtml(content.description)}</p>
       <p class="version">${escapeHtml(ctx.L.loopPublishedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
@@ -1839,6 +1849,7 @@ function renderArticlesIndex(ctx: Ctx): string {
   const handwritten = handwrittenArticles.map((article) => localizedArticle(ctx, article))
   const loops = loopSamples.map((sample) => ({
     slug: sample.id,
+    category: sample.category,
     content: loopContent(ctx, sample),
   }))
   const handwrittenList = handwritten
@@ -1846,11 +1857,18 @@ function renderArticlesIndex(ctx: Ctx): string {
       (article) => `<li><a href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}"><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.description)}</span></a></li>`,
     )
     .join('')
-  const loopList = loops
-    .map(
-      (loop) => `<li><a href="${escapeHtml(articlePagePath(loop.slug, ctx.locale))}"><strong>${escapeHtml(loop.content.headline)}</strong><span>${escapeHtml(loop.content.description)}</span></a></li>`,
-    )
-    .join('')
+  const loopSections = LOOP_ARTICLE_GROUPS.map((group) => {
+    const list = loops
+      .filter((loop) => loop.category === group.category)
+      .map(
+        (loop) => `<li><a href="${escapeHtml(articlePagePath(loop.slug, ctx.locale))}"><strong>${escapeHtml(loop.content.headline)}</strong><span>${escapeHtml(loop.content.description)}</span></a></li>`,
+      )
+      .join('')
+    return `<section>
+      <h2>${escapeHtml(group.heading(ctx.L))}</h2>
+      <ul class="article-list">${list}</ul>
+    </section>`
+  }).join('\n    ')
   const articleEntries = [
     ...handwritten.map((article) => ({ title: article.title, slug: article.slug })),
     ...loops.map((loop) => ({ title: loop.content.headline, slug: loop.slug })),
@@ -1900,10 +1918,7 @@ function renderArticlesIndex(ctx: Ctx): string {
       <h2>${escapeHtml(ctx.L.articlesIndexToolSection)}</h2>
       <ul class="article-list">${handwrittenList}</ul>
     </section>
-    <section>
-      <h2>${escapeHtml(ctx.L.articlesIndexLoopSection)}</h2>
-      <ul class="article-list">${loopList}</ul>
-    </section>`
+    ${loopSections}`
   return renderDocument(
     {
       locale: ctx.locale,

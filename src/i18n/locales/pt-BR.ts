@@ -207,7 +207,7 @@ export const ptBR = {
   samples: {
     heading: 'Começar por um exemplo',
     hint: 'Escolha um exemplo para carregar os dados e calcular o resultado. Depois é possível mudar qualquer valor.',
-    loopHeading: 'Modelos de ciclo',
+    loopHeading: 'Modelos de ciclo e energia',
     loopHint: 'Escolha um modelo para substituir os dados atuais e calcular.',
     guideHeading: 'É a primeira vez com ciclos de produção?',
     guideLines: [

@@ -201,7 +201,7 @@ export const ko = {
   samples: {
     heading: '예제로 시작하기',
     hint: '예제를 고르면 입력이 채워지고 결과까지 계산됩니다. 이후 모든 값을 바꿀 수 있습니다.',
-    loopHeading: '순환 템플릿',
+    loopHeading: '순환·발전 템플릿',
     loopHint: '템플릿을 고르면 현재 입력을 대체하고 계산합니다.',
     guideHeading: '생산 순환이 처음이라면',
     guideLines: [

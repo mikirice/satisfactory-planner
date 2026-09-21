@@ -200,7 +200,7 @@ export const zhHans = {
   samples: {
     heading: '从示例开始',
     hint: '选择一个示例即可载入其输入并算出结果，之后所有数值都可以修改。',
-    loopHeading: '循环模板',
+    loopHeading: '循环与发电模板',
     loopHint: '选择模板会替换当前输入并立即计算。',
     guideHeading: '第一次接触生产循环？',
     guideLines: [

@@ -208,7 +208,7 @@ export const fr = {
   samples: {
     heading: 'Commencer par un exemple',
     hint: "Choisissez un exemple pour charger ses entrées et lancer le calcul. Toutes les valeurs restent modifiables ensuite.",
-    loopHeading: 'Modèles de boucle',
+    loopHeading: 'Modèles de boucle et d’énergie',
     loopHint: 'Choisissez un modèle pour remplacer les entrées actuelles et lancer le calcul.',
     guideHeading: 'Vous débutez avec les boucles de production ?',
     guideLines: [

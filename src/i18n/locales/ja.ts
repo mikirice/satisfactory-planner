@@ -205,7 +205,7 @@ export const ja = {
   samples: {
     heading: '例から始める',
     hint: '押すと入力が入り、そのまま結果が出ます。中身はあとから自由に変えられます。',
-    loopHeading: 'ループテンプレート',
+    loopHeading: 'ループ・発電テンプレート',
     loopHint: 'テンプレートを選ぶと入力を置き換えて計算します。',
     guideHeading: 'はじめての方へ',
     guideLines: [
