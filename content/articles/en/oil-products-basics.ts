@@ -57,6 +57,7 @@ export const oilProductsBasicsArticleEn = {
     'packaged-diluted-fuel-loop',
     'coal-power-startup',
     'power-generation-planning',
+    'strong-alternate-recipes',
   ],
   cta: {
     kind: 'item',

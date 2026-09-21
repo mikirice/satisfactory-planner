@@ -44,6 +44,7 @@ export const alternateRecipeMetricsArticleEn = {
     'Desc_Plastic_C',
     'Desc_SteelIngot_C',
   ],
+  relatedArticleSlugs: ['strong-alternate-recipes', 'production-planning-tutorial'],
   cta: {
     kind: 'item',
     label: 'Compare the Iron Plate alternates across a whole plan',

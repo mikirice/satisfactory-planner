@@ -44,6 +44,7 @@ export const alternateRecipeMetricsArticle = {
     'Desc_Plastic_C',
     'Desc_SteelIngot_C',
   ],
+  relatedArticleSlugs: ['strong-alternate-recipes', 'production-planning-tutorial'],
   cta: {
     kind: 'item',
     label: '鉄板の代替レシピを計画全体で比較する',
