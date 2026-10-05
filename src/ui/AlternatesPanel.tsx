@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useLocale } from '../i18n/index.ts'
 import { alternateRecipes, usePlanner } from '../store/planner.ts'
 import { stripAlternatePrefix } from './format.ts'
+import { usePanelOpen } from '../store/sidebar-panels.ts'
 import { T } from './text.ts'
 
 export function AlternatesPanel() {
@@ -11,7 +12,7 @@ export function AlternatesPanel() {
   const enabled = usePlanner((s) => s.enabledAlternates)
   const setAlternate = usePlanner((s) => s.setAlternate)
   const setAllAlternates = usePlanner((s) => s.setAllAlternates)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = usePanelOpen('alternates', false)
   const [query, setQuery] = useState('')
 
   // このパネルは全行が代替レシピなので、行頭の目印（ハードドライブ）と「代替: 」は
@@ -44,7 +45,7 @@ export function AlternatesPanel() {
   const onCount = Object.keys(enabled).length
 
   return (
-    <section className="panel">
+    <section className="panel" data-panel-id="alternates">
       <button type="button" className="panel__toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="panel__title">{T.sidebar.alternates}</span>
         <span className="panel__meta">{T.sidebar.alternatesCount(onCount, alternateRecipes.length)}</span>

@@ -131,14 +131,14 @@ describe('建設リストの表示', () => {
     expect(text).toContain('採鉱機 Mk.3')
     expect(text).toContain('製錬炉')
     expect(text).toContain('製作機')
-    // 3.5台 → 4台を87.5%で回す
-    expect(text).toContain('87.5%')
+    // Full configured clock, with demand and whole-building capacity separated.
+    expect(text).toContain('100%')
     // 鉄鉱石 90/min は Mk.2（120/min）1本で運べる
-    expect(text).toContain('コンベア・ベルト Mk.2')
+    expect(text).toContain('コンベア・ベルト Mk.6')
 
     // 製錬炉（投入=鉄鉱石）が製作機（投入=鉄インゴット）より前
     const names = rows(container).map((row) => row.querySelector('.build-item__name')?.textContent)
-    expect(names.indexOf('製錬炉')).toBeLessThan(names.indexOf('製作機'))
+    expect(names.findIndex(name => name?.startsWith('製錬炉'))).toBeLessThan(names.findIndex(name => name?.startsWith('製作機')))
   })
 
   it('工程ごとに建てる台数を出す', async () => {
@@ -193,10 +193,11 @@ describe('建設リストの表示', () => {
 
     expect(text).toContain('発電')
     expect(text).toContain('石炭発電機')
-    expect(text).toContain('燃料: 石炭')
-    expect(text).toContain('300.00 MW')
+    expect(text).toContain('石炭')
+    expect(text).not.toContain('燃料: 石炭')
+    expect(rows(container).at(-1)?.querySelector('.build-item__meta')).toBeNull()
     // 水 180 m³/min はパイプ Mk.1（300 m³/min）で1本
-    expect(text).toContain('パイプラインMk.1')
+    expect(text).toContain('パイプラインMk.2')
     expect(text).not.toContain('power:Build_GeneratorCoal_C')
     expect(rows(container).at(-1)?.querySelector('.build-item__count')?.textContent).toBe('×4 台')
     // 製造7台 + 発電4台

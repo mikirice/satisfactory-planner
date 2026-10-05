@@ -1,4 +1,8 @@
 /** 目的関数プリセット・クロック / Somersloop・採掘設備・搬送手段の選択。 */
+import { useLocale } from '../i18n/index.ts'
+import { extractionSettingsText } from '../i18n/extraction-settings.ts'
+import type { ResourcePurity } from '../data/map-limits.ts'
+import { PURITY_MULTIPLIER } from '../data/constants.ts'
 import { belts, extractorsById, pipes } from '../data/index.ts'
 import {
   CLOCK_MAX,
@@ -17,7 +21,7 @@ export function ObjectivePanel() {
   const setObjective = usePlanner((s) => s.setObjective)
 
   return (
-    <CollapsiblePanel title={T.sidebar.objective}>
+    <CollapsiblePanel panelId="objective" title={T.sidebar.objective}>
       <div className="radio-list">
         {OBJECTIVE_PRESETS.map((preset) => (
           <label
@@ -56,7 +60,7 @@ export function ClockPanel() {
   const setSomersloops = usePlanner((s) => s.setSomersloops)
 
   return (
-    <CollapsiblePanel title={T.sidebar.clock}>
+    <CollapsiblePanel panelId="clock" title={T.sidebar.clock}>
       <label className="field">
         <span className="field__label">
           {T.sidebar.clockMax}
@@ -89,13 +93,18 @@ export function ClockPanel() {
 }
 
 export function ExtractionPanel() {
+  const { locale } = useLocale()
+  const { purityLabel, purityNames } = extractionSettingsText(locale)
+  const extractionPurity = usePlanner((s) => s.extractionPurity)
+  const setExtractionPurity = usePlanner((s) => s.setExtractionPurity)
   const minerId = usePlanner((s) => s.minerId)
   const extractionClock = usePlanner((s) => s.extractionClock)
+  const beltId = usePlanner((s) => s.beltId)
   const setMinerId = usePlanner((s) => s.setMinerId)
   const setExtractionClock = usePlanner((s) => s.setExtractionClock)
 
   return (
-    <CollapsiblePanel title={T.sidebar.extraction}>
+    <CollapsiblePanel panelId="extraction" title={T.sidebar.extraction}>
       <label className="field">
         <span className="field__label">{T.sidebar.miner}</span>
         <select className="input" value={minerId} onChange={(e) => setMinerId(e.target.value)}>
@@ -103,10 +112,16 @@ export function ExtractionPanel() {
             const extractor = extractorsById.get(id)!
             return (
               <option key={id} value={id}>
-                {T.sidebar.minerOption(itemName(extractor.id), fmtRate(extractor.baseRatePerMin))}
+                {`${itemName(extractor.id)} (${fmtRate(Math.min(extractor.baseRatePerMin * PURITY_MULTIPLIER[extractionPurity] * extractionClock, belts.find((belt) => belt.id === beltId)?.itemsPerMin ?? Infinity))}/min)`}
               </option>
             )
           })}
+        </select>
+      </label>
+      <label className="field">
+        <span className="field__label">{purityLabel}</span>
+        <select className="input" value={extractionPurity} onChange={(e) => setExtractionPurity(e.target.value as ResourcePurity)}>
+          {(['impure', 'normal', 'pure'] as const).map((purity) => <option key={purity} value={purity}>{purityNames[purity]}</option>)}
         </select>
       </label>
       <label className="field">
@@ -123,7 +138,6 @@ export function ExtractionPanel() {
           ))}
         </select>
       </label>
-      <p className="hint">{T.sidebar.minerHint}</p>
       <p className="hint">{T.sidebar.extractionClockHint}</p>
     </CollapsiblePanel>
   )
@@ -136,7 +150,7 @@ export function LogisticsPanel() {
   const setPipeId = usePlanner((s) => s.setPipeId)
 
   return (
-    <CollapsiblePanel title={T.sidebar.logistics}>
+    <CollapsiblePanel panelId="logistics" title={T.sidebar.logistics}>
       <label className="field">
         <span className="field__label">{T.sidebar.belt}</span>
         <select className="input" value={beltId} onChange={(e) => setBeltId(e.target.value)}>

@@ -6,12 +6,12 @@
  *
  *   1台あたりの抽出レート = 基準レート × 純度倍率 × クロック
  *
- * ノードは純度の高い順に埋める（nodesRequired と同じ方針）。マップのノード数を
- * 使い切っても足りない場合は shortfallPerMin に残す（LP の上限は最大クロック250%
- * 前提なので、クロック100%だと物理的に足りないケースがありうる）。
+ * 使用する純度は選択値（既定は通常）のみ。1台の出力は選択した搬送設備の
+ * 容量も上限にする。台数は必要量から切り上げ、必要量と設備の最大容量を分ける。
+ * 電力は整数台が選択クロックで稼働する場合の容量を見積もる。
  */
 import { CLOCK_MAX, CLOCK_MIN, PURITY_MULTIPLIER } from '../data/constants.ts'
-import { buildingsById, extractorsById, itemsById } from '../data/index.ts'
+import { belts, buildingsById, extractorsById, itemsById, pipes } from '../data/index.ts'
 import type { ExtractorCategory, ItemAmount, LocalizedName } from '../data/types.ts'
 import type { NodeCounts, ResourcePurity } from '../data/map-limits.ts'
 import { mapResourceLimitsByItem } from '../data/map-limits.ts'
@@ -50,7 +50,7 @@ const PURITY_ORDER: readonly ResourcePurity[] = ['pure', 'normal', 'impure']
 
 export type NodeAssignment = {
   purity: ResourcePurity
-  /** 割り当てたノード数（小数。端数のノードはアンダークロックで賄う） */
+  /** 需要換算のノード数（小数）。建設台数は切り上げる */
   nodes: number
   /** マップに存在するノード数 */
   availableNodes: number
@@ -62,6 +62,9 @@ export type NodeAssignment = {
 
 /** 同じ設備をまとめた単位（原油はノード用の抽出機＋資源井戸の2グループになる）。 */
 export type ExtractorGroup = {
+  id?: string
+  /** Installed capacity, including explicitly configured idle buildings. */
+  maximumRatePerMin?: number
   /** Extractor.id（= Building.id） */
   extractorId: string
   extractorName: LocalizedName
@@ -72,11 +75,11 @@ export type ExtractorGroup = {
   machineCount: number
   /** 実際に建てる台数（切り上げ） */
   buildingCount: number
-  /** このグループで得られるレート */
+  /** このグループが賄う需要レート */
   ratePerMin: number
-  /** クロック速度（100% = 1）。端数の1台だけはこれより低いクロックで回す */
+  /** クロック速度（100% = 1）。全台に同じ設定を適用 */
   clockSpeed: number
-  /** 消費電力(MW)。端数の1台はアンダークロック分を割り引いて計算する */
+  /** 消費電力(MW)。建築台数と設定クロックによる最大稼働電力 */
   powerMW: number
   /** 必要なパワーシャードの総数（クロック100%以下なら 0）。加圧機ぶんを含む */
   powerShards: number
@@ -132,6 +135,11 @@ export type ExtractionOptions = {
   minerId?: string
   /** クロック速度（0.01〜2.5）。既定 1（100%） */
   clock?: number
+  /** Selected node purity; defaults to normal. */
+  purity?: ResourcePurity
+  beltId?: string
+  pipeId?: string
+  overrides?: ExtractionOverrides
 }
 
 /** planExtraction の入力。Solution をそのまま渡せる。 */
@@ -145,7 +153,7 @@ export type ExtractionInput = {
 
 /**
  * 原料の必要レートから採掘計画を組み立てる。
- * 純度の高いノードから順に埋め、余った端数は1台のアンダークロックで賄う想定。
+ * 選択した純度・クロック・搬送上限で必要台数を計算する。
  */
 export function planExtraction(
   solution: ExtractionInput | Solution,
@@ -153,11 +161,21 @@ export function planExtraction(
 ): ExtractionPlan {
   const minerId = options.minerId ?? DEFAULT_MINER_ID
   const clock = clampClock(options.clock ?? 1)
+  const overrides = normalizeExtractionOverrides(options.overrides)
+
+  const purity = options.purity ?? 'normal'
+  const beltCapacity = belts.find((b) => b.id === options.beltId)?.itemsPerMin ?? belts.at(-1)!.itemsPerMin
+  const pipeCapacity = pipes.find((p) => p.id === options.pipeId)?.m3PerMin ?? pipes.at(-1)!.m3PerMin
 
   const resources: ResourceExtraction[] = []
   for (const raw of solution.rawResources) {
     if (raw.ratePerMin <= 0) continue
-    resources.push(planResource(raw.item, raw.ratePerMin, minerId, clock))
+    const override = overrides[raw.item]
+    const capacity = itemsById.get(raw.item)?.form === 'solid' ? beltCapacity : pipeCapacity
+    resources.push(override?.nodes !== undefined
+      ? planMixedResource(raw.item, raw.ratePerMin, override.nodes, capacity)
+      : planResource(raw.item, raw.ratePerMin, override?.minerId ?? minerId,
+        clampClock(override?.clock ?? clock), override?.purity ?? purity, capacity))
   }
   resources.sort((a, b) => b.requiredRatePerMin - a.requiredRatePerMin || a.item.localeCompare(b.item))
 
@@ -200,27 +218,28 @@ function planResource(
   requiredRatePerMin: number,
   minerId: string,
   clock: number,
+  purity: ResourcePurity,
+  outputCapacity: number,
 ): ResourceExtraction {
-  const itemName = itemsById.get(item)?.name ?? { ja: item, en: item }
   const limit = mapResourceLimitsByItem.get(item)
   const groups: ExtractorGroup[] = []
   let remaining = requiredRatePerMin
 
   if (item === 'Desc_Water_C') {
     // 水面にいくらでも置けるので純度もノード数も関係ない
-    groups.push(buildUnlimitedGroup(WATER_EXTRACTOR_ID, remaining, clock))
+    groups.push(buildUnlimitedGroup(WATER_EXTRACTOR_ID, remaining, clock, outputCapacity))
     remaining = 0
   } else if (limit) {
     const nodeExtractorId = itemsById.get(item)?.form === 'solid' ? minerId : OIL_EXTRACTOR_ID
     // 1) 通常ノード（採掘機 / 原油抽出機）
-    const nodeGroup = buildNodeGroup(nodeExtractorId, remaining, limit.nodes, clock)
+    const nodeGroup = buildNodeGroup(nodeExtractorId, remaining, limit.nodes, clock, purity, outputCapacity)
     if (nodeGroup) {
       groups.push(nodeGroup)
       remaining -= nodeGroup.ratePerMin
     }
     // 2) 足りなければ資源井戸（原油・窒素ガス）
     if (remaining > 1e-9) {
-      const wellGroup = buildNodeGroup(WELL_EXTRACTOR_ID, remaining, limit.wells, clock, item)
+      const wellGroup = buildNodeGroup(WELL_EXTRACTOR_ID, remaining, limit.wells, clock, purity, outputCapacity, item)
       if (wellGroup) {
         groups.push(wellGroup)
         remaining -= wellGroup.ratePerMin
@@ -228,6 +247,11 @@ function planResource(
     }
   }
 
+  return summarizeResource(item, requiredRatePerMin, groups)
+}
+
+function summarizeResource(item: string, requiredRatePerMin: number, groups: ExtractorGroup[]): ResourceExtraction {
+  const itemName = itemsById.get(item)?.name ?? { ja: item, en: item }
   const powerMW = groups.reduce((p, g) => p + g.powerMW + (g.pressurizerPowerMW ?? 0), 0)
   const buildingCount = groups.reduce((n, g) => n + g.buildingCount + (g.pressurizerCount ?? 0), 0)
   const suppliedRatePerMin = groups.reduce((r, g) => r + g.ratePerMin, 0)
@@ -257,11 +281,13 @@ function buildNodeGroup(
   ratePerMin: number,
   counts: NodeCounts,
   clock: number,
+  purity: ResourcePurity,
+  outputCapacity: number,
   wellItem?: string,
 ): ExtractorGroup | null {
   const extractor = extractorsById.get(extractorId)
   if (!extractor) throw new Error(`unknown extractor id: ${extractorId}`)
-  const assignments = assignPurityNodes(ratePerMin, counts, extractor.baseRatePerMin, clock)
+  const assignments = assignPurityNodes(ratePerMin, counts, extractor.baseRatePerMin, clock, purity, outputCapacity)
   if (assignments.length === 0) return null
 
   const machineCount = assignments.reduce((n, a) => n + a.nodes, 0)
@@ -301,10 +327,11 @@ function buildUnlimitedGroup(
   extractorId: string,
   ratePerMin: number,
   clock: number,
+  outputCapacity: number,
 ): ExtractorGroup {
   const extractor = extractorsById.get(extractorId)
   if (!extractor) throw new Error(`unknown extractor id: ${extractorId}`)
-  const ratePerNodePerMin = extractor.baseRatePerMin * clock
+  const ratePerNodePerMin = Math.min(extractor.baseRatePerMin * clock, outputCapacity)
   const machineCount = ratePerNodePerMin > 0 ? ratePerMin / ratePerNodePerMin : 0
   const assignments: NodeAssignment[] = [
     {
@@ -341,12 +368,14 @@ export function assignPurityNodes(
   counts: NodeCounts,
   baseRatePerMin: number,
   clock = 1,
+  selectedPurity?: ResourcePurity,
+  outputCapacity = Number.POSITIVE_INFINITY,
 ): NodeAssignment[] {
   const out: NodeAssignment[] = []
   let remaining = ratePerMin
-  for (const purity of PURITY_ORDER) {
+  for (const purity of selectedPurity ? [selectedPurity] : PURITY_ORDER) {
     if (remaining <= 1e-9) break
-    const ratePerNodePerMin = baseRatePerMin * PURITY_MULTIPLIER[purity] * clock
+    const ratePerNodePerMin = Math.min(baseRatePerMin * PURITY_MULTIPLIER[purity] * clock, outputCapacity)
     if (ratePerNodePerMin <= 0) continue
     const availableNodes = counts[purity]
     const nodes = Math.min(availableNodes, remaining / ratePerNodePerMin)
@@ -364,8 +393,7 @@ export function assignPurityNodes(
 }
 
 /**
- * グループの消費電力。整数台はクロック c、端数の1台は c×端数 で回す前提。
- * （純度ごとにレートが違うので、端数も純度ごとに出る）
+ * 整数の建設台数が選択クロック c で運転する場合の消費電力容量。
  */
 function groupPowerMW(
   assignments: readonly NodeAssignment[],
@@ -374,16 +402,8 @@ function groupPowerMW(
   clock: number,
 ): number {
   if (basePowerMW <= 0) return 0
-  let power = 0
-  for (const a of assignments) {
-    const full = Math.floor(a.nodes + 1e-9)
-    const remainder = a.nodes - full
-    power += full * clockedPowerMW(basePowerMW, clock, powerExponent)
-    if (remainder > 1e-9) {
-      power += clockedPowerMW(basePowerMW, clampClock(clock * remainder), powerExponent)
-    }
-  }
-  return power
+  return assignments.reduce((total, assignment) => total + ceilCount(assignment.nodes) *
+    clockedPowerMW(basePowerMW, clock, powerExponent), 0)
 }
 
 function addBuildCost(into: Map<string, number>, buildingId: string, count: number): void {
@@ -401,4 +421,109 @@ function ceilCount(n: number): number {
 function clampClock(clock: number): number {
   if (!Number.isFinite(clock)) return 1
   return Math.min(CLOCK_MAX, Math.max(CLOCK_MIN, clock))
+}
+
+export type CustomExtractionNode = {
+  extractorId: string
+  purity: ResourcePurity
+  clock: number
+  count: number
+}
+export type ResourceExtractionOverride = {
+  minerId?: string
+  purity?: ResourcePurity
+  clock?: number
+  /** Explicit installed groups; absent means automatic building count. */
+  nodes?: CustomExtractionNode[]
+}
+export type ExtractionOverrides = Record<string, ResourceExtractionOverride>
+
+export function resourceExtractorIds(item: string): readonly string[] {
+  if (itemsById.get(item)?.form === 'solid') return MINER_IDS
+  if (item === 'Desc_Water_C') return [WATER_EXTRACTOR_ID, WELL_EXTRACTOR_ID]
+  if (item === 'Desc_LiquidOil_C') return [OIL_EXTRACTOR_ID, WELL_EXTRACTOR_ID]
+  return [WELL_EXTRACTOR_ID]
+}
+
+/** Validate saved/custom settings without trusting imported object structure. */
+export function normalizeExtractionOverrides(value: unknown): ExtractionOverrides {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const result: ExtractionOverrides = {}
+  const validPurity = (v: unknown): v is ResourcePurity => v === 'impure' || v === 'normal' || v === 'pure'
+  const validClock = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= CLOCK_MIN && v <= CLOCK_MAX
+  for (const [item, raw] of Object.entries(value)) {
+    if (!itemsById.get(item)?.isRawResource || !raw || typeof raw !== 'object' || Array.isArray(raw)) continue
+    const v = raw as Record<string, unknown>
+    if (Array.isArray(v.nodes)) {
+      const nodes: CustomExtractionNode[] = []
+      for (const entry of v.nodes.slice(0, 10000)) {
+        if (!entry || typeof entry !== 'object') continue
+        const n = entry as Record<string, unknown>
+        if (typeof n.extractorId !== 'string' || !resourceExtractorIds(item).includes(n.extractorId) ||
+          !validPurity(n.purity) || !validClock(n.clock) || typeof n.count !== 'number' ||
+          !Number.isInteger(n.count) || n.count < 1 || n.count > 10000) continue
+        nodes.push({ extractorId: n.extractorId, purity: n.purity, clock: n.clock, count: n.count })
+      }
+      // An empty explicit list intentionally means no configured extraction.
+      result[item] = { nodes }
+    } else if (validPurity(v.purity) && validClock(v.clock) &&
+      (v.minerId === undefined || (typeof v.minerId === 'string' && MINER_IDS.includes(v.minerId as typeof MINER_IDS[number])))) {
+      result[item] = { purity: v.purity, clock: v.clock, ...(typeof v.minerId === 'string' ? { minerId: v.minerId } : {}) }
+    }
+  }
+  return result
+}
+
+export function extractorRatePerMin(item: string, extractorId: string, purity: ResourcePurity,
+  clock: number, outputCapacity = Infinity): number {
+  if (!resourceExtractorIds(item).includes(extractorId)) return 0
+  const multiplier = extractorId === WATER_EXTRACTOR_ID ? 1 : PURITY_MULTIPLIER[purity]
+  return Math.min((extractorsById.get(extractorId)?.baseRatePerMin ?? 0) * multiplier * clampClock(clock), outputCapacity)
+}
+
+function planMixedResource(item: string, required: number, nodes: readonly CustomExtractionNode[], outputCapacity: number): ResourceExtraction {
+  const groups: ExtractorGroup[] = []
+  let remaining = required
+  const limit = mapResourceLimitsByItem.get(item)
+  const used = new Map<string, number>()
+  // Adjacent equivalent single-machine nodes share one accounting group, so
+  // well pressurizers are not counted once for every satellite extractor.
+  const grouped: CustomExtractionNode[] = []
+  for (const node of nodes) {
+    const previous = grouped.at(-1)
+    if (previous && previous.extractorId === node.extractorId && previous.purity === node.purity && previous.clock === node.clock) previous.count += node.count
+    else grouped.push({ ...node })
+  }
+  for (const [index, node] of grouped.entries()) {
+    if (!resourceExtractorIds(item).includes(node.extractorId)) continue
+    const extractor = extractorsById.get(node.extractorId)!
+    const key = `${extractor.category}:${node.purity}`
+    const mapCount = node.extractorId === WATER_EXTRACTOR_ID ? Infinity
+      : (extractor.category === 'wellExtractor' ? limit?.wells : limit?.nodes)?.[node.purity] ?? 0
+    const count = Math.min(node.count, Math.max(0, mapCount - (used.get(key) ?? 0)))
+    if (count <= 0) continue
+    used.set(key, (used.get(key) ?? 0) + count)
+    const rate = extractorRatePerMin(item, node.extractorId, node.purity, node.clock, outputCapacity)
+    const maximum = count * rate
+    const supplied = Math.min(remaining, maximum)
+    remaining -= supplied
+    const group: ExtractorGroup = {
+      id: `custom:${index}`, extractorId: node.extractorId, extractorName: extractor.name,
+      category: extractor.category, clockSpeed: node.clock, buildingCount: count,
+      machineCount: rate > 0 ? supplied / rate : 0, ratePerMin: supplied, maximumRatePerMin: maximum,
+      assignments: [{ purity: node.extractorId === WATER_EXTRACTOR_ID ? 'normal' : node.purity,
+        nodes: rate > 0 ? supplied / rate : 0, availableNodes: count, ratePerNodePerMin: rate, ratePerMin: supplied }],
+      powerMW: count * clockedPowerMW(extractor.powerConsumptionMW, node.clock, extractor.powerExponent),
+      powerShards: count * powerShardsForClock(node.clock), footprintAreaM2: count * footprintAreaOf(node.extractorId),
+    }
+    if (extractor.category === 'wellExtractor') {
+      const pressurizer = extractorsById.get(WELL_PRESSURIZER_ID)!
+      group.pressurizerCount = Math.max(1, ceilCount(count / (SATELLITES_PER_WELL[item] ?? 1)))
+      group.pressurizerPowerMW = group.pressurizerCount * clockedPowerMW(pressurizer.powerConsumptionMW, node.clock, pressurizer.powerExponent)
+      group.powerShards += group.pressurizerCount * powerShardsForClock(node.clock)
+      group.footprintAreaM2 += group.pressurizerCount * footprintAreaOf(WELL_PRESSURIZER_ID)
+    }
+    groups.push(group)
+  }
+  return summarizeResource(item, required, groups)
 }

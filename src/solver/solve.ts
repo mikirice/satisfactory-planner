@@ -23,11 +23,14 @@ import {
   buildProductionModel,
   defaultEnabledRecipeIds,
   fuelHasByproduct,
+  generatorBuildingVarKey,
   maximizeVarKey,
   overflowVarKey,
   recipeVarKey,
+  recipeBuildingVarKey,
   somersloopPowerFactor,
   somersloopVarKey,
+  somersloopBuildingVarKey,
   variablePowerRange,
   zeroSurplusChain,
 } from './model.ts'
@@ -399,8 +402,13 @@ function buildSolution(
     })
 
     // 建てる台数はクロック上限で決まる（上限が高いほど少ない台数で足りる）
-    const builtCount = Math.max(1, Math.ceil(machineCount / maxClock - tolerance))
-    const clockSpeed = Math.min(maxClock, machineCount / builtCount)
+    const assignedCount = result.values.get(somersloop
+      ? somersloopBuildingVarKey(recipe.id) : recipeBuildingVarKey(recipe.id))
+    const builtCount = Math.max(1, Math.ceil(machineCount / maxClock - tolerance),
+      Math.round(assignedCount ?? 0))
+    // Demand flows remain averaged requirements. The installed equipment's legal
+    // configured clock and full power budget are separate from utilization.
+    const clockSpeed = maxClock
     const powerShards = builtCount * powerShardsForClock(clockSpeed)
     const somersloops = somersloop ? builtCount * building.maxSomersloops : 0
 
@@ -498,7 +506,8 @@ function buildSolution(
     }
     for (const flow of outputs) accumulate(produced, flow.item, flow.ratePerMin)
 
-    const builtCount = Math.max(1, Math.ceil(machineCount - tolerance))
+    const builtCount = Math.max(1, Math.ceil(machineCount - tolerance),
+      Math.round(result.values.get(generatorBuildingVarKey(variant.key)) ?? 0))
     const powerProductionMW = generator.powerProductionMW * machineCount
     const footprintAreaM2 = builtCount * (building?.footprint.areaM2 ?? 0)
 
@@ -522,7 +531,7 @@ function buildSolution(
       buildingName: generator.name,
       machineCount,
       builtCount,
-      clockSpeed: machineCount / builtCount,
+      clockSpeed: 1,
       powerShards: 0,
       somersloops: 0,
       powerMW: 0,
@@ -644,8 +653,8 @@ function buildSolution(
           fuelUsage: [...fuelUsed]
             .map(([item, ratePerMin]) => ({ item, ratePerMin }))
             .sort((a, b) => b.ratePerMin - a.ratePerMin || a.item.localeCompare(b.item)),
-          factoryPowerMW: totalPowerMW,
-          netMW: totalPowerProductionMW - totalPowerMW,
+          factoryPowerMW: totalClockedPowerMW,
+          netMW: totalPowerProductionMW - totalClockedPowerMW,
         }
       : undefined
 

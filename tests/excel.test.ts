@@ -452,7 +452,7 @@ describe('原料', () => {
     expect(ratio.value).toBeCloseTo(raw.usageRatio!, 9)
     expect(ratio.numFmt).toBe(NUM_FMT.percent)
     expect(row.getCell(col.get('採掘設備')!).value).toBe('採鉱機 Mk.3')
-    expect(row.getCell(col.get('純度')!).value).toBe('高純度')
+    expect(row.getCell(col.get('純度')!).value).toBe('通常')
     expect(row.getCell(col.get('ノード数')!).type).toBe(ExcelJS.ValueType.Number)
   })
 

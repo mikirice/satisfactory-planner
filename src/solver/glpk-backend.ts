@@ -19,6 +19,7 @@ type GlpkLp = {
   objective: { direction: number; name: string; vars: GlpkVarRef[] }
   subjectTo: { name: string; vars: GlpkVarRef[]; bnds: GlpkBounds }[]
   bounds?: { name: string; type: number; lb: number; ub: number }[]
+  generals?: string[]
 }
 type GlpkResult = { result: { status: number; z: number; vars: Record<string, number> } }
 type GlpkInstance = {
@@ -141,6 +142,7 @@ function toGlpkLp(glpk: GlpkInstance, model: LpModel): GlpkLp {
     },
     subjectTo,
     bounds,
+    generals: model.variables.filter((v) => v.integer).map((v) => v.key),
   }
 }
 

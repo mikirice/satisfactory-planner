@@ -6,13 +6,15 @@
  * src/plan/build-list.ts にあり、ここは表示だけを持つ（解には一切触らない）。
  */
 import { useMemo } from 'react'
-import type { ReactNode } from 'react'
+import { useLocale } from '../i18n/index.ts'
+import { buildingCapacityText } from '../i18n/building-capacity.ts'
 
 import { deriveBuildList } from '../plan/build-list.ts'
 import type { BuildListItem, BuildTransport } from '../plan/build-list.ts'
 import type { ExtractionPlan, Solution } from '../solver/index.ts'
-import { fmtClock, fmtCount, fmtInt, fmtPower, fmtRate, isAlternateRecipe, itemName } from './format.ts'
-import { AlternateIcon, ItemIcon, ItemNameLink } from './ItemIcon.tsx'
+import { fmtClock, fmtInt, fmtRate, itemName } from './format.ts'
+import { ItemIcon, ItemNameLink } from './ItemIcon.tsx'
+import { usePlanner } from '../store/planner.ts'
 import { T } from './text.ts'
 
 /** 行の中に置くアイコン(px)。表と同じ大きさに揃える。 */
@@ -25,7 +27,10 @@ type Props = {
 }
 
 export function BuildListView({ solution, extraction }: Props) {
-  const list = useMemo(() => deriveBuildList(solution, extraction), [solution, extraction])
+  const { locale } = useLocale()
+  const beltId = usePlanner((s) => s.beltId)
+  const pipeId = usePlanner((s) => s.pipeId)
+  const list = useMemo(() => deriveBuildList(solution, extraction, { beltId, pipeId }), [solution, extraction, beltId, pipeId])
 
   if (list.sections.length === 0) {
     return <p className="hint">{T.buildList.empty}</p>
@@ -35,7 +40,7 @@ export function BuildListView({ solution, extraction }: Props) {
     <div className="stack build-list">
       <p className="build-total num">{T.buildList.total(fmtInt(list.totalCount))}</p>
 
-      <p className="hint">{T.buildList.intro}</p>
+      <p className="hint">{buildingCapacityText(locale).intro}</p>
       <p className="hint">{T.buildList.transportNote}</p>
 
       {list.sections.map((section) => (
@@ -63,18 +68,18 @@ function BuildRow({ item }: { item: BuildListItem }) {
       <div className="build-item__head">
         <span className="cell-name">
           <ItemIcon id={item.buildingId} name={itemName(item.buildingId)} size={ROW_ICON} />
-          <span className="build-item__name">{itemName(item.buildingId)}</span>
+          <span className="build-item__name">{itemName(item.buildingId)} ({T.buildList.clock(fmtClock(item.clockSpeed).replace(/[.,]0(?=\s?%)/, ''))})</span>
         </span>
         <span className="build-item__count num">{T.buildList.count(fmtInt(item.builtCount))}</span>
       </div>
 
-      <p className="build-item__meta">{metaChips(item)}</p>
+
 
       {(item.inputs.length > 0 || item.outputs.length > 0) && (
         <div className="build-item__flows">
           {item.inputs.length > 0 && <FlowList heading={T.buildList.inputs} flows={item.inputs} />}
           {item.outputs.length > 0 && (
-            <FlowList heading={T.buildList.outputs} flows={item.outputs} />
+            <FlowList heading={T.buildList.outputs} flows={item.outputs} output />
           )}
         </div>
       )}
@@ -82,90 +87,27 @@ function BuildRow({ item }: { item: BuildListItem }) {
   )
 }
 
-/** 1行にまとめる補助情報（レシピ / 燃料 / 純度 / クロック / シャード / 発電量）。 */
-function metaChips(item: BuildListItem) {
-  const chips: { key: string; node: ReactNode }[] = []
-
-  if (item.section === 'manufacturing' && item.recipeId !== undefined) {
-    chips.push({
-      key: 'recipe',
-      node: (
-        <span className="cell-name">
-          {isAlternateRecipe(item.recipeId) && <AlternateIcon size={FLOW_ICON} />}
-          <span>{itemName(item.recipeId)}</span>
-        </span>
-      ),
-    })
-  }
-  if (item.resourceItem !== undefined) {
-    chips.push({
-      key: 'resource',
-      node: (
-        <span className="cell-name">
-          <ItemIcon
-            id={item.resourceItem}
-            name={itemName(item.resourceItem)}
-            size={FLOW_ICON}
-          />
-          <span>{itemName(item.resourceItem)}</span>
-        </span>
-      ),
-    })
-  }
-  for (const node of item.nodes ?? []) {
-    if (node.nodes <= 0) continue
-    chips.push({
-      key: `node-${node.purity}`,
-      node: <>{T.buildList.nodes(T.resources.purity[node.purity], fmtCount(node.nodes))}</>,
-    })
-  }
-  if (item.fuelItem !== undefined) {
-    chips.push({
-      key: 'fuel',
-      node: <>{T.buildList.fuel(itemName(item.fuelItem))}</>,
-    })
-  }
-  chips.push({ key: 'clock', node: <>{T.buildList.clock(fmtClock(item.clockSpeed))}</> })
-  if (item.powerShards > 0) {
-    chips.push({ key: 'shards', node: <>{T.buildList.shards(fmtInt(item.powerShards))}</> })
-  }
-  if (item.somersloops > 0) {
-    chips.push({
-      key: 'somersloops',
-      node: <>{T.buildList.somersloops(fmtInt(item.somersloops))}</>,
-    })
-  }
-  if ((item.powerProductionMW ?? 0) > 0) {
-    chips.push({
-      key: 'power',
-      node: <>{T.buildList.powerProduction(fmtPower(item.powerProductionMW ?? 0))}</>,
-    })
-  }
-
-  return chips.map((chip, index) => (
-    <span key={chip.key} className="build-item__chip">
-      {index > 0 && <span className="build-item__separator">{T.buildList.metaSeparator}</span>}
-      {chip.node}
-    </span>
-  ))
-}
-
-function FlowList({ heading, flows }: { heading: string; flows: readonly BuildTransport[] }) {
+function FlowList({ heading, flows, output = false }: { heading: string; flows: readonly BuildTransport[]; output?: boolean }) {
+  const { locale } = useLocale()
+  const P = buildingCapacityText(locale)
   return (
     <section className="build-flows">
-      <h4 className="build-flows__title">{heading}</h4>
-      <ul className="flow-list">
+      <h4 className="build-flows__title">{heading} ({P.minute})</h4>
+      <div className="table-scroll"><table className="build-flows__table">
+        <thead><tr><th>{P.resource}</th><th>{P.required}</th><th>{output ? P.capacity : P.consumption}</th><th>{P.transport}</th></tr></thead>
+        <tbody>
         {flows.map((flow) => (
-          <li key={flow.item}>
+          <tr key={flow.item}><td>
             <span className="flow__name">
               <ItemIcon id={flow.item} name={itemName(flow.item)} size={FLOW_ICON} />
               <ItemNameLink id={flow.item}>{itemName(flow.item)}</ItemNameLink>
             </span>
-            <span className="flow__rate num">{fmtRate(flow.ratePerMin)}</span>
-            <span className="build-flows__transport">{transportLabel(flow)}</span>
-          </li>
+            </td><td className="num">{fmtRate(flow.ratePerMin)}</td>
+            <td className="num">{fmtRate(flow.maximumRatePerMin ?? flow.ratePerMin)}</td>
+            <td className="build-flows__transport">{transportLabel(flow)}</td>
+          </tr>
         ))}
-      </ul>
+        </tbody></table></div>
     </section>
   )
 }

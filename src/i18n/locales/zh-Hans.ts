@@ -451,7 +451,7 @@ export const zhHans = {
     heading: '资源与开采',
     empty: '未使用原始资源',
     item: '资源',
-    required: '所需速率',
+    required: '所需产能',
     limit: '地图上限',
     usage: '上限占用',
     extractor: '开采设备',
@@ -462,7 +462,7 @@ export const zhHans = {
     clockNote: (percent: string): string => `按开采时钟频率 ${percent} 计算`,
     pressurizer: '{{Build_FrackingSmasher_C}}',
     shortfall: '节点不足',
-    shortfallNote: (n: string): string => `地图上的节点无法提供所需速率中的 ${n}`,
+    shortfallNote: (n: string): string => `地图上的节点无法提供所需产能中的 ${n}`,
     purity: {
       pure: '高纯度',
       normal: '普通',

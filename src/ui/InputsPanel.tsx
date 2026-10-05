@@ -25,7 +25,7 @@ export function InputsPanel() {
   const addedItems = useMemo(() => new Set(inputs.map((i) => i.item)), [inputs])
 
   return (
-    <CollapsiblePanel title={T.sidebar.stock}>
+    <CollapsiblePanel panelId="inputs" title={T.sidebar.stock}>
       <ItemSearchBox
         label={T.sidebar.stockSearch}
         placeholder={T.sidebar.stockSearchPlaceholder}

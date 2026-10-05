@@ -1,3 +1,5 @@
+import { normalizeExtractionOverrides } from '../solver/extraction.ts'
+import type { ExtractionOverrides } from '../solver/extraction.ts'
 /**
  * プラン（入力状態）のシリアライズと URL 共有。
  *
@@ -12,6 +14,8 @@
  * 前者はデータ全体が信用できないが、後者は残りが十分使えるため。
  */
 import LZString from 'lz-string'
+import type { ResourcePurity } from '../data/map-limits.ts'
+import { conflictsWithRawOnly, convertibleRawResourceIds } from './recipe-selection.ts'
 
 import { belts, generatorsById, itemsById, pipes, recipesById } from '../data/index.ts'
 import {
@@ -81,15 +85,17 @@ export function clampPowerTargetMW(mw: number | undefined): number {
  *       （全選択・空選択も省略しない）。読み込みは版に関わらず
  *       「キーがある＝その配列が選択」「キーが無い＝全燃料許可（v5 以前の互換）」で、
  *       v1〜v5 の保存プラン・共有URLはこれまでどおりの解になる
+ * v8 … Explicit production recipe selections (r). Older plans retain automatic selection.
  * v7 … 「余りを許さない副産物」（z）を追加。空（既定）なら省略するので v1〜v6 もそのまま読める
+ * v9 … Raw-only resource sourcing (q). Older plans leave resources unrestricted.
  */
-export const PLAN_SCHEMA_VERSION = 7
+export const PLAN_SCHEMA_VERSION = 9
 
 /**
  * 読み込めるスキーマ版。**古い版は読めること**（保存済みプラン・共有URLが死なないように）。
  * 未知の新しい版は拒否する（知らないキーを黙って落とすと事故になるため）。
  */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, 6, 7]
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 /** URL ハッシュのパラメータ名（`#plan=...`） */
 export const PLAN_HASH_PARAM = 'plan'
@@ -141,16 +147,27 @@ export type PlanSnapshot = {
    * 候補は発電機の燃料が出す副産物（`generatorByproductItems()`）だけ
    */
   z?: string[]
+  /** v8: item → explicitly selected production recipe */
+  r?: Record<string, string>
+  /** v9: resources restricted to extraction/external supply */
+  q?: string[]
+  /** Selected extraction purity; absent in older plans means normal. */
+  h?: ExtractionOverrides
+  y?: ResourcePurity
 }
 
 /** 復元して store に流し込む形（TargetEntry の key は store 側で採番する）。 */
 export type PlanInput = {
   targets: { item: string; ratePerMin: number; mode?: TargetMode }[]
   inputs: { item: string; ratePerMin: number }[]
+  recipeSelections?: Record<string, string>
+  rawOnlyResources?: Record<string, true>
   enabledAlternates: Record<string, true>
   limitOverrides: Record<string, number | null>
   objective: ObjectivePresetId
   minerId: string
+  extractionOverrides?: ExtractionOverrides
+  extractionPurity?: ResourcePurity
   /** 製造クロック上限（1 = 100%） */
   maxClock: number
   /** 採掘クロック（1 = 100%） */
@@ -177,10 +194,14 @@ export type PlanSource = {
   targets: TargetEntry[]
   /** 既保有アイテム（v1 のデータには無いので省略可。key は保存に使わない） */
   inputs?: readonly Omit<InputEntry, 'key'>[]
+  recipeSelections?: Record<string, string>
+  rawOnlyResources?: Record<string, true>
   enabledAlternates: Record<string, true>
   limitOverrides: Record<string, number | null>
   objective: ObjectivePresetId
   minerId: string
+  extractionOverrides?: ExtractionOverrides
+  extractionPurity?: ResourcePurity
   /** 製造クロック上限（v2 以前のデータには無いので省略可。既定 1） */
   maxClock?: number
   /** 採掘クロック（省略時 1） */
@@ -258,6 +279,8 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
     .sort()
   return {
     v: PLAN_SCHEMA_VERSION,
+    ...(Object.keys(state.rawOnlyResources ?? {}).length ? { q: Object.keys(state.rawOnlyResources!).sort() } : {}),
+    ...(Object.keys(state.recipeSelections ?? {}).length ? { r: { ...state.recipeSelections } } : {}),
     n: state.planName,
     t: state.targets
       .filter((t) => t.item !== '' && Number.isFinite(t.ratePerMin))
@@ -271,6 +294,8 @@ export function toPlanSnapshot(state: PlanSource): PlanSnapshot {
     l: { ...state.limitOverrides },
     o: state.objective,
     m: state.minerId,
+    ...(Object.keys(state.extractionOverrides ?? {}).length ? { h: normalizeExtractionOverrides(state.extractionOverrides) } : {}),
+    ...(state.extractionPurity && state.extractionPurity !== 'normal' ? { y: state.extractionPurity } : {}),
     b: state.beltId,
     p: state.pipeId,
     // 既定値のキーは省略して共有URLを短く保つ（v1/v2 と同じ長さで済む）
@@ -294,6 +319,7 @@ export function defaultPlanInput(): PlanInput {
     limitOverrides: {},
     objective: DEFAULT_OBJECTIVE,
     minerId: DEFAULT_MINER_ID,
+    extractionPurity: 'normal',
     maxClock: DEFAULT_MAX_CLOCK,
     extractionClock: DEFAULT_EXTRACTION_CLOCK,
     somersloops: DEFAULT_SOMERSLOOPS,
@@ -435,6 +461,7 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
 
   if (typeof raw.m === 'string' && minerIds.has(raw.m)) input.minerId = raw.m
   else if (raw.m !== undefined) warnings.push('採掘機が不明だったので既定に戻しました')
+  if (raw.y === 'pure' || raw.y === 'normal' || raw.y === 'impure') input.extractionPurity = raw.y
 
   if (typeof raw.b === 'string' && beltIds.has(raw.b)) input.beltId = raw.b
   else if (raw.b !== undefined) warnings.push('ベルトが不明だったので既定に戻しました')
@@ -530,6 +557,30 @@ export function parsePlanSnapshot(raw: unknown): PlanParseResult {
     warnings.push('副産物の設定が不正なので無視しました')
   }
 
+  if (raw.h !== undefined) input.extractionOverrides = normalizeExtractionOverrides(raw.h)
+
+  if (raw.r !== undefined) {
+    if (!isRecord(raw.r)) return { ok: false, error: '指定配方的資料格式不正確' }
+    input.recipeSelections = {}
+    for (const [item, id] of Object.entries(raw.r)) {
+      if (typeof id === 'string' && recipesById.get(id)?.products.some((p) => p.item === item)) {
+        input.recipeSelections[item] = id
+      } else warnings.push(`忽略無效的指定配方：${item}`)
+    }
+  }
+  if (raw.q !== undefined) {
+    if (!Array.isArray(raw.q)) return { ok: false, error: '原始資源設定格式不正確' }
+    input.rawOnlyResources = {}
+    for (const item of raw.q) {
+      if (typeof item === 'string' && convertibleRawResourceIds.has(item)) input.rawOnlyResources[item] = true
+      else warnings.push('忽略無效的原始資源設定')
+    }
+    // Raw sourcing takes precedence over conflicting recipe pins in imported plans.
+    input.recipeSelections = Object.fromEntries(Object.entries(input.recipeSelections ?? {}).filter(([, id]) => {
+      const recipe = recipesById.get(id)
+      return recipe && !conflictsWithRawOnly(recipe, Object.keys(input.rawOnlyResources!))
+    }))
+  }
   return { ok: true, input, warnings }
 }
 

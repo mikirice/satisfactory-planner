@@ -1,5 +1,7 @@
 /** 結果表示（タブ切り替え）。 */
 import { Suspense, lazy, useState } from 'react'
+import { useLocale } from '../i18n/index.ts'
+import { tabHelpText } from '../i18n/option-help.ts'
 
 import { SAMPLE_PLANS } from '../plan/samples.ts'
 import { usePlanner } from '../store/planner.ts'
@@ -26,6 +28,7 @@ type ResultViewProps = {
 }
 
 export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
+  const { locale } = useLocale()
   const status = usePlanner((s) => s.status)
   const result = usePlanner((s) => s.result)
   const extraction = usePlanner((s) => s.extraction)
@@ -90,6 +93,7 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
             key={id}
             type="button"
             role="tab"
+            title={tabHelpText(locale)[id]}
             id={`tab-${id}`}
             aria-selected={tab === id}
             aria-controls={`tabpanel-${id}`}
@@ -117,11 +121,12 @@ export function ResultView({ viewMode = 'normal' }: ResultViewProps) {
           />
         )}
         {tab === 'resources' && <ResourcesTable solution={result} extraction={extraction} />}
-        {tab === 'balance' && <BalanceTable solution={result} />}
+        {tab === 'balance' && <BalanceTable solution={result} extraction={extraction} />}
         {tab === 'build' && <BuildListView solution={result} extraction={extraction} />}
         {tab === 'flow' && (
           <Suspense fallback={<p className="hint">{T.flow.loading}</p>}>
             <FlowChart
+              extraction={extraction}
               solution={result}
               beltId={beltId}
               pipeId={pipeId}

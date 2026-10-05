@@ -15,6 +15,7 @@ import {
   solveProduction,
   somersloopPowerFactor,
   somersloopVarKey,
+  somersloopBuildingVarKey,
   supportsSomersloop,
 } from '../src/solver/index.ts'
 import type { Solution, SolutionStep, SolveInput } from '../src/solver/index.ts'
@@ -29,16 +30,6 @@ const IRON_PLATE_60: SolveInput = { targets: [{ item: 'Desc_IronPlate_C', ratePe
 
 const rateOf = (entries: { item: string; ratePerMin: number }[], item: string): number =>
   entries.find((e) => e.item === item)?.ratePerMin ?? 0
-
-/** LP が使った Somersloop 量（稼働台数ベース。制約に張り付いているかを見る） */
-function lpSomersloopUsage(solution: Solution): number {
-  return solution.steps
-    .filter((s) => s.somersloops > 0)
-    .reduce(
-      (n, s) => n + s.machineCount * (buildingsById.get(s.buildingId)?.maxSomersloops ?? 0),
-      0,
-    )
-}
 
 const sloopSteps = (solution: Solution): SolutionStep[] =>
   solution.steps.filter((s) => s.somersloops > 0)
@@ -128,9 +119,9 @@ describe('LP モデル', () => {
     )
     if (manufacturerRecipe) {
       // 製造機はスロット4なので係数も4
-      expect(capacity.coefficients.get(somersloopVarKey(manufacturerRecipe.id))).toBe(4)
+      expect(capacity.coefficients.get(somersloopBuildingVarKey(manufacturerRecipe.id))).toBe(4)
     }
-    const plateKey = somersloopVarKey('Recipe_IronPlate_C')
+    const plateKey = somersloopBuildingVarKey('Recipe_IronPlate_C')
     expect(capacity.coefficients.get(plateKey)).toBe(1) // 製作機はスロット1
   })
 
@@ -143,8 +134,8 @@ describe('LP モデル', () => {
       somersloops: 10,
       weights: { resources: 0, power: 1, buildings: 0 },
     })
-    const normal = model.lp.variables.find((v) => v.key === 'x:Recipe_IronPlate_C')!
-    const sloop = model.lp.variables.find((v) => v.key === 'xs:Recipe_IronPlate_C')!
+    const normal = model.lp.variables.find((v) => v.key === 'n:Recipe_IronPlate_C')!
+    const sloop = model.lp.variables.find((v) => v.key === 'ns:Recipe_IronPlate_C')!
     // ε ぶんの差はあるので比率でみる
     expect(sloop.objective).toBeGreaterThan(normal.objective * 3.9)
     expect(sloop.objective).toBeLessThan(normal.objective * 4.1)
@@ -185,7 +176,7 @@ describe('解への反映', () => {
       const solution = await solveOk({ ...IRON_PLATE_60, somersloops: limit })
       expect(sloopSteps(solution).length).toBeGreaterThan(0)
       // 使えるだけ使う（張り付き）
-      expect(lpSomersloopUsage(solution), `limit=${limit}`).toBeCloseTo(limit, 6)
+      expect(solution.totalSomersloops, `limit=${limit}`).toBe(limit)
       expect(solution.somersloopLimit).toBe(limit)
     }
   })

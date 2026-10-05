@@ -18,6 +18,7 @@ import type { ResourcePurity } from '../data/map-limits.ts'
 import { linesRequired, powerShardsForClock, transportKind } from '../solver/index.ts'
 import type { ExtractionPlan, ItemRate, Solution, SolutionStep } from '../solver/index.ts'
 import { WELL_PRESSURIZER_ID } from '../solver/index.ts'
+import type { TransportChoice } from './flows.ts'
 import { stepKey } from './aggregate.ts'
 
 /** これ未満のレートは無いものとして扱う（LP の丸め誤差対策。power-filter.ts と同じ値）。 */
@@ -39,6 +40,8 @@ export type BuildTransport = {
   item: string
   /** 工程合計の毎分レート */
   ratePerMin: number
+  /** Full configured capacity of all integer buildings, distinct from planned demand. */
+  maximumRatePerMin?: number
   kind: 'belt' | 'pipe'
   /** 必要等級の Building.id（ベルト / パイプ） */
   tierId: string
@@ -113,8 +116,13 @@ export type BuildList = {
  * 遅い等級から順に「1本で足りるか」を見て、最初に足りたものを返す。
  * 最上位でも足りなければ最上位等級＋必要本数（Mk.6 ×2本）にする。
  */
-export function requiredTransport(item: string, ratePerMin: number): BuildTransport {
+export function requiredTransport(item: string, ratePerMin: number, choice?: TransportChoice): BuildTransport {
   const kind = transportKind(item)
+  const selected = kind === 'belt' ? choice?.beltId : choice?.pipeId
+  if (selected) {
+    const r = linesRequired(ratePerMin, item, selected)
+    return { item, ratePerMin, kind, tierId: r.id, capacityPerMin: r.capacityPerMin, lines: r.lines }
+  }
   const tiers = kind === 'belt' ? belts : pipes
   for (const tier of tiers) {
     const requirement = linesRequired(ratePerMin, item, tier.id)
@@ -209,7 +217,7 @@ export function topologicalSteps(steps: readonly SolutionStep[]): SolutionStep[]
 const isGeneratorStep = (step: SolutionStep): boolean => (step.powerProductionMW ?? 0) > 0
 
 /** 採掘セクションの項目（設備グループごとに1項目。資源井戸の加圧機は別項目にする）。 */
-function extractionItems(extraction: ExtractionPlan | null): BuildListItem[] {
+function extractionItems(extraction: ExtractionPlan | null, choice?: TransportChoice): BuildListItem[] {
   if (extraction === null) return []
   const items: BuildListItem[] = []
   for (const resource of extraction.resources) {
@@ -219,7 +227,7 @@ function extractionItems(extraction: ExtractionPlan | null): BuildListItem[] {
       // （extraction.ts と同じ計算＝二重実装にならない）
       const shardsEach = powerShardsForClock(group.clockSpeed)
       items.push({
-        id: `extract:${resource.item}:${group.extractorId}`,
+        id: `extract:${resource.item}:${group.id ?? group.extractorId}`,
         section: 'extraction',
         buildingId: group.extractorId,
         builtCount: group.buildingCount,
@@ -234,11 +242,13 @@ function extractionItems(extraction: ExtractionPlan | null): BuildListItem[] {
           ratePerMin: assignment.ratePerMin,
         })),
         inputs: [],
-        outputs: toTransports([{ item: resource.item, ratePerMin: group.ratePerMin }]),
+        outputs: [{ ...requiredTransport(resource.item, group.ratePerMin, choice),
+          maximumRatePerMin: group.maximumRatePerMin ?? group.assignments.reduce((sum, assignment) =>
+            sum + Math.ceil(assignment.nodes - 1e-7) * assignment.ratePerNodePerMin, 0) }],
       })
       if ((group.pressurizerCount ?? 0) > 0) {
         items.push({
-          id: `extract:${resource.item}:${group.extractorId}:pressurizer`,
+          id: `extract:${resource.item}:${group.id ?? group.extractorId}:pressurizer`,
           section: 'extraction',
           buildingId: WELL_PRESSURIZER_ID,
           builtCount: group.pressurizerCount!,
@@ -256,23 +266,29 @@ function extractionItems(extraction: ExtractionPlan | null): BuildListItem[] {
   return items
 }
 
-function stepItem(step: SolutionStep, section: BuildSectionId): BuildListItem {
+function stepItem(step: SolutionStep, section: BuildSectionId, maxClock: number, choice?: TransportChoice): BuildListItem {
+  const clock = section === 'power' ? 1 : maxClock
+  const factor = step.machineCount > 0 ? step.builtCount * clock / step.machineCount : 0
+  const flows = (rates: readonly ItemRate[]) => toTransports(rates).map((flow) => ({
+    ...requiredTransport(flow.item, flow.ratePerMin, choice),
+    ratePerMin: flow.ratePerMin, maximumRatePerMin: flow.ratePerMin * factor,
+  }))
   return {
     id: `${section === 'power' ? 'gen' : 'make'}:${stepKey(step)}`,
     section,
     buildingId: step.buildingId,
     builtCount: step.builtCount,
     machineCount: step.machineCount,
-    clockSpeed: step.clockSpeed,
-    powerShards: step.powerShards,
+    clockSpeed: clock,
+    powerShards: step.builtCount * powerShardsForClock(clock),
     somersloops: step.somersloops,
     recipeId: step.recipeId,
     ...(step.fuelItem === undefined ? {} : { fuelItem: step.fuelItem }),
     ...(step.powerProductionMW === undefined
       ? {}
       : { powerProductionMW: step.powerProductionMW }),
-    inputs: toTransports(step.inputs),
-    outputs: toTransports(step.outputs),
+    inputs: flows(step.inputs),
+    outputs: flows(step.outputs),
   }
 }
 
@@ -291,6 +307,7 @@ function section(id: BuildSectionId, items: BuildListItem[]): BuildSection {
 export function deriveBuildList(
   solution: Solution,
   extraction: ExtractionPlan | null = null,
+  choice?: TransportChoice,
 ): BuildList {
   const manufacturing = topologicalSteps(solution.steps.filter((step) => !isGeneratorStep(step)))
   // 発電は発電量の大きい順（同じなら解に現れた順を保つ安定ソート）
@@ -300,14 +317,14 @@ export function deriveBuildList(
     .sort((a, b) => (b.powerProductionMW ?? 0) - (a.powerProductionMW ?? 0))
 
   const sections = [
-    section('extraction', extractionItems(extraction)),
+    section('extraction', extractionItems(extraction, choice)),
     section(
       'manufacturing',
-      manufacturing.filter((step) => step.builtCount > 0).map((step) => stepItem(step, 'manufacturing')),
+      manufacturing.filter((step) => step.builtCount > 0).map((step) => stepItem(step, 'manufacturing', solution.maxClock, choice)),
     ),
     section(
       'power',
-      generators.filter((step) => step.builtCount > 0).map((step) => stepItem(step, 'power')),
+      generators.filter((step) => step.builtCount > 0).map((step) => stepItem(step, 'power', solution.maxClock, choice)),
     ),
   ].filter((entry) => entry.items.length > 0)
 

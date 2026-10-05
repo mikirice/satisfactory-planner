@@ -63,7 +63,7 @@ describe('純度別ノード割当（assignPurityNodes）', () => {
 // ---------------------------------------------------------------------------
 
 describe('採掘計画（固体ノード）', () => {
-  it('採掘機 Mk.1 で鉄鉱石 300/min → 高純度2.5ノード・3台・12MW', () => {
+  it('採掘機 Mk.1 で鉄鉱石 300/min → 通常5ノード・5台・25MW', () => {
     const plan = planExtraction(input([['Desc_OreIron_C', 300]]), { minerId: MINER_MK1 })
     expect(plan.resources).toHaveLength(1)
 
@@ -71,31 +71,31 @@ describe('採掘計画（固体ノード）', () => {
     expect(iron.groups).toHaveLength(1)
     const group = iron.groups[0]
     expect(group.extractorId).toBe(MINER_MK1)
-    expect(group.machineCount).toBeCloseTo(2.5, 9)
-    expect(group.buildingCount).toBe(3)
+    expect(group.machineCount).toBeCloseTo(5, 9)
+    expect(group.buildingCount).toBe(5)
     expect(group.ratePerMin).toBeCloseTo(300, 9)
-    // 満載2台 = 10MW、端数の1台はクロック50% → 5 * 0.5^1.321929 = 2MW
-    expect(group.powerMW).toBeCloseTo(12, 4)
+    // All five buildings use the selected 100% clock.
+    expect(group.powerMW).toBeCloseTo(25, 4)
     expect(iron.shortfallPerMin).toBe(0)
-    expect(plan.totalPowerMW).toBeCloseTo(12, 4)
-    expect(plan.totalBuildingCount).toBe(3)
+    expect(plan.totalPowerMW).toBeCloseTo(25, 4)
+    expect(plan.totalBuildingCount).toBe(5)
   })
 
-  it('既定は採掘機 Mk.3。480/min はちょうど高純度1ノード・45MW', () => {
+  it('既定は採掘機 Mk.3・通常純度。480/min は2ノード・90MW', () => {
     const plan = planExtraction(input([['Desc_OreIron_C', 480]]))
     const group = plan.resources[0].groups[0]
     expect(group.extractorId).toBe('Build_MinerMk3_C')
-    expect(group.machineCount).toBeCloseTo(1, 9)
-    expect(group.buildingCount).toBe(1)
-    expect(group.powerMW).toBeCloseTo(45, 9)
+    expect(group.machineCount).toBeCloseTo(2, 9)
+    expect(group.buildingCount).toBe(2)
+    expect(group.powerMW).toBeCloseTo(90, 9)
   })
 
   it('マップのノードを使い切ると不足として残る', () => {
-    // ウランは低純度3 + 通常2 のみ。Mk.3・クロック100%で 3*120 + 2*240 = 840/min が上限
+    // Only the selected normal nodes are eligible: 2 × 240/min.
     const plan = planExtraction(input([['Desc_OreUranium_C', 1000]]))
     const uranium = plan.resources[0]
-    expect(uranium.suppliedRatePerMin).toBeCloseTo(840, 9)
-    expect(uranium.shortfallPerMin).toBeCloseTo(160, 9)
+    expect(uranium.suppliedRatePerMin).toBeCloseTo(480, 9)
+    expect(uranium.shortfallPerMin).toBeCloseTo(520, 9)
     expect(plan.shortfalls).toHaveLength(1)
     expect(plan.shortfalls[0].item).toBe('Desc_OreUranium_C')
   })
@@ -128,17 +128,17 @@ describe('採掘計画（液体・気体）', () => {
   })
 
   it('原油はノードを使い切ってから資源井戸に回る', () => {
-    // 原油ノードの100%クロック上限 = (8*2 + 12*1 + 10*0.5) * 120 = 3,960 m³/min
-    const plan = planExtraction(input([['Desc_LiquidOil_C', 4000]]))
+    // Normal oil nodes supply 12 × 120 = 1440, followed by normal well satellites.
+    const plan = planExtraction(input([['Desc_LiquidOil_C', 1500]]))
     const oil = plan.resources[0]
     expect(oil.groups.map((g) => g.extractorId)).toEqual([
       'Build_OilPump_C',
       'Build_FrackingExtractor_C',
     ])
-    expect(oil.groups[0].ratePerMin).toBeCloseTo(3960, 6)
-    expect(oil.groups[1].ratePerMin).toBeCloseTo(40, 6)
-    // サテライトは高純度（120 m³/min）なので 40/120 ノード
-    expect(oil.groups[1].machineCount).toBeCloseTo(40 / 120, 9)
+    expect(oil.groups[0].ratePerMin).toBeCloseTo(1440, 6)
+    expect(oil.groups[1].ratePerMin).toBeCloseTo(60, 6)
+    // One normal satellite supplies 60 m³/min.
+    expect(oil.groups[1].machineCount).toBeCloseTo(1, 9)
     // 資源井戸エクストラクター自体は電力を食わず、加圧機が食う
     expect(oil.groups[1].powerMW).toBe(0)
     expect(oil.groups[1].pressurizerCount).toBe(1)
@@ -148,7 +148,7 @@ describe('採掘計画（液体・気体）', () => {
 
   it('窒素ガスは資源井戸のみ。加圧機が電力を持つ', () => {
     // 高純度サテライト（120 m³/min）5個 = 600
-    const plan = planExtraction(input([['Desc_NitrogenGas_C', 600]]))
+    const plan = planExtraction(input([['Desc_NitrogenGas_C', 600]]), { purity: 'pure' })
     const nitrogen = plan.resources[0]
     expect(nitrogen.groups).toHaveLength(1)
     const group = nitrogen.groups[0]
@@ -182,13 +182,43 @@ describe('採掘計画（全体）', () => {
       'Desc_Water_C',
       'Desc_OreIron_C',
     ])
-    // 銅 960 = Mk.3 高純度2ノード(90MW) / 水 600 = 5台(100MW) / 鉄 480 = 1ノード(45MW)
-    expect(plan.totalPowerMW).toBeCloseTo(90 + 100 + 45, 6)
-    expect(plan.totalBuildingCount).toBe(2 + 5 + 1)
+    // Copper: four normal miners; water: five extractors; iron: two normal miners.
+    expect(plan.totalPowerMW).toBeCloseTo(180 + 100 + 90, 6)
+    expect(plan.totalBuildingCount).toBe(4 + 5 + 2)
     expect(plan.shortfalls).toEqual([])
   })
 
   it('レート0の原料は無視する', () => {
     expect(planExtraction(input([['Desc_OreIron_C', 0]])).resources).toEqual([])
+  })
+})
+
+
+describe('selected purity and per-building output caps', () => {
+  it('300 iron needs two normal Mk3 miners, without inflating demand', () => {
+    const resource = planExtraction(input([['Desc_OreIron_C', 300]])).resources[0]
+    expect(resource.requiredRatePerMin).toBe(300)
+    expect(resource.suppliedRatePerMin).toBe(300)
+    const group = resource.groups[0]
+    expect(group.buildingCount).toBe(2)
+    expect(group.assignments[0].purity).toBe('normal')
+    expect(group.assignments[0].ratePerNodePerMin).toBe(240)
+    expect(group.buildingCount * group.assignments[0].ratePerNodePerMin).toBe(480)
+    expect(group.powerMW).toBe(90)
+  })
+  it('pure Mk3 at 250% cannot exceed the selected belt per output port', () => {
+    const resource = planExtraction(input([['Desc_OreIron_C', 300]]), {
+      purity: 'pure', clock: 2.5, beltId: 'Build_ConveyorBeltMk1_C',
+    }).resources[0]
+    expect(resource.groups[0].assignments[0].ratePerNodePerMin).toBe(60)
+    expect(resource.buildingCount).toBe(5)
+  })
+  it('liquid extraction is capped by the selected pipe per output port', () => {
+    const resource = planExtraction(input([['Desc_LiquidOil_C', 450]]), {
+      purity: 'pure', clock: 2.5, pipeId: 'Build_Pipeline_C',
+    }).resources[0]
+    expect(resource.groups[0].assignments[0].ratePerNodePerMin).toBe(300)
+    expect(resource.buildingCount).toBe(2)
+    expect(resource.requiredRatePerMin).toBe(450)
   })
 })

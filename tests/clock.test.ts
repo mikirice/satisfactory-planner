@@ -46,16 +46,15 @@ describe('製造クロック上限', () => {
     expect(fast.totalMachineCount).toBeCloseTo(base.totalMachineCount, 9)
     expect(fast.totalPowerMW).toBeCloseTo(base.totalPowerMW, 9)
 
-    // 3台分を 250% で回すので 2台（3 / 2.5 = 1.2 → 2台を150%）
+    // Demand still needs 3 equivalent machines; 2 installed machines retain 250% capacity.
     for (const step of fast.steps) {
       expect(step.builtCount, step.recipeId).toBe(2)
-      expect(step.clockSpeed, step.recipeId).toBeCloseTo(1.5, 9)
-      // 150% はパワーシャード1個 × 2台
-      expect(step.powerShards, step.recipeId).toBe(2)
+      expect(step.clockSpeed, step.recipeId).toBeCloseTo(2.5, 9)
+      expect(step.powerShards, step.recipeId).toBe(6)
     }
     expect(fast.totalBuildingCount).toBe(4)
     expect(base.totalBuildingCount).toBe(6)
-    expect(fast.totalPowerShards).toBe(4)
+    expect(fast.totalPowerShards).toBe(12)
   })
 
   it('クロックを上げると総電力（クロック適用後）が超線形に増える', async () => {
@@ -66,8 +65,8 @@ describe('製造クロック上限', () => {
     expect(base.totalClockedPowerMW).toBeCloseTo(24, 6)
     expect(base.totalClockedPowerMW).toBeCloseTo(base.totalPowerMW, 6)
 
-    // 250%上限: 2台 @150% × 4MW × 2種類
-    const expected = 2 * clockedPowerMW(2 * 4, 1.5, constructor_.powerExponent)
+    // Capacity power: two machines at configured 250%, for each recipe.
+    const expected = 2 * clockedPowerMW(2 * 4, 2.5, constructor_.powerExponent)
     expect(fast.totalClockedPowerMW).toBeCloseTo(expected, 6)
     // 台数は減っても電力は増える（オーバークロックは電力効率が悪い）
     expect(fast.totalClockedPowerMW).toBeGreaterThan(base.totalClockedPowerMW)
@@ -82,18 +81,17 @@ describe('製造クロック上限', () => {
     expect(total(fast)).toBeLessThan(total(base))
   })
 
-  it('端数の稼働台数はクロックが下がるぶん省電力になる（鉄板 70/min → 製作機3.5台）', async () => {
+  it('fractional demand does not reduce installed clock or capacity power', async () => {
     const solution = await solveOk({ targets: [{ item: 'Desc_IronPlate_C', ratePerMin: 70 }] })
     const step = solution.steps.find((s) => s.recipeId === 'Recipe_IronPlate_C')!
     expect(step.machineCount).toBeCloseTo(3.5, 6)
     expect(step.builtCount).toBe(4)
-    expect(step.clockSpeed).toBeCloseTo(0.875, 9)
+    expect(step.clockSpeed).toBe(1)
     expect(step.clockedPowerMW).toBeCloseTo(
-      clockedPowerMW(4 * constructor_.powerConsumptionMW, 0.875, constructor_.powerExponent),
+      clockedPowerMW(4 * constructor_.powerConsumptionMW, 1, constructor_.powerExponent),
       6,
     )
-    // 100%換算（3.5台ぶん = 14MW）より小さい
-    expect(step.clockedPowerMW).toBeLessThan(step.powerMW)
+    expect(step.clockedPowerMW).toBeGreaterThan(step.powerMW)
   })
 
   it('範囲外の maxClock は 1〜250% に丸める', async () => {
@@ -111,8 +109,8 @@ describe('採掘クロック', () => {
 
   it('クロックを上げると台数が減り、シャードが要る', () => {
     // 採掘機 Mk.1（通常60/min・高純度120/min）で 240/min → 高純度2台
-    const base = planExtraction({ rawResources }, { minerId: 'Build_MinerMk1_C' })
-    const fast = planExtraction({ rawResources }, { minerId: 'Build_MinerMk1_C', clock: 2 })
+    const base = planExtraction({ rawResources }, { purity: 'pure', minerId: 'Build_MinerMk1_C' })
+    const fast = planExtraction({ rawResources }, { purity: 'pure', minerId: 'Build_MinerMk1_C', clock: 2 })
 
     expect(base.clock).toBe(1)
     expect(fast.clock).toBe(2)
@@ -125,8 +123,8 @@ describe('採掘クロック', () => {
 
   it('採掘電力もクロックに対して超線形に増える', () => {
     const miner = buildingsById.get('Build_MinerMk1_C')!
-    const base = planExtraction({ rawResources }, { minerId: 'Build_MinerMk1_C' })
-    const fast = planExtraction({ rawResources }, { minerId: 'Build_MinerMk1_C', clock: 2 })
+    const base = planExtraction({ rawResources }, { purity: 'pure', minerId: 'Build_MinerMk1_C' })
+    const fast = planExtraction({ rawResources }, { purity: 'pure', minerId: 'Build_MinerMk1_C', clock: 2 })
 
     expect(base.totalPowerMW).toBeCloseTo(2 * miner.powerConsumptionMW, 6)
     expect(fast.totalPowerMW).toBeCloseTo(
@@ -141,8 +139,8 @@ describe('採掘クロック', () => {
     const heavy = [
       { item: 'Desc_OreIron_C', ratePerMin: 480, limitPerMin: null, usageRatio: null },
     ]
-    const base = planExtraction({ rawResources: heavy }, { minerId: 'Build_MinerMk1_C' })
-    const fast = planExtraction({ rawResources: heavy }, { minerId: 'Build_MinerMk1_C', clock: 2.5 })
+    const base = planExtraction({ rawResources: heavy }, { purity: 'pure', minerId: 'Build_MinerMk1_C' })
+    const fast = planExtraction({ rawResources: heavy }, { purity: 'pure', minerId: 'Build_MinerMk1_C', clock: 2.5 })
     expect(fast.totalBuildingCount).toBeLessThan(base.totalBuildingCount)
     expect(fast.resources[0].shortfallPerMin).toBe(0)
     expect(fast.resources[0].suppliedRatePerMin).toBeCloseTo(480, 6)
@@ -152,7 +150,7 @@ describe('採掘クロック', () => {
 describe('製錬炉のクロック（既知値の突き合わせ）', () => {
   it('50%の製錬炉は約1.6MW（ゲーム内表示と一致）', async () => {
     // 鉄インゴット 15/min = 製錬炉0.5台 → 1台を50%で回す
-    const solution = await solveOk({ targets: [{ item: 'Desc_IronIngot_C', ratePerMin: 15 }] })
+    const solution = await solveOk({ targets: [{ item: 'Desc_IronIngot_C', ratePerMin: 15 }], maxClock: 0.5 })
     const step = solution.steps[0]
     expect(step.buildingId).toBe(smelter.id)
     expect(step.builtCount).toBe(1)

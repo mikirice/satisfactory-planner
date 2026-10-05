@@ -97,6 +97,7 @@ describe('プランのシリアライズ', () => {
       // v3 / v4 / v5 のキーは既定値なので保存形式には出ないが、復元結果には既定が入る
       maxClock: 1,
       extractionClock: 1,
+      extractionPurity: 'normal',
       somersloops: 0,
       enabledGenerators: {},
       enabledFuels: {},
@@ -806,5 +807,25 @@ describe('自動保存と起動時の復元', () => {
     const restored = await restoreInitialPlan('')
     expect(restored).toEqual({ source: 'none', warnings: [], error: null })
     expect(currentSnapshot()).toEqual(toPlanSnapshot({ ...defaultPlanInput(), targets: [] }))
+  })
+})
+
+
+describe('extraction purity persistence', () => {
+  it('retains selected purity through save/share and store restore', () => {
+    const snapshot = toPlanSnapshot({ ...source, extractionPurity: 'pure' })
+    expect(snapshot.y).toBe('pure')
+    const parsed = decodePlan(encodePlan(snapshot))
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.input.extractionPurity).toBe('pure')
+    usePlanner.getState().applyPlan(parsed.input)
+    expect(usePlanner.getState().extractionPurity).toBe('pure')
+    usePlanner.setState({ extractionPurity: 'normal' })
+  })
+  it('older plans default to normal purity', () => {
+    const parsed = parsePlanSnapshot(toPlanSnapshot(source))
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok) expect(parsed.input.extractionPurity).toBe('normal')
   })
 })

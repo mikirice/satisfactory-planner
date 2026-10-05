@@ -35,10 +35,11 @@ import {
   recipes as allRecipes,
   recipesById,
 } from '../data/index.ts'
-import { SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
+import { CLOCK_MIN, CLOCK_MAX, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
 import type { Building, Generator, GeneratorFuel, Recipe } from '../data/types.ts'
 import { DEFAULT_RESOURCE_LIMITS, MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { LpConstraint, LpModel, LpVariable } from './lp.ts'
+import { clockedPowerMW } from './overclock.ts'
 import type {
   ObjectiveWeights,
   PowerPlanInput,
@@ -65,6 +66,10 @@ export const DEFAULT_RESOURCE_WEIGHT_SPEC: ResourceWeightSpec = 'scarcity'
 export const recipeVarKey = (recipeId: string): string => `x:${recipeId}`
 /** Somersloop をフル装着したレシピ r の稼働台数（産出2倍・消費同じ・電力4倍） */
 export const somersloopVarKey = (recipeId: string): string => `xs:${recipeId}`
+/** Integer number of fully augmented installed buildings, not 100% throughput. */
+export const somersloopBuildingVarKey = (recipeId: string): string => `ns:${recipeId}`
+export const recipeBuildingVarKey = (recipeId: string): string => `n:${recipeId}`
+export const generatorBuildingVarKey = (variantKey: string): string => `ng:${variantKey}`
 /** 原料（マップから採取）の供給変数 */
 export const supplyVarKey = (itemId: string): string => `s:${itemId}`
 /** ユーザーが持ち込むアイテムの供給変数 */
@@ -591,6 +596,9 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
 
   // --- 変数 -----------------------------------------------------------------
   const variables: LpVariable[] = []
+  const configuredClock = Number.isFinite(input.maxClock)
+    ? Math.min(CLOCK_MAX, Math.max(CLOCK_MIN, input.maxClock!)) : 1
+  const installedCounts = powerPlan.coverFactoryPower || weights.power > 0 || weights.buildings > 0
   const buildingOf = (recipe: Recipe): Building => {
     const building = buildingsById.get(recipe.producedIn)
     if (!building) throw new Error(`recipe ${recipe.id} has unknown building ${recipe.producedIn}`)
@@ -598,35 +606,41 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   }
   for (const recipe of recipes) {
     const building = buildingOf(recipe)
-    const objective =
-      maximize !== undefined
-        ? 0
-        : options.elastic
-          ? epsilon
-          : weights.power * recipePowerMW(recipe, building) + weights.buildings + epsilon
+    const objective = maximize !== undefined ? 0 : epsilon
     variables.push({ key: recipeVarKey(recipe.id), objective })
+    if (installedCounts) {
+      variables.push({ key: recipeBuildingVarKey(recipe.id),
+        objective: maximize !== undefined || options.elastic ? 0 :
+          weights.power * clockedPowerMW(recipePowerMW(recipe, building), configuredClock,
+            building.powerExponent) + weights.buildings,
+        integer: true })
+    }
   }
   for (const recipe of somersloopRecipes) {
     const building = buildingOf(recipe)
     // 建物1台であることは変わらないので buildings 項は通常変数と同じ。
     // 電力だけがフル装着ぶん（倍率^指数、既定 4倍）跳ね上がる。
-    const objective =
-      maximize !== undefined
-        ? 0
-        : options.elastic
-          ? epsilon
-          : weights.power * recipePowerMW(recipe, building) * somersloopPowerFactor(building) +
-            weights.buildings +
-            epsilon
+    const objective = maximize !== undefined ? 0 : epsilon
     variables.push({ key: somersloopVarKey(recipe.id), objective })
+    variables.push({
+      key: somersloopBuildingVarKey(recipe.id),
+      objective: maximize !== undefined || options.elastic ? 0 :
+        weights.power * clockedPowerMW(recipePowerMW(recipe, building) * somersloopPowerFactor(building),
+          configuredClock, building.powerExponent) + weights.buildings,
+      integer: true,
+      upper: Math.floor(somersloopLimit / building.maxSomersloops),
+    })
   }
   for (const variant of generatorVariants) {
     // 発電機は電力を消費しないので power 項は 0（発電量を負の消費として目的関数に入れると、
     // 「電力の最小化」で発電機を建てるほど得になり発散するので入れない）。
     // 建物ではあるので buildings 項は 1台ぶん。需要駆動の変数も同じ係数（区別は制約行で行う）。
     // ε で「意味のない発電機を建てる」退化解を潰す（燃料コストがあるので本来は有界）。
-    const objective =
-      maximize !== undefined ? 0 : options.elastic ? epsilon : weights.buildings + epsilon
+    const objective = maximize !== undefined ? 0 : epsilon
+    if (weights.buildings > 0) variables.push({
+      key: generatorBuildingVarKey(variant.key), integer: true,
+      objective: maximize !== undefined || options.elastic ? 0 : weights.buildings,
+    })
     if (variant.demandDriven && options.demandDrivenLevels) {
       const level = options.demandDrivenLevels.get(variant.key) ?? 0
       variables.push({ key: variant.key, objective, lower: level, upper: level })
@@ -773,6 +787,25 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   }
 
   // --- 電力の制約 -----------------------------------------------------------
+  // Link continuous demand throughput to integer installed capacity whenever
+  // capacity power / building count affects constraints or optimization.
+  if (installedCounts) {
+    for (const recipe of recipes) {
+      constraints.push({
+        key: `building:installed:${recipe.id}`,
+        coefficients: new Map([[recipeVarKey(recipe.id), 1],
+          [recipeBuildingVarKey(recipe.id), -configuredClock]]),
+        upper: 0,
+      })
+    }
+  }
+  if (weights.buildings > 0) {
+    for (const variant of generatorVariants) constraints.push({
+      key: `generator:installed:${variant.key}`,
+      coefficients: new Map([[variant.key, 1], [generatorBuildingVarKey(variant.key), -1]]),
+      upper: 0,
+    })
+  }
   // 電力は疑似アイテムにせず専用の行にする（アイテムIDを偽装しないため）。
   //   目標: Σ(発電量_g × g) >= 目標MW
   //   自給: Σ(発電量_g × g) - Σ(消費電力_r × x_r) >= 0
@@ -797,13 +830,17 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     if (powerPlan.coverFactoryPower) {
       const coefficients = new Map(production)
       for (const recipe of recipes) {
-        coefficients.set(recipeVarKey(recipe.id), -recipePowerMW(recipe, buildingOf(recipe)))
+        const building = buildingOf(recipe)
+        const countKey = recipeBuildingVarKey(recipe.id)
+        coefficients.set(countKey,
+          -clockedPowerMW(recipePowerMW(recipe, building), configuredClock, building.powerExponent))
       }
       for (const recipe of somersloopRecipes) {
         const building = buildingOf(recipe)
         coefficients.set(
-          somersloopVarKey(recipe.id),
-          -recipePowerMW(recipe, building) * somersloopPowerFactor(building),
+          somersloopBuildingVarKey(recipe.id),
+          -clockedPowerMW(recipePowerMW(recipe, building) * somersloopPowerFactor(building),
+            configuredClock, building.powerExponent),
         )
       }
       constraints.push({ key: POWER_COVER_ROW, coefficients, lower: 0 })
@@ -814,7 +851,13 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
   if (somersloopRecipes.length > 0) {
     const coefficients = new Map<string, number>()
     for (const recipe of somersloopRecipes) {
-      coefficients.set(somersloopVarKey(recipe.id), buildingOf(recipe).maxSomersloops)
+      const countKey = somersloopBuildingVarKey(recipe.id)
+      coefficients.set(countKey, buildingOf(recipe).maxSomersloops)
+      constraints.push({
+        key: `somersloop:installed:${recipe.id}`,
+        coefficients: new Map([[somersloopVarKey(recipe.id), 1], [countKey, -configuredClock]]),
+        upper: 0,
+      })
     }
     constraints.push({ key: 'somersloop:capacity', coefficients, upper: somersloopLimit })
   }

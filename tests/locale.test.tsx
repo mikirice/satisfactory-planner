@@ -22,6 +22,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import App from '../src/App.tsx'
+import { buildingCapacityText } from '../src/i18n/building-capacity.ts'
 import { buildingsById, resolveDisplayName } from '../src/data/index.ts'
 import {
   ALTERNATE_NAME_PREFIXES,
@@ -444,13 +445,13 @@ describe('言語ごとの表示スモーク（鉄板 60/min のサマリー）',
       const text = container.textContent ?? ''
       expect(text).toContain(dictionary.buildList.sections.extraction)
       expect(text).toContain(dictionary.buildList.sections.manufacturing)
-      expect(text).toContain(dictionary.buildList.intro)
+      expect(text).toContain(buildingCapacityText(locale).intro)
       // 製錬炉3台。合計は 採掘1台 + 製造7台
       expect(text).toContain(dictionary.buildList.count('3'))
       expect(text).toContain(dictionary.buildList.sectionTotal('7'))
       expect(text).toContain(dictionary.buildList.total('8'))
       // 建物・搬送手段は公式名から解決する（辞書に直書きしない）
-      for (const id of ['Build_SmelterMk1_C', 'Build_MinerMk3_C', 'Build_ConveyorBeltMk2_C']) {
+      for (const id of ['Build_SmelterMk1_C', 'Build_MinerMk3_C', 'Build_ConveyorBeltMk6_C']) {
         expect(text).toContain(resolveDisplayName(id, locale, pack))
       }
       if (locale !== 'ja') {

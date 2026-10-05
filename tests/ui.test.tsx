@@ -940,7 +940,7 @@ describe('結果テーブル', () => {
     expect(container.querySelectorAll('.table-scroll > table.table')).toHaveLength(2)
   })
 
-  it('原料表に上限比率と採掘機の台数・純度別ノードが出る', async () => {
+  it('原料表に上限比率と採掘機の台数が出る', async () => {
     const extraction = planExtraction(solution)
     const container = await render(
       <ResourcesTable solution={solution} extraction={extraction} />,
@@ -948,7 +948,7 @@ describe('結果テーブル', () => {
     const text = container.textContent ?? ''
     expect(text).toContain('鉄鉱石')
     expect(text).toContain('採鉱機 Mk.3')
-    expect(text).toContain('高純度')
+    expect(text).not.toContain('純度別ノード')
     expect(text).toContain('0.1%') // 90 / 92,100
     expect(container.querySelector('.table-scroll > table.table')).not.toBeNull()
   })

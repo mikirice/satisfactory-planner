@@ -19,6 +19,8 @@ export type LpVariable = {
   lower?: number
   /** 上限。既定 +∞ */
   upper?: number
+  /** Whole installed buildings (continuous throughput variables stay fractional). */
+  integer?: boolean
 }
 
 /**
@@ -139,6 +141,11 @@ export function writeLpFormat(model: LpModel): { text: string; nameByKey: Map<st
     lines.push(...bounds)
   }
 
+  const integers = model.variables.filter((v) => v.integer)
+  if (integers.length > 0) {
+    lines.push('Generals')
+    lines.push(` ${integers.map((v) => nameByKey.get(v.key)!).join(' ')}`)
+  }
   lines.push('End')
   return { text: lines.join('\n'), nameByKey }
 }

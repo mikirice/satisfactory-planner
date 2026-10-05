@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultPlanInput } from '../src/plan/serialize.ts'
 import { createMemoryPlanStorage, setPlanStorage } from '../src/plan/storage.ts'
 import { usePlanner } from '../src/store/planner.ts'
+import { useSidebarPanels } from '../src/store/sidebar-panels.ts'
 import { NARROW_VIEWPORT_QUERY } from '../src/ui/responsive.ts'
 import { Sidebar } from '../src/ui/Sidebar.tsx'
 
@@ -127,17 +128,18 @@ function expectPanelExpanded(container: HTMLElement, title: string, expanded: bo
   }
 }
 
-function expectTargetsVisibleAndNotCollapsible(container: HTMLElement): void {
+function expectTargetsExpanded(container: HTMLElement, expanded: boolean): void {
   const title = panelTitle(container, '目標産出')
   const panel = title.closest<HTMLElement>('.panel')
   expect(panel).not.toBeNull()
-  expect(panel?.querySelector('.panel__toggle')).toBeNull()
+  expect(panel?.querySelector('.panel__toggle')?.getAttribute('aria-expanded')).toBe(String(expanded))
   expect(
-    panel?.querySelector<HTMLInputElement>('input[placeholder="アイテム名（例: 鉄板）"]'),
-  ).not.toBeNull()
+    panel?.querySelector<HTMLInputElement>('input[placeholder="アイテム名（例: 鉄板）"]')?.isConnected,
+  ).toBe(expanded ? true : undefined)
 }
 
 beforeEach(() => {
+  useSidebarPanels.setState({ panels: {} })
   setPlanStorage(createMemoryPlanStorage())
   usePlanner.setState({
     ...defaultPlanInput(),
@@ -170,7 +172,7 @@ describe('サイドバーのレスポンシブ折りたたみ', () => {
     for (const title of RESPONSIVE_PANEL_TITLES) {
       expectPanelExpanded(container, title, true)
     }
-    expectTargetsVisibleAndNotCollapsible(container)
+    expectTargetsExpanded(container, true)
     for (const title of PRESERVED_CLOSED_PANEL_TITLES) {
       expectPanelExpanded(container, title, false)
     }
@@ -183,7 +185,7 @@ describe('サイドバーのレスポンシブ折りたたみ', () => {
     for (const title of RESPONSIVE_PANEL_TITLES) {
       expectPanelExpanded(container, title, false)
     }
-    expectTargetsVisibleAndNotCollapsible(container)
+    expectTargetsExpanded(container, false)
     for (const title of PRESERVED_CLOSED_PANEL_TITLES) {
       expectPanelExpanded(container, title, false)
     }

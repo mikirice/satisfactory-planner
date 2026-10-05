@@ -1,3 +1,6 @@
+import { useLocale } from '../i18n/index.ts'
+import { resourceExtractionText } from '../i18n/resource-extraction.ts'
+import { usePlanner } from '../store/planner.ts'
 /** 原料表: 必要レート・マップ上限比率・採掘機台数・純度別ノード数。 */
 import type { ExtractionPlan, ExtractorGroup, ResourceExtraction, Solution } from '../solver/index.ts'
 import {
@@ -8,9 +11,8 @@ import {
   fmtPower,
   fmtRate,
   itemName,
-  itemUnit,
 } from './format.ts'
-import { ItemLabel } from './ItemIcon.tsx'
+import { ItemIcon, ItemNameLink } from './ItemIcon.tsx'
 import { T } from './text.ts'
 
 type Props = {
@@ -19,6 +21,9 @@ type Props = {
 }
 
 export function ResourcesTable({ solution, extraction }: Props) {
+  const { locale } = useLocale()
+  const P = resourceExtractionText(locale)
+  const hasOverrides = usePlanner(s => Object.keys(s.extractionOverrides).length > 0)
   if (solution.rawResources.length === 0) return <p className="hint">{T.resources.empty}</p>
   const byItem = new Map((extraction?.resources ?? []).map((r) => [r.item, r]))
 
@@ -27,7 +32,7 @@ export function ResourcesTable({ solution, extraction }: Props) {
 
   return (
     <div className="stack">
-      {extraction && <p className="hint">{T.resources.clockNote(fmtClock(extraction.clock))}</p>}
+      {extraction && <p className="hint">{hasOverrides ? P.customizedClock : T.resources.clockNote(fmtClock(extraction.clock))}</p>}
       {extraction && extraction.shortfalls.length > 0 && (
         <p className="callout callout--warn">
           {extraction.shortfalls
@@ -39,7 +44,7 @@ export function ResourcesTable({ solution, extraction }: Props) {
       )}
       <section className="card card--wide">
         <div className="table-scroll table-scroll--wide">
-          <table className="table">
+          <table className="table resources-table">
           <thead>
             <tr>
               <th scope="col">{T.resources.item}</th>
@@ -48,9 +53,8 @@ export function ResourcesTable({ solution, extraction }: Props) {
               <th scope="col" className="num">{T.resources.usage}</th>
               <th scope="col">{T.resources.extractor}</th>
               <th scope="col" className="num">{T.resources.machines}</th>
-              <th scope="col">{T.resources.nodes}</th>
               {showShards && <th scope="col" className="num">{T.resources.shards}</th>}
-              <th scope="col" className="num">{T.resources.power}</th>
+              <th scope="col" className="num resource-table__power">{T.resources.power}</th>
             </tr>
           </thead>
           <tbody>
@@ -104,9 +108,9 @@ function ResourceRows({
   const head = (
     <>
       <th scope="row" rowSpan={span}>
-        <ItemLabel id={item} name={itemName(item)}>
-          <span className="unit"> {itemUnit(item)}</span>
-        </ItemLabel>
+        <div className="resource-row__name">
+          <ItemIcon id={item} name={itemName(item)} /><ItemNameLink id={item}>{itemName(item)}</ItemNameLink>
+        </div>
       </th>
       <td className="num" rowSpan={span}>
         {fmtRate(ratePerMin)}
@@ -120,23 +124,18 @@ function ResourceRows({
     </>
   )
 
-  if (groups.length === 0) {
-    return (
-      <tr>
-        {head}
-        <td colSpan={showShards ? 4 : 3}>—</td>
-        <td className="num">{fmtPower(plan?.powerMW ?? 0)}</td>
-      </tr>
-    )
-  }
-
   return (
     <>
+      {groups.length === 0 && <tr>
+        {head}
+        <td colSpan={showShards ? 3 : 2}>—</td>
+        <td className="num resource-table__power">{fmtPower(plan?.powerMW ?? 0)}</td>
+      </tr>}
       {groups.map((group, index) => (
-        <tr key={group.extractorId}>
+        <tr key={group.id ?? `${group.extractorId}:${index}`}>
           {index === 0 && head}
           <td>
-            {itemName(group.extractorId)}
+            {itemName(group.extractorId)} <span className="unit">({fmtClock(group.clockSpeed)})</span>
             {group.pressurizerCount ? (
               <span className="unit">
                 {' '}{T.resources.pressurizerCount(fmtInt(group.pressurizerCount))}
@@ -149,30 +148,10 @@ function ResourceRows({
               fmtInt(group.buildingCount),
             )}
           </td>
-          <td>{nodeBreakdown(group)}</td>
           {showShards && <td className="num">{fmtInt(group.powerShards)}</td>}
-          <td className="num">{fmtPower(group.powerMW + (group.pressurizerPowerMW ?? 0))}</td>
+          <td className="num resource-table__power">{fmtPower(group.powerMW + (group.pressurizerPowerMW ?? 0))}</td>
         </tr>
       ))}
     </>
-  )
-}
-
-function nodeBreakdown(group: ExtractorGroup) {
-  if (group.assignments.length === 0) return '—'
-  if (group.assignments.some((a) => !Number.isFinite(a.availableNodes))) {
-    return <span className="unit">{T.resources.unlimitedNodes}</span>
-  }
-  return (
-    <ul className="flow-list">
-      {group.assignments.map((assignment) => (
-        <li key={assignment.purity}>
-          <span className="flow__name">{T.resources.purity[assignment.purity]}</span>
-          <span className="flow__rate num">
-            {T.resources.nodesOf(fmtCount(assignment.nodes), assignment.availableNodes)}
-          </span>
-        </li>
-      ))}
-    </ul>
   )
 }

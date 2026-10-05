@@ -15,11 +15,13 @@
  *   結果として両方向のエッジが張られ、ループがそのまま図に出る。
  */
 import { stepKey } from './aggregate.ts'
+import { extractionDisplay } from './extraction-display.ts'
+import type { ExtractionMachineRow } from './extraction-display.ts'
 import { enumeratePlanFlows, flowTransport, itemForm, resolveTransportChoice } from './flows.ts'
 import type { TransportChoice } from './flows.ts'
-import { buildingsById, createDisplayName, recipesById } from '../data/index.ts'
+import { buildingsById, createDisplayName, ratePerMin, recipesById } from '../data/index.ts'
 import type { DisplayNameResolver, GameNamePack } from '../data/index.ts'
-import type { ItemRate, PowerRangeMW, Solution, SolutionStep } from '../solver/index.ts'
+import type { ExtractionPlan, ItemRate, PowerRangeMW, Solution, SolutionStep } from '../solver/index.ts'
 
 // ---------------------------------------------------------------------------
 // 型
@@ -40,6 +42,10 @@ export type SourceGraphNode = NodeBase & {
   ratePerMin: number
   /** SolveInput.inputs で持ち込んだ分（採掘ではない） */
   external: boolean
+  singleOutputLimit?: { min: number; max: number }
+  machines?: ExtractionMachineRow[]
+  shortfall?: number
+  idle?: number
 }
 
 /** 生産ステップ（レシピ1つ）。 */
@@ -70,7 +76,7 @@ export type RecipeGraphNode = NodeBase & {
    */
   powerProductionMW: number
   inputs: ItemRate[]
-  outputs: ItemRate[]
+  outputs: (ItemRate & { singleOutputLimit?: number })[]
 }
 
 /** 最終出力（目標産出 / 副産物）。 */
@@ -83,6 +89,8 @@ export type OutputGraphNode = NodeBase & {
   isTarget: boolean
   /** 目標のときの要求レート */
   requestedPerMin?: number
+  /** Highest single-machine output among active producer recipes, at 100% with no amplification. */
+  maxSingleOutputPerMin?: number
 }
 
 export type PlanGraphNode = SourceGraphNode | RecipeGraphNode | OutputGraphNode
@@ -118,6 +126,7 @@ export type PlanGraph = {
 }
 
 export type PlanGraphOptions = TransportChoice & {
+  extraction?: ExtractionPlan | null
   /** Labels embedded in the graph use this locale. Default remains Japanese. */
   locale?: string
   /**
@@ -144,13 +153,22 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
   const producers = new Map<string, Port[]>()
   /** item -> そのアイテムを受け取るノードと量 */
   const consumers = new Map<string, Port[]>()
+  const singleMachineOutputs = new Map<string, number>()
 
   // 1) 原料供給（Excel の物流シートと同じ列挙を使う）
   const flows = enumeratePlanFlows(solution)
   for (const flow of flows) {
     if (flow.kind !== 'source' || flow.ratePerMin <= MIN_RATE) continue
     const id = `source:${flow.item}`
-    nodes.push(sourceNode(id, flow.item, flow.ratePerMin, false, displayName))
+    const source = sourceNode(id, flow.item, flow.ratePerMin, false, displayName)
+    const rates = options?.extraction?.resources.find(r => r.item === flow.item)?.groups
+      .flatMap(g => g.assignments.map(a => a.ratePerNodePerMin)) ?? []
+    if (rates.length) source.singleOutputLimit = { min: Math.min(...rates), max: Math.max(...rates) }
+    const display = extractionDisplay(options?.extraction?.resources.find(r => r.item === flow.item))
+    source.machines = display.rows
+    source.shortfall = display.shortfall
+    source.idle = display.idle
+    nodes.push(source)
     add(producers, flow.item, { nodeId: id, ratePerMin: flow.ratePerMin })
   }
 
@@ -164,6 +182,11 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
 
   // 3) 生産ステップ
   for (const step of solution.steps) {
+    const recipe = recipesById.get(step.recipeId)
+    for (const product of recipe?.products ?? []) {
+      const rate = ratePerMin(product.amount, recipe!.durationSec)
+      singleMachineOutputs.set(product.item, Math.max(singleMachineOutputs.get(product.item) ?? 0, rate))
+    }
     const id = recipeNodeId(step)
     nodes.push(recipeNode(id, step, displayName))
     for (const flow of step.inputs) {
@@ -193,6 +216,7 @@ export function buildPlanGraph(solution: Solution, options?: PlanGraphOptions): 
       item,
       itemName: displayName(item),
       ratePerMin: leftover,
+      ...(singleMachineOutputs.has(item) ? { maxSingleOutputPerMin: singleMachineOutputs.get(item) } : {}),
       isTarget: target !== undefined,
       ...(target ? { requestedPerMin: target.requestedPerMin } : {}),
     })
@@ -301,7 +325,8 @@ function recipeNode(
     somersloops: step.somersloops,
     powerProductionMW: step.powerProductionMW ?? 0,
     inputs: step.inputs,
-    outputs: step.outputs,
+    outputs: step.outputs.map(flow => ({ ...flow, ...(step.machineCount > 0
+      ? { singleOutputLimit: flow.ratePerMin * step.clockSpeed / step.machineCount } : {}) })),
   }
 }
 

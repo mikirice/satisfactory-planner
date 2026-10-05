@@ -49,8 +49,8 @@ export const NODE_TYPE = {
   output: 'planOutput',
 } as const
 
-export type SourceFlowNode = Node<{ node: SourceGraphNode }, 'planSource'>
-export type RecipeFlowNode = Node<{ node: RecipeGraphNode }, 'planRecipe'>
+export type SourceFlowNode = Node<{ node: SourceGraphNode; onOpen?: (node: SourceGraphNode) => void }, 'planSource'>
+export type RecipeFlowNode = Node<{ node: RecipeGraphNode; onOpen?: (node: RecipeGraphNode) => void }, 'planRecipe'>
 export type OutputFlowNode = Node<{ node: OutputGraphNode }, 'planOutput'>
 export type PlanFlowNode = SourceFlowNode | RecipeFlowNode | OutputFlowNode
 
@@ -135,11 +135,11 @@ export const NODE_METRICS = {
   ioPaddingTop: 3,
   ioHeadFontSize: 10,
   ioHeadLine: 14,
-  ioRowFontSize: 11,
-  ioRowLine: 17,
-  recipeWidth: 300,
-  sourceWidth: 200,
-  outputWidth: 200,
+  ioRowFontSize: 13,
+  ioRowLine: 32,
+  recipeWidth: 560,
+  sourceWidth: 240,
+  outputWidth: 240,
 } as const
 
 /** ノード1行ぶんの見た目（テストが「潰れていないか」を見るのに使う）。 */
@@ -269,7 +269,7 @@ export function titleLeadingWidth(node: PlanGraphNode): number {
 /** ノードの横幅（種別ごと）。 */
 export function nodeWidth(node: PlanGraphNode): number {
   if (node.kind === 'recipe') return NODE_METRICS.recipeWidth
-  if (node.kind === 'source') return NODE_METRICS.sourceWidth
+  if (node.kind === 'source') return node.external ? NODE_METRICS.sourceWidth : 460
   return NODE_METRICS.outputWidth
 }
 
@@ -322,6 +322,10 @@ export function nodeRows(node: PlanGraphNode): NodeRow[] {
   if (node.kind === 'output' && node.requestedPerMin !== undefined) {
     rows.push({ id: 'meta:requested', height: m.metaLine, fontSize: m.metaFontSize })
   }
+  if (node.kind === 'source' && !node.external) {
+    for (let i = 0; i < (node.machines?.length ?? 0); i++) rows.push({ id: `machine:${i}`, height: 24, fontSize: 11 })
+    if ((node.shortfall ?? 0) > 1e-7 || (node.idle ?? 0) > 0) rows.push({ id: 'extraction-warning', height: 20, fontSize: 11 })
+  }
   return rows
 }
 
@@ -335,6 +339,35 @@ export function measureNodeSize(node: PlanGraphNode): { width: number; height: n
     width: nodeWidth(node),
     height: m.paddingY * 2 + m.border * 2 + content + gaps,
   }
+}
+
+/** One port per resource row. The same positions are used by ELK and React Flow. */
+export const resourcePortId = (nodeId: string, direction: 'in' | 'out', item: string): string =>
+  `${nodeId}:${direction}:${item}`
+
+export function resourcePortY(node: PlanGraphNode, direction: 'in' | 'out', item: string): number {
+  if (node.kind !== 'recipe') return measureNodeSize(node).height / 2
+  const rows = nodeRows(node)
+  const before = rows.slice(0, -1)
+  const flows = direction === 'in' ? node.inputs : node.outputs
+  const index = Math.max(0, flows.findIndex((flow) => flow.item === item))
+  const m = NODE_METRICS
+  return m.paddingY + m.border + before.reduce((sum, row) => sum + row.height, 0) +
+    before.length * m.rowGap + m.ioMarginTop + m.ioBorder + m.ioPaddingTop +
+    m.ioHeadLine + (index + 0.5) * m.ioRowLine
+}
+
+function nodePorts(node: PlanGraphNode) {
+  const inputs = node.kind === 'recipe' ? node.inputs.map((flow) => flow.item) : node.kind === 'output' ? [node.item] : []
+  const outputs = node.kind === 'recipe' ? node.outputs.map((flow) => flow.item) : node.kind === 'source' ? [node.item] : []
+  return [
+    ...inputs.map((item) => ({ id: resourcePortId(node.id, 'in', item), x: 0,
+      y: resourcePortY(node, 'in', item), width: 0, height: 0,
+      layoutOptions: { 'elk.port.side': 'WEST' } })),
+    ...outputs.map((item) => ({ id: resourcePortId(node.id, 'out', item), x: nodeWidth(node),
+      y: resourcePortY(node, 'out', item), width: 0, height: 0,
+      layoutOptions: { 'elk.port.side': 'EAST' } })),
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -373,13 +406,15 @@ export async function layoutPlanGraph(graph: PlanGraph): Promise<PlanFlowLayout>
   const children: ElkNode[] = graph.nodes.map((node) => ({
     id: node.id,
     ...measureNodeSize(node),
+    layoutOptions: { 'elk.portConstraints': 'FIXED_POS' },
+    ports: nodePorts(node),
   }))
   const edges: ElkExtendedEdge[] = graph.edges.map((edge) => {
     const text = edgeLabel(edge)
     return {
       id: edge.id,
-      sources: [edge.source],
-      targets: [edge.target],
+      sources: [resourcePortId(edge.source, 'out', edge.item)],
+      targets: [resourcePortId(edge.target, 'in', edge.item)],
       labels: [{ id: `${edge.id}:label`, text, ...measureEdgeLabel(text) }],
     }
   })
@@ -552,6 +587,8 @@ function toFlowEdge(
     id: edge.id,
     source: edge.source,
     target: edge.target,
+    sourceHandle: resourcePortId(edge.source, 'out', edge.item),
+    targetHandle: resourcePortId(edge.target, 'in', edge.item),
     type: 'plan',
     // 流れる破線は使わない（常時ループするアニメーションを画面に置かない方針）
     animated: false,

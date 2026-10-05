@@ -139,7 +139,7 @@ describe('発電計画なしで廃棄物を材料にする', () => {
     expect(power.coverFactoryPower).toBe(false)
     expect(power.totalMW).toBeCloseTo(nuclear[0].machineCount * 2500, 6)
     expect(power.totalMW).toBeGreaterThan(0)
-    expect(power.netMW).toBeCloseTo(power.totalMW - solution.totalPowerMW, 6)
+    expect(power.netMW).toBeCloseTo(power.totalMW - solution.totalClockedPowerMW, 6)
     expect(power.fuelUsage.map((f) => f.item)).toEqual([URANIUM_ROD])
     expect(power.totalGeneratorCount).toBe(nuclear[0].builtCount)
   })

@@ -34,6 +34,8 @@ import {
 import type { DisplayNameResolver, GameNamePack } from '../data/index.ts'
 import { getDictionary, resolveText } from '../i18n/index.ts'
 import type { Locale, UiDictionary } from '../i18n/types.ts'
+import { buildingBalance, buildingCapacityBalance } from '../plan/building-balance.ts'
+import { buildingCapacityText } from '../i18n/building-capacity.ts'
 import { estimateFootprint, groupByBuilding, mergeBuildCost } from '../plan/aggregate.ts'
 import { enumeratePlanFlows, flowTransport, resolveTransportChoice } from '../plan/flows.ts'
 import type { ExtractionPlan, ItemRate, Solution } from '../solver/index.ts'
@@ -576,18 +578,22 @@ function writeBalanceSheet(
 ): void {
   const { t } = context
   const ws = workbook.addWorksheet(t.sheets.balance)
+  const P = buildingCapacityText(input.locale ?? 'ja')
+  const capacities = new Map(buildingCapacityBalance(input.solution, input.extraction).map((r) => [r.item, r]))
   const headers = [
     t.common.item,
     t.common.unit,
     t.common.produced,
+    P.outputLimit,
     t.common.consumed,
+    P.consumptionLimit,
     t.balance.externalSupply,
     t.balance.net,
     t.balance.state,
   ]
   addHeaderRow(ws, headers)
 
-  const rows = [...input.solution.itemBalance].sort(
+  const rows = buildingBalance(input.solution, input.extraction).sort(
     (a, b) =>
       Math.abs(b.netPerMin) - Math.abs(a.netPerMin) ||
       context.collator.compare(itemName(a.item, context), itemName(b.item, context)),
@@ -604,12 +610,14 @@ function writeBalanceSheet(
       itemName(balance.item, context),
       itemUnit(balance.item, context),
       balance.producedPerMin,
+      capacities.get(balance.item)?.producedPerMin ?? 0,
       balance.consumedPerMin,
+      capacities.get(balance.item)?.consumedPerMin ?? 0,
       balance.suppliedPerMin,
       balance.netPerMin,
       t.balance[state],
     ])
-    for (const col of [3, 4, 5, 6]) row.getCell(col).numFmt = NUM_FMT.rate
+    for (const col of [3, 4, 5, 6, 7, 8]) row.getCell(col).numFmt = NUM_FMT.rate
 
     // 色だけに頼らないよう「状態」列のラベルと必ずセットで塗る（カラーユニバーサル対応）
     if (state !== 'balanced') {
@@ -617,7 +625,7 @@ function writeBalanceSheet(
         state === 'shortage' ? BALANCE_COLORS.shortageFill : BALANCE_COLORS.surplusFill
       const font =
         state === 'shortage' ? BALANCE_COLORS.shortageFont : BALANCE_COLORS.surplusFont
-      for (const col of [6, 7]) {
+      for (const col of [8, 9]) {
         const cell = row.getCell(col)
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } }
         cell.font = { color: { argb: font }, bold: true }

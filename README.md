@@ -9,7 +9,7 @@
 - **12言語**: 画面もアイテム名も母語で読める。アイテム名・レシピ名・建物名は
   **ゲーム公式のローカライズ**をそのまま使うので、ゲーム内の表記と1文字も違わない（手訳なし）
 - **Excel出力**: サマリー・生産ステップ・原料・収支・物流・レシピの6シートを .xlsx で書き出す
-- **フローチャート**: 原料から最終製品までの流れを閲覧専用の図で追える。
+- **フローチャート**: 原料から最終製品までの流れを追い、ノードからレシピを比較・変更できる。
   ベルト/パイプ1本で運びきれない線はボトルネックとして赤く出る
 - **細かい条件**: 代替レシピの取捨、原料上限（マップのノード数由来）、製造クロック上限、
   採掘クロック、サマースループ、既に手元にあるアイテムの持ち込み、産出の最大化
@@ -144,7 +144,7 @@ src/ui/
   ResultView.tsx      結果タブ（サマリー / 生産ステップ / 原料 / アイテム収支 / フローチャート）
   PowerFilterToggle.tsx 「発電を隠す」のチェックボックス（ステップ表とフローチャートで共有）
   ExportPanel.tsx     プラン名の入力とExcelダウンロード（exceljsはクリック時に動的import）
-  FlowChart.tsx       閲覧専用フローチャート（React Flow。タブを開いたときに遅延import）
+  FlowChart.tsx       レシピ比較・変更付きフローチャート（React Flow。タブを開いたときに遅延import）
   flow-layout.ts      PlanGraph → React Flow のノード/エッジ（寸法・線種・ラベル）
   elk-layout.ts       elkjs 呼び出し（Worker優先・失敗時はメインスレッドに自動フォールバック）
   elk-layout.worker.ts レイアウト計算のWorker本体
@@ -385,10 +385,14 @@ LP が「再処理を余分に建てて廃棄物の需要を作り出し、許�
   燃料式発電が共有していれば原油は残る）。**レートは解の値のまま**で、原料タブと数字がズレない
 - **計算・サマリー・原料・収支・Excel は一切変えない**（隠しても数字の網羅性は保つ）
 
-## フローチャート（Phase 5・閲覧専用）
+## フローチャート（レシピ比較・変更）
 
-結果タブの「フローチャート」。ソルバー結果から自動生成する読み取り専用の図で、
-**手動編集はしない**（仕様書 §9 / やらないリスト）。
+結果タブの「フローチャート」。ソルバー結果から自動生成し、レシピノードをクリックすると
+基本・代替レシピを比較できる。投入・産出は1台・100%・サマースループなしの毎分レートで表示する。
+選択したレシピは、そのアイテムの生産をプラン全体で固定して再計算する。
+実行不能の場合は変更前の解を保持し、「自動選択に戻す」で固定を解除できる。
+指定レシピは保存プラン・共有URLにも含まれる（v8。v1〜v7は引き続き読み込める）。
+比較画面の新しい文言は日英・繁体字中国語に対応し、その他の言語では英語にフォールバックする。
 
 - ノード: 原料供給（採掘）/ 既保有アイテムの持ち込み（紫の破線枠＋「既保有」ラベルで採掘と区別）/
   生産ステップ（レシピ名・機械種別・建てる台数とクロック・電力・サマースループ使用数・投入/産出）/
@@ -406,7 +410,12 @@ LP が「再処理を余分に建てて廃棄物の需要を作り出し、許�
   そのまま置く（React Flow 既定の「線の中点」だとラベル同士・ノードと重なって読めない）。
   線も elk の経路をそのまま描くのでラベルと線がズレない。重なりゼロは
   `tests/flow-layout.test.ts` が矩形の重なり面積で検証している
-- 操作: パン / ズーム / ミニマップ / 全体フィットのみ。ドラッグ移動・接続・削除は無効
+- 操作: パン / ズーム / ミニマップ / 全体フィット / 拡大表示 / レシピ比較・変更。ドラッグ移動・接続・削除は無効
+- 投入・産出の各行にアイコンを表示し、エッジは該当アイテムの行につながる。
+  比較画面はデスクトップで3列、狭い画面では2列・1列に切り替わる。
+- 製造レシピ由来の最終出力には「1台の最大産出（100%）」を表示する。
+  使用中のレシピの基準レートで、クロック・サマースループの設定や総台数は含まない。
+  同じアイテムを複数のレシピで生産する場合は、その中で最も高い基準レートを表示する。
 - エッジの分岐は「生産量 × 消費量 ÷ 総量」の按分。アイテムごとに
   入ってきた量と出ていく量が必ず一致する（`tests/graph.test.ts` で検証）
 
@@ -477,3 +486,11 @@ GPL の対象外です（出典と扱いは `public/icons/SOURCES.md` を参照�
 - 計算結果はゲームデータに基づく理論値です。実際のゲーム内の挙動・アップデートによる仕様変更との
   差異について、作者は一切の責任を負いません
 - 非商用・無保証で提供しています
+
+## Demand, installed capacity, and extraction settings
+
+Production targets determine planned ingredient requirements. Integer installed building counts and configured clocks determine separate output/consumption limits; unused capacity does not expand upstream demand. For example, 21 iron plates/min at 250% needs one constructor, 31.5 iron ingots/min, and has an output limit of 50 plates/min. Balance and Excel show planned rates alongside installed capacity limits.
+
+Click a raw-resource node in the flow chart to open its extraction settings dialog. Resource names in the resource table link to item pages. Each editable node group represents one extractor with its own equipment, purity, and clock. Adding/removing groups changes installed counts; insufficient supply is reported without automatically adding nodes. Without a manual override, group counts follow sidebar defaults and current demand automatically. Restore defaults returns to this automatic mode. Draft edits are saved explicitly; insufficient capacity blocks saving and requires confirmation before discarding changes. Flow nodes show each extractor's equipment, purity, clock, and allocated demand/capacity; shortages are red and completely unused extractors are yellow. These warnings do not change downstream planned demand. Mixed configurations are persisted in saved/shared plans; legacy grouped counts are expanded to individual machines. Resource-well pressurizer counts remain estimates based on average satellite counts.
+
+Recipe comparison includes standard recipes and only sidebar-enabled alternates, using one machine at 100% without Somersloops. Raw-only sourcing excludes recipes whose main product is the selected raw resource while retaining recoverable byproducts. Sidebar sections support expand/collapse all and retain their state across reloads.

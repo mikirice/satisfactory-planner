@@ -41,7 +41,7 @@ export function PowerPanel() {
   })
 
   return (
-    <CollapsiblePanel title={T.sidebar.power}>
+    <CollapsiblePanel panelId="power" title={T.sidebar.power}>
       <div className="checkbox-list">
         <p className="target-group__head">{T.sidebar.powerMethods}</p>
         {powerGenerators.map((generator) => {

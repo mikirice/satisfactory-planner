@@ -34,6 +34,7 @@ export {
   resolveResourceWeights,
   somersloopPowerFactor,
   somersloopVarKey,
+  somersloopBuildingVarKey,
   supportsSomersloop,
   variablePowerRange,
   zeroSurplusChain,
@@ -66,8 +67,14 @@ export {
   WELL_PRESSURIZER_ID,
   assignPurityNodes,
   planExtraction,
+  normalizeExtractionOverrides,
+  resourceExtractorIds,
+  extractorRatePerMin,
 } from './extraction.ts'
 export type {
+  CustomExtractionNode,
+  ResourceExtractionOverride,
+  ExtractionOverrides,
   ExtractionInput,
   ExtractionOptions,
   ExtractionPlan,

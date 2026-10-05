@@ -1,23 +1,23 @@
 /** 原料上限の編集（未入力はマップ上限）。 */
-import { useState } from 'react'
 
 import { MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import { usePlanner } from '../store/planner.ts'
 import { fmtInt, itemName, itemUnit } from './format.ts'
 import { CELL_ICON, ItemIcon } from './ItemIcon.tsx'
 import { NumberField } from './NumberField.tsx'
+import { usePanelOpen } from '../store/sidebar-panels.ts'
 import { T } from './text.ts'
 
 export function LimitsPanel() {
   const overrides = usePlanner((s) => s.limitOverrides)
   const setLimitOverride = usePlanner((s) => s.setLimitOverride)
   const resetLimits = usePlanner((s) => s.resetLimits)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = usePanelOpen('limits', false)
 
   const changed = Object.keys(overrides).length
 
   return (
-    <section className="panel">
+    <section className="panel" data-panel-id="limits">
       <button type="button" className="panel__toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="panel__title">{T.sidebar.limits}</span>
         <span className="panel__meta">

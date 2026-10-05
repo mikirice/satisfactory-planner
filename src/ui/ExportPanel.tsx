@@ -39,7 +39,7 @@ export function ExportPanel() {
   }
 
   return (
-    <CollapsiblePanel title={T.export.heading}>
+    <CollapsiblePanel panelId="export" title={T.export.heading}>
       <label className="field">
         <span className="field__label">{T.export.planName}</span>
         <input

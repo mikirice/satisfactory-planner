@@ -154,7 +154,7 @@ export function PlansPanel() {
   }
 
   return (
-    <CollapsiblePanel title={T.plans.heading}>
+    <CollapsiblePanel panelId="plans" title={T.plans.heading}>
       <p className="hint">{T.plans.hint}</p>
 
       <label className="field">

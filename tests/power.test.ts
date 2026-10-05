@@ -278,7 +278,7 @@ describe('LP モデル', () => {
     expect(cover.lower).toBe(0)
     expect(cover.coefficients.get(generatorVarKey(COAL, 'Desc_Coal_C'))).toBe(75)
     // 製作機は 4MW/台 → 自給行では負の係数
-    expect(cover.coefficients.get('x:Recipe_IronPlate_C')).toBeCloseTo(-4, 9)
+    expect(cover.coefficients.get('n:Recipe_IronPlate_C')).toBeCloseTo(-4, 9)
   })
 
   it('目標だけ / 自給だけのときは、要らないほうの行を作らない', () => {
@@ -348,13 +348,13 @@ describe('石炭発電（手計算）', () => {
     expect(solution.totalBuildCost.length).toBeGreaterThan(0)
   })
 
-  it('端数の台数は切り上げて建て、クロックは100%未満（部分負荷）になる', async () => {
+  it('generator demand is fractional but installed capacity retains 100% clock', async () => {
     const solution = await solveOk({ ...bare, power: { generators: [COAL], targetMW: 100 } })
     const step = generatorSteps(solution)[0]!
     expect(step.machineCount).toBeCloseTo(100 / 75, 6)
     expect(step.builtCount).toBe(2)
-    expect(step.clockSpeed).toBeCloseTo(100 / 75 / 2, 6)
-    expect(step.clockSpeed).toBeLessThanOrEqual(1)
+    expect(step.clockSpeed).toBe(1)
+    expect(step.powerProductionMW).toBeCloseTo(100, 6)
   })
 
   it('製造クロック上限を上げても発電機は100%のまま（発電側OCは未対応）', async () => {

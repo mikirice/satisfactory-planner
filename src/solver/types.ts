@@ -197,7 +197,7 @@ export type SolutionStep = {
   powerMW: number
   /** 可変電力レシピのみ。固定電力のレシピでは undefined */
   powerRangeMW?: PowerRangeMW
-  /** クロックと Somersloop を適用した実消費電力(MW)。画面と Excel はこちらを出す */
+  /** 整数台数に設定クロックと Somersloop を適用した容量消費電力(MW)。画面と Excel はこちらを出す */
   clockedPowerMW: number
   /** 可変電力レシピのみ: クロック適用後の電力レンジ */
   clockedPowerRangeMW?: PowerRangeMW
@@ -271,8 +271,8 @@ export type PowerGenerationSummary = {
   /** 発電機が消費する燃料（アイテム別の合計・多い順）。補助資源の水は含まない */
   fuelUsage: ItemRate[]
   /**
-   * 発電で賄う対象の消費電力(MW)。製造建物のみ・クロック100%換算
-   * （＝ `Solution.totalPowerMW`。採掘設備の電力は LP の外なので含まない）。
+   * 発電で賄う対象の消費電力(MW)。製造建物のみ・整数台数と設定クロックでの容量消費電力
+   * （＝ `Solution.totalClockedPowerMW`。採掘設備の電力は求解の外なので含まない）。
    */
   factoryPowerMW: number
   /** `totalMW - factoryPowerMW`。0 以上なら製造ぶんは自給できている */

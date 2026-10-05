@@ -1,0 +1,31 @@
+const zh = {
+  limit: '上限', clock: '時脈', count: (n: number) => `${n}台`,
+  singleMaximum: '單台最大（100%）', maximumHelp: '目前使用配方的單台機器基準產量，不含超頻與薩莫斯環增幅。多個配方同時生產時顯示其中最高值。',
+  expand: '展開流程圖 ⛶', collapse: '返回標準檢視 ×',
+  help: '點擊配方節點可比較與替換配方；箭頭對齊各資源列。', open: '比較與替換配方：',
+  edit: '比較／替換配方 ↗', breadcrumb: '流程圖 ／ 配方比較', back: '返回流程圖 ×',
+  intro: '單台機器 · 100% 時脈 · 無 Somersloop。所有輸入與輸出均為每分鐘數量。',
+  product: '比較產物', effect: '選擇後，計畫中這個物品的生產配方會固定為你的選擇，並重新計算整條產線。此處顯示主配方與側邊欄已勾選的替代配方。',
+  pinned: '已指定：', auto: '恢復自動選配方', pending: '正在重新計算產線…', retained: '原方案已保留。',
+  available: '可用配方', standard: '主配方', alternate: '替代配方', generator: '發電節點',
+  generatorHelp: '此節點使用燃料發電，沒有製造用主配方或替代配方。燃料可在「發電規劃」設定中切換。',
+  inputs: '輸入 ／ 每分鐘', outputs: '輸出 ／ 每分鐘', sorted: '個 · 產量由高到低', empty: '沒有此類配方。',
+  use: '使用配方：', current: '目前配方', cycle: '秒／週期', single: '單台 100%',
+  busy: '計算中…', useCurrent: '使用目前配方', choose: '選擇此配方 →',
+}
+const en: typeof zh = {
+  limit: 'Max', clock: 'Clock ', count: (n: number) => `${n} machines`,
+  singleMaximum: 'Single-machine max (100%)', maximumHelp: 'Baseline output of one machine using the active recipe, without overclocking or Somersloops. For multiple active recipes, shows the highest rate.',
+  expand: 'Expand flow chart ⛶', collapse: 'Return to normal view ×',
+  help: 'Click a recipe to compare and replace it. Arrows connect to each resource row.', open: 'Compare and replace recipe: ',
+  edit: 'Compare / replace ↗', breadcrumb: 'Flow chart / Recipe comparison', back: 'Back to flow chart ×',
+  intro: 'One machine · 100% clock · no Somersloops. All inputs and outputs are shown per minute.',
+  product: 'Compare product', effect: 'Your choice fixes production of this item across the plan and recalculates the entire chain. Standard recipes and alternates enabled in the sidebar are shown here.',
+  pinned: 'Selected: ', auto: 'Choose automatically', pending: 'Recalculating production…', retained: 'The previous plan was retained.',
+  available: 'Available recipes', standard: 'Standard recipes', alternate: 'Alternate recipes', generator: 'Power generation',
+  generatorHelp: 'This step consumes fuel to generate power and has no manufacturing recipes. Change fuels in Power generation settings.',
+  inputs: 'Inputs / min', outputs: 'Outputs / min', sorted: 'recipes · highest output first', empty: 'No recipes in this group.',
+  use: 'Use recipe: ', current: 'Current recipe', cycle: 'sec / cycle', single: 'One machine at 100%',
+  busy: 'Calculating…', useCurrent: 'Use current recipe', choose: 'Choose this recipe →',
+}
+export const recipePickerText = (locale: string) => locale.startsWith('zh') ? zh : en

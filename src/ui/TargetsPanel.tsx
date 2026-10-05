@@ -12,6 +12,7 @@ import { itemName, itemUnit } from './format.ts'
 import { ItemIcon } from './ItemIcon.tsx'
 import { ItemSearchBox, ROW_ICON } from './ItemSearchBox.tsx'
 import { NumberField } from './NumberField.tsx'
+import { CollapsiblePanel } from './CollapsiblePanel.tsx'
 import { T } from './text.ts'
 
 export function TargetsPanel() {
@@ -26,8 +27,7 @@ export function TargetsPanel() {
   const addedItems = useMemo(() => new Set(targets.map((t) => t.item)), [targets])
 
   return (
-    <section className="panel">
-      <h2 className="panel__title">{T.sidebar.targets}</h2>
+    <CollapsiblePanel panelId="targets" title={T.sidebar.targets}>
 
       <ItemSearchBox
         label={T.sidebar.targetSearch}
@@ -91,7 +91,7 @@ export function TargetsPanel() {
                       {T.sidebar.remove}
                     </button>
                   </span>
-                  <label className="target__mode" title={T.sidebar.maximizeHint}>
+                  <label className="target__mode">
                     <input
                       type="checkbox"
                       checked={isMax}
@@ -110,6 +110,6 @@ export function TargetsPanel() {
           <p className="hint">{T.sidebar.maximizeHint}</p>
         )}
       </div>
-    </section>
+    </CollapsiblePanel>
   )
 }
