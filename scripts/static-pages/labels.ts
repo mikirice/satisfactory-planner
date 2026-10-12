@@ -386,6 +386,9 @@ const jaLabels = {
   articlesIndexPowerSection: '発電構成',
 
   articleEyebrow: 'Satisfactory 実践ガイド',
+  articleCoverBadge: 'イラスト',
+  articleCoverCaption:
+    'イメージイラストです。ゲーム画面・計算結果・実際の建設手順を示すものではありません。',
   publishedOn: (date: string): string => `公開日: ${date}`,
   relatedItems: '関連アイテム',
   relatedArticles: '関連記事',
@@ -681,6 +684,9 @@ const enLabels: StaticPageLabels = {
   articlesIndexPowerSection: 'Power setups',
 
   articleEyebrow: 'Satisfactory field guide',
+  articleCoverBadge: 'Illustration',
+  articleCoverCaption:
+    'Editorial illustration only — not an in-game screenshot, calculated result, or build instruction.',
   publishedOn: (date: string): string => `Published: ${date}`,
   relatedItems: 'Related items',
   relatedArticles: 'Related guides',

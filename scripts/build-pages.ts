@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 
 import { handwrittenArticlesEnBySlug } from '../content/articles/en/index.ts'
 import { handwrittenArticles } from '../content/articles/index.ts'
+import { articleCoverFor, articleIndexCoverFor } from '../content/article-covers.ts'
 import type { ArticleCta, HandwrittenArticle } from '../content/articles/types.ts'
 import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
 import iconIdsJson from '../src/data/icons.json'
@@ -1442,6 +1443,33 @@ function localizedArticle(ctx: Ctx, article: HandwrittenArticle): HandwrittenArt
   return translated
 }
 
+const ARTICLE_COVER_WIDTH = 1200
+const ARTICLE_COVER_HEIGHT = 630
+
+function articleCoverFigure(ctx: Ctx, slug: string): string {
+  const cover = articleCoverFor(slug, ctx.locale)
+  return `<figure class="article-cover article-cover--hero">
+      <img src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${ARTICLE_COVER_WIDTH}" height="${ARTICLE_COVER_HEIGHT}" fetchpriority="high" decoding="async" />
+      <figcaption>${escapeHtml(ctx.L.articleCoverCaption)}</figcaption>
+    </figure>`
+}
+
+function articleSocialImage(slug: string, locale: StaticLocale) {
+  const cover = articleCoverFor(slug, locale)
+  return { url: `${SITE_URL}${cover.src}`, alt: cover.alt, type: 'image/webp' }
+}
+
+function articleCard(
+  ctx: Ctx,
+  article: { readonly slug: string; readonly title: string; readonly description: string },
+): string {
+  const cover = articleCoverFor(article.slug, ctx.locale)
+  return `<li><a class="article-card" href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}">
+        <span class="article-card__media"><img class="article-card__image" src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${ARTICLE_COVER_WIDTH}" height="${ARTICLE_COVER_HEIGHT}" loading="lazy" decoding="async" /><span class="article-card__badge">${escapeHtml(ctx.L.articleCoverBadge)}</span></span>
+        <span class="article-card__text"><strong>${escapeHtml(article.title)}</strong><span class="article-card__description">${escapeHtml(article.description)}</span></span>
+      </a></li>`
+}
+
 function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string {
   const article = localizedArticle(ctx, source)
   const path = articlePagePath(article.slug, ctx.locale)
@@ -1467,6 +1495,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
   )}
     <header class="hero">
       <p class="eyebrow">${escapeHtml(ctx.L.articleEyebrow)}</p>
+      ${articleCoverFigure(ctx, article.slug)}
       <h1>${escapeHtml(article.title)}</h1>
       <p class="lead">${escapeHtml(article.description)}</p>
       <p class="version">${escapeHtml(ctx.L.publishedOn(publishedDate))}</p>
@@ -1489,6 +1518,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       canonicalPath: path,
       alternates: alternatesOf((locale) => articlePagePath(article.slug, locale)),
       ogType: 'article',
+      ogImage: articleSocialImage(article.slug, ctx.locale),
       publishedTime: publishedDate,
       structuredData: articleSchema(
         ctx,
@@ -1798,6 +1828,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
   )}
     <header class="hero">
       <p class="eyebrow">${escapeHtml(sample.category === 'power' ? ctx.L.powerEyebrow : ctx.L.loopEyebrow)}</p>
+      ${articleCoverFigure(ctx, sample.id)}
       <h1>${escapeHtml(content.headline)}</h1>
       <p class="lead">${escapeHtml(content.description)}</p>
       <p class="version">${escapeHtml(ctx.L.loopPublishedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
@@ -1836,6 +1867,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
       canonicalPath: path,
       alternates: alternatesOf((locale) => articlePagePath(sample.id, locale)),
       ogType: 'article',
+      ogImage: articleSocialImage(sample.id, ctx.locale),
       publishedTime: PUBLISHED_DATE,
       structuredData: articleSchema(ctx, path, content.headline, description, breadcrumbId),
     },
@@ -1854,20 +1886,22 @@ function renderArticlesIndex(ctx: Ctx): string {
     content: loopContent(ctx, sample),
   }))
   const handwrittenList = handwritten
-    .map(
-      (article) => `<li><a href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}"><strong>${escapeHtml(article.title)}</strong><span>${escapeHtml(article.description)}</span></a></li>`,
-    )
+    .map((article) => articleCard(ctx, article))
     .join('')
   const loopSections = LOOP_ARTICLE_GROUPS.map((group) => {
     const list = loops
       .filter((loop) => loop.category === group.category)
-      .map(
-        (loop) => `<li><a href="${escapeHtml(articlePagePath(loop.slug, ctx.locale))}"><strong>${escapeHtml(loop.content.headline)}</strong><span>${escapeHtml(loop.content.description)}</span></a></li>`,
+      .map((loop) =>
+        articleCard(ctx, {
+          slug: loop.slug,
+          title: loop.content.headline,
+          description: loop.content.description,
+        }),
       )
       .join('')
     return `<section>
       <h2>${escapeHtml(group.heading(ctx.L))}</h2>
-      <ul class="article-list">${list}</ul>
+      <ul class="article-list article-list--cards">${list}</ul>
     </section>`
   }).join('\n    ')
   const articleEntries = [
@@ -1917,7 +1951,7 @@ function renderArticlesIndex(ctx: Ctx): string {
     </header>
     <section>
       <h2>${escapeHtml(ctx.L.articlesIndexToolSection)}</h2>
-      <ul class="article-list">${handwrittenList}</ul>
+      <ul class="article-list article-list--cards">${handwrittenList}</ul>
     </section>
     ${loopSections}`
   return renderDocument(
@@ -1927,6 +1961,10 @@ function renderArticlesIndex(ctx: Ctx): string {
       description,
       canonicalPath: path,
       alternates: alternatesOf((locale) => articlesIndexPath(locale)),
+      ogImage: (() => {
+        const cover = articleIndexCoverFor(ctx.locale)
+        return { url: `${SITE_URL}${cover.src}`, alt: cover.alt, type: 'image/webp' }
+      })(),
       structuredData,
     },
     body,

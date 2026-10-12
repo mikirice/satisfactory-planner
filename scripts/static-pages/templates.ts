@@ -61,6 +61,8 @@ export type StaticPageMeta = {
   title: string
   description: string
   canonicalPath: string
+  /** Page-specific social preview image. Defaults to the site's locale-specific brand artwork. */
+  ogImage?: { readonly url: string; readonly alt: string; readonly type?: string }
   /** 対応する各言語のパス。片方しか無いページ（プライバシー等）は片方だけ入れる。 */
   alternates: PageAlternates
   ogType?: 'website' | 'article'
@@ -179,6 +181,11 @@ function renderLanguageSwitch(meta: StaticPageMeta): string {
 export function renderDocument(meta: StaticPageMeta, body: string): string {
   const canonicalUrl = `${SITE_URL}${meta.canonicalPath}`
   const { locale } = meta
+  const socialImage = meta.ogImage ?? {
+    url: ogImageUrl(locale),
+    alt: OG_IMAGE_ALT[locale],
+    type: 'image/png',
+  }
   const labels = STATIC_PAGE_LABELS[locale]
   const ui = UI_DICTIONARIES[locale]
   const name = siteName(locale)
@@ -215,16 +222,18 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
     <meta property="og:title" content="${escapeHtml(meta.title)}" />
     <meta property="og:description" content="${escapeHtml(meta.description)}" />
     <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
-    <meta property="og:image" content="${ogImageUrl(locale)}" />
+    <meta property="og:image" content="${escapeHtml(socialImage.url)}" />
+    <meta property="og:image:type" content="${escapeHtml(socialImage.type ?? 'image/png')}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="${escapeHtml(OG_IMAGE_ALT[locale])}" />
+    <meta property="og:image:alt" content="${escapeHtml(socialImage.alt)}" />
     <meta property="og:locale" content="${OG_LOCALE[locale]}" />
     ${articleMeta}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(meta.title)}" />
     <meta name="twitter:description" content="${escapeHtml(meta.description)}" />
-    <meta name="twitter:image" content="${ogImageUrl(locale)}" />
+    <meta name="twitter:image" content="${escapeHtml(socialImage.url)}" />
+    <meta name="twitter:image:alt" content="${escapeHtml(socialImage.alt)}" />
     ${structuredData}
     ${GA_HEAD_SCRIPT}
     ${meta.headEnd ?? ''}
@@ -491,9 +500,21 @@ p { margin: 0 0 14px; }
 .link-list small { color: var(--muted); }
 
 .article-list { display: grid; gap: 12px; margin-top: 20px; }
-.article-list a { display: block; padding: 18px 20px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel); text-decoration: none; }
-.article-list strong { display: block; color: var(--strong); font-size: 17px; }
-.article-list span { display: block; margin-top: 5px; color: #b7c0cd; }
+.article-list--cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.article-list--cards > li { min-width: 0; }
+.article-card { display: flex; height: 100%; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: inherit; text-decoration: none; transition: border-color .15s ease, transform .15s ease; }
+.article-card:hover, .article-card:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
+.article-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.article-card__media { position: relative; display: block; overflow: hidden; }
+.article-card__image { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--raised); }
+.article-card__badge { position: absolute; left: 10px; bottom: 10px; padding: 4px 8px; border: 1px solid #ffffff55; border-radius: 4px; background: #101820e8; color: #fff; font-size: 11px; font-weight: 700; line-height: 1.3; }
+.article-card__text { display: flex; flex: 1; flex-direction: column; padding: 16px 18px 18px; }
+.article-list strong { display: block; color: var(--strong); font-size: 17px; line-height: 1.45; }
+.article-list .article-card__description { display: block; margin-top: 7px; color: #b7c0cd; line-height: 1.65; }
+.article-cover { max-width: 1040px; margin: 20px auto 0; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
+.article-cover img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--raised); }
+.article-cover figcaption { padding: 8px 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.article-cover--hero { margin-bottom: 18px; }
 
 .article-body { max-width: 820px; margin: 20px auto 0; padding: 28px 34px; }
 .article-body h2:first-child { margin-top: 0; }
@@ -665,6 +686,12 @@ p { margin: 0 0 14px; }
   main { margin-top: 20px; }
   .hero, .article-body { padding: 22px 20px; }
   .grid, .facts, .flow-columns, .metrics { grid-template-columns: 1fr; }
+  .article-list--cards { grid-template-columns: 1fr; gap: 14px; }
+  .article-card { display: grid; grid-template-columns: minmax(120px, 38%) minmax(0, 1fr); align-items: stretch; }
+  .article-card__text { padding: 12px 14px; }
+  .article-list strong { font-size: 15px; }
+  .article-list .article-card__description { font-size: 13px; }
+  .article-cover figcaption { font-size: 11px; }
   .ingredient-metrics { grid-column: auto; }
   .hero-row { flex-direction: column; gap: 14px; }
   .hero-row > div { min-width: 0; width: 100%; }
