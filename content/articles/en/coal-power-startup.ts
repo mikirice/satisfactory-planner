@@ -11,7 +11,7 @@ export const coalPowerStartupArticleEn = {
       heading: 'Start from what a single generator eats',
       paragraphs: [
         'One Coal-Powered Generator produces 75 MW. Running it on Coal, a single unit at 100% clock burns 15 Coal/min and 45 m³/min of Water. Every ratio in a coal plant falls out of those two numbers. Once you pick a generator count, Coal comes in multiples of 15 and Water in multiples of 45, and there is nothing else to work out. There is no byproduct either, so unlike nuclear you never need a downstream consumer.',
-        'Water is the half people forget. A starved coal belt is obvious, but a starved pipe is quiet: the generators simply idle at partial load while everything looks connected. Decide the generator count first, then confirm you can actually deliver 45 m³/min per unit.',
+        'Water is the half people forget. A starved coal belt is obvious, but a starved pipe can be harder to spot. Coal generators do not automatically throttle fuel and water use to match power demand; you can manually underclock them, but a short supply can still disrupt the plant. Decide the generator count first, then confirm you can deliver the rate you set (45 m³/min at 100% clock per unit).',
       ],
     },
     {
@@ -40,7 +40,7 @@ export const coalPowerStartupArticleEn = {
       paragraphs: [
         'To plan coal power here, enable the Coal-Powered Generator in the settings, pick which fuels it may use (Coal, Compacted Coal, Petroleum Coke), then enter a target power output in MW. Choosing Compacted Coal or Petroleum Coke pulls their production steps into the same item balance, so the Sulfur or Crude Oil requirement appears in the same result. Leaving fuels you do not intend to build switched off keeps the output readable.',
         'With Compacted Coal selected, the solver may propose making Sulfur in a Converter from Iron Ore rather than mining it. The default objective weights each raw resource by the map cap, and Sulfur is capped at 10,800 items/min against 92,100 items/min for Iron Ore. If you have Sulfur nodes secured, switching the objective to "minimise power" or "minimise buildings" brings the direct route back.',
-        'Turning on "cover the factory power draw" adds the manufacturing buildings to the self-sufficiency constraint. That constraint does not include extraction hardware, though. The three Water Extractors and the miners counted above have to be added by hand from the extraction power shown in the results. Generator overclocking is not modelled, so a fractional generator count is reported as partial load.',
+        'Turning on "cover the factory power draw" adds the manufacturing buildings to the self-sufficiency constraint. That constraint does not include extraction hardware, though. The three Water Extractors and the miners counted above have to be added by hand from the extraction power shown in the results. The planner rounds generator counts to whole units at 100% clock; it does not model manual underclocking. A 100 MW target therefore estimates two coal generators producing 150 MW and consuming 30 Coal/min and 90 m³/min of Water. In-game, underclocking both generators to 66⅔% gives 100 MW at 20 Coal/min and 60 m³/min of Water.',
       ],
     },
   ],

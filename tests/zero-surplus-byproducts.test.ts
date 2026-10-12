@@ -215,10 +215,14 @@ describe("原子力の3段階", () => {
     const solution = await solveOk(
       nuclear5000([URANIUM_ROD, PLUTONIUM_ROD, FICSONIUM_ROD], []),
     );
-    // 希少度重みではウラン廃棄物の再処理（ウラン鉱石の節約）は元から選ばれるが、
-    // プルトニウム廃棄物は消費先（FICSONIUM）が高いので捨てる
-    expect(rateOf(solution.byproducts, PLUTONIUM_WASTE)).toBeGreaterThan(0);
+    // 廃棄物を残さない指定がない場合、利用可能というだけで FICSONIUM の
+    // 再処理チェーンを組み立てる義務はない。全台100%の整数台数ではこの目標を
+    // ウラン発電機2台で満たし、プルトニウム燃料まで進まない。
     expect(recipeIdsOf(solution).has("Recipe_Ficsonium_C")).toBe(false);
+    expect(generatorSteps(solution).map((step) => step.fuelItem)).toEqual([
+      URANIUM_ROD,
+    ]);
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(2);
   });
 
   it("消費するレシピをすべて無効にすると、新しい理由（副産物の余り）で実行不能", async () => {
@@ -293,15 +297,15 @@ describe("原子力の3段階", () => {
     expect(reason.cause).toBe("consumerChainUnavailable");
   });
 
-  it("発電計画なし・プルトニウム・ペレット目標・ウラン廃棄物を残さない → 従来と同じ解", async () => {
+  it("発電計画なし・整数発電機に合うペレット目標なら余り指定で解が変わらない", async () => {
     const constrained = await solveOk({
-      targets: [{ item: PELLET, ratePerMin: 10 }],
+      targets: [{ item: PELLET, ratePerMin: 15 }],
       power: { zeroSurplusByproducts: [URANIUM_WASTE] },
     });
     const plain = await solveOk({
-      targets: [{ item: PELLET, ratePerMin: 10 }],
+      targets: [{ item: PELLET, ratePerMin: 15 }],
     });
-    expect(constrained.targets[0].producedPerMin).toBeCloseTo(10, 6);
+    expect(constrained.targets[0].producedPerMin).toBeCloseTo(15, 6);
     expect(rateOf(constrained.byproducts, URANIUM_WASTE)).toBe(0);
     expect(constrained.totalMachineCount).toBeCloseTo(
       plain.totalMachineCount,
@@ -330,11 +334,13 @@ describe("原子力の3段階", () => {
     expect(constrained.powerGeneration).toBeUndefined();
   });
 
-  it("2段階解法: 需要駆動の発電機が回る計画でも等式は最終解で成り立つ", async () => {
+  it("2段階解法: 整数台の需要駆動発電機を差し引いても等式が成り立つ", async () => {
     // 石炭だけ許可 + ウラン廃棄物を残さない + プルトニウム・ペレット目標
     //（需要駆動の原子力が回り、2段目でその発電量を石炭から差し引く）
     const solution = await solveOk({
-      targets: [{ item: PELLET, ratePerMin: 10 }],
+      // 15 pellets/min はウラン原子炉5台分の廃棄物と一致する。
+      // 10/min だと 3と1/3台が必要になり、100%固定モデルでは解けない。
+      targets: [{ item: PELLET, ratePerMin: 15 }],
       power: {
         generators: ["Build_GeneratorCoal_C"],
         targetMW: 300,
@@ -345,9 +351,24 @@ describe("原子力の3段階", () => {
     expect(solution.powerGeneration!.totalMW).toBeGreaterThanOrEqual(
       300 - 1e-6,
     );
-    expect(generatorSteps(solution).some((s) => s.buildingId === NUCLEAR)).toBe(
-      true,
+    const nuclear = generatorSteps(solution).find(
+      (s) => s.buildingId === NUCLEAR,
     );
+    expect(nuclear).toBeDefined();
+    expect(nuclear!.builtCount).toBe(5);
+    expect(balanceOf(solution, URANIUM_WASTE)!.producedPerMin).toBeCloseTo(50, 6);
+  });
+
+  it("整数台数に合わない副産物需要は解なしとして返し、診断で停止しない", async () => {
+    const result = await solveProduction({
+      targets: [{ item: PELLET, ratePerMin: 10 }],
+      power: {
+        generators: ["Build_GeneratorCoal_C"],
+        targetMW: 300,
+        zeroSurplusByproducts: [URANIUM_WASTE],
+      },
+    });
+    expect(result.status).toBe("infeasible");
   });
 });
 

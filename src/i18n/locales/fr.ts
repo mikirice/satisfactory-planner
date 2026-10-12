@@ -170,7 +170,7 @@ export const fr = {
       "Saisissez un objectif de production ou activez la couverture de la consommation de l'usine.",
     powerNoMethod: 'Sélectionnez au moins un mode de production.',
     powerClockNote:
-      "La cadence des générateurs est fixée à 100 %. La surcadence des générateurs n'est pas prise en charge.",
+      "Le planificateur modélise les générateurs à 100 % et ne prend pas en compte leur sous-cadence manuelle. La surcadence des générateurs n'est pas prise en charge.",
     powerByproducts: 'Sous-produits',
     powerByproductZero: 'Ne rien laisser (tout consommer)',
     powerByproductsHint:
@@ -463,7 +463,7 @@ export const fr = {
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
     powerGroupNote:
-      'Les générateurs restent à 100 % de cadence. Un nombre décimal de machines représente une charge partielle.',
+      'Le planificateur compte des générateurs entiers à 100 %. En jeu, vous pouvez réduire manuellement leur cadence pour ajuster le surplus et la consommation de carburant.',
     builtClock: (built: string, clock: string): string => `${built} machines @ ${clock}`,
     buildingCount: (count: string): string => `${count} machines`,
   },

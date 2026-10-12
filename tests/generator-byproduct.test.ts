@@ -2,8 +2,8 @@
  * 発電機の副産物（核廃棄物）を材料にする計画が、発電計画の有無に関係なく解けること。
  *
  * ウラン廃棄物・プルトニウム廃棄物はレシピでは作れず、原子力発電所を回したときの副産物
- * としてしか出ない。副産物を出す発電機 × 燃料は LP に常に入り（需要駆動）、副産物が
- * 消費される量までだけ稼働する（src/solver/model.ts の `byproduct:` 行）。
+ * としてしか出ない。副産物を出す発電機 × 燃料は LP に常に入り（需要駆動）、
+ * 100%単位の整数台数で副産物の需要を満たす（src/solver/model.ts の `byproduct:` 行）。
  * その発電量は発電計画が有効なら目標・自給の制約に数え（2段階解法）、無効なら報告だけする。
  *
  * 画面（サマリーの注記）は jsdom が要るので tests/generator-byproduct-ui.test.tsx に分けている。
@@ -114,14 +114,18 @@ describe('LP モデル（需要駆動の発電機）', () => {
 // ---------------------------------------------------------------------------
 
 describe('発電計画なしで廃棄物を材料にする', () => {
-  it('プルトニウム・ペレット 10/min → 原子力発電所（ウラン燃料棒）が廃棄物の需要ぶんだけ回る', async () => {
+  it('プルトニウム・ペレット10/minは整数台の発電機で必要な廃棄物を作る', async () => {
     const solution = await solveOk(PELLET_10)
-    expect(solution.targets[0].producedPerMin).toBeCloseTo(10, 6)
+    // 100%単位で整数台数を使うため、後段の稼働率により目標より多く生産することがある
+    expect(solution.targets[0].producedPerMin).toBeGreaterThanOrEqual(10)
+    expect(solution.targets[0].producedPerMin).toBeCloseTo(12, 6)
 
     const nuclear = generatorSteps(solution)
     expect(nuclear).toHaveLength(1)
     expect(nuclear[0].buildingId).toBe(NUCLEAR)
     expect(nuclear[0].fuelItem).toBe(URANIUM_ROD)
+    expect(nuclear[0].machineCount).toBe(4)
+    expect(nuclear[0].clockSpeed).toBe(1)
     expect(rateOf(nuclear[0].inputs, URANIUM_ROD)).toBeCloseTo(nuclear[0].machineCount * 0.2, 6)
     expect(rateOf(nuclear[0].outputs, URANIUM_WASTE)).toBeCloseTo(nuclear[0].machineCount * 10, 6)
 
@@ -221,7 +225,7 @@ describe('発電計画なしで廃棄物を材料にする', () => {
 // ---------------------------------------------------------------------------
 
 describe('発電計画ありで廃棄物を材料にする', () => {
-  it('石炭だけ許可 + ペレット目標 + 10000MW → 原子力は需要ぶんだけ、石炭はその発電量ぶん減る', async () => {
+  it('石炭だけ許可 + ペレット目標 + 10000MW → 需要駆動の原子力が整数台で目標を満たす', async () => {
     const withoutPower = await solveOk(PELLET_10)
     const nuclearNeed = generatorSteps(withoutPower)[0].machineCount
 
@@ -230,15 +234,14 @@ describe('発電計画ありで廃棄物を材料にする', () => {
       power: { generators: [COAL], targetMW: 10000 },
     })
     const nuclear = generatorSteps(solution).find((s) => s.buildingId === NUCLEAR)!
-    const coal = generatorSteps(solution).find((s) => s.buildingId === COAL)!
-    // 原子力は発電計画なしのときと同じ台数（廃棄物の需要で決まる。発電のために増えない）
+    const coal = generatorSteps(solution).find((s) => s.buildingId === COAL)
+    // 原子力は発電計画なしのときと同じ整数台数。10,000MWを満たすので石炭は不要。
     expect(nuclear.machineCount).toBeCloseTo(nuclearNeed, 6)
+    expect(nuclearNeed).toBe(4)
+    expect(coal).toBeUndefined()
     expect(rateOf(solution.byproducts, URANIUM_WASTE)).toBe(0)
-    // 石炭発電機 = (目標 - 原子力の発電量) / 75MW
     const nuclearMW = nuclear.machineCount * 2500
     expect(nuclear.powerProductionMW).toBeCloseTo(nuclearMW, 6)
-    expect(coal.machineCount).toBeCloseTo((10000 - nuclearMW) / 75, 6)
-    expect(coal.machineCount).toBeCloseTo(10000 / 75 - nuclearNeed * (2500 / 75), 6)
     expect(solution.powerGeneration!.totalMW).toBeCloseTo(10000, 6)
     expect(solution.powerGeneration!.targetMW).toBe(10000)
   })
@@ -260,30 +263,24 @@ describe('発電計画ありで廃棄物を材料にする', () => {
     expect(solution.powerGeneration!.netMW).toBeGreaterThanOrEqual(-1e-6)
   })
 
-  it('原子力を許可した純粋な発電目標（2500MW）は変更前と同じ解（回帰ピン）', async () => {
+  it('原子力2500MW目標では100%運転の発電機1台を使う', async () => {
     const solution = await solveOk({ targets: [], power: { generators: [NUCLEAR], targetMW: 2500 } })
-    // 変更前の main で実行した値
-    expect(solution.objectiveValue).toBeCloseTo(737.8938329215093, 6)
-    expect(solution.totalMachineCount).toBeCloseTo(7.689537037036965, 6)
-    expect(solution.totalBuildingCount).toBe(36)
-    expect(solution.totalPowerMW).toBeCloseTo(319.39981481481334, 6)
+    expect(solution.objectiveValue).toBeCloseTo(862.7011327963871, 6)
+    expect(solution.totalMachineCount).toBeCloseTo(7.696111111111136, 6)
+    expect(solution.totalBuildingCount).toBe(22)
+    expect(solution.totalPowerMW).toBeCloseTo(354.1944444444449, 6)
     expect(solution.powerGeneration!.totalMW).toBeCloseTo(2500, 6)
-    expect(solution.powerGeneration!.totalGeneratorCount).toBe(2)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.13333333333333292, 6)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBeCloseTo(0.033333333333333215, 6)
-    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeCloseTo(251.666667, 5)
-    expect(rateOf(solution.rawResources, 'Desc_OreCopper_C')).toBeCloseTo(111.922222, 5)
-    expect(solution.steps.find((s) => s.fuelItem === URANIUM_ROD)!.machineCount).toBeCloseTo(
-      0.666667,
-      5,
-    )
-    expect(solution.steps.find((s) => s.fuelItem === PLUTONIUM_ROD)!.machineCount).toBeCloseTo(
-      0.333333,
-      5,
-    )
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(1)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.2, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBe(0)
+    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeCloseTo(252, 6)
+    expect(rateOf(solution.rawResources, 'Desc_OreCopper_C')).toBeCloseTo(151, 6)
+    const generator = solution.steps.find((s) => s.fuelItem === URANIUM_ROD)!
+    expect(generator.machineCount).toBe(1)
+    expect(generator.clockSpeed).toBe(1)
   })
 
-  it('原子力の全燃料を許可した 5000MW も変更前と同じ解（回帰ピン）', async () => {
+  it('原子力の全燃料を許可しても5000MWはウラン燃料棒2台で満たせる', async () => {
     const solution = await solveOk({
       targets: [],
       power: {
@@ -292,11 +289,15 @@ describe('発電計画ありで廃棄物を材料にする', () => {
         targetMW: 5000,
       },
     })
-    expect(solution.objectiveValue).toBeCloseTo(1475.7876658430187, 6)
-    expect(solution.totalMachineCount).toBeCloseTo(15.37907407407393, 6)
-    expect(solution.totalBuildingCount).toBe(40)
+    expect(solution.objectiveValue).toBeCloseTo(1725.4022655927743, 6)
+    expect(solution.totalMachineCount).toBeCloseTo(15.392222222222273, 6)
+    expect(solution.totalBuildingCount).toBe(26)
+    expect(solution.totalPowerMW).toBeCloseTo(708.3888888888898, 6)
     expect(solution.powerGeneration!.totalMW).toBeCloseTo(5000, 6)
-    expect(solution.powerGeneration!.totalGeneratorCount).toBe(3)
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(2)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.4, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBe(0)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, FICSONIUM_ROD)).toBe(0)
   })
 })
 
@@ -336,22 +337,23 @@ describe('原子力のサンプルテンプレート', () => {
 
   // ③ FICSONIUM で完全循環（旧「原子力と再処理」を置き換え。FICSONIUM 0.1/min の併産目標は廃止し、
   // 「残さない」でウラン廃棄物・プルトニウム廃棄物を全量消費させる）
-  it('nuclear-reprocessing の主要な数値が変わらない', async () => {
+  it('nuclear-reprocessing は整数台の発電機を使い、廃棄物を循環する', async () => {
     const solution = await solveSample('nuclear-reprocessing')
-    expect(solution.objectiveValue).toBeCloseTo(1768.0527813794672, 5)
-    expect(solution.totalMachineCount).toBeCloseTo(23.701031746031703, 6)
-    expect(solution.totalBuildingCount).toBe(69)
-    expect(solution.totalPowerMW).toBeCloseTo(864.5474603174586, 6)
-    expect(solution.powerGeneration!.totalMW).toBeCloseTo(5000, 6)
-    expect(solution.powerGeneration!.totalGeneratorCount).toBe(4)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.22857142857142856, 6)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBeCloseTo(0.05714285714285714, 6)
-    expect(rateOf(solution.powerGeneration!.fuelUsage, 'Desc_FicsoniumFuelRod_C')).toBeCloseTo(0.2857142857142857, 6)
-    expect(rateOf(solution.rawResources, 'Desc_OreUranium_C')).toBeCloseTo(22.857142857142858, 6)
-    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeCloseTo(522.27, 2)
+    expect(solution.objectiveValue).toBeCloseTo(6188.184734828139, 5)
+    expect(solution.totalMachineCount).toBeCloseTo(82.95361111111103, 6)
+    expect(solution.totalBuildingCount).toBe(117)
+    expect(solution.totalPowerMW).toBeCloseTo(3025.91611111111, 6)
+    expect(solution.powerGeneration!.totalMW).toBeCloseTo(17500, 6)
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(7)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, URANIUM_ROD)).toBeCloseTo(0.8, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, PLUTONIUM_ROD)).toBeCloseTo(0.2, 6)
+    expect(rateOf(solution.powerGeneration!.fuelUsage, FICSONIUM_ROD)).toBeCloseTo(1, 6)
+    expect(rateOf(solution.rawResources, 'Desc_OreUranium_C')).toBeCloseTo(80, 6)
+    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeCloseTo(1827.9333333333316, 6)
     expect(solution.byproducts.map((entry) => entry.item)).not.toContain('Desc_NuclearWaste_C')
     expect(solution.byproducts.map((entry) => entry.item)).not.toContain('Desc_PlutoniumWaste_C')
     expect(solution.steps).toHaveLength(62)
+    expect(rateOf(solution.byproducts, 'Desc_HeavyOilResidue_C')).toBeCloseTo(6.4, 6)
   })
 
   it('nuclear-simplified の主要な数値が変わらない', async () => {

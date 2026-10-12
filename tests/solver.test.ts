@@ -259,7 +259,8 @@ describe('副産物', () => {
     expect(solution.byproducts.map((b) => b.item)).not.toContain('Desc_LiquidOil_C')
 
     const sinkPoints = itemsById.get('Desc_HeavyOilResidue_C')!.sinkPoints
-    expect(solution.sinkPointsPerMin).toBeCloseTo(50 * sinkPoints, 4)
+    expect(sinkPoints).toBeGreaterThan(0)
+    expect(solution.sinkPointsPerMin).toBe(0) // 廃重油は液体なので Sink に投入できない
   })
 
   it('同じアイテムを複数レシピが産出しても収支は1行に集約される', async () => {
@@ -753,6 +754,15 @@ describe('LP モデルの組み立て', () => {
     expect(text).not.toContain(':Recipe_')
     // 鉄鉱石の上限が Bounds に出る
     expect(text).toMatch(new RegExp(`${nameByKey.get('s:Desc_OreIron_C')} <= 92100`))
+  })
+
+  it('整数変数は LP の Generals セクションへ出力する', () => {
+    const { text } = writeLpFormat({
+      direction: 'min',
+      variables: [{ key: 'generator:coal', objective: 1, integer: true }],
+      constraints: [],
+    })
+    expect(text).toContain('Generals\n v0')
   })
 })
 

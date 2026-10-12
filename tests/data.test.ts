@@ -5,6 +5,7 @@ import {
   buildingsById,
   items,
   itemsById,
+  isSinkableItem,
   meta,
   ratePerMin,
   recipes,
@@ -13,6 +14,15 @@ import {
 import { CLOCK_MAX, DEFAULT_POWER_EXPONENT } from '../src/data/constants.ts'
 
 describe('スキーマ整合性', () => {
+  it('Sink 対象はポイントが正の固体だけ（液体の raw Docs 値は eligibility ではない）', () => {
+    expect(isSinkableItem(itemsById.get('Desc_IronPlate_C'))).toBe(true)
+    expect(isSinkableItem(itemsById.get('Desc_Water_C'))).toBe(false)
+    expect(itemsById.get('Desc_Water_C')?.sinkPoints).toBeGreaterThan(0)
+    expect(isSinkableItem(itemsById.get('Desc_LiquidOil_C'))).toBe(false)
+    expect(isSinkableItem(itemsById.get('Desc_NuclearWaste_C'))).toBe(false)
+    expect(isSinkableItem(undefined)).toBe(false)
+  })
+
   it('データが空でない', () => {
     expect(items.length).toBeGreaterThan(100)
     expect(recipes.length).toBeGreaterThan(200)

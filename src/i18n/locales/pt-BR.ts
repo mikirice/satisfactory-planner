@@ -169,7 +169,7 @@ export const ptBR = {
     powerIdle: 'Informe uma meta de geração ou ative a cobertura do consumo da fábrica.',
     powerNoMethod: 'Selecione ao menos uma forma de geração.',
     powerClockNote:
-      'O clock dos geradores fica fixo em 100 %. Overclock de geradores não é suportado.',
+      'O planejador calcula os geradores a 100 % e não modela o underclock manual. Overclock de geradores não é suportado.',
     powerByproducts: 'Subprodutos',
     powerByproductZero: 'Não deixar nada (consumir tudo)',
     powerByproductsHint:
@@ -458,7 +458,7 @@ export const ptBR = {
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
     powerGroupNote:
-      'Os geradores ficam com clock de 100 %. Quantidades fracionadas representam carga parcial.',
+      'O planejador conta geradores inteiros a 100 %. No jogo, você pode reduzir o clock manualmente para ajustar o excedente e o consumo de combustível.',
     builtClock: (built: string, clock: string): string => `${built} máquinas @ ${clock}`,
     buildingCount: (count: string): string => `${count} máquinas`,
   },

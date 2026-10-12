@@ -34,7 +34,7 @@ async function waitFor(predicate: () => boolean, timeoutMs = 5000): Promise<void
 }
 
 describe('ループ解説パネルの基準テンプレート比較', () => {
-  it('原子力 ② は ① と比べたウラン削減・発電機の台数・余る廃棄物を出す', async () => {
+  it('原子力 ② は ① と比べて発電機台数と余る廃棄物を表示し、変わらないウランは省略する', async () => {
     const sample = SAMPLE_PLANS.find((entry) => entry.id === 'nuclear-plutonium')!
     const solution = await solveSampleSnapshot(sample.snapshot, { alternates: true })
     if (solution.status !== 'optimal') throw new Error(solution.message)
@@ -49,10 +49,10 @@ describe('ループ解説パネルの基準テンプレート比較', () => {
 
     await waitFor(() => container.querySelector('.loop-explanation__comparison') !== null)
     const text = container.querySelector('.loop-explanation__comparison')!.textContent ?? ''
-    expect(text).toContain('ウラン 40.00 → 26.67')
-    expect(text).toContain('33.3% 削減')
+    expect(text).not.toContain('ウラン 40.00')
+    expect(text).not.toContain('削減')
     expect(text).toContain('発電機（建てる台数） 2 → 3台')
     expect(text).toContain('副産物 ウラン廃棄物 20.00 → 0.00')
-    expect(text).toContain('副産物 プルトニウム廃棄物 0.00 → 0.67')
+    expect(text).toContain('副産物 プルトニウム廃棄物 0.00 → 1.00')
   })
 })

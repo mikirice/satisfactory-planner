@@ -169,7 +169,7 @@ export const pl = {
     powerIdle: 'Podaj cel wytwarzania lub włącz pokrycie zużycia fabryki.',
     powerNoMethod: 'Wybierz co najmniej jeden sposób wytwarzania.',
     powerClockNote:
-      'Taktowanie generatorów jest ustalone na 100 %. Podkręcanie generatorów nie jest obsługiwane.',
+      'Planer oblicza generatory przy taktowaniu 100 % i nie modeluje ręcznego zmniejszania taktowania. Podkręcanie generatorów nie jest obsługiwane.',
     powerByproducts: 'Produkty uboczne',
     powerByproductZero: 'Nic nie zostawiać (zużyć wszystko)',
     powerByproductsHint:
@@ -458,7 +458,7 @@ export const pl = {
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
     powerGroupNote:
-      'Generatory pracują przy taktowaniu 100 %. Ułamkowa liczba maszyn oznacza częściowe obciążenie.',
+      'Planer liczy całe generatory przy taktowaniu 100 %. W grze możesz ręcznie zmniejszyć taktowanie, aby ograniczyć nadwyżkę i zużycie paliwa.',
     builtClock: (built: string, clock: string): string => `${built} maszyn @ ${clock}`,
     buildingCount: (count: string): string => `${count} maszyn`,
   },

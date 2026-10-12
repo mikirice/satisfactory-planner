@@ -164,7 +164,7 @@ export const zhHans = {
     powerGeneratorSpec: (mw: string): string => `每台 ${mw} MW`,
     powerIdle: '请输入发电目标，或开启覆盖工厂耗电。',
     powerNoMethod: '请至少选择一种发电方式。',
-    powerClockNote: '发电机时钟频率固定为 100 %，不支持发电机超频。',
+    powerClockNote: '规划器按 100 % 时钟频率计算发电机，不模拟手动降频；不支持发电机超频。',
     powerByproducts: '副产物处理',
     powerByproductZero: '不留余量（全部消耗）',
     powerByproductsHint:
@@ -442,7 +442,7 @@ export const zhHans = {
       `台数按最高时钟频率 ${percent} 计算，耗电按每台实际时钟频率计算。`,
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
-    powerGroupNote: '发电机固定为 100 % 时钟频率，台数出现小数表示部分负载。',
+    powerGroupNote: '规划器按 100 % 时钟频率的整数台数计算。游戏中可手动降频，以减少多余发电和燃料消耗。',
     builtClock: (built: string, clock: string): string => `${built} 台 @ ${clock}`,
     buildingCount: (count: string): string => `${count} 台`,
   },

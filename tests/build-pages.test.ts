@@ -296,7 +296,7 @@ describe('記事静的ページ', () => {
         longFormSlugs.has(article.slug) ? 1500 : 800,
       )
       expect(length, article.slug).toBeLessThanOrEqual(
-        article.slug === 'strong-alternate-recipes' ? 3600 : 3000,
+        article.slug === 'strong-alternate-recipes' ? 3700 : 3000,
       )
     }
     expect([...longFormSlugs].every((slug) =>
@@ -348,9 +348,11 @@ describe('記事静的ページ', () => {
     expect(await read('aluminum-production-guide', 'en')).toContain(
       '60 Bauxite/min, 30 Coal/min, 30 Raw Quartz/min',
     )
-    // シンクポイントの集計（recipes.json 全件）
-    expect(await read('awesome-sink-points', 'ja')).toContain('280件のうち101件')
-    expect(await read('awesome-sink-points', 'en')).toContain('280 recipes that take ingredients')
+    // シンクポイントの集計（Sink 対象の固体アイテムに限定）
+    expect(await read('awesome-sink-points', 'ja')).toContain('290レシピのうち82件')
+    expect(await read('awesome-sink-points', 'en')).toContain('82 have a sinkable-output')
+    expect(await read('awesome-sink-points', 'ja')).toContain('7,860ポイント/分')
+    expect(await read('awesome-sink-points', 'en')).toContain('7,860 sink points/min')
     // 電力指数（buildings.json powerExponent）
     expect(await read('clock-and-efficiency', 'ja')).toContain('1.321929乗')
     expect(await read('clock-and-efficiency', 'en')).toContain('1.321929')
@@ -480,23 +482,23 @@ describe('記事静的ページ', () => {
     expect(plutonium).toContain('「原子力 ①: ウラン発電」との比較')
     expect(plutonium).toContain('基準は「原子力 ①: ウラン発電」を同じ目標で再計算した結果です')
     expect(plutonium).toContain('ウラン</a></td>')
-    expect(plutonium).toContain('40.00 → 26.67')
-    expect(plutonium).toContain('33.3%削減')
     expect(plutonium).toContain('発電機（建てる台数）</td>')
     expect(plutonium).toContain('2台 → 3台')
+    expect(plutonium).toContain('7,500 MW')
     expect(plutonium).toContain('余る<a href="/items/nuclear-waste/">ウラン廃棄物</a></td>')
     expect(plutonium).toContain('20.00 → 0.00 個/分')
     expect(plutonium).toContain('残らない')
     expect(plutonium).toContain('プルトニウム廃棄物</a></td>')
-    expect(plutonium).toContain('0.00 → 0.67 個/分')
+    expect(plutonium).toContain('0.00 → 1.00 個/分')
     expect(plutonium).toContain('新たに発生')
     const nuclear = await readFile(
       join(outputDirectory, 'articles/nuclear-reprocessing/index.html'),
       'utf8',
     )
     expect(nuclear).toContain('「原子力 ①: ウラン発電」との比較')
-    expect(nuclear).toContain('40.00 → 22.86')
-    expect(nuclear).toContain('2台 → 4台')
+    expect(nuclear).toContain('40.00 → 80.00')
+    expect(nuclear).toContain('2台 → 7台')
+    expect(nuclear).toContain('17,500 MW')
     expect(nuclear).toContain('20.00 → 0.00 個/分')
     expect(nuclear).not.toContain('プルトニウム廃棄物</a></td>')
     expect(nuclear).toContain('FICSONIUM燃料棒にします')
@@ -644,6 +646,8 @@ describe('アプリ内リンクと生成ページのパス一致', () => {
       expect(itemPagePath(itemId)).toBe(expectedPath)
       const html = await readFile(join(outputDirectory, expectedPath, 'index.html'), 'utf8')
       expect(html).toContain(`<link rel="canonical" href="https://satisfactory-planner.net${expectedPath}"`)
+      if (itemId === 'Desc_Water_C') expect(html).toContain('AWESOMEシンク: 投入不可')
+      if (itemId === 'Desc_IronPlate_C') expect(html).toContain('AWESOMEシンク: 6 pt/個')
     }
   })
 
@@ -914,9 +918,9 @@ describe('英語ミラーの生成', () => {
     )
     expect(plutonium).toContain('Results compared with “Nuclear, stage 1: uranium power”')
     expect(plutonium).toContain('Uranium</a></td>')
-    expect(plutonium).toContain('40.00 → 26.67')
     expect(plutonium).toContain('Generators to build</td>')
     expect(plutonium).toContain('2 → 3')
+    expect(plutonium).toContain('7,500 MW')
     expect(plutonium).toContain('Uranium Waste</a> left over</td>')
     expect(plutonium).toContain('None left')
     expect(plutonium).toContain('Plutonium Waste</a> left over</td>')
@@ -926,8 +930,9 @@ describe('英語ミラーの生成', () => {
       'utf8',
     )
     expect(nuclear).toContain('Results compared with “Nuclear, stage 1: uranium power”')
-    expect(nuclear).toContain('40.00 → 22.86')
-    expect(nuclear).toContain('2 → 4')
+    expect(nuclear).toContain('40.00 → 80.00')
+    expect(nuclear).toContain('2 → 7')
+    expect(nuclear).toContain('17,500 MW')
     expect(nuclear).not.toContain('Plutonium Waste</a> left over</td>')
   })
 

@@ -305,13 +305,13 @@ describe('サンプルプランの求解', () => {
       expect(used).toContain('Recipe_PlutoniumCell_C')
       expect(used).toContain('Recipe_PlutoniumFuelRod_C')
       expect(used).not.toContain('Recipe_Ficsonium_C')
-      // ① より少ないウランで同じ 5,000 MW
+      // 発電目標は同じでも、全台フル稼働のためこの解ではウラン採掘量は変わらない。
       const stage1 = await solveSample(sampleOf('nuclear-uranium'))
-      expect(uraniumOre(solution)).toBeLessThan(uraniumOre(stage1))
+      expect(uraniumOre(solution)).toBeCloseTo(uraniumOre(stage1), 6)
       // 回帰値
       expect(solution.powerGeneration!.totalGeneratorCount).toBe(3)
-      expect(uraniumOre(solution)).toBeCloseTo(26.666666666666668, 6)
-      expect(surplusOf(solution, PLUTONIUM_WASTE)).toBeCloseTo(0.6666666666666666, 6)
+      expect(uraniumOre(solution)).toBeCloseTo(40, 6)
+      expect(surplusOf(solution, PLUTONIUM_WASTE)).toBeCloseTo(1, 6)
     })
 
     it('③: 3種類の燃料棒を燃やし、核廃棄物もFICSONIUM燃料棒も残らない', async () => {
@@ -327,12 +327,13 @@ describe('サンプルプランの求解', () => {
       expect(used).toContain('Recipe_PlutoniumFuelRod_C')
       expect(used).toContain('Recipe_Ficsonium_C')
       expect(used).toContain('Recipe_FicsoniumFuelRod_C')
-      // ① より少ないウランで同じ 5,000 MW
+      // 目標は5,000MWだが、この整数台数の構成では実際の発電が17,500MWに増える。
       const stage1 = await solveSample(sampleOf('nuclear-uranium'))
-      expect(uraniumOre(solution)).toBeLessThan(uraniumOre(stage1))
+      expect(uraniumOre(solution)).toBeGreaterThan(uraniumOre(stage1))
       // 回帰値
-      expect(solution.powerGeneration!.totalGeneratorCount).toBe(4)
-      expect(uraniumOre(solution)).toBeCloseTo(22.857142857142858, 6)
+      expect(solution.powerGeneration!.totalGeneratorCount).toBe(7)
+      expect(solution.powerGeneration!.totalMW).toBe(17500)
+      expect(uraniumOre(solution)).toBeCloseTo(80, 6)
     })
 
     it('②③ の比較の基準は ① をそのままの設定で解いた結果', async () => {

@@ -22,6 +22,7 @@ import iconIdsJson from '../src/data/icons.json'
 import {
   buildingsById,
   generators,
+  isSinkableItem,
   items,
   itemsById,
   meta,
@@ -716,7 +717,7 @@ export function renderItemPage(ctx: Ctx, item: Item): string {
   const breadcrumbId = `${path}#breadcrumb`
   const category = itemCategory(ctx, item)
   const sink =
-    item.sinkPoints > 0
+    isSinkableItem(item)
       ? ctx.L.sinkPoints(ctx.fmtInteger(item.sinkPoints), amountUnit(ctx, item.id))
       : ctx.L.sinkUnavailable
   const hasProducing = indexed.producing.length > 0

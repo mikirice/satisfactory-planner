@@ -199,7 +199,7 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Nuclear, stage 2: reprocess to plutonium',
     headline: 'How Reprocessing Uranium Waste into Plutonium Fuel Works and How to Build It',
     description:
-      '5,000 MW with every bit of Uranium Waste reprocessed into Plutonium Fuel Rod and burned, so that only Plutonium Waste remains.',
+      '5,000 MW minimum target. Whole full-output generators make this plan 3 units and 7,500 MW; all Uranium Waste is reprocessed, leaving Plutonium Waste.',
     highlight:
       'Watch the Uranium Waste enter the Non-Fissile Uranium step and come back to the plants as Plutonium Fuel Rod.',
     mechanism: [
@@ -207,7 +207,7 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
       'Feed the Uranium Waste into a Blender with Silica, Nitric Acid and Sulfuric Acid to make Non-Fissile Uranium. The Nitric Acid comes from Nitrogen Gas, Water and Iron Plate in another Blender.',
       'Put Non-Fissile Uranium and Uranium Waste into a Particle Accelerator to make Plutonium Pellet.',
       'Assemble Encased Plutonium Cell from Plutonium Pellet and Concrete, then turn it into Plutonium Fuel Rod in a Manufacturer together with Steel Beam, Electromagnetic Control Rod and Heat Sink.',
-      'Burn the Plutonium Fuel Rod in a separate Nuclear Power Plant. That share of the power no longer has to come from Uranium Fuel Rod, so less Uranium is mined.',
+      'Burn Plutonium Fuel Rod in an additional Nuclear Power Plant. This worked example still needs two Uranium generators to supply the rod chain, so its Uranium use stays at 40/min while actual generation rises to 7,500 MW for a 5,000 MW minimum target.',
       'Burning Plutonium Fuel Rod leaves Plutonium Waste, which has no use at this stage and goes into storage.',
     ],
     tips: [
@@ -215,6 +215,7 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
       'Plutonium Waste is also worth 0 sink points and cannot be disposed of. There is far less of it than Uranium Waste, so a few containers are enough.',
       'Two acid pipes are needed, Sulfuric Acid and Nitric Acid. The Blenders are easy to mis-plumb, so colour or label the pipes before you start rearranging.',
       'Only two settings differ from stage 1: Plutonium Fuel Rod was added to the fuels, and “leave none behind” is ticked for Uranium Waste. For stage 3, add Ficsonium Fuel Rod to the fuels and tick “leave none behind” for Plutonium Waste as well.',
+      'The requested MW is a minimum in the planner model. It counts whole non-biomass generators at 100% clock and reports their resulting output and fuel use. You can manually underclock generators in-game to reduce surplus output and fuel consumption.',
     ],
   },
 
@@ -222,7 +223,7 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Nuclear, stage 3: closed loop with Ficsonium',
     headline: 'How a Closed Nuclear Loop with Ficsonium Works and How to Build It',
     description:
-      '5,000 MW with Plutonium Waste turned into Ficsonium Fuel Rod and burned as well, so that no nuclear waste is left at all.',
+      '5,000 MW minimum target. This whole-unit plan builds 7 full-output generators for 17,500 MW and reprocesses all Uranium and Plutonium Waste.',
     highlight:
       'Watch the Plutonium Waste pass through Ficsonium into fuel rods, with all three kinds of fuel rod entering the plants.',
     mechanism: [
@@ -234,9 +235,10 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     ],
     tips: [
       'The plan reprocesses all of the Uranium Waste and all of the Plutonium Waste. A stall anywhere backs the waste up into the plants and stops the power, so put containers in front of each waste step as a buffer.',
-      'The radioactive materials now include three kinds of fuel rod and two kinds of waste. Keep the reprocessing block away from the factory proper, and protect yourself with walls, distance and Iodine-Infused Filters.',
+      'The radioactive materials now include three kinds of fuel rod and two kinds of waste. Keep the reprocessing block away from the factory proper, and protect yourself with distance, a Hazmat Suit and Iodine-Infused Filters. Walls and floors do not shield radiation. This diagram is a steady-rate material-balance plan; it does not simulate startup inventories, pipe flow, or whether the loop will prime and circulate in a built factory.',
       'On top of Sulfuric Acid and Nitric Acid you need pipes for Excited Photonic Matter and Dark Matter Residue. Run the fluids and gases in before starting and confirm that the Particle Accelerators and the Quantum Encoder can accept them.',
       'Only two settings differ from stage 2: Ficsonium Fuel Rod was added to the fuels, and “leave none behind” is ticked for Plutonium Waste. To stop at plutonium, undo those two.',
+      'The 5,000 MW target is not the generated output: the planner models whole non-biomass generators at 100% clock, so this plan estimates 17,500 MW. In-game you can manually underclock generators to match demand and lower fuel use; that adjustment is not modeled here.',
     ],
   },
 }

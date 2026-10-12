@@ -170,7 +170,7 @@ export const de = {
       'Geben Sie ein Erzeugungsziel ein oder aktivieren Sie die Deckung des Fabrikstroms.',
     powerNoMethod: 'Wählen Sie mindestens eine Erzeugungsart.',
     powerClockNote:
-      'Der Takt der Generatoren liegt fest bei 100 %. Übertakten von Generatoren wird nicht unterstützt.',
+      'Der Planer rechnet Generatoren mit 100 % Takt und modelliert kein manuelles Untertakten. Übertakten von Generatoren wird nicht unterstützt.',
     powerByproducts: 'Nebenprodukte',
     powerByproductZero: 'Nichts übrig lassen (vollständig verbrauchen)',
     powerByproductsHint:
@@ -462,7 +462,7 @@ export const de = {
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
     powerGroupNote:
-      'Generatoren laufen mit 100 % Takt. Gebrochene Maschinenzahlen stehen für Teillast.',
+      'Der Planer zählt ganze Generatoren bei 100 % Takt. Im Spiel kannst du sie manuell untertakten, um Überschuss und Brennstoffverbrauch zu senken.',
     builtClock: (built: string, clock: string): string => `${built} Maschinen @ ${clock}`,
     buildingCount: (count: string): string => `${count} Maschinen`,
   },

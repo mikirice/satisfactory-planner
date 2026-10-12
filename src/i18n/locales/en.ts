@@ -165,7 +165,7 @@ export const en = {
     powerGeneratorSpec: (mw: string): string => `${mw} MW each`,
     powerIdle: 'Enter a generation target or enable factory power coverage to calculate.',
     powerNoMethod: 'Select at least one generation method.',
-    powerClockNote: 'Generator clock speed is fixed at 100%. Generator overclocking is not supported.',
+    powerClockNote: 'The planner models generators at 100% clock and does not model manual underclocking. Generator overclocking is not supported.',
     powerByproducts: 'Byproducts',
     powerByproductZero: 'Leave none behind (consume it all)',
     powerByproductsHint:
@@ -444,7 +444,7 @@ export const en = {
       `Machine counts use a maximum clock speed of ${percent}. Power uses each machine's resulting clock speed.`,
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
-    powerGroupNote: 'Generators stay at 100% clock speed. Partial machine counts represent partial load.',
+    powerGroupNote: 'The planner counts whole generators at 100% clock. You can manually underclock them in-game to reduce surplus output and fuel use.',
     builtClock: (built: string, clock: string): string => `${built} machines @ ${clock}`,
     buildingCount: (count: string): string => `${count} machines`,
   },
@@ -608,7 +608,7 @@ export const en = {
       noFuel: 'No fuel used',
       zeroSurplusByproducts: 'Byproducts left at zero',
       powerNote:
-        'Generator clock speed is fixed at 100%. Extraction power is excluded from the generation plan.',
+        'The planner models generators at 100% clock; manual underclocking is not included. Extraction power is excluded from the generation plan.',
       runningMachines: 'Running machines',
       builtMachines: 'Machines to build',
       extractorCount: 'Extraction machines',

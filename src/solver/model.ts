@@ -4,8 +4,9 @@
  *   決定変数
  *     x_r  … レシピ r の稼働台数（連続値・0以上）。部分稼働はアンダークロックと解釈する
  *     s_i  … 原料 i の外部供給量（0 <= s_i <= 上限）。採掘はレシピに無いのでここで表す
- *     g_v  … 発電機 × 燃料 v の稼働台数。発電計画で許可したもの（制限なし）と、
- *            副産物（核廃棄物）を出すもの（常に入る・需要駆動）の2種類
+ *     g_v  … 発電機 × 燃料 v の稼働台数（現行モデルでは物理台数として整数）。
+ *            発電計画で許可したもの（制限なし）と、副産物（核廃棄物）を出すもの
+ *            （常に入る・需要駆動）の2種類
  *
  *   制約（アイテム i ごと）
  *     Σ_r (産出_{i,r} - 消費_{i,r})·x_r + Σ_v (副産物_{i,v} - 燃料_{i,v})·g_v + s_i >= 目標産出_i
@@ -35,7 +36,7 @@ import {
   recipes as allRecipes,
   recipesById,
 } from '../data/index.ts'
-import { SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
+import { CLOCK_MAX, CLOCK_MIN, SOMERSLOOP_FULL_OUTPUT_MULTIPLIER } from '../data/constants.ts'
 import type { Building, Generator, GeneratorFuel, Recipe } from '../data/types.ts'
 import { DEFAULT_RESOURCE_LIMITS, MAP_RESOURCE_LIMITS } from '../data/map-limits.ts'
 import type { LpConstraint, LpModel, LpVariable } from './lp.ts'
@@ -65,6 +66,8 @@ export const DEFAULT_RESOURCE_WEIGHT_SPEC: ResourceWeightSpec = 'scarcity'
 export const recipeVarKey = (recipeId: string): string => `x:${recipeId}`
 /** Somersloop をフル装着したレシピ r の稼働台数（産出2倍・消費同じ・電力4倍） */
 export const somersloopVarKey = (recipeId: string): string => `xs:${recipeId}`
+/** Integer count of physical buildings assigned to the full-Somersloop variant. */
+export const somersloopBuildingVarKey = (recipeId: string): string => `sbuild:${recipeId}`
 /** 原料（マップから採取）の供給変数 */
 export const supplyVarKey = (itemId: string): string => `s:${itemId}`
 /** ユーザーが持ち込むアイテムの供給変数 */
@@ -619,6 +622,12 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
             weights.buildings +
             epsilon
     variables.push({ key: somersloopVarKey(recipe.id), objective })
+    variables.push({
+      key: somersloopBuildingVarKey(recipe.id),
+      objective: maximize !== undefined ? -epsilon : epsilon,
+      integer: true,
+      upper: Math.floor(somersloopLimit / building.maxSomersloops),
+    })
   }
   for (const variant of generatorVariants) {
     // 発電機は電力を消費しないので power 項は 0（発電量を負の消費として目的関数に入れると、
@@ -632,7 +641,7 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
       variables.push({ key: variant.key, objective, lower: level, upper: level })
       continue
     }
-    variables.push({ key: variant.key, objective })
+    variables.push({ key: variant.key, objective, integer: true })
   }
   for (const supply of supplies) {
     // ε を足すのは「コスト0の供給（無制限の水・持ち込み分）を必要以上に引き込む
@@ -810,11 +819,24 @@ export function buildProductionModel(input: SolveInput, options: BuildModelOptio
     }
   }
 
-  // Somersloop の総数制限: Σ(バリアントの稼働台数 × その建物のスロット数) <= 使用可能数
+  // 発電機は全台が全出力で稼働するため台数を整数にする。Somersloop は物理的な
+  // 建物ごとに必要スロットを確保し、稼働台数を建物数×最大クロックで制限する。
   if (somersloopRecipes.length > 0) {
+    const maxClock = Math.min(CLOCK_MAX, Math.max(CLOCK_MIN, input.maxClock ?? 1))
     const coefficients = new Map<string, number>()
     for (const recipe of somersloopRecipes) {
-      coefficients.set(somersloopVarKey(recipe.id), buildingOf(recipe).maxSomersloops)
+      const building = buildingOf(recipe)
+      const runningKey = somersloopVarKey(recipe.id)
+      const builtKey = somersloopBuildingVarKey(recipe.id)
+      coefficients.set(builtKey, building.maxSomersloops)
+      constraints.push({
+        key: `somersloop:buildings:${recipe.id}`,
+        coefficients: new Map([
+          [runningKey, 1],
+          [builtKey, -maxClock],
+        ]),
+        upper: 0,
+      })
     }
     constraints.push({ key: 'somersloop:capacity', coefficients, upper: somersloopLimit })
   }

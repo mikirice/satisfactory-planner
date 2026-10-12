@@ -170,7 +170,7 @@ export const esES = {
       'Introduce un objetivo de generación o activa la cobertura del consumo de la fábrica.',
     powerNoMethod: 'Selecciona al menos un método de generación.',
     powerClockNote:
-      'La frecuencia de los generadores está fijada al 100 %. No se admite sobrefrecuenciar generadores.',
+      'El planificador modela los generadores al 100 % y no contempla su subfrecuencia manual. No se admite sobrefrecuenciar generadores.',
     powerByproducts: 'Subproductos',
     powerByproductZero: 'No dejar nada (consumirlo todo)',
     powerByproductsHint:
@@ -461,7 +461,7 @@ export const esES = {
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
     powerGroupNote:
-      'Los generadores se mantienen al 100 % de frecuencia. Un número decimal de máquinas representa carga parcial.',
+      'El planificador cuenta generadores enteros al 100 %. En el juego puedes reducir su frecuencia manualmente para ajustar el excedente y el consumo de combustible.',
     builtClock: (built: string, clock: string): string => `${built} máquinas @ ${clock}`,
     buildingCount: (count: string): string => `${count} máquinas`,
   },
