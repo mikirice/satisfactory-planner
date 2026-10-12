@@ -505,7 +505,7 @@ p { margin: 0 0 14px; }
 .article-card { display: flex; height: 100%; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: inherit; text-decoration: none; transition: border-color .15s ease, transform .15s ease; }
 .article-card:hover, .article-card:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
 .article-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.article-card__media { position: relative; display: block; overflow: hidden; }
+.article-card__media { position: relative; display: block; min-width: 0; overflow: hidden; }
 .article-card__image { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--raised); }
 .article-card__badge { position: absolute; left: 10px; bottom: 10px; padding: 4px 8px; border: 1px solid #ffffff55; border-radius: 4px; background: #101820e8; color: #fff; font-size: 11px; font-weight: 700; line-height: 1.3; }
 .article-card__text { display: flex; flex: 1; flex-direction: column; padding: 16px 18px 18px; }
