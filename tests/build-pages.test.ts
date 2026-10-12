@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { handwrittenArticlesEn } from '../content/articles/en/index.ts'
 import { handwrittenArticles as handwrittenArticlesConst } from '../content/articles/index.ts'
+import { ARTICLE_COVERS, articleCoverFor, articleIndexCoverFor } from '../content/article-covers.ts'
 import type { HandwrittenArticle } from '../content/articles/types.ts'
 import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
 import { generators, items, recipes } from '../src/data/index.ts'
@@ -519,6 +520,58 @@ describe('記事静的ページ', () => {
     expect(simplifiedEn).toContain('Uranium</a></td>')
     expect(simplifiedEn).toContain('20.00 → 12.50')
     expect(simplifiedEn).toContain('the Blender and the Refinery both disappear from the line')
+  })
+
+  it('全22記事に日英共通の最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {
+    expect(Object.keys(ARTICLE_COVERS).sort()).toEqual([...articleSlugs].sort())
+
+    for (const slug of articleSlugs) {
+      for (const locale of ['ja', 'en'] as const) {
+        const cover = articleCoverFor(slug, locale)
+        const asset = await readFile(join(process.cwd(), 'public', cover.src.slice(1)))
+        expect(asset.toString('ascii', 0, 4), slug).toBe('RIFF')
+        expect(asset.toString('ascii', 8, 12), slug).toBe('WEBP')
+        expect(asset.length, slug).toBeLessThan(300_000)
+
+        const prefix = locale === 'ja' ? 'articles' : 'en/articles'
+        const article = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
+        expect(article, `${locale}/${slug}`).toContain(
+          `<img src="${cover.src}" alt="${escapeHtml(cover.alt)}" width="1200" height="630" fetchpriority="high" decoding="async" />`,
+        )
+        expect(article, `${locale}/${slug}`).toContain(
+          `<meta property="og:image" content="https://satisfactory-planner.net${cover.src}" />`,
+        )
+        expect(article, `${locale}/${slug}`).toContain('<meta property="og:image:type" content="image/webp" />')
+        expect(article, `${locale}/${slug}`).toContain('<meta name="twitter:image:alt"')
+        expect(article, `${locale}/${slug}`).toContain(
+          locale === 'ja'
+            ? 'ゲーム画面・計算結果・実際の建設手順を示すものではありません。'
+            : 'not an in-game screenshot, calculated result, or build instruction.',
+        )
+      }
+    }
+
+    for (const [locale, prefix] of [['ja', 'articles'], ['en', 'en/articles']] as const) {
+      const index = await readFile(join(outputDirectory, prefix, 'index.html'), 'utf8')
+      expect(index.split('class="article-card__image"').length - 1).toBe(articleSlugs.length)
+      expect(index.split('class="article-card__badge"').length - 1).toBe(articleSlugs.length)
+      expect(index.split('loading="lazy" decoding="async"').length - 1).toBe(articleSlugs.length)
+      expect(index).toContain(locale === 'ja' ? '>イラスト</span>' : '>Illustration</span>')
+      for (const slug of articleSlugs) {
+        expect(index, `${locale}/${slug}`).toContain(
+          `<img class="article-card__image" src="/article-covers/${slug}.webp"`,
+        )
+      }
+      const directoryCover = articleIndexCoverFor(locale)
+      expect(index).toContain(
+        `<meta property="og:image" content="https://satisfactory-planner.net${directoryCover.src}" />`,
+      )
+    }
+
+    const directoryAsset = await readFile(
+      join(process.cwd(), 'public', articleIndexCoverFor('ja').src.slice(1)),
+    )
+    expect(directoryAsset.toString('ascii', 8, 12)).toBe('WEBP')
   })
 })
 
@@ -1603,18 +1656,29 @@ describe('OGP と Twitter カード', () => {
       expect(metaContent(head, 'twitter:description'), file).toBe(
         metaContent(head, 'description'),
       )
-      // OGP 画像は言語別（/en/ 配下は英語ワードマークの ogp-en.png）
-      const expectedOgp = file.includes(`${sep}en${sep}`)
-        ? 'https://satisfactory-planner.net/ogp-en.png'
-        : 'https://satisfactory-planner.net/ogp-ja.png'
+      // 記事ページは記事別カバー、一覧ページはガイド集カバー、それ以外はサイトロゴ。
+      const relative = file.slice(outputDirectory.length + 1).split(sep).join('/')
+      const locale = relative.startsWith('en/') ? 'en' : 'ja'
+      const articlePage = relative.match(/^(?:en\/)?articles\/([^/]+)\/index\.html$/)
+      const isArticleIndex = relative === 'articles/index.html' || relative === 'en/articles/index.html'
+      const socialCover = articlePage
+        ? articleCoverFor(articlePage[1]!, locale)
+        : isArticleIndex
+          ? articleIndexCoverFor(locale)
+          : undefined
+      const expectedOgp = socialCover
+        ? `https://satisfactory-planner.net${socialCover.src}`
+        : `https://satisfactory-planner.net/ogp-${locale}.png`
       expect(metaContent(head, 'twitter:image'), file).toBe(expectedOgp)
       expect(metaContent(head, 'og:image'), file).toBe(expectedOgp)
+      expect(metaContent(head, 'og:image:type'), file).toBe(socialCover ? 'image/webp' : 'image/png')
       expect(metaContent(head, 'og:image:width'), file).toBe('1200')
       expect(metaContent(head, 'og:image:height'), file).toBe('630')
       expect(metaContent(head, 'og:image:alt'), file).toBe(
-        file.includes(`${sep}en${sep}`)
-          ? 'Production Planner for Satisfactory logo'
-          : '生産計画ツール for Satisfactory のロゴ',
+        socialCover?.alt ??
+          (locale === 'en'
+            ? 'Production Planner for Satisfactory logo'
+            : '生産計画ツール for Satisfactory のロゴ'),
       )
       expect(html, file).not.toContain('/ogp.png')
       // og:* は twitter:* と同じ内容（別コピーを持たない）
