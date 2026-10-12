@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import {
   aboutPagePath,
   appPagePath,
@@ -211,7 +213,7 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
     ${meta.headStart ?? ''}
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     ${FAVICON_LINKS}
-    <link rel="stylesheet" href="/static-pages.css" />
+    <link rel="stylesheet" href="/static-pages.css?v=${STATIC_PAGE_CSS_VERSION}" />
     <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />
     ${renderAlternateLinks(meta)}
     <title>${escapeHtml(meta.title)}</title>
@@ -709,3 +711,8 @@ p { margin: 0 0 14px; }
   .landing-faq { padding: 22px 20px; }
 }
 `
+
+export const STATIC_PAGE_CSS_VERSION = createHash('sha256')
+  .update(STATIC_PAGE_CSS)
+  .digest('hex')
+  .slice(0, 12)
