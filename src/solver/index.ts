@@ -34,6 +34,7 @@ export {
   resolveResourceWeights,
   somersloopPowerFactor,
   somersloopVarKey,
+  somersloopBuildingVarKey,
   supportsSomersloop,
   variablePowerRange,
   zeroSurplusChain,

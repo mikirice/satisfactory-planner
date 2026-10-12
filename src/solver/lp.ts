@@ -19,6 +19,8 @@ export type LpVariable = {
   lower?: number
   /** 上限。既定 +∞ */
   upper?: number
+  /** Solve this variable as a general integer in backends that support it. */
+  integer?: boolean
 }
 
 /**
@@ -137,6 +139,11 @@ export function writeLpFormat(model: LpModel): { text: string; nameByKey: Map<st
   if (bounds.length > 0) {
     lines.push('Bounds')
     lines.push(...bounds)
+  }
+  const generals = model.variables.filter((v) => v.integer).map((v) => nameByKey.get(v.key)!)
+  if (generals.length > 0) {
+    lines.push('Generals')
+    lines.push(...generals.map((name) => ` ${name}`))
   }
 
   lines.push('End')

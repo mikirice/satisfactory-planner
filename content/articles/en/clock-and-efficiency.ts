@@ -34,7 +34,7 @@ export const clockAndEfficiencyArticleEn = {
       heading: 'Choosing targets that avoid remainders',
       paragraphs: [
         'Remainders appear because the target rate does not divide evenly by a recipe\'s output per machine. Iron Plate produces 20 items/min per machine, so 60/min is exactly three machines and 100/min is exactly five. Picking targets that are multiples of the per-machine output keeps things clean upstream too.',
-        'In a multi-stage chain you cannot eliminate them entirely, because the intermediate ratios do not line up. Even in the Modular Frame example, the 4.5 machines on Iron Plate and Screws survive any choice of target. Do not force those to an integer; take them at a lower clock instead. Running exactly what you need at a reduced clock uses less power and less raw material than overproducing into storage.',
+        'In a multi-stage chain you cannot eliminate them entirely, because the intermediate ratios do not line up. In this specific 10 Modular Frame/min example, the 4.5 machine-equivalents on Iron Plate and Screws are valid fractional workloads; changing the target can change or remove those remainders. Do not force a workload to an integer if an underclocked building can meet it. Running exactly what you need at a reduced clock avoids overproduction into storage.',
       ],
     },
     {

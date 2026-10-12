@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { buildingsById, items, itemsById, ratePerMin } from '../data/index.ts'
+import { buildingsById, isSinkableItem, items, itemsById, ratePerMin } from '../data/index.ts'
 import type { Item, Recipe } from '../data/types.ts'
 import { useLocale } from '../i18n/index.ts'
 import { getRecipesForItem, recipeMetrics } from '../plan/recipe-index.ts'
@@ -228,7 +228,7 @@ function ItemRecipeDetail({
               <span className={`tag ${item.isRawResource ? 'is-accent' : 'is-balanced'}`}>
                 {item.isRawResource ? T.recipeBrowser.raw : T.recipeBrowser.processed}
               </span>
-              {item.sinkPoints > 0 && (
+              {isSinkableItem(item) && (
                 <span className="num">
                   {T.recipeBrowser.sinkPoints} {fmtInt(item.sinkPoints)} / {amountUnit(item.id)}
                 </span>

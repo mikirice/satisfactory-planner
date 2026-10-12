@@ -168,7 +168,7 @@ export const ja = {
     powerGeneratorSpec: (mw: string): string => `${mw} MW/台`,
     powerIdle: '目標発電量を入れるか「工場の消費電力ぶんを賄う」をオンにすると計算します。',
     powerNoMethod: '発電方式を1つ以上選んでください。',
-    powerClockNote: '発電機のクロックは100%固定です（発電側のオーバークロックは未対応）。',
+    powerClockNote: 'ツール内の発電機はクロック100%で計算し、手動アンダークロックはモデル化しません（発電側のオーバークロックも未対応）。',
     powerByproducts: '副産物の扱い',
     powerByproductZero: '残さない（全量を再処理で消費）',
     powerByproductsHint:
@@ -454,7 +454,7 @@ export const ja = {
       `クロック上限 ${percent} で「建てる台数」を決め、消費電力はそのクロックで計算しています`,
     somersloopBadge: (n: number): string => `${n} 個`,
     powerProduction: (mw: string): string => `+${mw}`,
-    powerGroupNote: '発電機はクロック100%固定です（端数の台数は部分負荷）',
+    powerGroupNote: 'ツールは発電機をクロック100%の整数台で計算します。余剰出力や燃料を減らすには、ゲーム内で手動アンダークロックしてください。',
     builtClock: (built: string, clock: string): string => `${built} 台 @ ${clock}`,
     buildingCount: (count: string): string => `${count} 台`,
   },
@@ -619,7 +619,7 @@ export const ja = {
       noFuel: '燃料を使っていません',
       zeroSurplusByproducts: '余りを許さない副産物',
       powerNote:
-        '※ 発電機のクロックは100%固定です。採掘設備の電力は発電計画に含めていません。',
+        '※ ツール内の発電機はクロック100%で計算し、手動アンダークロックは含みません。採掘設備の電力も発電計画に含めていません。',
       runningMachines: '稼働台数（小数）',
       builtMachines: '建てる台数',
       extractorCount: '採掘設備台数',

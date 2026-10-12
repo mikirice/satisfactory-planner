@@ -14,6 +14,7 @@ import {
   netRatePerMin,
   solveProduction,
   somersloopPowerFactor,
+  somersloopBuildingVarKey,
   somersloopVarKey,
   supportsSomersloop,
 } from '../src/solver/index.ts'
@@ -30,14 +31,11 @@ const IRON_PLATE_60: SolveInput = { targets: [{ item: 'Desc_IronPlate_C', ratePe
 const rateOf = (entries: { item: string; ratePerMin: number }[], item: string): number =>
   entries.find((e) => e.item === item)?.ratePerMin ?? 0
 
-/** LP が使った Somersloop 量（稼働台数ベース。制約に張り付いているかを見る） */
+/** 実際に設置する建物数から Somersloop の使用量を数える。 */
 function lpSomersloopUsage(solution: Solution): number {
   return solution.steps
     .filter((s) => s.somersloops > 0)
-    .reduce(
-      (n, s) => n + s.machineCount * (buildingsById.get(s.buildingId)?.maxSomersloops ?? 0),
-      0,
-    )
+    .reduce((n, s) => n + s.somersloops, 0)
 }
 
 const sloopSteps = (solution: Solution): SolutionStep[] =>
@@ -118,7 +116,7 @@ describe('LP モデル', () => {
     )
   })
 
-  it('容量制約はスロット数で重み付けした上限つきの1本', () => {
+  it('容量制約は設置建物数×スロットで数え、建物数が整数で稼働量を制限する', () => {
     const model = buildProductionModel({ ...IRON_PLATE_60, somersloops: 7 })
     const capacity = model.lp.constraints.find((c) => c.key === 'somersloop:capacity')!
     expect(capacity.upper).toBe(7)
@@ -127,11 +125,17 @@ describe('LP モデル', () => {
       (r) => r.producedIn === 'Build_ManufacturerMk1_C',
     )
     if (manufacturerRecipe) {
-      // 製造機はスロット4なので係数も4
-      expect(capacity.coefficients.get(somersloopVarKey(manufacturerRecipe.id))).toBe(4)
+      // 製造機はスロット4なので、設置数の係数が4
+      expect(capacity.coefficients.get(somersloopBuildingVarKey(manufacturerRecipe.id))).toBe(4)
+      const buildings = model.lp.variables.find((v) => v.key === somersloopBuildingVarKey(manufacturerRecipe.id))
+      expect(buildings?.integer).toBe(true)
+      const link = model.lp.constraints.find((c) => c.key === `somersloop:buildings:${manufacturerRecipe.id}`)!
+      expect(link.coefficients.get(somersloopVarKey(manufacturerRecipe.id))).toBe(1)
+      expect(link.coefficients.get(somersloopBuildingVarKey(manufacturerRecipe.id))).toBe(-1)
     }
     const plateKey = somersloopVarKey('Recipe_IronPlate_C')
-    expect(capacity.coefficients.get(plateKey)).toBe(1) // 製作機はスロット1
+    expect(capacity.coefficients.has(plateKey)).toBe(false)
+    expect(capacity.coefficients.get(somersloopBuildingVarKey('Recipe_IronPlate_C'))).toBe(1)
   })
 
   it('電力最小の目的では電力係数が 4倍（指数2）になる', () => {

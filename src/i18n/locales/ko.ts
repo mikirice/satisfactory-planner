@@ -165,7 +165,7 @@ export const ko = {
     powerGeneratorSpec: (mw: string): string => `대당 ${mw} MW`,
     powerIdle: '발전 목표를 입력하거나 공장 전력 충당을 켜세요.',
     powerNoMethod: '발전 방식을 하나 이상 선택하세요.',
-    powerClockNote: '발전기 클럭은 100 %로 고정입니다. 발전기 오버클럭은 지원하지 않습니다.',
+    powerClockNote: '플래너는 발전기를 100% 클럭으로 계산하며 수동 언더클럭은 모델링하지 않습니다. 발전기 오버클럭은 지원하지 않습니다.',
     powerByproducts: '부산물 처리',
     powerByproductZero: '남기지 않음(전량 소비)',
     powerByproductsHint:
@@ -444,7 +444,7 @@ export const ko = {
       `기계 수는 최대 클럭 ${percent} 기준입니다. 전력은 각 기계의 실제 클럭으로 계산합니다.`,
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
-    powerGroupNote: '발전기는 클럭 100 %로 고정입니다. 소수점 대수는 부분 부하를 뜻합니다.',
+    powerGroupNote: '플래너는 발전기를 100% 클럭 기준의 정수 대수로 계산합니다. 게임에서 수동 언더클럭하면 잉여 출력과 연료 소비를 줄일 수 있습니다.',
     builtClock: (built: string, clock: string): string => `${built}대 @ ${clock}`,
     buildingCount: (count: string): string => `${count}대`,
   },

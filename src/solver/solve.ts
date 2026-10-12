@@ -3,6 +3,7 @@
  */
 import {
   buildingsById,
+  isSinkableItem,
   itemsById,
   ratePerMin,
   recipes,
@@ -27,6 +28,7 @@ import {
   overflowVarKey,
   recipeVarKey,
   somersloopPowerFactor,
+  somersloopBuildingVarKey,
   somersloopVarKey,
   variablePowerRange,
   zeroSurplusChain,
@@ -193,6 +195,32 @@ async function solveCost(
 
   const { model: solved, result } = await solveModel(input, {}, model, backend, tolerance)
 
+  // A whole-generator MIP can be infeasible even though the fractional LP is
+  // feasible when exact byproduct disposal is requested. Diagnose that case
+  // with one continuous relaxation instead of running the generic elastic MIP
+  // checks, which cannot distinguish an integer-rate mismatch and may be slow.
+  if (result.status === 'infeasible' && solved.powerPlan.zeroSurplusByproducts.size > 0) {
+    const relaxed = await backend.solve({
+      ...solved.lp,
+      variables: solved.lp.variables.map(({ integer: _integer, ...variable }) => variable),
+    })
+    const fractionalGenerator = solved.generatorVariants.some((variant) => {
+      const count = relaxed.values.get(variant.key) ?? 0
+      return Math.abs(count - Math.round(count)) > tolerance
+    })
+    if (relaxed.status === 'optimal' && fractionalGenerator) {
+      return infeasible(
+        [...solved.powerPlan.zeroSurplusByproducts].map((item) => ({
+          kind: 'byproductMustBeConsumed',
+          item,
+          message:
+            `${jaName(item)} の正確な収支は、全出力・整数台数の発電機では一致しません。` +
+            '目標レートを調整するか「残さない」指定を外してください。',
+        })),
+      )
+    }
+  }
+
   switch (result.status) {
     case 'optimal': {
       const solution = buildSolution(solved, result, tolerance, maxClock)
@@ -221,6 +249,10 @@ async function solveCost(
         },
       ])
     case 'error':
+      if (result.rawStatus === 'GLP_1') {
+        const reasons = await diagnose(input, backend, tolerance)
+        if (reasons.some((reason) => reason.kind !== 'solverError')) return infeasible(reasons)
+      }
       return infeasible([
         { kind: 'solverError', message: `ソルバーが解を返しませんでした (${result.rawStatus})` },
       ])
@@ -275,6 +307,30 @@ async function solveMaximize(
         },
       ])
     case 'error':
+      if (result.rawStatus === 'GLP_1') {
+        // GLPK reports GLP_UNDEF for some unbounded mixed-integer maximization models.
+        // Check the continuous relaxation so unbounded outputs (for example water-only
+        // production with no resource cap) keep their existing actionable diagnosis.
+        const relaxed = await backend.solve({
+          ...model.lp,
+          variables: model.lp.variables.map(({ integer: _integer, ...variable }) => variable),
+        })
+        if (relaxed.status === 'unbounded') {
+          return infeasible([
+            {
+              kind: 'unbounded',
+              item,
+              message:
+                `${jaName(item)} は原料上限が効いていないため最大化できません` +
+                '（上限のない資源だけでいくらでも作れる構成です）',
+              advice:
+                'サイドバーの「原料上限」で上限のない原料（水など）に上限を入れるか、レート指定に切り替えてください。',
+            },
+          ])
+        }
+        const reasons = await diagnose(base, backend, tolerance)
+        if (reasons.some((reason) => reason.kind !== 'solverError')) return infeasible(reasons)
+      }
       return infeasible([
         { kind: 'solverError', message: `ソルバーが解を返しませんでした (${result.rawStatus})` },
       ])
@@ -382,7 +438,12 @@ function buildSolution(
    * 1レシピ1バリアントぶんのステップを作る。
    * `somersloop` が true のとき産出だけ2倍、消費はそのまま、電力は倍率^指数ぶん増える。
    */
-  const addStep = (recipe: Recipe, machineCount: number, somersloop: boolean): void => {
+  const addStep = (
+    recipe: Recipe,
+    machineCount: number,
+    somersloop: boolean,
+    somersloopBuiltCount?: number,
+  ): void => {
     const building = buildingsById.get(recipe.producedIn)!
     const outputMultiplier = somersloop ? SOMERSLOOP_FULL_OUTPUT_MULTIPLIER : 1
     const powerFactor = somersloop ? somersloopPowerFactor(building) : 1
@@ -399,7 +460,9 @@ function buildSolution(
     })
 
     // 建てる台数はクロック上限で決まる（上限が高いほど少ない台数で足りる）
-    const builtCount = Math.max(1, Math.ceil(machineCount / maxClock - tolerance))
+    const builtCount = somersloop
+      ? Math.max(1, Math.round(somersloopBuiltCount ?? 0))
+      : Math.max(1, Math.ceil(machineCount / maxClock - tolerance))
     const clockSpeed = Math.min(maxClock, machineCount / builtCount)
     const powerShards = builtCount * powerShardsForClock(clockSpeed)
     const somersloops = somersloop ? builtCount * building.maxSomersloops : 0
@@ -467,7 +530,7 @@ function buildSolution(
 
   /**
    * 発電機1台種ぶんのステップ。**クロックは100%固定**（発電側のオーバークロックは
-   * 初期スコープ外）なので、端数の台数はそのまま部分負荷（clockSpeed < 1）になる。
+   * 初期スコープ外）で、台数は整数に制約される。余剰容量も全出力の発電として扱う。
    * 消費電力は 0、代わりに powerProductionMW に発電量を入れる。
    */
   let totalPowerProductionMW = 0
@@ -544,7 +607,8 @@ function buildSolution(
   for (const recipe of model.somersloopRecipes) {
     const machineCount = clean(result.values.get(somersloopVarKey(recipe.id)) ?? 0)
     if (machineCount <= 0) continue
-    addStep(recipe, machineCount, true)
+    const builtCount = clean(result.values.get(somersloopBuildingVarKey(recipe.id)) ?? 0)
+    addStep(recipe, machineCount, true, builtCount)
   }
   for (const variant of model.generatorVariants) {
     const machineCount = clean(result.values.get(variant.key) ?? 0)
@@ -622,10 +686,10 @@ function buildSolution(
     .map((b) => ({ item: b.item, ratePerMin: b.netPerMin }))
     .sort((a, b) => b.ratePerMin - a.ratePerMin || a.item.localeCompare(b.item))
 
-  const sinkPointsPerMin = byproducts.reduce(
-    (sum, b) => sum + b.ratePerMin * (itemsById.get(b.item)?.sinkPoints ?? 0),
-    0,
-  )
+  const sinkPointsPerMin = byproducts.reduce((sum, b) => {
+    const item = itemsById.get(b.item)
+    return item && isSinkableItem(item) ? sum + b.ratePerMin * item.sinkPoints : sum
+  }, 0)
 
   const totalBuildCost: ItemAmount[] = [...buildCost]
     .map(([item, amount]) => ({ item, amount }))

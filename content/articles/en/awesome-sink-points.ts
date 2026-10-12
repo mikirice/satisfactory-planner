@@ -3,29 +3,29 @@ import type { HandwrittenArticle } from '../types.ts'
 export const awesomeSinkPointsArticleEn = {
   slug: 'awesome-sink-points',
   title: 'AWESOME Sink Points — Deciding What to Sink From the Data',
-  description:
-    'How sink points are assigned, what an aggregate of every recipe says about how much one more production step is worth, and what the multiplier looks like across a whole chain from raw ore.',
+    description:
+    'Which items the AWESOME Sink accepts, how sinkable items compare across recipes, and what point rates look like across a whole production chain.',
   publishedDate: '2026-08-26',
   sections: [
     {
       heading: 'Points are a fixed value per item',
       paragraphs: [
-        'What the AWESOME Sink pays is a fixed number attached to each item. Raw resources are low: Iron Ore 1, Limestone 2, Copper Ore 3, Coal 3, Water 5, Bauxite 8, Sulfur 11, Raw Quartz 15, Crude Oil 30. Manufactured parts climb quickly: Iron Plate 6, Cable 24, Steel Beam 64, Aluminum Ingot 131, Aluminum Casing 393, Modular Frame 408, Motor 1,520. Every item page on this site lists its sink points, so you can look any of them up directly.',
+        'The data includes a fixed point value for each item, but that does not mean every item can be fed into the AWESOME Sink. The Sink accepts eligible solid items; liquids and gases such as Water and Crude Oil cannot be sunk directly even when the game data contains a numeric value for them. Among sinkable items, examples include Iron Ore 1, Limestone 2, Copper Ore 3, Coal 3, Bauxite 8, Sulfur 11, Raw Quartz 15, Iron Plate 6, Cable 24, Steel Beam 64, Aluminum Ingot 131, Aluminum Casing 393, Modular Frame 408 and Motor 1,520. Item pages show points only for items eligible for the Sink.',
         'The important part is that points depend only on what the item is, not on how much effort went into it. The same item pays the same amount no matter which recipe produced it. That means the whole efficiency question reduces to two things: what you sink, and how much raw material you spent getting there.',
       ],
     },
     {
       heading: 'One more step usually doubles it',
       paragraphs: [
-        'Comparing the total sink points of a recipe\'s products against the total of its ingredients, per minute, shows a clear pattern. Of the 280 recipes that take ingredients, 101 land on exactly 2.000. Iron Plate is a clean example: 30 Iron Ingot/min (60 points/min) becomes 20 Iron Plate/min (120 points/min). Cable, Steel Beam, Rotor, Modular Frame and Computer all sit at exactly 2.000 as well.',
+        'Comparing only sinkable solid inputs and outputs per minute across the current recipe dataset shows a pattern. Of 290 recipes with ingredients, 82 have a sinkable-output to sinkable-input ratio of exactly 2.000. Iron Plate is a clean example: 30 Iron Ingot/min (60 points/min) becomes 20 Iron Plate/min (120 points/min). Cable, Steel Beam, Rotor, Modular Frame and Computer also sit at exactly 2.000.',
         'The practical rule that falls out of this is simple: rather than sinking surplus as-is, put it through one more step first. Polymer Resin is worth 12 points each, but running it through the standard Residual Rubber recipe turns each unit into half a Rubber, worth 30 points. All you have to weigh is whether the extra building and its power draw are worth it.',
       ],
     },
     {
       heading: 'Find the recipes that are not 2x',
       paragraphs: [
-        'The other 179 recipes miss 2.000 in one direction or the other, and that is where both the opportunities and the traps are. The high ones are mostly alternates: Iron Wire (12.5 Iron Ingot/min into 22.5 Wire/min) is 5.4x, and Cast Screws (12.5 Iron Ingot/min into 50 Screws/min) is 4.0x. Even at an early base with nothing but Iron Ore, carrying the chain as far as Wire changes the point rate substantially.',
-        'Some go the other way. Battery has 9,460 points/min of ingredients against 9,450 points/min of products, essentially 1.00x. Sinking Batteries is worse than finding another use for the Sulfuric Acid and Alumina Solution that went into them. Unpackaging recipes come in at 0.5x, but since packaging is 2.0x a package-and-unpackage round trip is point-neutral.',
+        'The remaining recipes differ from 2.000 in either direction, and that is where opportunities and trade-offs appear. The high ones are mostly alternates: Iron Wire (12.5 Iron Ingot/min into 22.5 Wire/min) is 5.4x, and Cast Screws (12.5 Iron Ingot/min into 50 Screws/min) is 4.0x. Even at an early base with nothing but Iron Ore, carrying the chain as far as Wire changes the point rate substantially.',
+        'Battery has 7,860 sink points/min in eligible solid ingredients against 9,300 points/min in products, about 1.18x. The calculation excludes liquid Sulfuric Acid and Alumina Solution because neither can be fed into the Sink directly. Unpackaging Packaged Water is about 0.462x using eligible solid items, while packaging it is about 2.167x; the round trip is point-neutral when the returned solid container is included.',
       ],
     },
     {

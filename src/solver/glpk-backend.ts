@@ -19,6 +19,7 @@ type GlpkLp = {
   objective: { direction: number; name: string; vars: GlpkVarRef[] }
   subjectTo: { name: string; vars: GlpkVarRef[]; bnds: GlpkBounds }[]
   bounds?: { name: string; type: number; lb: number; ub: number }[]
+  generals?: string[]
 }
 type GlpkResult = { result: { status: number; z: number; vars: Record<string, number> } }
 type GlpkInstance = {
@@ -141,6 +142,7 @@ function toGlpkLp(glpk: GlpkInstance, model: LpModel): GlpkLp {
     },
     subjectTo,
     bounds,
+    generals: model.variables.filter((v) => v.integer).map((v) => v.key),
   }
 }
 
@@ -155,7 +157,12 @@ export async function solveWithGlpk(model: LpModel): Promise<LpResult> {
   const glpk = await loadGlpk()
   const lp = toGlpkLp(glpk, model)
   let solved = await glpk.solve(lp, { msglev: glpk.GLP_MSG_OFF, presol: true })
-  if (solved.result.status !== glpk.GLP_OPT) {
+  // The no-presolve retry helps diagnose infeasible vs. unbounded LPs. For
+  // mixed-integer models GLPK can return GLP_UNDEF from that retry after
+  // proving integer infeasibility, and the branch-and-bound run can take a
+  // very long time. Keep the original MIP result instead.
+  const hasIntegerVariables = model.variables.some((variable) => variable.integer)
+  if (solved.result.status !== glpk.GLP_OPT && !hasIntegerVariables) {
     solved = await glpk.solve(lp, { msglev: glpk.GLP_MSG_OFF, presol: false })
   }
   const status = toStatus(glpk, solved.result.status)

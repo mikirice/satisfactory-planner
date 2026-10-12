@@ -14,7 +14,7 @@ export type Item = {
   id: string
   name: LocalizedName
   form: ItemForm
-  /** AWESOME Sink のポイント。0 = シンク不可。 */
+  /** Docs が公開するポイント値。液体・気体では値があっても Sink に投入できないことがある。 */
   sinkPoints: number
   /**
    * 原料（マップから直接採取するアイテム）か。

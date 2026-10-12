@@ -168,7 +168,7 @@ export const zhHant = {
     powerGeneratorSpec: (mw: string): string => `每台 ${mw} MW`,
     powerIdle: '請輸入發電目標，或開啟涵蓋工廠耗電。',
     powerNoMethod: '請至少選擇一種發電方式。',
-    powerClockNote: '發電機時脈固定為 100 %，不支援發電機超頻。',
+    powerClockNote: '規劃器以 100 % 時脈計算發電機，不模擬手動降頻；不支援發電機超頻。',
     powerByproducts: '副產物處理',
     powerByproductZero: '不留餘量（全部消耗）',
     powerByproductsHint:
@@ -446,7 +446,7 @@ export const zhHant = {
       `台數以最高時脈 ${percent} 計算，耗電依每台實際時脈計算。`,
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
-    powerGroupNote: '發電機固定為 100 % 時脈，台數出現小數代表部分負載。',
+    powerGroupNote: '規劃器以 100 % 時脈的整數台數計算。遊戲中可手動降頻，以減少多餘發電和燃料消耗。',
     builtClock: (built: string, clock: string): string => `${built} 台 @ ${clock}`,
     buildingCount: (count: string): string => `${count} 台`,
   },

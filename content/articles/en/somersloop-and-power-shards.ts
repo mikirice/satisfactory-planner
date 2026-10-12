@@ -28,7 +28,7 @@ export const somersloopAndPowerShardsArticleEn = {
     {
       heading: 'Check the results and the warnings',
       paragraphs: [
-        'Read the summary for Somersloops used, raw resources and clock-adjusted power, then read the production steps to see which recipe received how many. The internal allocation works in continuous machine equivalents and rounds up to the machines you actually build when displaying them, so a warning appears when the slots needed exceed the number you entered. When that happens, raise the number available or adjust the clock limit or the target rate.',
+        'Read the summary for Somersloops used, raw resources and clock-adjusted power, then read the production steps to see which recipe received how many. Somersloop slots are constrained by the integer number of buildings you can actually place, including the building’s full slot count. A plan cannot use a fractional building’s worth of slots; if your budget cannot cover an additional building, that full-slot variant is unavailable.',
         'The reliable way to decide is to solve the same target twice, once with zero Somersloops and once with the number you own, and put the resource saving and the added power side by side.',
       ],
     },

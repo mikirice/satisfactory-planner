@@ -169,7 +169,7 @@ export const tr = {
     powerIdle: 'Bir üretim hedefi gir ya da fabrika gücünü karşılamayı aç.',
     powerNoMethod: 'En az bir üretim yöntemi seç.',
     powerClockNote:
-      'Jeneratörlerin saat hızı %100’de sabittir. Jeneratör hızaşırtma desteklenmez.',
+      'Planlayıcı jeneratörleri %100 saat hızında hesaplar ve manuel düşük saat hızını modellemez. Jeneratör hızaşırtma desteklenmez.',
     powerByproducts: 'Yan ürünler',
     powerByproductZero: 'Hiç bırakma (tamamını tüket)',
     powerByproductsHint:
@@ -459,7 +459,7 @@ export const tr = {
     somersloopBadge: (n: number): string => `${n}`,
     powerProduction: (mw: string): string => `+${mw}`,
     powerGroupNote:
-      'Jeneratörler %100 saat hızında kalır. Küsuratlı makine sayısı kısmi yükü gösterir.',
+      'Planlayıcı jeneratörleri %100 saat hızında tam sayıyla hesaplar. Oyunda saat hızını elle düşürerek fazla üretimi ve yakıt tüketimini azaltabilirsiniz.',
     builtClock: (built: string, clock: string): string => `${built} makine @ ${clock}`,
     buildingCount: (count: string): string => `${count} makine`,
   },

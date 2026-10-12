@@ -48,6 +48,11 @@ export const generatorsById: ReadonlyMap<string, Generator> = new Map(
   generators.map((g) => [g.id, g]),
 )
 
+/** The Sink only accepts solid items; a non-zero Docs value on fluids is metadata, not eligibility. */
+export function isSinkableItem(item: Pick<Item, 'form' | 'sinkPoints'> | undefined): boolean {
+  return item?.form === 'solid' && item.sinkPoints > 0
+}
+
 /** ClassName → ja/en bundled name. String IDs passed to displayName resolve through this map. */
 const localizedNamesById: ReadonlyMap<string, LocalizedName> = new Map(
   [...items, ...recipes, ...buildings, ...extractors, ...generators, ...belts, ...pipes].map(

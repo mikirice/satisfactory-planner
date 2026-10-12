@@ -348,13 +348,16 @@ describe('石炭発電（手計算）', () => {
     expect(solution.totalBuildCost.length).toBeGreaterThan(0)
   })
 
-  it('端数の台数は切り上げて建て、クロックは100%未満（部分負荷）になる', async () => {
+  it('目標100MWでも石炭発電機は全台フル稼働し、150MW分の燃料を消費する', async () => {
     const solution = await solveOk({ ...bare, power: { generators: [COAL], targetMW: 100 } })
     const step = generatorSteps(solution)[0]!
-    expect(step.machineCount).toBeCloseTo(100 / 75, 6)
+    expect(step.machineCount).toBe(2)
     expect(step.builtCount).toBe(2)
-    expect(step.clockSpeed).toBeCloseTo(100 / 75 / 2, 6)
-    expect(step.clockSpeed).toBeLessThanOrEqual(1)
+    expect(step.clockSpeed).toBe(1)
+    expect(step.powerProductionMW).toBe(150)
+    expect(rateOf(step.inputs, 'Desc_Coal_C')).toBe(30)
+    expect(rateOf(step.inputs, 'Desc_Water_C')).toBe(90)
+    expect(solution.powerGeneration!.totalMW).toBe(150)
   })
 
   it('製造クロック上限を上げても発電機は100%のまま（発電側OCは未対応）', async () => {
@@ -426,14 +429,25 @@ describe('原子力発電（核廃棄物の計上）', () => {
     expect(waste.netPerMin).toBeCloseTo(10, 6)
   })
 
-  it('再処理レシピが使えると核廃棄物は消化される（ウラン廃棄物が残らない）', async () => {
-    const solution = await solveOk({ targets: [], power: { generators: [NUCLEAR], targetMW: 2500 } })
+  it('ウラン廃棄物を全量再処理する指定では、燃料棒と原子力発電所が整数台数になる', async () => {
+    const solution = await solveOk({
+      targets: [],
+      power: {
+        generators: [NUCLEAR],
+        fuels: { [NUCLEAR]: ['Desc_NuclearFuelRod_C', 'Desc_PlutoniumFuelRod_C'] },
+        targetMW: 5000,
+        zeroSurplusByproducts: ['Desc_NuclearWaste_C'],
+      },
+    })
     // ウラン燃料棒の製造まで LP が一気に解いている
     expect(solution.steps.some((s) => s.recipeId === 'Recipe_NuclearFuelRod_C')).toBe(true)
     // 核廃棄物はプルトニウムへの再処理で消化され、副産物としては残らない
     expect(solution.steps.some((s) => s.recipeId === 'Recipe_Plutonium_C')).toBe(true)
     expect(rateOf(solution.byproducts, 'Desc_NuclearWaste_C')).toBeCloseTo(0, 6)
-    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeGreaterThan(240)
+    expect(solution.powerGeneration!.totalMW).toBe(7500)
+    expect(solution.powerGeneration!.totalGeneratorCount).toBe(3)
+    expect(generatorSteps(solution).every((step) => step.machineCount === step.builtCount)).toBe(true)
+    expect(rateOf(solution.rawResources, 'Desc_Water_C')).toBeGreaterThan(480)
   })
 })
 
@@ -450,14 +464,16 @@ describe('工場の消費電力ぶんを賄う', () => {
     // 製錬炉3台(12MW) + 製作機3台(12MW) = 24MW
     expect(solution.totalPowerMW).toBeCloseTo(24, 6)
     expect(solution.powerGeneration!.coverFactoryPower).toBe(true)
-    expect(solution.powerGeneration!.totalMW).toBeCloseTo(24, 6)
+    expect(solution.powerGeneration!.totalMW).toBe(75)
     expect(solution.powerGeneration!.factoryPowerMW).toBeCloseTo(24, 6)
-    expect(solution.powerGeneration!.netMW).toBeCloseTo(0, 6)
-    // 24MW / 75MW = 0.32 台（1台を32%負荷で回す想定）
+    expect(solution.powerGeneration!.netMW).toBeCloseTo(51, 6)
+    // 石炭発電機は部分負荷にならないため、1台が全出力で稼働する。
     const step = generatorSteps(solution)[0]!
-    expect(step.machineCount).toBeCloseTo(0.32, 6)
+    expect(step.machineCount).toBe(1)
     expect(step.builtCount).toBe(1)
-    expect(rateOf(solution.rawResources, 'Desc_Coal_C')).toBeCloseTo(0.32 * 15, 6)
+    expect(step.clockSpeed).toBe(1)
+    expect(step.powerProductionMW).toBe(75)
+    expect(rateOf(solution.rawResources, 'Desc_Coal_C')).toBeCloseTo(15, 6)
   })
 
   it('自給は「発電のために増えた建物」の消費も込みで解く（燃料式・自己消費の循環）', async () => {
