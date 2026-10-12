@@ -524,6 +524,7 @@ describe('記事静的ページ', () => {
 
   it('全22記事に日英共通の最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {
     expect(Object.keys(ARTICLE_COVERS).sort()).toEqual([...articleSlugs].sort())
+    const staticCss = await readFile(join(outputDirectory, 'static-pages.css'), 'utf8')
 
     for (const slug of articleSlugs) {
       for (const locale of ['ja', 'en'] as const) {
@@ -553,6 +554,7 @@ describe('記事静的ページ', () => {
 
     for (const [locale, prefix] of [['ja', 'articles'], ['en', 'en/articles']] as const) {
       const index = await readFile(join(outputDirectory, prefix, 'index.html'), 'utf8')
+      expect(staticCss).toContain('.article-card__media { position: relative; display: block; min-width: 0; overflow: hidden; }')
       expect(index.split('class="article-card__image"').length - 1).toBe(articleSlugs.length)
       expect(index.split('class="article-card__badge"').length - 1).toBe(articleSlugs.length)
       expect(index.split('loading="lazy" decoding="async"').length - 1).toBe(articleSlugs.length)
