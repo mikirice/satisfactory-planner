@@ -337,6 +337,7 @@ function targetPlanHref(
     ratePerMin?: number
     alternateRecipeIds?: readonly string[]
     somersloops?: number
+    minerId?: string
   } = {},
 ): string {
   const firstRecipe = getRecipesForItem(item.id).producing[0]
@@ -352,6 +353,7 @@ function targetPlanHref(
 
   const snapshot = toPlanSnapshot({
     ...defaultPlanInput(),
+    ...(options.minerId === undefined ? {} : { minerId: options.minerId }),
     targets: [
       {
         key: 'seo-target',
@@ -1443,20 +1445,23 @@ function localizedArticle(ctx: Ctx, article: HandwrittenArticle): HandwrittenArt
   return translated
 }
 
-const ARTICLE_COVER_WIDTH = 1200
-const ARTICLE_COVER_HEIGHT = 630
-
 function articleCoverFigure(ctx: Ctx, slug: string): string {
   const cover = articleCoverFor(slug, ctx.locale)
   return `<figure class="article-cover article-cover--hero">
-      <img src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${ARTICLE_COVER_WIDTH}" height="${ARTICLE_COVER_HEIGHT}" fetchpriority="high" decoding="async" />
+      <img src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" fetchpriority="high" decoding="async" />
       <figcaption>${escapeHtml(ctx.L.articleCoverCaption)}</figcaption>
     </figure>`
 }
 
 function articleSocialImage(slug: string, locale: StaticLocale) {
   const cover = articleCoverFor(slug, locale)
-  return { url: `${SITE_URL}${cover.src}`, alt: cover.alt, type: 'image/webp' }
+  return {
+    url: `${SITE_URL}${cover.src}`,
+    alt: cover.alt,
+    type: cover.type,
+    width: cover.width,
+    height: cover.height,
+  }
 }
 
 function articleCard(
@@ -1465,7 +1470,7 @@ function articleCard(
 ): string {
   const cover = articleCoverFor(article.slug, ctx.locale)
   return `<li><a class="article-card" href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}">
-        <span class="article-card__media"><img class="article-card__image" src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${ARTICLE_COVER_WIDTH}" height="${ARTICLE_COVER_HEIGHT}" loading="lazy" decoding="async" /><span class="article-card__badge">${escapeHtml(ctx.L.articleCoverBadge)}</span></span>
+        <span class="article-card__media"><img class="article-card__image" src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" loading="lazy" decoding="async" /><span class="article-card__badge">${escapeHtml(ctx.L.articleCoverBadge)}</span></span>
         <span class="article-card__text"><strong>${escapeHtml(article.title)}</strong><span class="article-card__description">${escapeHtml(article.description)}</span></span>
       </a></li>`
 }
@@ -1482,9 +1487,13 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       (section) => `<section>
         <h2>${escapeHtml(section.heading)}</h2>
         ${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+        ${(section.tables ?? []).map((table) => `<div class="table-wrap"><table class="comparison-table">${table.caption ? `<caption>${escapeHtml(table.caption)}</caption>` : ''}<thead><tr>${table.headers.map((header) => `<th scope="col">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${table.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('')}
       </section>`,
     )
     .join('')
+  const references = article.references === undefined
+    ? ''
+    : `<section><h2>${escapeHtml(article.references.heading)}</h2><ul class="link-list">${article.references.links.map((link) => `<li><a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a></li>`).join('')}</ul></section>`
   const body = `${renderBreadcrumbs(
     [
       { label: ctx.L.home, href: landingPagePath(ctx.locale) },
@@ -1502,6 +1511,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
     </header>
     <article class="article-body">
       ${sections}
+      ${references}
       ${renderRelatedItems(ctx, article.relatedItemIds)}
       ${renderRelatedArticles(ctx, source.relatedArticleSlugs)}
       <section>

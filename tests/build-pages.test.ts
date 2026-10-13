@@ -251,11 +251,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き12本とループ10本、および記事indexを生成する', async () => {
+  it('手書き13本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(22)
+    expect(articleSlugs).toHaveLength(23)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -282,14 +282,15 @@ describe('記事静的ページ', () => {
     expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
   })
 
-  it('手書き記事12本の本文が各800〜3000文字に収まる（追加5本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(12)
+  it('手書き記事13本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(13)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
       'aluminum-production-guide',
       'awesome-sink-points',
       'clock-and-efficiency',
+      'miner-rate-by-purity',
     ])
     for (const article of handwrittenArticles) {
       const length = article.sections.flatMap((section) => section.paragraphs).join('').length
@@ -328,8 +329,31 @@ describe('記事静的ページ', () => {
     expect(aluminumEn).toContain('href="/en/articles/aluminum-water-loop/"')
   })
 
+  it('採掘レート記事の参考リンクと共有プランが正しい', async () => {
+    const ja = await readFile(join(outputDirectory, 'articles/miner-rate-by-purity/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/miner-rate-by-purity/index.html'), 'utf8')
+    for (const html of [ja, en]) {
+      expect(html).toContain('href="https://satisfactory.wiki.gg/wiki/Miner"')
+      expect(html).toContain('href="https://satisfactory.wiki.gg/wiki/Resource_Node"')
+      expect(html).toContain('href="https://satisfactory.wiki.gg/wiki/Conveyor_Belt"')
+      const href = html.match(/class="cta" href="([^"]*#plan=[^"]+)"/)?.[1]
+      expect(href).toBeDefined()
+      const parsed = decodePlan(readPlanParam(href!.slice(href!.indexOf('#')))!)
+      expect(parsed.ok).toBe(true)
+      if (parsed.ok) {
+        expect(parsed.warnings).toEqual([])
+        expect(parsed.input.minerId).toBe('Build_MinerMk2_C')
+        expect(parsed.input.targets).toEqual([
+          expect.objectContaining({ item: 'Desc_IronPlate_C', ratePerMin: 160 }),
+        ])
+      }
+    }
+    expect(ja).toContain('<h2>参考資料</h2>')
+    expect(en).toContain('<h2>Sources</h2>')
+  })
+
   /** 追加記事の数値はデータ由来。代表値がページに焼き込まれていることだけ確認する。 */
-  it('追加した5本がゲームデータ由来の代表値を含む', async () => {
+  it('追加した6本がゲームデータ由来の代表値を含む', async () => {
     const read = async (slug: string, locale: 'ja' | 'en'): Promise<string> =>
       readFile(
         join(outputDirectory, locale === 'ja' ? 'articles' : 'en/articles', slug, 'index.html'),
@@ -357,6 +381,11 @@ describe('記事静的ページ', () => {
     // 電力指数（buildings.json powerExponent）
     expect(await read('clock-and-efficiency', 'ja')).toContain('1.321929乗')
     expect(await read('clock-and-efficiency', 'en')).toContain('1.321929')
+    // Miner Mk.2 × Pure × 100% = 240/min、250% Miner Mk.3 × Pure = 1,200/min
+    expect(await read('miner-rate-by-purity', 'ja')).toContain('Mk.2 をピュアな鉄鉱石ノードに1台置き、100%で回せばちょうど240個/分')
+    expect(await read('miner-rate-by-purity', 'en')).toContain('One Miner Mk.2 on a Pure Iron node supplies exactly 240 ore/min at 100% clock')
+    expect(await read('miner-rate-by-purity', 'ja')).toContain('1,200個/分')
+    expect(await read('miner-rate-by-purity', 'en')).toContain('1,200 items/min')
   })
 
   /** 建設リストの解説（Phase 2）。ベルト容量と鉄板60個/分の構成はデータ・解由来の値。 */
@@ -522,7 +551,7 @@ describe('記事静的ページ', () => {
     expect(simplifiedEn).toContain('the Blender and the Refinery both disappear from the line')
   })
 
-  it('全22記事に日英共通の最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {
+  it('全23記事に日英共通の最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {
     expect(Object.keys(ARTICLE_COVERS).sort()).toEqual([...articleSlugs].sort())
     const staticCss = await readFile(join(outputDirectory, 'static-pages.css'), 'utf8')
     const cssVersion = createHash('sha256').update(staticCss).digest('hex').slice(0, 12)
@@ -538,12 +567,14 @@ describe('記事静的ページ', () => {
         const prefix = locale === 'ja' ? 'articles' : 'en/articles'
         const article = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
         expect(article, `${locale}/${slug}`).toContain(
-          `<img src="${cover.src}" alt="${escapeHtml(cover.alt)}" width="1200" height="630" fetchpriority="high" decoding="async" />`,
+          `<img src="${cover.src}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" fetchpriority="high" decoding="async" />`,
         )
         expect(article, `${locale}/${slug}`).toContain(
           `<meta property="og:image" content="https://satisfactory-planner.net${cover.src}" />`,
         )
-        expect(article, `${locale}/${slug}`).toContain('<meta property="og:image:type" content="image/webp" />')
+        expect(article, `${locale}/${slug}`).toContain(`<meta property="og:image:type" content="${cover.type}" />`)
+        expect(article, `${locale}/${slug}`).toContain(`<meta property="og:image:width" content="${cover.width}" />`)
+        expect(article, `${locale}/${slug}`).toContain(`<meta property="og:image:height" content="${cover.height}" />`)
         expect(article, `${locale}/${slug}`).toContain('<meta name="twitter:image:alt"')
         expect(article, `${locale}/${slug}`).toContain(
           locale === 'ja'
@@ -641,10 +672,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 226（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事22）
-    // ＋ 英語 225（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(451)
-    expect(manifest.urls).toHaveLength(451)
+    // 日本語 227（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事23）
+    // ＋ 英語 226（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(453)
+    expect(manifest.urls).toHaveLength(453)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -871,6 +902,9 @@ describe('英語ミラーの生成', () => {
       expect(article.cta.kind, article.slug).toBe(source.cta.kind)
       expect(article.cta.label, article.slug).not.toBe(source.cta.label)
       expect(article.relatedItemIds, article.slug).toEqual(source.relatedItemIds)
+      expect('minerId' in article.cta ? article.cta.minerId : undefined, article.slug).toBe(
+        'minerId' in source.cta ? source.cta.minerId : undefined,
+      )
     }
     const loopSlugs = articleSlugs.filter(
       (slug) => !handwrittenArticles.some((article) => article.slug === slug),
@@ -1675,9 +1709,9 @@ describe('OGP と Twitter カード', () => {
         : `https://satisfactory-planner.net/ogp-${locale}.png`
       expect(metaContent(head, 'twitter:image'), file).toBe(expectedOgp)
       expect(metaContent(head, 'og:image'), file).toBe(expectedOgp)
-      expect(metaContent(head, 'og:image:type'), file).toBe(socialCover ? 'image/webp' : 'image/png')
-      expect(metaContent(head, 'og:image:width'), file).toBe('1200')
-      expect(metaContent(head, 'og:image:height'), file).toBe('630')
+      expect(metaContent(head, 'og:image:type'), file).toBe(socialCover?.type ?? 'image/png')
+      expect(metaContent(head, 'og:image:width'), file).toBe(String(socialCover?.width ?? 1200))
+      expect(metaContent(head, 'og:image:height'), file).toBe(String(socialCover?.height ?? 630))
       expect(metaContent(head, 'og:image:alt'), file).toBe(
         socialCover?.alt ??
           (locale === 'en'

@@ -6,6 +6,9 @@ export type ArticleCoverLocale = 'ja' | 'en'
 
 type CoverDefinition = {
   readonly alt: Readonly<Record<ArticleCoverLocale, string>>
+  readonly width?: number
+  readonly height?: number
+  readonly type?: string
 }
 
 export const ARTICLE_COVERS = {
@@ -81,6 +84,14 @@ export const ARTICLE_COVERS = {
       en: 'Editorial still life of a discovery drive and contrasting material samples',
     },
   },
+  'miner-rate-by-purity': {
+    width: 1280,
+    height: 720,
+    alt: {
+      ja: '純度の違う資源ノードから採鉱機へ鉱石を運ぶ抽象的なイラスト',
+      en: 'Abstract illustration of miners drawing ore from nodes of different purity',
+    },
+  },
   'oil-loop-complete': {
     alt: {
       ja: '原油のしずくと複数の精製タンクを描いたイラスト',
@@ -146,16 +157,29 @@ export const ARTICLE_COVERS = {
 export type ArticleCover = {
   readonly src: string
   readonly alt: string
+  readonly width: number
+  readonly height: number
+  readonly type: string
 }
 
 export function articleCoverFor(slug: string, locale: ArticleCoverLocale): ArticleCover {
   const definition = ARTICLE_COVERS[slug as keyof typeof ARTICLE_COVERS]
   if (definition === undefined) throw new Error(`missing article cover: ${slug}`)
-  return { src: `/article-covers/${slug}.webp`, alt: definition.alt[locale] }
+  return {
+    src: `/article-covers/${slug}.webp`,
+    alt: definition.alt[locale],
+    width: 'width' in definition && typeof definition.width === 'number' ? definition.width : 1200,
+    height:
+      'height' in definition && typeof definition.height === 'number' ? definition.height : 630,
+    type: 'type' in definition && typeof definition.type === 'string' ? definition.type : 'image/webp',
+  }
 }
 
 export const ARTICLE_INDEX_COVER: ArticleCover = {
   src: '/article-covers/article-library.webp',
+  width: 1200,
+  height: 630,
+  type: 'image/webp',
   alt: {
     ja: '白紙のガイドブックと工場の風景を描いたイラスト',
     en: 'Editorial illustration of a blank guidebook in an industrial landscape',

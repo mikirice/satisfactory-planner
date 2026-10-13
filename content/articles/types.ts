@@ -1,6 +1,18 @@
 export type ArticleSection = {
   readonly heading: string
   readonly paragraphs: readonly string[]
+  readonly tables?: readonly ArticleTable[]
+}
+
+export type ArticleTable = {
+  readonly caption?: string
+  readonly headers: readonly string[]
+  readonly rows: readonly (readonly string[])[]
+}
+
+export type ArticleReferences = {
+  readonly heading: string
+  readonly links: readonly { readonly label: string; readonly href: string }[]
 }
 
 export type SampleArticleCta = {
@@ -16,6 +28,7 @@ export type ItemArticleCta = {
   readonly ratePerMin?: number
   readonly alternateRecipeIds?: readonly string[]
   readonly somersloops?: number
+  readonly minerId?: string
 }
 
 export type ArticleCta = SampleArticleCta | ItemArticleCta
@@ -25,6 +38,7 @@ export type HandwrittenArticle = {
   readonly title: string
   readonly description: string
   readonly sections: readonly ArticleSection[]
+  readonly references?: ArticleReferences
   readonly relatedItemIds: readonly string[]
   /**
    * 同じサイト内の関連記事（手書き記事の slug またはループテンプレートの sample id）。
