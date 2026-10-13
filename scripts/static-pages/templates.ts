@@ -64,7 +64,13 @@ export type StaticPageMeta = {
   description: string
   canonicalPath: string
   /** Page-specific social preview image. Defaults to the site's locale-specific brand artwork. */
-  ogImage?: { readonly url: string; readonly alt: string; readonly type?: string }
+  ogImage?: {
+    readonly url: string
+    readonly alt: string
+    readonly type?: string
+    readonly width?: number
+    readonly height?: number
+  }
   /** 対応する各言語のパス。片方しか無いページ（プライバシー等）は片方だけ入れる。 */
   alternates: PageAlternates
   ogType?: 'website' | 'article'
@@ -226,8 +232,8 @@ export function renderDocument(meta: StaticPageMeta, body: string): string {
     <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
     <meta property="og:image" content="${escapeHtml(socialImage.url)}" />
     <meta property="og:image:type" content="${escapeHtml(socialImage.type ?? 'image/png')}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content="${socialImage.width ?? 1200}" />
+    <meta property="og:image:height" content="${socialImage.height ?? 630}" />
     <meta property="og:image:alt" content="${escapeHtml(socialImage.alt)}" />
     <meta property="og:locale" content="${OG_LOCALE[locale]}" />
     ${articleMeta}
@@ -514,7 +520,7 @@ p { margin: 0 0 14px; }
 .article-list strong { display: block; color: var(--strong); font-size: 17px; line-height: 1.45; }
 .article-list .article-card__description { display: block; margin-top: 7px; color: #b7c0cd; line-height: 1.65; }
 .article-cover { max-width: 1040px; margin: 20px auto 0; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
-.article-cover img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--raised); }
+.article-cover img { display: block; width: 100%; height: auto; aspect-ratio: auto; background: var(--raised); }
 .article-cover figcaption { padding: 8px 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .article-cover--hero { margin-bottom: 18px; }
 

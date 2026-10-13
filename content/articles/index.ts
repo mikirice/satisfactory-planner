@@ -10,6 +10,7 @@ import { powerGenerationPlanningArticle } from './power-generation-planning.ts'
 import { productionPlanningTutorialArticle } from './production-planning-tutorial.ts'
 import { somersloopAndPowerShardsArticle } from './somersloop-and-power-shards.ts'
 import { strongAlternateRecipesArticle } from './strong-alternate-recipes.ts'
+import { minerRateByPurityArticle } from './miner-rate-by-purity.ts'
 import type { HandwrittenArticle } from './types.ts'
 
 export type {
@@ -33,6 +34,7 @@ export const handwrittenArticles = [
   clockAndEfficiencyArticle,
   buildChecklistGuideArticle,
   strongAlternateRecipesArticle,
+  minerRateByPurityArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']
