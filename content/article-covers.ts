@@ -92,6 +92,14 @@ export const ARTICLE_COVERS = {
       en: 'Abstract illustration of miners drawing ore from nodes of different purity',
     },
   },
+  'motor-production-recipes': {
+    width: 1280,
+    height: 720,
+    alt: {
+      ja: 'ローター、ステーター、結晶部品を組み合わせた抽象的なモーター工場のイラスト',
+      en: 'Abstract editorial illustration of a motor factory with rotors, stators and crystal components',
+    },
+  },
   'oil-loop-complete': {
     alt: {
       ja: '原油のしずくと複数の精製タンクを描いたイラスト',

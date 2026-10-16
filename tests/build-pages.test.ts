@@ -251,11 +251,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き13本とループ10本、および記事indexを生成する', async () => {
+  it('手書き14本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(23)
+    expect(articleSlugs).toHaveLength(24)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -282,8 +282,8 @@ describe('記事静的ページ', () => {
     expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
   })
 
-  it('手書き記事13本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(13)
+  it('手書き記事14本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(14)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -672,10 +672,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 227（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事23）
-    // ＋ 英語 226（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(453)
-    expect(manifest.urls).toHaveLength(453)
+    // 日本語 228（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事24）
+    // ＋ 英語 227（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(455)
+    expect(manifest.urls).toHaveLength(455)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
