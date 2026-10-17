@@ -132,6 +132,14 @@ describe('サンプルプランのスキーマ', () => {
     expect(parsed.input.planName).toBe(sample.title)
   })
 
+  it('アルミ水ループは採掘ボーキサイトで計算し、Copper/SAM由来の供給を使わない', () => {
+    const sample = SAMPLE_PLANS.find((entry) => entry.id === 'aluminum-water-loop')!
+    const parsed = parsePlanSnapshot(sample.snapshot)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.input.limitOverrides).toMatchObject({ Desc_OreCopper_C: 0, Desc_SAM_C: 0 })
+  })
+
   it('原子力の段階テンプレートは ①→②→③ の順で並び、簡略版の前に置かれる', () => {
     const specialIds = SAMPLE_PLANS.filter((s) => s.category === 'power').map((s) => s.id)
     const start = specialIds.indexOf('nuclear-uranium')
