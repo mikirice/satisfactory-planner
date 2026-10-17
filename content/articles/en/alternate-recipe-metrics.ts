@@ -2,52 +2,55 @@ import type { HandwrittenArticle } from '../types.ts'
 
 export const alternateRecipeMetricsArticleEn = {
   slug: 'alternate-recipe-metrics',
-  title: 'Choosing Alternate Recipes — Reading Output per Machine, per MW and per Ingredient',
+  title: 'How to Compare Alternate Recipes — Output, Power and Ingredients on the Same Basis',
   description:
-    'Compare output per machine, output per MW and output per ingredient using the real numbers behind the standard and alternate Iron Plate recipes.',
+    'Separate output per machine, per MW and per ingredient with a 100%-clock Iron Plate comparison, then check the same target across the whole factory.',
   sections: [
     {
-      heading: 'Three metrics, three different questions',
+      heading: 'Set the comparison conditions first',
       paragraphs: [
-        'An alternate recipe is not automatically the right pick just because it produces more per minute. It usually changes the building, the power draw and the ingredients as well, so the metric you should trust depends on what is actually limiting your factory. Recipe mode puts the standard and alternate recipes of an item side by side on the same basis.',
-        'Output rate per machine is what one machine at 100% clock produces per minute, calculated as output per cycle times 60 divided by the cycle time in seconds. It is the first thing to look at when floor space or building count is the constraint, but it says nothing about the extra steps an unusual ingredient may add upstream.',
+        'There is no universal ranking of “strong” alternate recipes. Start by using the same rate basis and clock, then decide what you want to compare. The per-minute rate in the recipe list is for the direct step at 100% clock. It does not include mining, upstream ingredients, transport or construction cost.',
+        'For the same product, compare the building, cycle time, inputs and outputs together. A one-machine recipe comparison is different from a whole factory making the same target quantity. Keep unlocked recipes and any stocked intermediates consistent when you compare plans.',
       ],
     },
     {
-      heading: 'Reading output per MW',
+      heading: 'What each of the three metrics tells you',
       paragraphs: [
-        'Output per MW divides that per-minute output by the power draw of one machine. The higher the value, the more the step produces for each megawatt it consumes. Recipes with a variable draw, such as those in the particle accelerator, are shown as a minimum-to-maximum range, and the comparison uses the midpoint. This metric also excludes mining and upstream production, so confirm the final decision against the total power of the whole plan.',
+        'Output per machine is how much one machine makes in a minute at 100% clock: output per cycle × 60 ÷ cycle time in seconds. It helps compare machine count and floor space, but says nothing about power draw or ingredient scarcity.',
+        'Output per MW divides the direct step’s output per minute by the building’s base power draw. Actual building power depends on the machine and its clock; miners and upstream production also need power. Treat this as a step-level comparison, not whole-factory power efficiency.',
+        'Output per ingredient divides output rate by the consumption rate of each ingredient separately. Read it as one ratio per ingredient, not as a combined score. Fluids and gases are divided by cubic metres, so their ratios are not directly comparable to a solid-item ratio.',
       ],
     },
     {
-      heading: 'Reading output per ingredient',
+      heading: 'Compare the three Iron Plate recipes on one basis',
       paragraphs: [
-        'Output per ingredient divides the per-minute output of the target item by the per-minute consumption of each ingredient. Solids are shown per item, fluids and gases per cubic metre. Each ingredient gets its own ratio — these are not added into a single score. Decide first which is the real problem, a scarce ingredient, a byproduct you already have too much of, or belt throughput, and then read the matching row.',
+        'At 100% clock, the standard Iron Plate recipe makes 20/min in a Constructor at 4 MW and uses 30 Iron Ingot/min. That is 5 plates/MW and about 0.67 plates per Iron Ingot. Coated Iron Plate makes 75/min in an Assembler at 15 MW from 37.5 Iron Ingot/min and 7.5 Plastic/min. It is also 5 plates/MW, but gives 2 plates per Iron Ingot. Steel Cast Plate makes 45/min in a Foundry at 16 MW from 15 Iron Ingot and 15 Steel Ingot per minute: about 2.81 plates/MW and 3 plates per unit of either ingot.',
+        'On this direct-step comparison, Coated Iron Plate has high throughput and more plates per Iron Ingot. The conclusion can change once the Oil, buildings and power behind Plastic are included, or the Steel chain behind Steel Cast Plate. Use these metrics to narrow the options; make the final decision with the whole factory solving for the same Iron Plate target.',
       ],
     },
     {
-      heading: 'Comparing the three Iron Plate recipes',
+      heading: 'Check the whole-factory result in the planner',
       paragraphs: [
-        'Take Iron Plate as the example. The standard recipe gives 20 per minute from one Constructor at 4 MW, using 30 Iron Ingot per minute: 5 plates per MW, and about 0.67 plates per ingot. Coated Iron Plate gives 75 per minute at 15 MW, which is the same 5 plates per MW, but it turns 37.5 Iron Ingot per minute into 75 plates — 2 plates per ingot. In exchange it needs 7.5 Plastic per minute and an Assembler. Steel Cast Plate gives 45 per minute at 16 MW from 15 Iron Ingot and 15 Steel Ingot per minute. Its ingredient ratio looks strong, but the judgement has to include the steel chain it pulls in upstream.',
-      ],
-    },
-    {
-      heading: 'Decide at the factory level',
-      paragraphs: [
-        'Once the field is narrowed down, enable only the alternate recipes you have unlocked and solve the same target rate under each objective in turn: minimize resources, minimize power, minimize buildings. Adopt the layout whose raw resources, total power and building count fit the constraint you are actually under.',
+        '1. Open the Iron Plate item page. In its recipe list, compare the direct rate, building, inputs and power for the standard and alternate recipes. Leave out any alternate you have not unlocked.',
+        '2. Open the 60/min plan at the end of this article. Keep its target fixed and enable one available alternate at a time. Solve separately for “minimize resources,” “minimize power” and “minimize buildings,” then note what changes in raw resources, total power and building count.',
+        '3. If you change a setting during the comparison, return to the baseline before trying the next candidate. Do not compare a result that brings in Oil or Water as stocked material with one that produces all ingredients on site. Before building, check throughput against the nodes and power you actually have.',
+        'If ore use falls but power is short or a different ingredient stalls the line, follow that ingredient upstream in the result. Do not read the objectives as one combined ranking; choose the result that fits your actual constraint.',
       ],
     },
   ],
-  relatedItemIds: [
-    'Desc_IronPlate_C',
-    'Desc_IronIngot_C',
-    'Desc_Plastic_C',
-    'Desc_SteelIngot_C',
-  ],
+  references: {
+    heading: 'References',
+    links: [
+      { label: 'Satisfactory Planner — game-data source and version (1.1.x)', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Satisfactory Planner — bundled recipe data', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/data/recipes.json' },
+      { label: 'Satisfactory Planner — recipe-list metrics implementation', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/scripts/static-pages/item-insights.ts' },
+    ],
+  },
+  relatedItemIds: ['Desc_IronPlate_C', 'Desc_IronIngot_C', 'Desc_Plastic_C', 'Desc_SteelIngot_C'],
   relatedArticleSlugs: ['strong-alternate-recipes', 'production-planning-tutorial'],
   cta: {
     kind: 'item',
-    label: 'Compare the Iron Plate alternates across a whole plan',
+    label: 'Compare Iron Plate alternates against the same target rate',
     itemId: 'Desc_IronPlate_C',
     ratePerMin: 60,
     alternateRecipeIds: [

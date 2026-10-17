@@ -14,7 +14,7 @@ export const strongAlternateRecipesArticleEn = {
     {
       heading: 'Decide what "strong" means first',
       paragraphs: [
-        'An alternate recipe can be strong in four different ways: it needs less ore for the same output, it needs fewer buildings, it avoids a resource that is scarce on the map, or it turns a byproduct such as Heavy Oil Residue into an ingredient. Those are not interchangeable. The map holds 92,100 Iron Ore per minute but only 15,000 Caterium Ore and 12,300 Bauxite, so "30% less ore" is worth far more on caterium than on iron. Every comparison below holds the output rate equal to the standard recipe and works from the recipe inputs, outputs and cycle time. How to read the individual metrics is covered in the article on choosing alternate recipes.',
+        '“Strong” means useful against a particular constraint. Compare each candidate by raw inputs for the same product rate, buildings, power and the destination of any byproducts. Recipe rows below use the bundled game data at 100% clock; whole-factory figures are scaled to the stated target. Keep per-machine recipe figures separate from values that include upstream production. The bundled map caps are 92,100 Iron Ore/min, 15,000 Caterium Ore/min and 12,300 Bauxite/min, so the same percentage saved can mean different things for each resource. See the alternate recipe metrics guide for the definitions.',
       ],
     },
     {
@@ -51,7 +51,8 @@ export const strongAlternateRecipesArticleEn = {
     {
       heading: 'Using this in the planner',
       paragraphs: [
-        'Enable the alternates you own in recipe mode, then solve the same target rate under minimize resources, minimize power and minimize buildings in turn. The differences above show up as raw resources, total power and building count for the whole plan. Enable only the recipes you have actually unlocked. As a hard drive priority, ordered by the size of the gain in this article: Diluted Fuel with Heavy Oil Residue, Steel Screws or Cast Screws, Pure Iron or Iron Alloy Ingot, Solid Steel Ingot, Wet Concrete, Fused Quickwire, then Silicon Circuit Board.',
+        '1. Choose a finished product and rate, then open the plan at the end of this article. Enable only recipes you have unlocked. 2. Keep the target fixed and solve separately for minimize resources, minimize power and minimize buildings; record the raw inputs, power and machine count. 3. Add one unlocked alternate at a time and solve again. If you change stocked inputs or resource caps, keep those conditions the same on both sides of the comparison.',
+        'Your choice depends on the bottleneck. If Iron Ore is short, consider Pure Iron or Iron Alloy; if power is short, be cautious with pure recipes that add Refineries; if oil is abundant, consider routes that use petroleum byproducts. If a result unexpectedly needs Sulfur, Water or Crude Oil, check that upstream supply. When a recipe is locked, another ingredient becomes the limit or machine count rises, compare again at the same target instead of applying a universal ranking.',
       ],
     },
     {
@@ -78,6 +79,14 @@ export const strongAlternateRecipesArticleEn = {
     'oil-loop-complete',
     'coal-power-startup',
   ],
+  references: {
+    heading: 'References',
+    links: [
+      { label: 'Satisfactory Planner — bundled game-data source and version (1.1.x)', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Satisfactory Planner — bundled recipes, buildings and extraction caps', href: 'https://github.com/mikirice/satisfactory-planner/tree/main/src/data' },
+      { label: 'Satisfactory Planner — solver implementation', href: 'https://github.com/mikirice/satisfactory-planner/tree/main/src/solver' },
+    ],
+  },
   cta: {
     kind: 'item',
     label: 'Plan 260 Screws per minute with Steel Screws and Pure Iron Ingot enabled',

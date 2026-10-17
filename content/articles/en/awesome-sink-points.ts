@@ -3,22 +3,22 @@ import type { HandwrittenArticle } from '../types.ts'
 export const awesomeSinkPointsArticleEn = {
   slug: 'awesome-sink-points',
   title: 'AWESOME Sink Points — Deciding What to Sink From the Data',
-    description:
-    'Which items the AWESOME Sink accepts, how sinkable items compare across recipes, and what point rates look like across a whole production chain.',
+  description:
+    'See how sinkable eligibility and point values work in the bundled data, calculate points per minute for recipe inputs and outputs, and learn what the planner can show across a production chain.',
   publishedDate: '2026-08-26',
   sections: [
     {
       heading: 'Points are a fixed value per item',
       paragraphs: [
-        'The data includes a fixed point value for each item, but that does not mean every item can be fed into the AWESOME Sink. The Sink accepts eligible solid items; liquids and gases such as Water and Crude Oil cannot be sunk directly even when the game data contains a numeric value for them. Among sinkable items, examples include Iron Ore 1, Limestone 2, Copper Ore 3, Coal 3, Bauxite 8, Sulfur 11, Raw Quartz 15, Iron Plate 6, Cable 24, Steel Beam 64, Aluminum Ingot 131, Aluminum Casing 393, Modular Frame 408 and Motor 1,520. Item pages show points only for items eligible for the Sink.',
-        'The important part is that points depend only on what the item is, not on how much effort went into it. The same item pays the same amount no matter which recipe produced it. That means the whole efficiency question reduces to two things: what you sink, and how much raw material you spent getting there.',
+        'The bundled item data has a point value for each item, but a value alone does not make it eligible for the Sink. This planner counts an item only when it is solid and its point value is greater than zero. Water and Crude Oil are liquids, for example, so they are excluded here even if the data has a numeric value. Examples in the bundled 1.1.x data: Iron Ore 1, Limestone 2, Copper Ore 3, Coal 3, Bauxite 8, Sulfur 11, Raw Quartz 15, Iron Plate 6, Cable 24, Steel Beam 64, Aluminum Ingot 131, Aluminum Casing 393, Modular Frame 408 and Motor 1,520 points per item. The planner’s item pages show a value only for items passing this eligibility check.',
+        'The bundled point value is fixed for an item, regardless of which recipe produced it. To compare recipes, multiply each eligible item’s per-minute rate by its points per item. This separates what can be sunk from how much eligible material the production chain used.',
       ],
     },
     {
       heading: 'One more step usually doubles it',
       paragraphs: [
         'Comparing only sinkable solid inputs and outputs per minute across the current recipe dataset shows a pattern. Of 290 recipes with ingredients, 82 have a sinkable-output to sinkable-input ratio of exactly 2.000. Iron Plate is a clean example: 30 Iron Ingot/min (60 points/min) becomes 20 Iron Plate/min (120 points/min). Cable, Steel Beam, Rotor, Modular Frame and Computer also sit at exactly 2.000.',
-        'The practical rule that falls out of this is simple: rather than sinking surplus as-is, put it through one more step first. Polymer Resin is worth 12 points each, but running it through the standard Residual Rubber recipe turns each unit into half a Rubber, worth 30 points. All you have to weigh is whether the extra building and its power draw are worth it.',
+        'This does not mean you should always process surplus before sinking it. In the bundled data, Polymer Resin is 12 points per item; the standard Residual Rubber recipe converts one Resin into half a Rubber, worth 30 points. That is a theoretical point increase, which still has to be weighed against the extra building, power and operating conditions.',
       ],
     },
     {
@@ -38,15 +38,15 @@ export const awesomeSinkPointsArticleEn = {
     {
       heading: 'A realistic way to chase coupons',
       paragraphs: [
-        'Points buy coupons, and the number of points a coupon costs rises each time you claim one. This planner does not model coupons, so what it can tell you is only how much points-per-minute a given set of buildings produces. Given the numbers above, the answer is clear enough: if you are building a line purely to sink, adding one or two steps to an existing main line beats opening new resource nodes for a wider variety of cheap items.',
-        'In practice the least effort comes from sinking the surplus your main factory already makes. If Screws and Iron Rods pile up, branch the ingots feeding them into the Wire or Screws alternates instead. If your oil line leaves byproducts, convert them with Residual Rubber or Residual Plastic before sinking. Both raise points per minute without claiming a single new node.',
+        'The planner does not calculate Sink machine count, feed capacity, coupons or coupon costs. This guide uses the recipe and raw-resource data to compare theoretical points when you carry a material through additional steps. Before building a dedicated line, compare the points from sinking surplus as-is with the extra materials, machines and power required to process it.',
+        'Start with the eligible surplus your factory already makes and multiply its rate by its points per item. If Screws or Iron Rods pile up, compare that with routing their ingredients through a Wire or Screws alternate. If an oil line leaves byproducts, count the eligible solid output after Residual Rubber or Residual Plastic; do not include the liquid byproduct in the Sink-point total.',
       ],
     },
     {
       heading: 'Checking it in the planner',
       paragraphs: [
-        'Set the item you want to sink as the target, read off the raw resource rates, and compare their point total against the product\'s point total. Cross-referencing the sink points on the item pages with the raw resource list in the results reproduces exactly the multipliers above for your own setup. Enabling alternates one at a time to find combinations that use less raw material is, directly, a point efficiency improvement.',
-        'When comparing candidates, look at the building count and the clocked power alongside the resource totals. A high multiplier that needs far more machines is a poor trade once floor space becomes the limit.',
+        '1. Open an item page and check that the candidate is solid and has a displayed point value above zero. 2. Choose a recipe and multiply each eligible input and output rate by its item points. Exclude ineligible materials from this direct point total. 3. For a factory-wide comparison, apply the same calculation to eligible raw items in the resource list and switch one recipe at a time while keeping the finished-product target fixed.',
+        'If the route needs an ineligible liquid, adds buildings or pushes clock-adjusted power beyond your supply, do not decide from the direct-recipe multiplier alone. The planner’s summary shows points from eligible surplus byproducts in the result; that is not the total points from sinking every finished product or a coupon estimate. Check in-game feed limits and Sink capacity separately.',
       ],
     },
   ],
@@ -64,6 +64,14 @@ export const awesomeSinkPointsArticleEn = {
     'production-planning-tutorial',
     'oil-products-basics',
   ],
+  references: {
+    heading: 'References',
+    links: [
+      { label: 'Satisfactory Planner — bundled game-data source and version (1.1.x)', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Satisfactory Planner — item point values and forms', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/data/items.json' },
+      { label: 'Satisfactory Planner — Sink eligibility and surplus-point calculation', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/data/index.ts' },
+    ],
+  },
   cta: {
     kind: 'item',
     label: 'Open a 60 Steel Beam/min plan (3,840 points/min)',
