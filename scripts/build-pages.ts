@@ -1350,6 +1350,7 @@ function howToSchema(ctx: Ctx, path: string, article: HandwrittenArticle): objec
 
 function articleSchema(
   ctx: Ctx,
+  image: string,
   path: string,
   headline: string,
   description: string,
@@ -1374,7 +1375,7 @@ function articleSchema(
         '@id': `${SITE_URL}${path}#article`,
         headline,
         description,
-        image: ogImageUrl(ctx.locale),
+        image,
         datePublished: publishedDate,
         ...(updatedDate === undefined ? {} : { dateModified: updatedDate }),
         inLanguage: ctx.locale,
@@ -1623,6 +1624,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       publishedTime: publishedDate,
       structuredData: articleSchema(
         ctx,
+        `${SITE_URL}${articleCoverFor(article.slug, ctx.locale).src}`,
         path,
         article.title,
         article.description,
@@ -2027,7 +2029,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
       ogType: 'article',
       ogImage: articleSocialImage(sample.id, ctx.locale),
       publishedTime: PUBLISHED_DATE,
-      structuredData: articleSchema(ctx, path, content.headline, description, breadcrumbId, PUBLISHED_DATE, content.updatedDate),
+      structuredData: articleSchema(ctx, ogImageUrl(ctx.locale), path, content.headline, description, breadcrumbId, PUBLISHED_DATE, content.updatedDate),
     },
     body,
   )
