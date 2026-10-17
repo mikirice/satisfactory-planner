@@ -390,6 +390,9 @@ const jaLabels = {
   articleCoverCaption:
     'イメージイラストです。ゲーム画面・計算結果・実際の建設手順を示すものではありません。',
   publishedOn: (date: string): string => `公開日: ${date}`,
+  articleVersionNotice: (gameVersion: string): string =>
+    `この記事の数値例は、本サイトに収録するSatisfactory ${gameVersion}のデータに基づきます。公式サイトではUpdate 1.2が2026年6月2日に公開済みですが、本サイトのデータは1.2との照合を終えていません。現行ゲームと異なる場合はゲーム内の情報を優先してください。`,
+  articleVersionNoticeLink: '公式 Update 1.2',
   relatedItems: '関連アイテム',
   relatedArticles: '関連記事',
   tryInPlannerHeading: 'ツールで試す',
@@ -688,6 +691,9 @@ const enLabels: StaticPageLabels = {
   articleCoverCaption:
     'Editorial illustration only — not an in-game screenshot, calculated result, or build instruction.',
   publishedOn: (date: string): string => `Published: ${date}`,
+  articleVersionNotice: (gameVersion: string): string =>
+    `The figures in this guide use Satisfactory ${gameVersion} data included in this planner. The official site lists Update 1.2 as released on June 2, 2026; this planner's data has not been checked against 1.2. If a figure differs from your current game, follow the in-game value.`,
+  articleVersionNoticeLink: 'Official Update 1.2',
   relatedItems: 'Related items',
   relatedArticles: 'Related guides',
   tryInPlannerHeading: 'Try it in the planner',
