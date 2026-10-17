@@ -47,8 +47,8 @@ export const ARTICLE_COVERS = {
   },
   'coal-power-startup': {
     alt: {
-      ja: '石炭の山と水道管を備えた発電機のイラスト',
-      en: 'Editorial illustration of a coal generator with coal and a water pipe',
+      ja: 'Satisfactory公式Press Kitの石炭発電機のゲーム内スクリーンショット（2020年）',
+      en: 'In-game screenshot of Coal-Powered Generators from the 2020 Satisfactory Press Kit',
     },
     caption: {
       ja: 'Satisfactory公式Press Kitのゲーム内スクリーンショット（2020年）。記事の8台構成そのものではありません。',
