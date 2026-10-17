@@ -92,22 +92,23 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Aluminum Ingot Water Loop',
     headline: 'How the Aluminum Refining Water Loop Works and How to Build It',
     description:
-      '120 Aluminum Ingot per minute, reusing the Water that the Aluminum Scrap step sends back upstream.',
+      'Make 120 Aluminum Ingot per minute with a steady outside Water supply of 120 m³/min by reusing the Water returned from Aluminum Scrap.',
     highlight:
-      'Watch the line that carries Water from Aluminum Scrap back into the Alumina Solution step.',
+      'Alumina Solution needs 180 m³/min of Water, but Aluminum Scrap returns 60 m³/min, so the line needs 120 m³/min of fresh Water once it reaches steady operation.',
     mechanism: [
-      'Make Alumina Solution from Bauxite and Water.',
-      'Make Aluminum Scrap from Alumina Solution and Coal; the step returns Water as a byproduct.',
-      'Merge that Water back into the Alumina Solution step so less has to be pumped in.',
-      'Smelt the Aluminum Scrap and take out Aluminum Ingot.',
+      'With the standard recipe, make 120 m³/min of Alumina Solution. One Refinery at 100% uses 120 Bauxite/min and 180 m³/min of Water, and returns 50 Silica/min.',
+      'Make 180 Aluminum Scrap/min. One Refinery at 50% uses 120 m³/min of Alumina Solution and 60 Coal/min, and returns 60 m³/min of Water.',
+      'Connect the return pipe to the Water header feeding Alumina Solution. The balance is 180 m³/min of gross Water demand minus 60 m³/min returned, leaving 120 m³/min to pump in.',
+      'Two Foundries use 180 Aluminum Scrap/min and 150 Silica/min to make 120 Aluminum Ingot/min. After the 50 Silica/min from Alumina Solution, make up the remaining 100 Silica/min. The standard Silica recipe needs 2⅔ Constructors and 60 Raw Quartz/min.',
     ],
     tips: [
-      'On start-up, fill the pipes from the Water Extractors and only throttle the intake once the loop is running.',
-      'Set the valves and merge points so that the returning Water is always consumed first.',
-      'If the byproduct Water backs up, every step stops — an emergency outlet is worth building.',
+      'Start upstream: power the Water Extractors and Alumina Solution Refinery first. Once Alumina Solution reaches the scrap step, start that Refinery. When the return flow is visible, set outside Water to the steady 120 m³/min. If you temporarily supply 180 m³/min to prime the pipes, reduce it as soon as return Water starts flowing; leaving that feed running will create excess Water and can block the scrap output.',
+      'Do not depend on a pipe junction to give one source priority. Limit the fresh-Water line to 120 m³/min and join it with the unrestricted return line; together they supply the 180 m³/min the Alumina Solution step needs. If you use a Valve, put it on the fresh-Water line, not on the return.',
+      'Check the stalled step: for Alumina Solution, verify combined Water supply, pump head lift, power and Bauxite. If only Aluminum Scrap stops, check Alumina Solution and Coal supply, its Water outlet, the return connection to the same network, and a full pipe or buffer with nowhere to flow. Temporarily stop fresh Water so downstream machines can consume the excess, fix the return connection or head lift, then restore the 120 m³/min make-up supply. A buffer cannot correct an imbalance. The Planner solves steady rates, not pipe filling during start-up, elevation, Valve placement or local blockages, so inspect the in-game pipes too.',
+      'Sources: recipe rates from Coffee Stain Studios’ bundled Satisfactory Community Resources Docs (1.1.x game data), cross-checked against the official community-driven wiki’s Recipes page: https://satisfactory.wiki.gg/wiki/Recipes . Pipe and head-lift behavior: the same wiki’s Pipelines and Head lift pages: https://satisfactory.wiki.gg/wiki/Pipeline and https://satisfactory.wiki.gg/wiki/Head_lift .',
     ],
     circulationMeaning:
-      'The Water returned by the scrap step is reused upstream. The figure below is the amount that circulates, and therefore never has to be pumped in from outside.',
+      'The standard Aluminum Scrap recipe returns 60 m³/min, all of which can be reused by Alumina Solution. The figure below is the circulating amount; it is separate from the 120 m³/min of fresh Water needed at steady state.',
   },
 
   'packaged-diluted-fuel-loop': {
