@@ -1104,7 +1104,7 @@ describe('英語ミラーの生成', () => {
       'utf8',
     )
     expect(tutorial).toContain('Your First Production Plan — A Guided Tour of the Planner')
-    expect(tutorial).toContain('Read the five result tabs')
+    expect(tutorial).toContain('Read the six result tabs')
 
     for (const slug of articleSlugs) {
       const html = await readFile(join(outputDirectory, 'en/articles', slug, 'index.html'), 'utf8')
