@@ -1451,7 +1451,7 @@ function articleCoverFigure(ctx: Ctx, slug: string): string {
   const cover = articleCoverFor(slug, ctx.locale)
   return `<figure class="article-cover article-cover--hero">
       <img src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" fetchpriority="high" decoding="async" />
-      <figcaption>${escapeHtml(cover.caption ?? ctx.L.articleCoverCaption)}${cover.creditLinks?.length ? `<span class="article-cover__credits">${cover.creditLinks.map((link) => `<a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`).join(' · ')}</span>` : ''}</figcaption>
+      <figcaption>${escapeHtml(cover.caption ?? ctx.L.articleCoverCaption)}${cover.creditLinks?.length ? ` <span class="article-cover__credits">${cover.creditLinks.map((link) => `<a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`).join(' · ')}</span>` : ''}</figcaption>
     </figure>`
 }
 
@@ -1599,7 +1599,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       <h1>${escapeHtml(article.title)}</h1>
       <p class="lead">${escapeHtml(article.description)}</p>
       <p class="version">${escapeHtml(ctx.L.publishedOn(publishedDate))}</p>
-      <p class="version article-data-version-notice">${escapeHtml(ctx.L.articleVersionNotice(meta.gameVersion))} <a href="https://www.satisfactorygame.com/" rel="noopener noreferrer">${escapeHtml(ctx.L.articleVersionNoticeLink)}</a></p>
+      <p class="version article-data-version-notice">${escapeHtml(article.versionNotice ?? ctx.L.articleVersionNotice(meta.gameVersion))} <a href="https://www.satisfactorygame.com/" rel="noopener noreferrer">${escapeHtml(ctx.L.articleVersionNoticeLink)}</a></p>
     </header>
     <article class="article-body">
       ${sections}

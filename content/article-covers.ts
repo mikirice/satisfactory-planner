@@ -1047,6 +1047,109 @@ export const ARTICLE_COVERS = {
     "width": 1280,
     "height": 720,
     "type": "image/webp"
+  },
+  "factory-floor-area": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの工場でブループリントを設置する実ゲーム画面。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit gameplay screenshot of placing a blueprint in a factory. The cover title is editorial."
+    },
+    "caption": {
+      "ja": "公式Press Kitの実ゲーム画面に記事用の見出しを重ねています。土台上にブループリントを設置する場面で、記事の鉄板例やPlannerの面積計算結果、完成配置図ではありません。 ",
+      "en": "Official Press Kit gameplay with an editorial title overlay. It shows a blueprint being placed on foundations; it is not the article’s Iron Plate example, a Planner area result, or a finished layout. "
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": {
+      "ja": "/article-covers/factory-floor-area-ja.webp",
+      "en": "/article-covers/factory-floor-area-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "fluid-truck-delivery": {
+    "alt": {
+      "ja": "公式Satisfactoryの実ゲーム画面に映る流体トラックと流体ステーション。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory gameplay showing a Fluid Truck and Fluid Stations. The cover title is editorial."
+    },
+    "caption": {
+      "ja": "公式Update 1.2の実ゲーム画面を記事の主題を示す背景として使用しています。容量や補給量の実測画面ではありません。",
+      "en": "Official Update 1.2 gameplay used as thematic context. This is not a measurement of capacity or delivery rate."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/fluid-truck-delivery-ja.webp", "en": "/article-covers/fluid-truck-delivery-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "vehicle-paths": {
+    "alt": {
+      "ja": "Update 1.2の公式実ゲーム画面に車両パスとトラックが映る。記事用の見出しを重ねたカバー。",
+      "en": "Official Update 1.2 gameplay showing a vehicle path and truck. The cover title is editorial."
+    },
+    "caption": {
+      "ja": "公式Update 1.2の実ゲーム画面を車両パス機能のイメージとして掲載しています。初期の1.2画面であり、現行UIの説明やルート動作の実証ではありません。",
+      "en": "Official Update 1.2 gameplay used to illustrate Vehicle Paths. It is an early 1.2 screen, not a claim about the current UI or a route test."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/vehicle-paths-ja.webp", "en": "/article-covers/vehicle-paths-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "power-connector-daisy-chain": {
+    "alt": {
+      "ja": "公式Press Kitの工場内に機械と電線が広がるゲーム画面。記事用の見出しを重ねたカバー。",
+      "en": "Official Press Kit gameplay showing machinery and power lines across a factory. The cover title is editorial."
+    },
+    "caption": {
+      "ja": "公式Press Kitの工場風景を電力配線の記事の背景に使用しています。デイジーチェーンの接続箇所や解放画面を示す実証画像ではありません。",
+      "en": "Official Press Kit factory gameplay used as context for a power-wiring guide. It does not show daisy-chain connection points or the unlock screen."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/power-connector-daisy-chain-ja.webp", "en": "/article-covers/power-connector-daisy-chain-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
   }
 } as const satisfies Record<string, CoverDefinition>
 
