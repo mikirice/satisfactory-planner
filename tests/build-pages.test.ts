@@ -653,6 +653,34 @@ describe('記事静的ページ', () => {
     expect(simplifiedEn).toContain('the Blender and the Refinery both disappear from the line')
   })
 
+  it('包装希釈燃料の記事は日英で2種類のレシピと実ソルバーの循環値を説明する', async () => {
+    const ja = await readFile(
+      join(outputDirectory, 'articles/packaged-diluted-fuel-loop/index.html'),
+      'utf8',
+    )
+    const en = await readFile(
+      join(outputDirectory, 'en/articles/packaged-diluted-fuel-loop/index.html'),
+      'utf8',
+    )
+    for (const html of [ja, en]) {
+      expect(html).toContain('120.00')
+      expect(html).toContain('Update 1.2')
+      expect(html).toContain('1.1.x')
+      expect(html).toContain('github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
+      expect(html).toContain(
+        'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
+      )
+    }
+    expect(ja).toContain('混合機の代替レシピ「希釈燃料」')
+    expect(ja).toContain('計8台')
+    expect(ja).toContain('定常運転の正味消費は 0個/min')
+    expect(ja).toContain('起動在庫やベルト・配管の満たし具合はソルバーに含まれず')
+    expect(en).toContain('liquid Diluted Fuel made in a Blender')
+    expect(en).toContain('build eight machines')
+    expect(en).toContain('steady-state net canister demand zero')
+    expect(en).toContain('The solver does not model start-up inventory')
+  })
+
   it('全記事に最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {
     expect(Object.keys(ARTICLE_COVERS).sort()).toEqual([...articleSlugs].sort())
     const staticCss = await readFile(join(outputDirectory, 'static-pages.css'), 'utf8')
