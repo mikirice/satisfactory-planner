@@ -15,25 +15,35 @@ export const somersloopAndPowerShardsArticleEn = {
     {
       heading: 'Use Power Shards to cut machine count',
       paragraphs: [
-        'Each Power Shard raises the clock limit by 50 percentage points, up to three per machine and a maximum of 250%. Raising the production clock limit in the planner does not change the 100%-equivalent machine requirement or the ingredient balance. It changes the allocation that follows: the number of machines to build is the machine equivalent divided by the clock limit, rounded up, and each machine is then set to the clock that meets the required rate. Three machines’ worth of work at a 250% limit, for example, becomes two machines at 150% each, with one shard in each of them.',
-        'The cost is power. Production draw grows roughly with the clock raised to the power of 1.322, so every step up makes each item more expensive in energy. Underclocking the remainder evenly across several machines does the opposite and saves power. Power Shards suit places where land or construction materials are short, where the number of resource nodes is the limit, or where a building is too expensive to duplicate. In a power-constrained factory, treat 100% as the ceiling instead.',
+        'Each Power Shard raises the clock ceiling by 50 percentage points, up to three per machine and a maximum of 250%. Raising the production clock limit does not change the 100%-equivalent machine requirement or ingredient balance. It changes the building allocation; with a 250% ceiling, three machines’ worth of work can run on two machines at 150% each, using one shard apiece. Making 60 Iron Plate/min takes three Constructors and 12 MW for the Constructors at 100%, or two at 150% and about 13.67 MW for the Constructors (smelting and extraction draw extra power). Each 150% Constructor needs one shard.',
+        'In this model, production power is base draw × clock raised to 1.321929. Higher clocks therefore use more power for the same number of items. Evenly underclocking several machines saves power instead. Shards can reduce the count where floor space or construction materials are scarce, or where a costly manufacturer is hard to duplicate. They can also increase extraction at a node, but check the resulting clock, count and power. If power is tight, review the actual clock and draw after solving instead of treating a higher ceiling as a free gain.',
       ],
     },
     {
       heading: 'Use Somersloops to save ingredients',
       paragraphs: [
-        'Filling every slot of a supported building with Somersloops doubles all of its output while the ingredient input stays the same. Power consumption becomes four times the normal draw at a 100% clock. The planner does not model partially filled buildings; a step is either normal or fully looped. Enter the number of Somersloops you can spare and the solver mixes normal and fully looped steps according to the objective. Doubling a step close to the finished product shrinks the requirement of the entire chain behind it. Applying it at several stages compounds the resource saving, but the power draw and the number of Somersloops climb with it.',
+        'Filling every slot of a supported building doubles all output while ingredient consumption stays the same. A Constructor has one slot, an Assembler two and a Manufacturer four. At 100% clock, power becomes four times normal. In the planner’s 60 Iron Plate/min plan, three standard Constructors use 90 Iron Ore/min and the whole factory draws 24 MW. One fully looped Constructor plus one standard Constructor makes the same 60/min using 60 Iron Ore/min and one Somersloop; the whole factory draws 28 MW. In the bundled data and solver, that saves 30 Iron Ore/min at a cost of 4 MW across the plan.',
+        'The planner does not model partial loading; each building variant is either normal or filled in every slot. Enter the number of Somersloops you have as an upper limit, and the solver combines normal and fully looped steps to fit its objective. Doubling a step close to the finished product reduces the upstream chain too. Applying it at several stages can compound savings, along with the power draw and number of Somersloops used.',
       ],
     },
     {
       heading: 'Check the results and the warnings',
       paragraphs: [
         'Read the summary for Somersloops used, raw resources and clock-adjusted power, then read the production steps to see which recipe received how many. Somersloop slots are constrained by the integer number of buildings you can actually place, including the building’s full slot count. A plan cannot use a fractional building’s worth of slots; if your budget cannot cover an additional building, that full-slot variant is unavailable.',
-        'The reliable way to decide is to solve the same target twice, once with zero Somersloops and once with the number you own, and put the resource saving and the added power side by side.',
+        '1. Choose a production-clock ceiling in settings, then read the building count, actual clock and shard count in Production steps. 2. Solve the same target with zero Somersloops and with the number you own; compare raw resources and clock-adjusted power in Summary. 3. In Production steps, check which recipes were fully loaded and whether the displayed slots match whole buildings.',
+        'If power rises but the machine count does not fall, check the actual clocks and slots selected. The solver may use fewer than the number you entered. It models production rates and material balances; it does not simulate in-game power trips, belt jams or placement.',
       ],
     },
   ],
   relatedItemIds: ['Desc_WAT1_C', 'Desc_CrystalShard_C', 'Desc_IronPlate_C'],
+  references: {
+    heading: 'References',
+    links: [
+      { label: 'Satisfactory Planner — bundled game-data source and version (1.1.x)', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Satisfactory Planner — clock and Power Shard calculations', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/solver/overclock.ts' },
+      { label: 'Satisfactory Planner — Somersloop output, power and building constraints', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/solver/model.ts' },
+    ],
+  },
   cta: {
     kind: 'item',
     label: 'Try Somersloops on 60 Iron Plate/min',
