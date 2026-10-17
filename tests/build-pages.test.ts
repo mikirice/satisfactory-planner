@@ -573,6 +573,61 @@ describe('記事静的ページ', () => {
     }
   })
 
+  it('記事一覧は日英で検索・複数ジャンルを使え、絞り込み後も全件へ戻せる', async () => {
+    for (const [locale, file, allCount] of [
+      ['ja', 'articles/index.html', `0件 / 全${articleSlugs.length}件`],
+      ['en', 'en/articles/index.html', `0 of ${articleSlugs.length} guides`],
+    ] as const) {
+      const html = await readFile(join(outputDirectory, file), 'utf8')
+      expect(html).toContain('data-article-filter hidden')
+      expect(html).toContain(locale === 'ja' ? '記事を検索' : 'Search articles')
+      expect(html.match(/<li data-article-card/g)).toHaveLength(articleSlugs.length)
+      expect(html).toContain('data-article-empty hidden')
+      expect(html).toContain('data-article-count role="status" aria-live="polite"')
+      expect(html).toContain('data-genres=')
+      expect(html).toContain(locale === 'ja' ? '条件をリセット' : 'Reset filters')
+      for (const slug of articleSlugs) {
+        expect(html).toContain(`href="${articlePagePath(slug, locale)}"`)
+      }
+
+      const { JSDOM } = await import('jsdom' as string)
+      const dom = new JSDOM(html, {
+        runScripts: 'dangerously',
+        url: `https://satisfactory-planner.net/${locale === 'en' ? 'en/' : ''}articles/`,
+        pretendToBeVisual: true,
+      })
+      const { document, Event } = dom.window
+      const query = document.querySelector('[data-article-query]') as HTMLInputElement
+      const genre = document.querySelector('[data-article-genre]') as HTMLSelectElement
+      const count = document.querySelector('[data-article-count]') as HTMLElement
+      const empty = document.querySelector('[data-article-empty]') as HTMLElement
+      const cards = Array.from(document.querySelectorAll('[data-article-card]')) as HTMLElement[]
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(count.textContent).toBe(allCount.replace('0', String(articleSlugs.length)))
+      expect(cards.every((card) => !card.hidden)).toBe(true)
+      const genreOptions = Array.from(genre.options).filter((option) => option.value && !option.hidden)
+      expect(genreOptions.every((option) => cards.some((card) => card.dataset.genres?.split(' ').includes(option.value)))).toBe(true)
+
+      query.value = 'excel-export-guide'
+      query.dispatchEvent(new Event('input', { bubbles: true }))
+      genre.value = 'planner'
+      genre.dispatchEvent(new Event('change', { bubbles: true }))
+      expect(cards.filter((card) => !card.hidden)).toHaveLength(1)
+      expect(count.textContent).toContain('1')
+
+      query.value = 'definitely-no-such-guide'
+      query.dispatchEvent(new Event('input', { bubbles: true }))
+      expect(cards.every((card) => card.hidden)).toBe(true)
+      expect(empty.hidden).toBe(false)
+
+      ;(document.querySelector('[type="reset"]') as HTMLButtonElement).click()
+      await new Promise((resolve) => setTimeout(resolve, 30))
+      expect(cards.every((card) => !card.hidden)).toBe(true)
+      expect(empty.hidden).toBe(true)
+      dom.window.close()
+    }
+  })
+
   it('10件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
     const loopSlugs = SAMPLE_PLANS.filter((sample) => sample.category !== 'basic').map(
       (sample) => sample.id,
