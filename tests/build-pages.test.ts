@@ -320,21 +320,21 @@ describe('記事静的ページ', () => {
     expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/satisfactory-factory-general.webp"')
     expect(ja).toContain('一般的な工場風景です。')
     expect(ja).toContain('Satisfactory screenshot © Coffee Stain Studios / 出典：公式Satisfactory Press &amp; Content Creators')
-    expect(ja).toContain('公式Satisfactoryメディアの一般的な工場風景です。Motor専用ラインや記事の計算結果ではありません。')
+    expect(ja).toContain('公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。')
     expect(ja).not.toContain('イメージイラストです。ゲーム画面')
     expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/motor-recipe-inputs-ja.svg"')
     expect(ja).toContain('ゲーム画面ではありません。')
     expect(en).toContain('<figure class="article-illustration"><img src="/article-images/satisfactory-factory-general.webp"')
     expect(en).toContain('Satisfactory screenshot © Coffee Stain Studios / Source: official Press &amp; Content Creators page')
-    expect(en).toContain('General factory scene from official Satisfactory media. It is not a Motor-specific line or a result from this article.')
+    expect(en).toContain('Official Satisfactory Press Kit gameplay with an editorial title overlay. It does not show calculations or a specific machine layout from the guide.')
     expect(en).not.toContain('Editorial illustration only')
     expect(ja).toContain('og:image')
-    expect(ja).toContain('motor-production-recipes-official-ja.webp')
+    expect(ja).toContain('motor-production-recipes-ja.webp')
     expect(en).toContain('og:image')
-    expect(en).toContain('motor-production-recipes-official-en.webp')
-    expect(jaIndex).toContain('motor-production-recipes-official-ja.webp')
+    expect(en).toContain('motor-production-recipes-en.webp')
+    expect(jaIndex).toContain('motor-production-recipes-ja.webp')
     expect(jaIndex).toContain('ゲーム画像')
-    expect(enIndex).toContain('motor-production-recipes-official-en.webp')
+    expect(enIndex).toContain('motor-production-recipes-en.webp')
     expect(enIndex).toContain('Game screenshot')
     expect(en).toContain('<figure class="article-illustration"><img src="/article-images/motor-recipe-inputs-en.svg"')
     expect(en).toContain('This is not a game screenshot.')
@@ -458,10 +458,10 @@ describe('記事静的ページ', () => {
     expect(coalEn).toContain('https://satisfactory.wiki.gg/wiki/Coal_generator')
     expect(coalJa).toContain('https://store.steampowered.com/news/posts/')
     expect(coalEn).toContain('https://store.steampowered.com/news/posts/')
-    expect(coalJa).toContain('Satisfactory公式Press Kitの石炭発電機のゲーム内スクリーンショット（2020年）')
-    expect(coalEn).toContain('In-game screenshot of Coal-Powered Generators from the 2020 Satisfactory Press Kit')
-    expect(coalJa).toContain('Press Kitのゲーム内スクリーンショット（2020年）')
-    expect(coalEn).toContain('does not show the article’s exact eight-generator layout')
+    expect(coalJa).toContain('Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。')
+    expect(coalEn).toContain('Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial.')
+    expect(coalJa).toContain('公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。')
+    expect(coalEn).toContain('does not show calculations or a specific machine layout from the guide')
     expect(coalJa).toContain('Satisfactory Wiki: 石炭発電機（英語）')
     expect(coalJa).not.toContain('電力網の負荷が小さければ定格分を常に燃やすわけではありません')
     expect(coalEn).not.toContain('the plant does not always burn the full rated amount when the grid load is lower')
@@ -835,10 +835,10 @@ describe('記事静的ページ', () => {
       }
     }
 
-    for (const slug of ['coal-power-startup', 'build-checklist-guide', 'nuclear-reprocessing']) {
+    for (const slug of articleSlugs) {
       for (const locale of ['ja', 'en'] as const) {
         expect(articleCoverFor(slug, locale).badge).toBe(locale === 'ja' ? 'ゲーム画像' : 'Game screenshot')
-        expect(articleCoverFor(slug, locale).creditLinks).toHaveLength(1)
+        expect(articleCoverFor(slug, locale).creditLinks).toHaveLength(2)
       }
     }
 
@@ -850,7 +850,8 @@ describe('記事静的ページ', () => {
       expect(index.split('class="article-card__image"').length - 1).toBe(articleSlugs.length)
       expect(index.split('class="article-card__badge"').length - 1).toBe(articleSlugs.length)
       expect(index.split('loading="lazy" decoding="async"').length - 1).toBe(articleSlugs.length)
-      expect(index).toContain(locale === 'ja' ? '>イラスト</span>' : '>Illustration</span>')
+      expect(index).toContain(locale === 'ja' ? '>ゲーム画像</span>' : '>Game screenshot</span>')
+      expect(index).not.toContain(locale === 'ja' ? '>イラスト</span>' : '>Illustration</span>')
       for (const slug of articleSlugs) {
         const cover = articleCoverFor(slug, locale)
         expect(index, `${locale}/${slug}`).toContain(
@@ -2478,3 +2479,4 @@ describe('公式名トークンの解決', () => {
     await visit(outputDirectory)
   })
 })
+
