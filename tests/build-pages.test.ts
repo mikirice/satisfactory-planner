@@ -576,8 +576,15 @@ describe('記事静的ページ', () => {
     expect(oil).toContain('77.8%削減')
     expect(oil).toContain('0.00 → 666.67 m³/min')
     expect(oil).toContain('新規使用')
-    expect(oil).toContain('「残留ゴム」でゴムにし、循環を起動します')
-    expect(oil).toContain('手動投入なしで起動できます')
+    expect(oil).toContain('原油 200 m³/min から廃重油 266.67 m³/min')
+    expect(oil).toContain('ゴム60個・プラスチック54個と燃料114個')
+    expect(oil).toContain('在庫、レシピ周期のずれ、ベルトや配管の充填・流量')
+    expect(oil).toContain(
+      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
+    )
+    expect(oil).toContain(
+      'href="https://github.com/aringadre76/satisfactory-api/tree/master/Docs" rel="noopener noreferrer"',
+    )
     const turbofuel = await readFile(
       join(outputDirectory, 'articles/turbofuel-power/index.html'),
       'utf8',
@@ -1118,7 +1125,15 @@ describe('英語ミラーの生成', () => {
     )
 
     expect(oil).toContain('How the Complete Oil Recycling Loop Works and How to Build It')
-    expect(oil).toContain('Turn the Polymer Resin byproduct into Rubber with Residual Rubber')
+    expect(oil).toContain('four alternate recipes enabled: Heavy Oil Residue, Diluted Fuel')
+    expect(oil).toContain('60 Rubber, 54 Plastic, and 114 Fuel items')
+    expect(oil).toContain('It does not simulate inventories, recipe-cycle timing')
+    expect(oil).toContain(
+      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
+    )
+    expect(oil).toContain(
+      'href="https://github.com/aringadre76/satisfactory-api/tree/master/Docs" rel="noopener noreferrer"',
+    )
     expect(oil).toContain('900.00 → 200.00 m³/min')
     expect(oil).toContain('77.8% less')
     expect(oil).toContain('0.00 → 666.67 m³/min')
