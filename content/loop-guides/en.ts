@@ -32,22 +32,25 @@ export type LoopGuideEn = {
 
 export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
   'oil-loop-complete': {
-    title: 'Complete Oil Recycling Loop',
+    title: 'Complete Oil Recycling',
     headline: 'How the Complete Oil Recycling Loop Works and How to Build It',
     description:
-      '300 per minute each of Plastic and Rubber, with Fuel circulating between the two halves of a fully closed recycling loop.',
-    highlight: 'Watch the pair of lines that feed Plastic and Rubber back into each other’s recipe.',
+      'A steady-state balance for 300/min each of Plastic and Rubber using Heavy Oil Residue, Diluted Fuel, Residual Rubber, and two recycling recipes.',
+    highlight:
+      'All Fuel returns to the two recycling steps; the net products are 300/min each of Plastic and Rubber.',
     mechanism: [
-      'Process Crude Oil with the Heavy Oil Residue recipe so that as much residue as possible comes out.',
-      'Turn the Polymer Resin byproduct into Rubber with Residual Rubber; this is what gets the loop started.',
-      'Add Water to the Heavy Oil Residue and stretch it into Fuel with Diluted Fuel.',
-      'Make Recycled Plastic from Fuel and Rubber.',
-      'Make Recycled Rubber from Fuel and Plastic.',
-      'Send part of the Plastic and Rubber back into each other’s step and take the remainder out as product.',
+      'This example is a steady-state calculation with four alternate recipes enabled: Heavy Oil Residue, Diluted Fuel, Recycled Plastic, and Recycled Rubber. Residual Rubber is the standard recipe.',
+      'Process 200 m³/min of Crude Oil into 266.67 m³/min of Heavy Oil Residue and 133.33 Polymer Resin/min. Send all the residue to Diluted Fuel in Blenders; with 533.33 m³/min of Water, it makes 533.33 m³/min of Fuel.',
+      'Use 133.33 Polymer Resin/min and 133.33 m³/min of Water in Residual Rubber to make 66.67 Rubber/min. Total Water input is 666.67 m³/min.',
+      'Recycled Plastic consumes 277.78 Rubber/min and 277.78 Fuel/min to make 555.56 Plastic/min. Return 255.56 Plastic/min to Recycled Rubber and take the remaining 300/min as product.',
+      'Recycled Rubber consumes 255.56 Plastic/min and 255.56 Fuel/min to make 511.11 Rubber/min. Including Residual Rubber, 577.78 Rubber/min is available: return 277.78/min to Recycled Plastic and take 300/min as product.',
+      'The two recycling steps consume all 533.33 m³/min of Fuel. The plan uses 30 Refineries and 6 Blenders, 36 production buildings total; resource extractors are not included.',
     ],
     tips: [
-      'Start the Heavy Oil Residue and Residual Rubber steps first and only feed the recycling steps once the first Rubber arrives — the loop then starts without hand-feeding anything.',
-      'Wait until the Fuel pipes are full before bringing the Refineries up one at a time; when something stalls it is far easier to see why.',
+      'The steady-state solver does not include startup inventory. At the default building count, one initial batch across all 10 Recycled Plastic and 9 Recycled Rubber Refineries takes 60 Rubber, 54 Plastic, and 114 Fuel items. First build Rubber and Fuel stock from Polymer Resin and Water; start one side, reserve its output, then start the other. These are recipe-batch amounts, not per-minute rates.',
+      'Prioritize Polymer Resin to Residual Rubber and send only overflow to storage or a sink. Diverting all resin before you have seed Rubber can leave the recycling loop without startup stock.',
+      'Prioritize the return belts and pipes before product takeoff. If product output backs up, check the return splits, Fuel distribution, and where the Resin goes; a blocked return can back up intermediates and stop Crude Oil processing.',
+      'This is a continuous recipe-ratio calculation. It does not simulate inventories, recipe-cycle timing, belt or pipe filling and flow, head lift, or in-game stalls. Start in stages and check the actual flows. If you do not have all four alternate recipes, choose available recipes and solve the plan again; the same rates and building count will not apply. Recipe rates use the Satisfactory 1.1.x game-bundled CommunityResources/Docs. See https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md for the source record and version fingerprint; the mirrored game Docs are at https://github.com/aringadre76/satisfactory-api/tree/master/Docs.',
     ],
   },
 
