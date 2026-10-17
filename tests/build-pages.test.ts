@@ -595,6 +595,10 @@ describe('記事静的ページ', () => {
     expect(battery).toContain('135.00 m³/min')
     expect(battery).toContain('バッテリー: <span class="num">90.00 m³/min')
     expect(battery).toContain('アルミのスクラップ: <span class="num">45.00 m³/min')
+    expect(battery).toContain('外部水は 315 + 150 − 135 = 330 m³/min 必要です')
+    expect(battery).toContain(
+      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
+    )
     // 原子力の段階テンプレート: ① は基準なしの「ビルド時の計算結果」、②③ は ① との比較表。
     // 数値は本文に書かず、build-time solver の実値だけが出る
     const uranium = await readFile(
@@ -1127,6 +1131,10 @@ describe('英語ミラーの生成', () => {
     expect(battery).toContain('Byproduct Water reused across the line')
     expect(battery).toContain('135.00 m³/min')
     expect(battery).toContain('Battery: <span class="num">90.00 m³/min')
+    expect(battery).toContain('The plant therefore needs 315 + 150 − 135 = 330 m³/min of external Water.')
+    expect(battery).toContain(
+      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
+    )
 
     // 基準の無いテンプレート（原子力 ①）は「ビルド時の計算結果」側の表示になる
     const uranium = await readFile(

@@ -138,21 +138,23 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Battery Water Loop',
     headline: 'How the Battery Water Loop Works and How to Build It',
     description:
-      '60 Battery per minute, returning the Water produced along the way to the Alumina Solution step.',
-    highlight: 'Watch the line that carries Water from the Battery step back to Alumina Solution.',
+      '60 Battery per minute. Return water from Battery production and aluminum refining to Alumina Solution to reduce fresh-water demand.',
+    highlight:
+      'Watch the return lines from Battery and Aluminum Scrap join the feed for Alumina Solution.',
     mechanism: [
-      'Prepare Alumina Solution from Bauxite and Water.',
-      'Make Sulfuric Acid from Sulfur and Water, and produce Aluminum Casing on a separate branch.',
-      'Making Batteries from Alumina Solution, Sulfuric Acid and Aluminum Casing returns Water as a byproduct.',
-      'Merge that Water back into the Alumina Solution step and use it again.',
+      'Make Alumina Solution from Bauxite and Water. Both aluminum refining and Battery production use it.',
+      'Make Aluminum Scrap from Alumina Solution and Coal; Water comes back as a byproduct. Turn the Scrap into Aluminum Ingots, then make the Aluminum Casing for Batteries.',
+      'Make Sulfuric Acid from Sulfur and Water, then send Alumina Solution, Sulfuric Acid and Aluminum Casing to a Blender to make Batteries.',
+      'The Battery step also returns Water. Join both return streams back into the Alumina Solution feed to reduce fresh-water intake.',
     ],
     tips: [
-      'Fill the pipes with outside Water on start-up, then switch over to the return line once Batteries are coming out.',
-      'Battery production stops as soon as the return line backs up, so leave slack in the pipework.',
-      'Draw on the circulating Water first and top up from the Water Extractors only for the shortfall.',
+      'Prime the pipes with external Water and start both aluminum refining and Sulfuric Acid production first. Keep the external supply on until the return streams begin flowing.',
+      'Send the returned Water to Alumina Solution first, and keep a separate supply for Sulfuric Acid. If a return backs up, check that its receiving process is running, that pipes or buffers are not full, and that the junction is not starving one branch. Continuing to produce while a byproduct outlet is blocked will stall the downstream line.',
+      'This sample enables no alternate recipes. Alternate: Classic Battery makes 4 Batteries every 8 seconds from 6 Sulfur, 7 Aluminum Plate, 8 Plastic and 12 Wire; it uses no Water and returns none. Switching to it removes the Battery step’s 90 m³/min return. Aluminum refining still supplies the Aluminum Plate, so Scrap still returns Water, but the rate changes with the amount of Aluminum Plate required.',
+      'These are build-time steady-state rates from the Planner’s Satisfactory 1.1.x recipe data, sourced from a mirror of the game-bundled CommunityResources/Docs. The data has not been checked against in-game recipes after Update 1.2, so use the current in-game values where they differ. The planner sums recipe flows; it does not simulate pipe routing, head lift, transient fluid behavior or priority at junctions. Prime and balance the actual pipes in game. Version and source provenance: https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md (mirror of the primary game data: https://github.com/aringadre76/satisfactory-api/tree/master/Docs).',
     ],
     circulationMeaning:
-      'Water that appears as a byproduct of the Battery step and of the aluminium refining upstream is returned to the Alumina Solution step. The figure below is how much circulates across the whole line without being pumped in from outside.',
+      'The total below is the byproduct Water from Battery production and upstream aluminum refining at this sample’s target of 60 Batteries/min. With the standard recipes, 60 × 1.5 = 90 m³/min comes from Batteries, and 135 Aluminum Scrap × 2/6 = 45 m³/min comes from Scrap, for 135 m³/min returned. Producing 210 Alumina Solution/min (120 for Batteries + 90 for Scrap) consumes 210 × 18/12 = 315 m³/min of Water; Sulfuric Acid consumes a further 150 m³/min. The plant therefore needs 315 + 150 − 135 = 330 m³/min of external Water. Flow summary: return 135 (Battery 90 + Scrap 45) → Alumina Solution; fresh Water 180 → Alumina Solution and fresh Water 150 → Sulfuric Acid. The figure is recycled byproduct flow, not the plant’s total water independence. Recipe values use the Satisfactory 1.1.x game-bundled Docs; see https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md for version identification and source provenance.',
   },
 
   'nuclear-simplified': {

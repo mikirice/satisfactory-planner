@@ -286,8 +286,12 @@ describe('サンプルプランの求解', () => {
     const sample = SAMPLE_PLANS.find((s) => s.id === 'battery-water-loop')!
     const solution = await solveSample(sample)
     const water = solution.itemBalance.find((balance) => balance.item === 'Desc_Water_C')!
-    expect(water.producedPerMin).toBeGreaterThan(0)
-    expect(water.consumedPerMin).toBeGreaterThan(water.producedPerMin)
+    expect(water.producedPerMin).toBeCloseTo(135, 6)
+    expect(water.consumedPerMin).toBeCloseTo(465, 6)
+    expect(solution.rawResources.find((raw) => raw.item === 'Desc_Water_C')?.ratePerMin).toBeCloseTo(
+      330,
+      6,
+    )
   })
 
   /**
