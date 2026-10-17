@@ -228,9 +228,58 @@ describe('サンプルプランの求解', () => {
     const used = new Set(solution.steps.map((step) => step.recipeId))
     expect(used).toContain('Recipe_PackagedWater_C')
     expect(used).toContain('Recipe_UnpackageFuel_C')
+    expect(used).toContain('Recipe_Alternate_DilutedPackagedFuel_C')
+    expect(used).toContain('Recipe_Alternate_HeavyOilResidue_C')
+    expect(solution.targets).toMatchObject([
+      { item: 'Desc_LiquidFuel_C', requestedPerMin: 120, producedPerMin: 120 },
+    ])
+    expect(solution.rawResources.map(({ item, ratePerMin }) => [item, ratePerMin])).toEqual(
+      expect.arrayContaining([
+        ['Desc_LiquidOil_C', 45],
+        ['Desc_Water_C', 120],
+      ]),
+    )
+    expect(solution.totalBuildingCount).toBe(8)
+    const oil = solution.itemBalance.find((balance) => balance.item === 'Desc_HeavyOilResidue_C')!
+    expect(oil.producedPerMin).toBe(60)
+    expect(oil.consumedPerMin).toBe(60)
+    const packagedWater = solution.itemBalance.find(
+      (balance) => balance.item === 'Desc_PackagedWater_C',
+    )!
+    expect(packagedWater.producedPerMin).toBe(120)
+    expect(packagedWater.consumedPerMin).toBe(120)
     const canister = solution.itemBalance.find((balance) => balance.item === 'Desc_FluidCanister_C')!
-    expect(canister.producedPerMin).toBeGreaterThan(0)
-    expect(canister.consumedPerMin).toBeGreaterThan(0)
+    expect(canister.producedPerMin).toBe(120)
+    expect(canister.consumedPerMin).toBe(120)
+    expect(canister.netPerMin).toBe(0)
+    const resin = solution.itemBalance.find((balance) => balance.item === 'Desc_PolymerResin_C')!
+    expect(resin.producedPerMin).toBe(30)
+  })
+
+  it('液体の代替: 希釈燃料は同量の水と廃重油を使うが、容器工程を使わない', () => {
+    const liquidDiluted = recipesById.get('Recipe_Alternate_DilutedFuel_C')!
+    const heavyOil = recipesById.get('Recipe_Alternate_HeavyOilResidue_C')!
+    expect(liquidDiluted.durationSec).toBe(6)
+    const fuelPerMinPerBlender =
+      liquidDiluted.products.find((product) => product.item === 'Desc_LiquidFuel_C')!.amount *
+      (60 / liquidDiluted.durationSec)
+    const machineCount = 120 / fuelPerMinPerBlender
+    const cyclesPerMin = 120 /
+      (liquidDiluted.products.find((product) => product.item === 'Desc_LiquidFuel_C')!.amount)
+    const liquidInputs = Object.fromEntries(
+      liquidDiluted.ingredients.map((ingredient) => [ingredient.item, ingredient.amount * cyclesPerMin]),
+    )
+    expect(machineCount).toBeCloseTo(1.2, 8)
+    expect(liquidInputs).toEqual({ Desc_HeavyOilResidue_C: 60, Desc_Water_C: 120 })
+
+    const heavyOilPerMinPerRefinery =
+      heavyOil.products.find((product) => product.item === 'Desc_HeavyOilResidue_C')!.amount *
+      (60 / heavyOil.durationSec)
+    expect(60 / heavyOilPerMinPerRefinery).toBeCloseTo(1.5, 8)
+    // At the default 100% clock cap, 1.2 Blenders + 1.5 Refineries round up to four buildings.
+    expect(Math.ceil(machineCount) + Math.ceil(60 / heavyOilPerMinPerRefinery)).toBe(4)
+    expect(liquidDiluted.ingredients.some((ingredient) => ingredient.item === 'Desc_FluidCanister_C'))
+      .toBe(false)
   })
 
   it('バッテリーループは副産物の水をアルミナ溶液で再利用する', async () => {
