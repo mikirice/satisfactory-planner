@@ -1,49 +1,86 @@
 import type { HandwrittenArticle } from '../types.ts'
 
+/**
+ * Capacity and per-minute rates below are from the repository's 1.1.x game-data
+ * snapshot at 100% clock. Coal generators run at the configured clock regardless
+ * of grid demand; the planner reports whole generators at rated capacity.
+ */
 export const coalPowerStartupArticleEn = {
   slug: 'coal-power-startup',
-  title: 'Getting Coal Power Running — Building Around a 600 MW Block of Eight',
+  title: 'Getting Coal Power Running — Size and Stabilize an Eight-Generator Block',
   description:
-    'The fuel and water ratios of the Coal-Powered Generator, how to size mining, water and belts around a block of eight generators, and how the numbers shift when you switch to Compacted Coal or Petroleum Coke.',
+    'Plan fuel, water and logistics for eight Coal-Powered Generators, start them with temporary power, protect supply during a grid trip, and read planner output as rated capacity rather than actual game load.',
   publishedDate: '2026-08-26',
   sections: [
     {
-      heading: 'Start from what a single generator eats',
+      heading: 'Choose capacity and fuel',
       paragraphs: [
-        'One Coal-Powered Generator produces 75 MW. Running it on Coal, a single unit at 100% clock burns 15 Coal/min and 45 m³/min of Water. Every ratio in a coal plant falls out of those two numbers. Once you pick a generator count, Coal comes in multiples of 15 and Water in multiples of 45, and there is nothing else to work out. There is no byproduct either, so unlike nuclear you never need a downstream consumer.',
-        'Water is the half people forget. A starved coal belt is obvious, but a starved pipe can be harder to spot. Coal generators do not automatically throttle fuel and water use to match power demand; you can manually underclock them, but a short supply can still disrupt the plant. Decide the generator count first, then confirm you can deliver the rate you set (45 m³/min at 100% clock per unit).',
+        'Start by choosing the number of generators and their clock setting. At 100% clock, a Coal-Powered Generator produces 75 MW regardless of grid demand. On Coal, each unit consumes 15 Coal/min and 45 m³/min of Water, so eight units produce 600 MW and use 120 Coal/min plus 360 m³/min of Water. Low demand does not automatically reduce generator output or fuel and water consumption. Output and inputs decrease in proportion only when you manually lower the clock.',
+        'At rated output, each generator uses about 7.14 Compacted Coal/min or 25 Petroleum Coke/min. The rated Water input remains 45 m³/min for either fuel. Compacted Coal adds Sulfur and Assembler capacity; Petroleum Coke uses Heavy Oil Residue but increases belt throughput. Choose a fuel based on the resources and logistics you can provide, then size the line for that fuel’s rated input.',
       ],
     },
     {
-      heading: 'Treat eight generators as one block',
+      heading: 'Fit belts and pipes to their limits',
       paragraphs: [
-        'Eight Coal-Powered Generators are 600 MW, 120 Coal/min and 360 m³/min of Water. That combination is convenient on the logistics side too: 120 Coal/min is exactly the throughput of a Conveyor Belt Mk.2 (120 items/min). Water at 360 m³/min does not fit a Pipeline Mk.1 (300 m³/min) but fits a single Pipeline Mk.2 (600 m³/min). If Mk.2 pipes are not unlocked yet, split the supply into two runs.',
-        'You can also read it backwards. If you want one Mk.2 belt to carry the Coal, eight generators is your ceiling; with a Mk.3 belt (270 items/min) a single run feeds 18 generators, or 1,350 MW. Choosing the belt and pipe tier before the generator count saves you from re-routing later.',
+        'A Mk.2 Conveyor Belt carries 120 Coal/min, exactly the rated requirement for eight generators. A Mk.1 belt cannot carry the full block on one line, so split the supply or use fewer generators. One Miner Mk.2 on a Normal node produces 120 Coal/min at 100% clock in the Planner data. Check the actual node purity and miner clock in your own build.',
+        'Three Water Extractors (120 m³/min each) provide 360 m³/min. A single Mk.1 Pipeline is limited to 300 m³/min, so one Mk.1 line is not enough for the full block. Use one Mk.2 Pipeline (up to 600 m³/min), or split Mk.1 pipe runs and feed the generators at multiple points. Check head lift too; add powered pipeline pumps when the water must rise beyond the extractor’s available lift.',
       ],
     },
     {
-      heading: 'Count the mining and pumping hardware',
+      heading: 'Bring fuel and water online with temporary power',
       paragraphs: [
-        '120 Coal/min matches exactly one Miner Mk.2 on a Normal purity node at 100% clock (120 items/min). A Miner Mk.1 gives 60 items/min, so you would need two; a Miner Mk.3 gives 240 items/min, so half of one covers it. Node purity is a straight multiplier: Impure is 0.5x and Pure is 2x. Put a Miner Mk.2 on a Pure node and one machine delivers 240 items/min, enough for 16 generators.',
-        '360 m³/min of Water takes three Water Extractors at 120 m³/min each. This is where the support hardware starts to matter: a Water Extractor draws 20 MW and a Miner Mk.2 draws 15 MW. For the eight-generator block that is 75 MW just for water and mining, or 12.5% of the 600 MW you generate. Coal power is not 600 MW of usable output, and it helps to budget that from the start.',
+        'Before the coal generators can supply the plant, power the Water Extractors and Miner from a temporary source such as Biomass Burners. Connect the coal belt and water pipes to the generators. Check that fuel reaches the generators and water is flowing before connecting their power output to the factory grid. A conveyor manifold can take time to fill all the way to its last machines, so check the far end after the plant has run for a while as well as during startup.',
+        'Keeping the supply machines on a separate power circuit from the factory makes recovery easier: a factory breaker trip does not also stop the Miner and Water Extractors. In an eight-generator example supplied by one Miner Mk.2, three Water Extractors draw 60 MW and the Miner draws 15 MW, for 75 MW of rated support load. Include this support power, along with the generators’ own draw, when estimating usable power.',
       ],
     },
     {
-      heading: 'Changing fuel changes the ratios',
+      heading: 'Separate a grid trip from a supply problem',
       paragraphs: [
-        'The Coal-Powered Generator also burns Compacted Coal and Petroleum Coke. Water stays at 45 m³/min per unit either way, but fuel consumption does not. Compacted Coal burns at roughly 7.14 items/min per generator, so seven generators come to exactly 50 items/min. Compacted Coal is made in an Assembler from 25 Coal/min and 25 Sulfur/min into 25 items/min, so 50 items/min means two Assemblers plus 50 Coal/min and 50 Sulfur/min. Coal consumption drops to less than half of burning it directly, at the cost of Sulfur nodes and 15 MW per Assembler.',
-        'Petroleum Coke burns at 25 items/min per generator, and a Refinery turns 40 m³/min of Heavy Oil Residue into 120 items/min of it. If your oil line has Heavy Oil Residue to spare, this sends it somewhere useful instead of clogging a pipe. Note that the higher burn rate means eight generators need 200 items/min, which a Mk.2 belt cannot carry — revisit the belt tier whenever you change fuel.',
+        'If the whole grid trips its breaker, first check whether connected demand exceeded the available generation capacity. If the generators remain online but output is unstable, inspect the coal belt and the water system separately: confirm Coal reaches the end of the belt, check pipe flow and elevation, and make sure no Mk.1 pipe segment is carrying more than its 300 m³/min limit.',
+        'For easier diagnosis, stabilize the Miner, Extractors and generators before adding the factory load. After recovery, reconnect factory demand in stages. If adding a load trips the breaker, generation capacity is too low for that load; if the system stops without adding demand, investigate fuel or water delivery.',
       ],
     },
     {
-      heading: 'Working it out in the planner',
+      heading: 'Read planner output as rated capacity',
       paragraphs: [
-        'To plan coal power here, enable the Coal-Powered Generator in the settings, pick which fuels it may use (Coal, Compacted Coal, Petroleum Coke), then enter a target power output in MW. Choosing Compacted Coal or Petroleum Coke pulls their production steps into the same item balance, so the Sulfur or Crude Oil requirement appears in the same result. Leaving fuels you do not intend to build switched off keeps the output readable.',
-        'With Compacted Coal selected, the solver may propose making Sulfur in a Converter from Iron Ore rather than mining it. The default objective weights each raw resource by the map cap, and Sulfur is capped at 10,800 items/min against 92,100 items/min for Iron Ore. If you have Sulfur nodes secured, switching the objective to "minimise power" or "minimise buildings" brings the direct route back.',
-        'Turning on "cover the factory power draw" adds the manufacturing buildings to the self-sufficiency constraint. That constraint does not include extraction hardware, though. The three Water Extractors and the miners counted above have to be added by hand from the extraction power shown in the results. The planner rounds generator counts to whole units at 100% clock; it does not model manual underclocking. A 100 MW target therefore estimates two coal generators producing 150 MW and consuming 30 Coal/min and 90 m³/min of Water. In-game, underclocking both generators to 66⅔% gives 100 MW at 20 Coal/min and 60 m³/min of Water.',
+        'In the Planner, enable Coal-Powered Generators, choose the allowed fuels and enter a target MW. Enabling other fuels also exposes the Sulfur or Petroleum Coke production steps in the material balance. Generator counts are rounded to whole units at 100% clock, so a 100 MW target selects two generators with 150 MW of capacity and lists 30 Coal/min plus 90 m³/min of Water. Those are the inputs for two generators at 100% clock. To set them to 100 MW total in game, manually underclock each to 66⅔%; together they then use 20 Coal/min and 60 m³/min of Water. Grid demand alone does not reduce generator output.',
+        'The Planner’s “cover factory power draw” constraint includes manufacturing buildings but not Miners or Water Extractors. Add the extraction power shown in the results separately. Biomass Burners are the exception that scale output to power demand. Coal generators run at their configured clock, and if available capacity is too low for demand, the breaker trips.',
       ],
     },
   ],
+  references: {
+    heading: 'Data and references',
+    links: [
+      {
+        label: 'Official Satisfactory Press & Content Creators / Press Kit',
+        href: 'https://www.satisfactorygame.com/press/',
+      },
+      {
+        label: 'Official press-kit screenshot: coal.jpg (2020)',
+        href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view',
+      },
+      {
+        label: 'Satisfactory Wiki: Coal-Powered Generator',
+        href: 'https://satisfactory.wiki.gg/wiki/Coal_generator',
+      },
+      {
+        label: 'Satisfactory Wiki: Power',
+        href: 'https://satisfactory.wiki.gg/wiki/Electricity',
+      },
+      {
+        label: 'Official Satisfactory Update 4 announcement (2021)',
+        href: 'https://store.steampowered.com/news/posts/?appids=526870&enddate=1624027272&feed=steam_community_announcements',
+      },
+      {
+        label: 'Planner game-data provenance and version notes',
+        href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md',
+      },
+      {
+        label: 'Coal Power Tutorial — Satisfactory Guru (startup and pipe-layout comparison)',
+        href: 'https://satisfactory.guru/articles/read/index/id/6/name/Coal%2BPower%2BTutorial',
+      },
+    ],
+  },
   relatedItemIds: [
     'Desc_Coal_C',
     'Desc_Water_C',

@@ -1,6 +1,6 @@
 /**
- * Original, text-free editorial illustrations shared by the Japanese and English article pages.
- * They are decorative cover art, not screenshots, diagrams, or calculated production results.
+ * Editorial covers shared by the Japanese and English article pages. Each entry's caption
+ * identifies whether it is original illustration art or official game media.
  */
 export type ArticleCoverLocale = 'ja' | 'en'
 
@@ -50,6 +50,17 @@ export const ARTICLE_COVERS = {
       ja: '石炭の山と水道管を備えた発電機のイラスト',
       en: 'Editorial illustration of a coal generator with coal and a water pipe',
     },
+    caption: {
+      ja: 'Satisfactory公式Press Kitのゲーム内スクリーンショット（2020年）。記事の8台構成そのものではありません。',
+      en: 'In-game screenshot from the official Satisfactory Press Kit (2020); it does not show the article’s exact eight-generator layout.',
+    },
+    localizedSrc: {
+      ja: '/article-covers/coal-power-startup-1280x720.webp',
+      en: '/article-covers/coal-power-startup-1280x720.webp',
+    },
+    width: 1280,
+    height: 720,
+    type: 'image/webp',
   },
   'oil-products-basics': {
     alt: {
