@@ -1466,13 +1466,100 @@ function articleSocialImage(slug: string, locale: StaticLocale) {
 
 function articleCard(
   ctx: Ctx,
-  article: { readonly slug: string; readonly title: string; readonly description: string },
+  article: {
+    readonly slug: string
+    readonly title: string
+    readonly description: string
+    readonly genreIds: readonly ArticleGenreId[]
+  },
 ): string {
   const cover = articleCoverFor(article.slug, ctx.locale)
-  return `<li><a class="article-card" href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}">
+  const genreLabels = article.genreIds.map((id) => ctx.L.articleGenreLabels[id])
+  const searchText = [article.slug, article.title, article.description, ...genreLabels].join(' ')
+  return `<li data-article-card data-genres="${escapeHtml(article.genreIds.join(' '))}" data-search="${escapeHtml(searchText)}"><a class="article-card" href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}">
         <span class="article-card__media"><img class="article-card__image" src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" loading="lazy" decoding="async" /><span class="article-card__badge">${escapeHtml(cover.badge ?? ctx.L.articleCoverBadge)}</span></span>
-        <span class="article-card__text"><strong>${escapeHtml(article.title)}</strong><span class="article-card__description">${escapeHtml(article.description)}</span></span>
+        <span class="article-card__text"><strong>${escapeHtml(article.title)}</strong><span class="article-card__description">${escapeHtml(article.description)}</span><span class="article-card__genres">${genreLabels.map((label) => `<span>${escapeHtml(label)}</span>`).join('')}</span></span>
       </a></li>`
+}
+
+type ArticleGenreId = 'planner' | 'production' | 'power' | 'factory' | 'optimization' | 'other'
+
+const ARTICLE_GENRE_IDS: readonly ArticleGenreId[] = [
+  'planner',
+  'production',
+  'power',
+  'factory',
+  'optimization',
+  'other',
+]
+
+/** 現在の記事データのタイトル・説明から複数ジャンルを割り当てる。新しい記事も自動で分類する。 */
+function articleGenreIds(text: string, sampleCategory?: string): readonly ArticleGenreId[] {
+  const value = text.toLocaleLowerCase()
+  const genres: ArticleGenreId[] = []
+  const add = (id: ArticleGenreId) => {
+    if (!genres.includes(id)) genres.push(id)
+  }
+  if (/planner|planning|excel|export|checklist|tool|計画|ツール|建設リスト|一覧|使い方/.test(value)) add('planner')
+  if (/production|recipe|miner|motor|aluminum|aluminium|battery|product|生産|レシピ|採鉱|モーター|アルミ|バッテリー|製造/.test(value)) add('production')
+  if (sampleCategory === 'power' || /power generation|power setup|power startup|power planning|generator|coal|fuel|turbofuel|nuclear|electricity|発電|石炭|燃料|原子力|ウラン|プルトニウム/.test(value)) add('power')
+  if (sampleCategory === 'special' || /factory|build|loop|water|oil|construction|工場|建設|循環|水|石油|廃重油|精錬|容器/.test(value)) add('factory')
+  if (/alternate|somersloop|shard|clock|efficiency|sink|points|代替|スループ|シャード|クロック|効率|シンク|ポイント/.test(value)) add('optimization')
+  if (genres.length === 0) add('other')
+  return genres
+}
+
+function articleFilterControls(ctx: Ctx): string {
+  const options = ARTICLE_GENRE_IDS.map((id) =>
+    `<option value="${id}">${escapeHtml(ctx.L.articleGenreLabels[id])}</option>`,
+  ).join('')
+  return `<form class="article-filter" data-article-filter hidden>
+    <div class="article-filter__fields">
+      <label>${escapeHtml(ctx.L.articleSearchLabel)}<input type="search" name="query" data-article-query autocomplete="off" /></label>
+      <label>${escapeHtml(ctx.L.articleGenreLabel)}<select name="genre" data-article-genre><option value="">${escapeHtml(ctx.L.articleGenreAll)}</option>${options}</select></label>
+    </div>
+    <div class="article-filter__actions"><p data-article-count role="status" aria-live="polite"></p><button type="reset">${escapeHtml(ctx.L.articleFilterReset)}</button></div>
+  </form>
+  <p class="empty-state" data-article-empty hidden>${escapeHtml(ctx.L.articleFilterEmpty)}</p>
+  <script>
+    (() => {
+      const initialize = () => {
+        const form = document.querySelector('[data-article-filter]');
+        if (!form) return;
+        const cards = [...document.querySelectorAll('[data-article-card]')];
+        const query = form.querySelector('[data-article-query]');
+        const genre = form.querySelector('[data-article-genre]');
+        const count = form.querySelector('[data-article-count]');
+        const empty = document.querySelector('[data-article-empty]');
+        const sections = [...document.querySelectorAll('[data-article-section]')];
+        for (const option of genre.options) {
+          option.hidden = option.value !== '' && !cards.some((card) => card.dataset.genres.split(' ').includes(option.value));
+        }
+        const update = () => {
+          const term = query.value.trim().toLocaleLowerCase();
+          const selectedGenre = genre.value;
+          let visible = 0;
+          for (const card of cards) {
+            const matches = card.dataset.search.toLocaleLowerCase().includes(term)
+              && (!selectedGenre || card.dataset.genres.split(' ').includes(selectedGenre));
+            card.hidden = !matches;
+            if (matches) visible += 1;
+          }
+          for (const section of sections) section.hidden = !section.querySelector('[data-article-card]:not([hidden])');
+          count.textContent = ${JSON.stringify(ctx.L.articleFilterCount(0, articleSlugs.length))}.replace('0', String(visible));
+          empty.hidden = visible !== 0;
+        };
+        form.addEventListener('input', update);
+        form.addEventListener('change', update);
+        form.addEventListener('submit', (event) => event.preventDefault());
+        form.addEventListener('reset', () => requestAnimationFrame(update));
+        form.hidden = false;
+        update();
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
+      else initialize();
+    })();
+  </script>`
 }
 
 function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string {
@@ -1929,9 +2016,19 @@ function renderArticlesIndex(ctx: Ctx): string {
     slug: sample.id,
     category: sample.category,
     content: loopContent(ctx, sample),
+    genreIds: articleGenreIds(
+      [sample.title, sample.titleEn, sample.id].join(' '),
+      sample.category,
+    ),
   }))
   const handwrittenList = handwritten
-    .map((article) => articleCard(ctx, article))
+    .map((article) => {
+      const english = handwrittenArticlesEnBySlug.get(article.slug)
+      return articleCard(ctx, {
+        ...article,
+        genreIds: articleGenreIds([article.slug, article.title, english?.title].join(' ')),
+      })
+    })
     .join('')
   const loopSections = LOOP_ARTICLE_GROUPS.map((group) => {
     const list = loops
@@ -1941,10 +2038,11 @@ function renderArticlesIndex(ctx: Ctx): string {
           slug: loop.slug,
           title: loop.content.headline,
           description: loop.content.description,
+          genreIds: loop.genreIds,
         }),
       )
       .join('')
-    return `<section>
+    return `<section data-article-section>
       <h2>${escapeHtml(group.heading(ctx.L))}</h2>
       <ul class="article-list article-list--cards">${list}</ul>
     </section>`
@@ -1994,7 +2092,8 @@ function renderArticlesIndex(ctx: Ctx): string {
       <h1>${escapeHtml(ctx.L.articlesIndexTitle)}</h1>
       <p class="lead">${escapeHtml(ctx.L.articlesIndexLead)}</p>
     </header>
-    <section>
+    ${articleFilterControls(ctx)}
+    <section data-article-section>
       <h2>${escapeHtml(ctx.L.articlesIndexToolSection)}</h2>
       <ul class="article-list article-list--cards">${handwrittenList}</ul>
     </section>
