@@ -112,20 +112,25 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
   },
 
   'packaged-diluted-fuel-loop': {
-    title: 'Packaged Fuel Canister Loop',
-    headline: 'How the Packaged Diluted Fuel Canister Loop Works and How to Build It',
+    title: 'Packaged Diluted Fuel Canister Loop',
+    headline: 'Packaged Diluted Fuel: Canister Loop, Rates, and Start-up',
     description:
-      '120 Fuel per minute: package the Water, then recover the Empty Canisters after dilution and use them again.',
-    highlight: 'Watch the line that returns Empty Canisters to the water packaging step.',
+      '120 m³/min of Fuel from 120 m³/min of Water and 60 m³/min of Heavy Oil Residue, with 120 Empty Canisters per minute circulating.',
+    highlight:
+      'Follow the Empty Canisters back to Packager. This is Diluted Packaged Fuel made in a Refinery; it is a different recipe from the liquid Diluted Fuel made in a Blender.',
     mechanism: [
-      'Take Heavy Oil Residue out of Crude Oil, and fill Empty Canisters with Water.',
-      'Make Diluted Packaged Fuel from the residue and the Packaged Water.',
-      'Unpackaging the Fuel hands the canisters straight back.',
-      'Return the Empty Canisters to the water packaging step so the same canisters keep going round.',
+      'With Alternate: Heavy Oil Residue, 45 m³/min of Crude Oil yields 60 m³/min of Heavy Oil Residue and 30 Polymer Resin per minute.',
+      'Two Packagers turn 120 m³/min of Water and 120 Empty Canisters per minute into 120 Packaged Water per minute.',
+      'Two Refineries running Alternate: Diluted Packaged Fuel turn 60 m³/min of Heavy Oil Residue and 120 Packaged Water per minute into 120 Packaged Fuel per minute.',
+      'Two Packagers unpackage that Fuel into 120 m³/min of liquid Fuel and return 120 Empty Canisters per minute. Returning them to water packaging makes the loop’s steady-state net canister demand zero.',
+      'Alternate: Diluted Fuel in a Blender makes 10 m³ of liquid Fuel from 5 m³ of Heavy Oil Residue and 10 m³ of Water every six seconds. At 120 m³/min, its Water and Heavy Oil Residue needs match this example; it skips the packaging and unpackaging steps.',
+      'At 100% clock with no overclock, build eight machines for the canister loop: two Refineries for Heavy Oil Residue (one at 50%), two for Diluted Packaged Fuel, and four Packagers. The Blender route needs four total: two Refineries and two Blenders.',
     ],
     tips: [
-      'Hand-feed one loop’s worth of Empty Canisters before you start it up.',
-      'Once it is circulating you no longer have to produce canisters, so build the canister supply belt so it can be disconnected.',
+      'For the first recipe batch, put two Empty Canisters in each of the two Water Packagers (four total). Add more as buffer for belts and machine inventories in the actual game.',
+      'Return the Empty Canisters to the Water Packagers, and make the temporary start-up feed easy to disconnect once the loop is circulating.',
+      'If production stalls, first check whether Unpackage Fuel is returning Empty Canisters and whether Packaged Water reaches the dilution Refineries. Also give the 30 Polymer Resin per minute a clear route out.',
+      'This steady-state calculation uses the Planner’s 1.1.x game data. Its source and version check are recorded at https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md. The solver does not model start-up inventory or belt/pipe fill, and Update 1.2 recipe values have not been verified here.',
     ],
   },
 
