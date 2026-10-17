@@ -772,6 +772,18 @@ describe('記事静的ページ', () => {
                 : 'Editorial illustration only — not an in-game screenshot, calculated result, or build instruction.'),
           ),
         )
+        for (const credit of cover.creditLinks ?? []) {
+          expect(article, `${locale}/${slug}`).toContain(
+            `<a href="${escapeHtml(credit.href)}" rel="noopener noreferrer">${escapeHtml(credit.label)}</a>`,
+          )
+        }
+      }
+    }
+
+    for (const slug of ['coal-power-startup', 'build-checklist-guide', 'nuclear-reprocessing']) {
+      for (const locale of ['ja', 'en'] as const) {
+        expect(articleCoverFor(slug, locale).badge).toBe(locale === 'ja' ? 'ゲーム画像' : 'Game screenshot')
+        expect(articleCoverFor(slug, locale).creditLinks).toHaveLength(1)
       }
     }
 
