@@ -18,21 +18,27 @@ type CoverDefinition = {
 export const ARTICLE_COVERS = {
   'production-planning-tutorial': {
     alt: {
-      ja: 'Satisfactory公式Press Kitの核廃棄物ドラムを搬送するベルトと流量表示',
-      en: 'Conveyor throughput readouts beside nuclear-waste drums in the official Satisfactory Press Kit',
+      ja: 'Satisfactory公式メディアの広い工場とレール設備',
+      en: 'A broad factory and rail scene from official Satisfactory media',
     },
     caption: {
-      ja: '公式Press Kitの実ゲーム画像です。表示はゲーム内ベルトの流量で、Plannerの画面や記事内の計算結果ではありません。',
-      en: 'Real gameplay image from the official Press Kit. The readouts show in-game belt throughput, not the Planner interface or a result from this article.',
+      ja: '公式メディアの一般的なゲーム内風景です。Plannerの画面、記事の操作手順、計算結果を示す画像ではありません。',
+      en: 'General in-game scene from official media. It does not show the Planner interface, tutorial steps, or a calculation from this article.',
     },
     creditLinks: {
-      ja: [{ href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view', label: 'Satisfactory公式Press Kit' }],
-      en: [{ href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view', label: 'Official Satisfactory Press Kit' }],
+      ja: [
+        { href: 'https://www.satisfactorygame.com/press/', label: 'Satisfactory公式Press & Content Creators' },
+        { href: 'https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg', label: '掲載画像' },
+      ],
+      en: [
+        { href: 'https://www.satisfactorygame.com/press/', label: 'Official Satisfactory Press & Content Creators' },
+        { href: 'https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg', label: 'Original screenshot' },
+      ],
     },
     badge: { ja: 'ゲーム画像', en: 'Game screenshot' },
     localizedSrc: {
-      ja: '/article-covers/production-planning-tutorial-official.webp',
-      en: '/article-covers/production-planning-tutorial-official.webp',
+      ja: '/article-images/satisfactory-factory-general.webp',
+      en: '/article-images/satisfactory-factory-general.webp',
     },
     width: 1280,
     height: 720,
@@ -296,3 +302,4 @@ export function articleIndexCoverFor(locale: ArticleCoverLocale): ArticleCover {
         : 'Editorial illustration of a blank guidebook in an industrial landscape',
   }
 }
+
