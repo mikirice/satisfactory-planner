@@ -2,48 +2,64 @@ import type { HandwrittenArticle } from '../types.ts'
 
 export const excelExportGuideArticleEn = {
   slug: 'excel-export-guide',
-  title: 'Working with the Excel Export — Six Sheets and How to Migrate Your Own Spreadsheet',
+  title: 'Using the Excel Export — Review and Share a Plan in Six Sheets',
   description:
-    'Use the six sheets of the Excel export for construction, item balance, extraction and logistics, and migrate safely from a spreadsheet you built yourself.',
+    'A guide to the current Excel export: what each of its six sheets contains, how to check construction costs and logistics, and how to work alongside your own spreadsheet.',
   sections: [
     {
-      heading: 'Export the six sheets',
+      heading: 'Create a workbook after an optimal solution',
       paragraphs: [
-        'Once the result looks right, use the Excel export in the sidebar, give the plan a name and download it. Nothing is exported while a calculation is running or when there is no solution. The file is named satisfactory-plan_<plan name>_<date>.xlsx and the workbook always contains the same six sheets in the same order.',
+        'When calculation is complete and there is an optimal solution, open Excel export in the sidebar. Enter a plan name and select Download Excel to create an `.xlsx` file whose name includes the plan name and date. The button is unavailable while calculating or when there is no solution. If workbook creation fails, the panel displays an error. Sheet names and labels follow the language selected in the planner.',
+        'The workbook contains six sheets in order: Summary, Building List, Item Balance, Resources, Build Cost and Logistics. Summary is a fixed-header overview; the other tabular sheets freeze their header rows and have autofilters.',
       ],
     },
     {
-      heading: 'Share the design conditions through the summary',
+      heading: 'Share the conditions and overall plan through Summary',
       paragraphs: [
-        'The summary sheet is the one to read first. It carries the targets and actual output, the game data version, the objective, production and extraction power, clock speeds and Power Shards, Somersloops, the power plan, building count, approximate footprint, required raw resources, the amount consumed from stock, sink points, byproducts and the alternate recipes that were enabled. When you hand the design to someone else, use this sheet as the cover page.',
+        'Start with plan name, generation time, bundled game-data version, objective, targets and produced output. Summary also includes manufacturing and extraction power, clock settings, Shards and Somersloops, any power plan with its fuel rates and generation, building counts, an approximate footprint, required resources, available stock and the amount actually used, Sink points, byproducts and enabled alternate recipes. Material types and quantities are in Build Cost, not Summary.',
+        'Before sharing, check that requested and produced amounts match your intent, whether power includes extraction, and whether outside supplies are used as expected. A maximized target shows “Maximize” in the requested column, so do not read it as a fixed numeric target.',
       ],
     },
     {
-      heading: 'Read the building list and the item balance',
+      heading: 'Investigate buildings and item balance',
       paragraphs: [
-        'The building list is the sheet you build from. For each machine type and recipe it lines up the 100%-equivalent machine count, the machines you actually build, clock speed, shards, Somersloops, power, building dimensions, inputs and outputs. The item balance sheet shows production, consumption, external supply and the difference for every item, marking shortage, surplus and balance in both text and colour. Check that every difference is intentional here before you copy splits and merges into a sheet of your own.',
+        'Building List covers manufacturing and power steps: machine type, recipe, 100%-equivalent running count, machines to build, clock, Shards and Somersloops, power range, generated power, building dimensions and area, plus step inputs and outputs. Extractor details are in Resources. Filter by machine type or recipe, then use the total row to check the overall building count.',
+        'Item Balance shows production, consumption, external supply, net difference and a status for each item. Shortages and surpluses use both colour and a text label. If a difference is unexpected, find the item here, then return to the production steps or flowchart to follow its suppliers and consumers.',
       ],
     },
     {
-      heading: 'Read resources, construction cost and logistics',
+      heading: 'Reconcile resources, build cost and logistics',
       paragraphs: [
-        'The resources sheet collects the required rate, the map limit and how much of it you use, the extractor, the node allocation by purity, shards, extraction power and any node shortfall. The construction cost sheet separates production buildings from extractors and totals them at the end. The logistics sheet splits each flow into solid, fluid and gas, then shows the capacity of the belt or pipe you selected, the number of lines needed and the utilisation. Logistics settings never change the production solution — only this conversion into line counts.',
+        'Resources lists the required rate, map limit and usage, extractors, running and built counts, node counts by purity, extraction rate, pressurizers or Shards, extraction power and any node shortfall. Build Cost separates construction materials for manufacturing buildings and extractors, with a total row. Use it to identify materials to gather before construction.',
+        'For each flow, Logistics shows its kind, step, item, solid/liquid/gas form, rate, the belt or pipe selected in the planner, capacity, required lines and utilization. Changing the transport choice and exporting again changes line counts and utilization, but not the production solution. This organizes required capacity; it does not draw the physical belt or pipe routes, splits or merges.',
       ],
     },
     {
-      heading: 'Treat it as a source document you can regenerate',
+      heading: 'Move values into your own tracking sheet',
       paragraphs: [
-        'Independent numeric columns such as rates, power and machine counts are written as real numbers: rates with two decimal places, machine equivalents with four. Inputs and outputs in the building list are readable strings that combine several items. The tabular sheets come with frozen headers and autofilters, so you can narrow them down by machine or by item. If you want to add your own formulas, keep the six generated sheets as the source document and pull them into a separate sheet for the columns you run the factory with — stock, coordinates, owner, how much is already built. Then, when you recalculate and export a fresh file, only your own sheet has to move.',
+        'Independent values such as rates, power, construction materials and machine counts are numeric cells. Rates, power and material amounts display two decimal places; running-machine equivalents display four; built machines and line counts display as integers. Building inputs and outputs are readable strings that combine multiple items, not separate item columns. When filtering or copying rows into your own tracker, keep the units with each value.',
+        'Keep stock, coordinates, owner, built status and progress in a separate tracking sheet that references the export. Planner does not import Excel workbooks. Treat a saved plan in the browser or its share URL as the source for input conditions, and the workbook as a record of that calculation, so a new export does not overwrite your tracking fields.',
       ],
     },
     {
-      heading: 'Migrate from your own spreadsheet',
+      heading: 'Migrate from an older calculation sheet',
       paragraphs: [
-        'To migrate, first enter the same target rates and unlocked alternate recipes into the planner. Then compare raw resources, power and building count in the summary against your old sheet, and where they differ, use the item balance to narrow the search to a specific step. Finally, move the layout notes and progress columns that only exist in your old sheet into a separate sheet. There is no import from Excel back into the tool, so treat the saved plan or the share URL as the master copy of your inputs and the workbook as a record of the result.',
+        'Enter the same target rates, available alternate recipes, objective, extraction, power and logistics conditions in the planner. Compare output, power, machine counts and raw resources in Summary. If a value differs, find the item in Item Balance and follow the process through Building List and Flowchart. Then move layout notes and progress columns that exist only in your old sheet into a separate tracker.',
+        'The calculation uses the game-data version shown in the workbook. Keep that version and its source record with the plan. Values that have not been checked against in-game Update 1.2 data should not be described as verified for the current game.',
       ],
     },
   ],
+  references: {
+    heading: 'Implementation and data references',
+    links: [
+      { label: 'Excel export panel and availability', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/src/ui/ExportPanel.tsx' },
+      { label: 'Six sheet definitions and number formats', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/src/export/excel.ts' },
+      { label: 'Logistics flows and transport choices', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/src/plan/flows.ts' },
+      { label: 'Game-data version and source record', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/data-source/DATA_SOURCES.md' },
+    ],
+  },
   relatedItemIds: ['Desc_ModularFrameHeavy_C', 'Desc_IronPlate_C'],
+  relatedArticleSlugs: ['production-planning-tutorial', 'build-checklist-guide'],
   cta: {
     kind: 'sample',
     label: 'Try the Excel export on the Heavy Modular Frame factory',
