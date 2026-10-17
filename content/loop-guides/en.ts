@@ -26,6 +26,7 @@ export type LoopGuideEn = {
   readonly mechanism: readonly string[]
   /** Practical notes for building it in game. */
   readonly tips: readonly string[]
+  readonly sources?: readonly { readonly label: string; readonly href: string }[]
   /** Only for byproduct loops: what the circulating fluid means. */
   readonly circulationMeaning?: string
 }
@@ -58,17 +59,28 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Efficient Fuel Power',
     headline: 'How Diluted Fuel Power Works and How to Build It',
     description:
-      '2,500 MW, following Crude Oil through Heavy Oil Residue and Diluted Fuel into Fuel-Powered Generators.',
+      'A 2,500 MW gross plan that turns 75 m³/min of Crude Oil into 200 m³/min of Fuel, with machine counts, power use and start-up steps.',
     highlight:
-      'Watch the line where Water joins the Heavy Oil Residue and leaves again as Fuel for the generators.',
+      'Follow the balance from 75 m³/min of Crude Oil to 100 m³/min of Heavy Oil Residue, then to 200 m³/min of Fuel with Water.',
     mechanism: [
-      'Process Crude Oil with the Heavy Oil Residue recipe so that as much residue as possible comes out.',
-      'Send the residue and Water to a Blender and stretch them into Fuel with Diluted Fuel.',
-      'Feed the Fuel to Fuel-Powered Generators for continuous output.',
+      'This example uses the Satisfactory Planner’s bundled 1.1.x recipe data and sets total Fuel-Powered Generator output to 2,500 MW. Ten generators at their rated output consume 200 m³/min of Fuel.',
+      'Alternate: Heavy Oil Residue turns 3 m³/min of Crude Oil into 4 m³/min of Heavy Oil Residue and 2 Polymer Resin/min. Processing 75 m³/min of Crude Oil with 2.5 Refinery-equivalents produces 100 m³/min of Heavy Oil Residue and 50 Polymer Resin/min. In the game, build three Refineries: two at 100% and one at 83⅓%.',
+      'Alternate: Diluted Fuel turns 5 m³/min of Heavy Oil Residue and 10 m³/min of Water into 10 m³/min of Fuel. Two Blenders process 100 m³/min of Heavy Oil Residue and 200 m³/min of Water into 200 m³/min of Fuel for the generators.',
+      'One Fuel-Powered Generator consumes 20 m³/min of Fuel and produces 250 MW. Ten generators use 200 m³/min and produce 2,500 MW combined. That is gross rated generation, before subtracting the power used by production.',
+      'At the standard machine draw, the 2.5 Refinery-equivalents use 75 MW and the two Blenders use 150 MW, for 225 MW total. Subtracting only this production load leaves 2,275 MW. Oil and Water extraction, pipeline pumps and other factory loads are outside that figure, so the usable surplus will be lower.',
     ],
     tips: [
-      'Keep Water and Fuel on separate pipe runs, and add a pump wherever the head lift is not enough.',
-      'Generators running at 100% need no Power Shards.',
+      'Unlock the recipes before building. Heavy Oil Residue and Diluted Fuel are alternate recipes obtained through Hard Drive analysis. If either is locked, solve again with the recipes in your save. Rates here use the game-bundled Community Resources Docs recorded for 1.1.x; values have not been checked against Update 1.2 or later. See the linked data-version record and recipe references below.',
+      'For start-up, use an existing grid or Biomass Burners to power the Water and Oil Extractors, Refineries and Blenders first. Make Fuel and fill the Fuel pipe and generator inputs; connect the generators to the main grid once flow is steady. Keep 200 m³/min of Water and 200 m³/min of Fuel on separate pipe networks. Each is below the nominal 300 m³/min limit of a Mk.1 Pipeline, but elevation, pump head lift and uneven splits can reduce delivery. Distribute flow across the generator row and raise the load in stages while the pipes fill. The fuel plant cannot start itself while its production machines have no power.',
+      'Route the 50 Polymer Resin/min from the Refineries to storage, an Awesome Sink or a recipe that uses Resin; a blocked outlet stops Crude Oil processing. If output drops, check Fuel at the generator inputs first, then Blender Water and Heavy Oil Residue, then Refinery Crude Oil and the Resin outlet. If machines run but generation is still short, check extractor and pump power, pipe head lift and total grid demand.',
+      'To shut down, disconnect the generator row or lower grid demand first. Let the pipes drain before cutting power to fuel production, or reserve Fuel in a buffer for an easier restart. The Planner solves steady per-minute balances and recipe-equivalent machine counts; it does not simulate pipe filling, machine inventories, start-up Fuel stock, head lift, blockages or moment-to-moment demand. The chain needs 2.5 Refinery-equivalents and 2 Blenders; build three Refineries and two Blenders in game. Generators are counted as whole machines at 100% clock, so manual underclocking is not modeled. Generator and pipe references are linked below.',
+    ],
+    sources: [
+      { label: 'Planner game-data source and version record', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Fuel-Powered Generator — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Fuel-Powered_Generator' },
+      { label: 'Heavy Oil Residue recipe — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Heavy_Oil_Residue' },
+      { label: 'Diluted Fuel recipe — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Diluted_Fuel' },
+      { label: 'Pipeline flow and head lift — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Pipeline' },
     ],
   },
 
@@ -76,18 +88,29 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Turbofuel Power',
     headline: 'How Turbofuel Power Works and How to Build It',
     description:
-      '2,000 MW, using the power chain that turns Compacted Coal and Fuel into Turbofuel.',
-    highlight: 'Watch the point where Fuel and Compacted Coal merge into Turbofuel.',
+      'A 2,000 MW gross plan that turns 108 m³/min of Crude Oil, 48 Coal/min and 48 Sulfur/min into 60 m³/min of Turbofuel, including the Converter power range.',
+    highlight:
+      'Follow the merge: 72 m³/min of Fuel and 48 Compacted Coal/min enter Refineries and leave as 60 m³/min of Turbofuel.',
     mechanism: [
-      'Turn SAM into Reanimated SAM, then feed it with Iron Ore into a Converter to produce Sulfur.',
-      'Make Compacted Coal from Coal and Sulfur.',
-      'Refine Crude Oil into the Fuel that Turbofuel is built from.',
-      'Feed Fuel and Compacted Coal into a Refinery to make Turbofuel.',
-      'Send the Turbofuel to Fuel-Powered Generators, which then produce the same power from a much smaller flow.',
+      'This example uses the Planner’s bundled 1.1.x recipe data and targets 2,000 MW total from Fuel-Powered Generators. Eight generators consume 60 m³/min of Turbofuel.',
+      'The Refinery Turbofuel recipe turns 6 m³/min of Fuel and 4 Compacted Coal/min into 5 m³/min of Turbofuel. To make 60 m³/min, supply 72 m³/min of Fuel and 48 Compacted Coal/min. That is 3.2 Refinery-equivalents; build four Refineries, with one at 80% and the other three at 100%.',
+      'The standard Fuel recipe turns 6 m³/min of Crude Oil into 4 m³/min of Fuel and 3 Polymer Resin/min. Making 72 m³/min of Fuel therefore takes 108 m³/min of Crude Oil and 1.8 Refinery-equivalents. Two Refineries at 90% each match the rate, and the chain also produces 54 Polymer Resin/min.',
+      'The Assembler Compacted Coal recipe uses 5 Coal/min and 5 Sulfur/min to make 5 Compacted Coal/min. For 48/min, supply 48 Coal/min and 48 Sulfur/min, or 1.92 Assembler-equivalents.',
+      'The Sulfur (Iron) recipe in a Converter turns 1 Reanimated SAM/min and 30 Iron Ore/min into 12 Sulfur/min. For 48 Sulfur/min, supply 4 Reanimated SAM/min and 120 Iron Ore/min. A Constructor turns 16 raw SAM/min into those 4 Reanimated SAM/min.',
+      'The eight generators have 2,000 MW of gross rated output. At 100%-clock-equivalent recipe loads, the production chain uses 279.3 MW (a 219.3–339.3 MW range because Converter power varies), leaving 1,720.7 MW net by that calculation (range 1,660.7–1,780.7 MW). Extractors, Water supply pumps, pipeline pumps and other factory loads are not included.',
     ],
     tips: [
-      'Split the belts so that Coal and Sulfur arrive in equal amounts; a blockage is much easier to spot that way.',
-      'Generators running at 100% need no Power Shards.',
+      'Unlock Compacted Coal and Turbofuel in the MAM Sulfur Research chain. This Sulfur route also needs a Converter from Tier 9 Matter Conversion and Reanimated SAM, unlocked through MAM Alien Technology Research or Tier 9. Rates here use the bundled 1.1.x data; recipe values from Update 1.2 or later have not been checked. Until the chain is available, build regular Fuel power and set the Planner to fuels unlocked in your save.',
+      'Start with an existing grid or Biomass Burners. Feed raw SAM to the Constructor, Reanimated SAM and Iron Ore to the Converter, and Coal and Sulfur to the Assembler; then run the Crude Oil-to-Fuel and Fuel-to-Turbofuel stages in order. Fill the Fuel and Turbofuel pipes through to the generator inputs before connecting the row to the main grid. Remove the temporary supply after output is steady.',
+      'Keep the 48 Coal/min and 48 Sulfur/min on separate belts so a shortage is easy to see. Feed 72 m³/min of Fuel and 60 m³/min of Turbofuel through separate pipe networks and split them evenly across the generators. If output falls, check Turbofuel at the generator inputs, then Fuel and Compacted Coal at the Turbofuel Refineries, Coal and Sulfur at the Assembler, and Reanimated SAM and Iron Ore at the Converter. Also check the Polymer Resin outlet; a full output can stop Fuel production.',
+      'Planner machine counts are 100%-clock recipe-equivalents. A practical build uses 8 generators, four Turbofuel Refineries (one at 80%), two Fuel Refineries (both at 90%), two Compacted Coal Assemblers (96% each), one Converter at 40% and one Reanimated SAM Constructor at about 13⅓%: 18 buildings total. The Planner’s full-clock-equivalent factory draw is 279.3 MW (219.3–339.3 MW), leaving 1,720.7 MW net (1,660.7–1,780.7 MW). With the listed machine clocks, its adjusted draw is about 244.7 MW (200.0–289.4 MW), or 1,755.3 MW net (1,710.6–1,800.0 MW); mining and pump power still need to be subtracted. The Planner does not simulate pipe filling, inventories, head lift, start-up flow or blockages. When shutting down, disconnect the generator load first and reserve Turbofuel if you want an easier restart.',
+    ],
+    sources: [
+      { label: 'Planner game-data source and version record', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Turbofuel recipe and unlock — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Turbofuel' },
+      { label: 'Compacted Coal recipe and MAM research — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Compacted_Coal' },
+      { label: 'Reanimated SAM and Converter recipes — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/RSAM' },
+      { label: 'Fuel-Powered Generator — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Fuel-Powered_Generator' },
     ],
   },
 
@@ -234,22 +257,31 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     title: 'Nuclear, stage 3: closed loop with Ficsonium',
     headline: 'How a Closed Nuclear Loop with Ficsonium Works and How to Build It',
     description:
-      '5,000 MW minimum target. This whole-unit plan builds 7 full-output generators for 17,500 MW and reprocesses all Uranium and Plutonium Waste.',
+      'A steady-rate plan using the Planner’s 1.1.x data: target at least 5,000 MW, build 7 full-output generators for 17,500 MW, and reprocess 40 Uranium Waste and 2 Plutonium Waste per minute.',
     highlight:
-      'Watch the Plutonium Waste pass through Ficsonium into fuel rods, with all three kinds of fuel rod entering the plants.',
+      'The 1.1.x calculation turns 40 Uranium Waste and 2 Plutonium Waste per minute back into fuel, leaving no surplus of either nuclear waste.',
     mechanism: [
-      'Make Uranium Fuel Rod as in stage 1 and Plutonium Fuel Rod as in stage 2, and burn each in Nuclear Power Plants.',
-      'Feed the Plutonium Waste into a Particle Accelerator with Singularity Cell and Dark Matter Residue to make Ficsonium.',
-      'Dark Matter Residue comes from Reanimated SAM in a Converter. Singularity Cell is built in a Manufacturer from Nuclear Pasta, Dark Matter Crystal, Iron Plate and Concrete.',
-      'Feed Ficsonium, Electromagnetic Control Rod, Ficsite Trigon and Excited Photonic Matter into a Quantum Encoder to make Ficsonium Fuel Rod. The Dark Matter Residue it gives back goes into the Ficsonium step.',
-      'Burn the Ficsonium Fuel Rod in a Nuclear Power Plant. This rod leaves no waste, so no nuclear waste ever leaves the site.',
+      'Open “Nuclear, stage 3: closed loop with Ficsonium” from the planner’s share button. The 5,000 MW target is a minimum. The planner counts whole generators at full output, so this setup uses 4 Uranium, 2 Plutonium and 1 Ficsonium plant: 7 generators and 17,500 MW.',
+      'With the 1.1.x recipes, supply 0.8 Uranium Fuel Rod, 0.2 Plutonium Fuel Rod and 1 Ficsonium Fuel Rod per minute. The plants produce 10,000, 5,000 and 2,500 MW respectively and use 960, 480 and 240 m³ of cooling Water per minute.',
+      'Of the 40 Uranium Waste/min, send 30/min through Non-fissile Uranium and 10/min through Plutonium Pellet. The latter branch makes Plutonium Fuel Rod; there is no direct disposal step for Uranium Waste.',
+      'The two Plutonium plants produce 2 Plutonium Waste/min. Combine it with 2 Singularity Cells/min and 40 Dark Matter Residue/min in the Particle Accelerator to make 2 Ficsonium/min.',
+      'Feed 2 Ficsonium/min, Electromagnetic Control Rods, Ficsite Trigons and Excited Photonic Matter to the Quantum Encoder. It makes 1 Ficsonium Fuel Rod/min and returns 20 Dark Matter Residue/min. Reuse that 20/min at the Particle Accelerator and supply the other 20/min from outside.',
+      'Burning the Ficsonium Fuel Rod produces no nuclear waste. With all three fuel types burning, both Uranium Waste and Plutonium Waste balance to zero.',
     ],
     tips: [
-      'The plan reprocesses all of the Uranium Waste and all of the Plutonium Waste. A stall anywhere backs the waste up into the plants and stops the power, so put containers in front of each waste step as a buffer.',
-      'The radioactive materials now include three kinds of fuel rod and two kinds of waste. Keep the reprocessing block away from the factory proper, and protect yourself with distance, a Hazmat Suit and Iodine-Infused Filters. Walls and floors do not shield radiation. This diagram is a steady-rate material-balance plan; it does not simulate startup inventories, pipe flow, or whether the loop will prime and circulate in a built factory.',
-      'On top of Sulfuric Acid and Nitric Acid you need pipes for Excited Photonic Matter and Dark Matter Residue. Run the fluids and gases in before starting and confirm that the Particle Accelerators and the Quantum Encoder can accept them.',
-      'Only two settings differ from stage 2: Ficsonium Fuel Rod was added to the fuels, and “leave none behind” is ticked for Plutonium Waste. To stop at plutonium, undo those two.',
-      'The 5,000 MW target is not the generated output: the planner models whole non-biomass generators at 100% clock, so this plan estimates 17,500 MW. In-game you can manually underclock generators to match demand and lower fuel use; that adjustment is not modeled here.',
+      'Provide power from a separate grid before starting the nuclear plants. The solved production chain draws about 3,026 MW; extractor power is not included. Make the first Uranium Fuel Rods outside the reactor loop. Prepare waste processing, acid, Singularity Cells and Dark Matter Residue, then start the Uranium plants. Once waste flows to both the 30/min and 10/min branches, bring up Plutonium Rod production and plants, followed by the Ficsonium section.',
+      'Put a roomy storage buffer on each nuclear-waste belt. It only buys time to find a blockage; it does not dispose of waste. If a buffer keeps filling, stop sending fuel to the plant creating that waste, then check the belt, machine power, missing inputs and blocked outputs before restarting.',
+      'If the Ficsonium line stops, check for Plutonium Waste, Singularity Cells and Dark Matter Residue at the Particle Accelerator. Then check Excited Photonic Matter and output space at the Quantum Encoder, followed by flow in the return line. If a reactor stops, check its fuel, cooling water and waste outlet in that order.',
+      'Uranium Waste and Plutonium Waste cannot go directly into the AWESOME Sink: both are worth 0 points in the 1.1.x data. Plutonium Fuel Rods can be sunk, but burning them makes unsinkable Plutonium Waste. To stop at Plutonium, sink the rods without burning them; burn Ficsonium Fuel Rods for power instead (0 Sink points in this dataset, but no nuclear waste).',
+      'Keep radioactive materials away from walkways and living areas. Wear a Hazmat Suit and Iodine-Infused Filters; do not rely on walls or floors as radiation shielding, and avoid carrying radioactive items for long periods.',
+      '“Closed loop” refers to the two nuclear-waste streams. The 1.1.x plan still leaves 6.4 m³/min of Heavy Oil Residue as a separate byproduct. This steady-rate balance does not predict startup inventory, installed machine counts and clocks, pipe fill and head lift, downtime or successful loop priming. Recipe values for 1.2 have not been checked against updated Docs.',
+    ],
+    sources: [
+      { label: 'Planner game-data source and version record', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Uranium Waste — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Uranium_Waste' },
+      { label: 'Plutonium Waste — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Plutonium_Waste' },
+      { label: 'Ficsonium Fuel Rod — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Ficsonium_Fuel_Rod' },
+      { label: 'Radioactivity — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Radioactivity' },
     ],
   },
 }
