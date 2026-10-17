@@ -54,6 +54,11 @@ export const ARTICLE_COVERS = {
       ja: 'Satisfactory公式Press Kitのゲーム内スクリーンショット（2020年）。記事の8台構成そのものではありません。',
       en: 'In-game screenshot from the official Satisfactory Press Kit (2020); it does not show the article’s exact eight-generator layout.',
     },
+    creditLinks: {
+      ja: [{ href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view', label: 'Satisfactory公式Press Kit' }],
+      en: [{ href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view', label: 'Official Satisfactory Press Kit' }],
+    },
+    badge: { ja: 'ゲーム画像', en: 'Game screenshot' },
     localizedSrc: {
       ja: '/article-covers/coal-power-startup-1280x720.webp',
       en: '/article-covers/coal-power-startup-1280x720.webp',
@@ -88,9 +93,25 @@ export const ARTICLE_COVERS = {
   },
   'build-checklist-guide': {
     alt: {
-      ja: 'チェック欄のあるクリップボードと工場設備のイラスト',
-      en: 'Editorial illustration of a checklist clipboard beside factory buildings',
+      ja: 'Satisfactory公式Press Kitの工場全景。組立機、精錬炉、ベルト、配管が見えるゲーム内画像',
+      en: 'In-game factory scene from the official Satisfactory Press Kit, with assemblers, smelters, belts, and pipes',
     },
+    caption: {
+      ja: 'Satisfactory公式Press Kitの実ゲーム画像を編集した参考イメージです。記事の建設配置や手順を再現した画面ではありません。',
+      en: 'Edited in-game reference image from the official Satisfactory Press Kit. It does not reproduce the article’s exact layout or build steps.',
+    },
+    creditLinks: {
+      ja: [{ href: 'https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view', label: 'Satisfactory公式Press Kit' }],
+      en: [{ href: 'https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view', label: 'Official Satisfactory Press Kit' }],
+    },
+    badge: { ja: 'ゲーム画像', en: 'Game screenshot' },
+    localizedSrc: {
+      ja: '/article-covers/build-checklist-guide-official-ja.webp',
+      en: '/article-covers/build-checklist-guide-official-en.webp',
+    },
+    width: 1280,
+    height: 720,
+    type: 'image/webp',
   },
   'strong-alternate-recipes': {
     alt: {
@@ -179,9 +200,25 @@ export const ARTICLE_COVERS = {
   },
   'nuclear-reprocessing': {
     alt: {
-      ja: '原子炉のそばで環状の枠に囲まれた紫色の燃料を描いたイラスト',
-      en: 'Editorial illustration of a violet fuel sphere framed by a reactor-like ring',
+      ja: 'Satisfactory公式Press Kitの核廃棄物ドラムをベルトで運ぶゲーム内画像',
+      en: 'In-game image from the official Satisfactory Press Kit showing nuclear-waste drums on conveyor belts',
     },
+    caption: {
+      ja: '核廃棄物ドラムの搬送を写した公式Press Kit画像です。記事の核種、レシピ、処理量、再処理ラインを示すものではありません。',
+      en: 'Official Press Kit image of nuclear-waste drums in transit. It does not show the article’s specific waste type, recipe, throughput, or reprocessing line.',
+    },
+    creditLinks: {
+      ja: [{ href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view', label: 'Satisfactory公式Press Kit' }],
+      en: [{ href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view', label: 'Official Satisfactory Press Kit' }],
+    },
+    badge: { ja: 'ゲーム画像', en: 'Game screenshot' },
+    localizedSrc: {
+      ja: '/article-covers/nuclear-reprocessing-official-ja.webp',
+      en: '/article-covers/nuclear-reprocessing-official-en.webp',
+    },
+    width: 1280,
+    height: 720,
+    type: 'image/webp',
   },
 } as const satisfies Record<string, CoverDefinition>
 
@@ -189,6 +226,7 @@ export type ArticleCover = {
   readonly src: string
   readonly alt: string
   readonly caption?: string
+  readonly creditLinks?: readonly { href: string; label: string }[]
   readonly badge?: string
   readonly width: number
   readonly height: number
@@ -207,6 +245,10 @@ export function articleCoverFor(slug: string, locale: ArticleCoverLocale): Artic
     caption:
       'caption' in definition && definition.caption !== undefined
         ? definition.caption[locale]
+        : undefined,
+    creditLinks:
+      'creditLinks' in definition && definition.creditLinks !== undefined
+        ? definition.creditLinks[locale]
         : undefined,
     badge:
       'badge' in definition && definition.badge !== undefined ? definition.badge[locale] : undefined,

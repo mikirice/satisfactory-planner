@@ -1449,7 +1449,7 @@ function articleCoverFigure(ctx: Ctx, slug: string): string {
   const cover = articleCoverFor(slug, ctx.locale)
   return `<figure class="article-cover article-cover--hero">
       <img src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" fetchpriority="high" decoding="async" />
-      <figcaption>${escapeHtml(cover.caption ?? ctx.L.articleCoverCaption)}</figcaption>
+      <figcaption>${escapeHtml(cover.caption ?? ctx.L.articleCoverCaption)}${cover.creditLinks?.length ? `<span class="article-cover__credits">${cover.creditLinks.map((link) => `<a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`).join(' · ')}</span>` : ''}</figcaption>
     </figure>`
 }
 
