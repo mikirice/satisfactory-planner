@@ -18,7 +18,7 @@ type CoverDefinition = {
 export const ARTICLE_COVERS = {
   "production-planning-tutorial": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA broad factory and rail scene from official Satisfactory media。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場と鉄道の広いゲーム内風景。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A broad factory and rail scene from official Satisfactory media. The cover title is editorial."
     },
     "caption": {
@@ -61,7 +61,7 @@ export const ARTICLE_COVERS = {
   },
   "alternate-recipe-metrics": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのMachines arranged along a production line。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: Machines arranged along a production line. The cover title is editorial."
     },
     "caption": {
@@ -104,7 +104,7 @@ export const ARTICLE_COVERS = {
   },
   "power-generation-planning": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのCoal generators and conveyor belts。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial."
     },
     "caption": {
@@ -147,8 +147,8 @@ export const ARTICLE_COVERS = {
   },
   "somersloop-and-power-shards": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA deployed SPWN device in a landscape。記事用の見出しを重ねたカバー。",
-      "en": "Official Satisfactory Press Kit screenshot: A deployed SPWN device in a landscape. The cover title is editorial."
+      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit screenshot: Machines arranged along a production line. The cover title is editorial."
     },
     "caption": {
       "ja": "公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。",
@@ -161,7 +161,7 @@ export const ARTICLE_COVERS = {
           "label": "公式Press & Content Creators"
         },
         {
-          "href": "https://drive.google.com/file/d/1K87rfdut0j76v5mkrNFYm1BWIU9iEHwt/view",
+          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
           "label": "元画像"
         }
       ],
@@ -171,7 +171,7 @@ export const ARTICLE_COVERS = {
           "label": "Official Press & Content Creators"
         },
         {
-          "href": "https://drive.google.com/file/d/1K87rfdut0j76v5mkrNFYm1BWIU9iEHwt/view",
+          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
           "label": "Original screenshot"
         }
       ]
@@ -190,7 +190,7 @@ export const ARTICLE_COVERS = {
   },
   "excel-export-guide": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのFreight train buffers and rail lines。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの貨物列車と線路設備。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: Freight train buffers and rail lines. The cover title is editorial."
     },
     "caption": {
@@ -233,7 +233,7 @@ export const ARTICLE_COVERS = {
   },
   "coal-power-startup": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのCoal generators and conveyor belts。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial."
     },
     "caption": {
@@ -276,7 +276,7 @@ export const ARTICLE_COVERS = {
   },
   "oil-products-basics": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA network of in-game fluid pipes。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの複数の流体配管。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A network of in-game fluid pipes. The cover title is editorial."
     },
     "caption": {
@@ -319,7 +319,7 @@ export const ARTICLE_COVERS = {
   },
   "aluminum-production-guide": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのMachines arranged along a production line。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: Machines arranged along a production line. The cover title is editorial."
     },
     "caption": {
@@ -362,8 +362,8 @@ export const ARTICLE_COVERS = {
   },
   "awesome-sink-points": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA conveyor line with in-game throughput readouts。記事用の見出しを重ねたカバー。",
-      "en": "Official Satisfactory Press Kit screenshot: A conveyor line with in-game throughput readouts. The cover title is editorial."
+      "ja": "Satisfactory公式Press Kitの工場の建設現場。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit screenshot: A broad factory construction scene. The cover title is editorial."
     },
     "caption": {
       "ja": "公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。",
@@ -376,7 +376,7 @@ export const ARTICLE_COVERS = {
           "label": "公式Press & Content Creators"
         },
         {
-          "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
+          "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view",
           "label": "元画像"
         }
       ],
@@ -386,7 +386,7 @@ export const ARTICLE_COVERS = {
           "label": "Official Press & Content Creators"
         },
         {
-          "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
+          "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view",
           "label": "Original screenshot"
         }
       ]
@@ -405,7 +405,7 @@ export const ARTICLE_COVERS = {
   },
   "clock-and-efficiency": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのMachines arranged along a production line。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: Machines arranged along a production line. The cover title is editorial."
     },
     "caption": {
@@ -448,7 +448,7 @@ export const ARTICLE_COVERS = {
   },
   "build-checklist-guide": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA blueprint being placed in a factory。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場にブループリントを設置する画面。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A blueprint being placed in a factory. The cover title is editorial."
     },
     "caption": {
@@ -491,7 +491,7 @@ export const ARTICLE_COVERS = {
   },
   "strong-alternate-recipes": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA broad factory construction scene。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場の建設現場。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A broad factory construction scene. The cover title is editorial."
     },
     "caption": {
@@ -534,7 +534,7 @@ export const ARTICLE_COVERS = {
   },
   "miner-rate-by-purity": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA resource field viewed with the in-game scanner。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitのスキャナーで見る資源ノードの地形。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A resource field viewed with the in-game scanner. The cover title is editorial."
     },
     "caption": {
@@ -577,7 +577,7 @@ export const ARTICLE_COVERS = {
   },
   "motor-production-recipes": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA broad factory construction scene。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場の建設現場。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A broad factory construction scene. The cover title is editorial."
     },
     "caption": {
@@ -620,7 +620,7 @@ export const ARTICLE_COVERS = {
   },
   "oil-loop-complete": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA network of in-game fluid pipes。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの複数の流体配管。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A network of in-game fluid pipes. The cover title is editorial."
     },
     "caption": {
@@ -663,7 +663,7 @@ export const ARTICLE_COVERS = {
   },
   "diluted-fuel-power": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA broad factory construction scene。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場の建設現場。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A broad factory construction scene. The cover title is editorial."
     },
     "caption": {
@@ -706,12 +706,12 @@ export const ARTICLE_COVERS = {
   },
   "turbofuel-power": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのMachines arranged along a production line。記事用の見出しを重ねたカバー。",
-      "en": "Official Satisfactory Press Kit screenshot: Machines arranged along a production line. The cover title is editorial."
+      "ja": "Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial."
     },
     "caption": {
-      "ja": "公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。",
-      "en": "Official Satisfactory Press Kit gameplay with an editorial title overlay. It does not show calculations or a specific machine layout from the guide."
+      "ja": "石炭発電機を写した公式画像です。電力の一般的な参考であり、ターボ燃料の発電構成ではありません。",
+      "en": "Official image of coal generators for general power context; it does not show a Turbofuel setup."
     },
     "creditLinks": {
       "ja": [
@@ -720,7 +720,7 @@ export const ARTICLE_COVERS = {
           "label": "公式Press & Content Creators"
         },
         {
-          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
+          "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
           "label": "元画像"
         }
       ],
@@ -730,7 +730,7 @@ export const ARTICLE_COVERS = {
           "label": "Official Press & Content Creators"
         },
         {
-          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
+          "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
           "label": "Original screenshot"
         }
       ]
@@ -749,7 +749,7 @@ export const ARTICLE_COVERS = {
   },
   "packaged-diluted-fuel-loop": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA truck route serving fluid stations。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの流体ステーションを結ぶトラックの経路。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A truck route serving fluid stations. The cover title is editorial."
     },
     "caption": {
@@ -792,7 +792,7 @@ export const ARTICLE_COVERS = {
   },
   "aluminum-water-loop": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA network of in-game fluid pipes。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの複数の流体配管。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A network of in-game fluid pipes. The cover title is editorial."
     },
     "caption": {
@@ -835,7 +835,7 @@ export const ARTICLE_COVERS = {
   },
   "battery-water-loop": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA rainy forest biome in Satisfactory。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press KitのSatisfactoryの雨の降る森林バイオーム。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A rainy forest biome in Satisfactory. The cover title is editorial."
     },
     "caption": {
@@ -878,7 +878,7 @@ export const ARTICLE_COVERS = {
   },
   "nuclear-simplified": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA broad factory and rail scene from official Satisfactory media。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場と鉄道の広いゲーム内風景。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A broad factory and rail scene from official Satisfactory media. The cover title is editorial."
     },
     "caption": {
@@ -921,7 +921,7 @@ export const ARTICLE_COVERS = {
   },
   "nuclear-uranium": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA resource field viewed with the in-game scanner。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitのスキャナーで見る資源ノードの地形。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A resource field viewed with the in-game scanner. The cover title is editorial."
     },
     "caption": {
@@ -964,7 +964,7 @@ export const ARTICLE_COVERS = {
   },
   "nuclear-plutonium": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA broad factory and rail scene from official Satisfactory media。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitの工場と鉄道の広いゲーム内風景。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A broad factory and rail scene from official Satisfactory media. The cover title is editorial."
     },
     "caption": {
@@ -1007,7 +1007,7 @@ export const ARTICLE_COVERS = {
   },
   "nuclear-reprocessing": {
     "alt": {
-      "ja": "Satisfactory公式Press KitのA conveyor line with in-game throughput readouts。記事用の見出しを重ねたカバー。",
+      "ja": "Satisfactory公式Press Kitのベルト上の搬送量表示。記事用の見出しを重ねたカバー。",
       "en": "Official Satisfactory Press Kit screenshot: A conveyor line with in-game throughput readouts. The cover title is editorial."
     },
     "caption": {

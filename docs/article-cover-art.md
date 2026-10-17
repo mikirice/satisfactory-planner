@@ -15,12 +15,12 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 | `production-planning-tutorial` | `satisfactory-factory-general.webp` | A broad factory and rail scene from official Satisfactory media | [storyblok](https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg) |
 | `alternate-recipe-metrics` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
 | `power-generation-planning` | `coal-power-startup-1280x720.webp` | Coal generators and conveyor belts | [1bFlaTr2-ROI3J_V2GqWwXp3KODyze094](https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view) |
-| `somersloop-and-power-shards` | `spwn.png` | A deployed SPWN device in a landscape | [1K87rfdut0j76v5mkrNFYm1BWIU9iEHwt](https://drive.google.com/file/d/1K87rfdut0j76v5mkrNFYm1BWIU9iEHwt/view) |
+| `somersloop-and-power-shards` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
 | `excel-export-guide` | `train-buffer-stops.jpg` | Freight train buffers and rail lines | [1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5](https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view) |
 | `coal-power-startup` | `coal-power-startup-1280x720.webp` | Coal generators and conveyor belts | [1bFlaTr2-ROI3J_V2GqWwXp3KODyze094](https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view) |
 | `oil-products-basics` | `straight-pipes.jpg` | A network of in-game fluid pipes | [1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
 | `aluminum-production-guide` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
-| `awesome-sink-points` | `Throughput display.png` | A conveyor line with in-game throughput readouts | [1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v](https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view) |
+| `awesome-sink-points` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
 | `clock-and-efficiency` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
 | `build-checklist-guide` | `blueprint-autoconnect.jpg` | A blueprint being placed in a factory | [1BJm3wA78l309yQ_UQsz11WBSpsVbqomx](https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view) |
 | `strong-alternate-recipes` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
@@ -28,7 +28,7 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 | `motor-production-recipes` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
 | `oil-loop-complete` | `straight-pipes.jpg` | A network of in-game fluid pipes | [1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
 | `diluted-fuel-power` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
-| `turbofuel-power` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
+| `turbofuel-power` | `coal-power-startup-1280x720.webp` | Coal generators and conveyor belts | [1bFlaTr2-ROI3J_V2GqWwXp3KODyze094](https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view) |
 | `packaged-diluted-fuel-loop` | `fluid-station-truck.png` | A truck route serving fluid stations | [1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0](https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view) |
 | `aluminum-water-loop` | `straight-pipes.jpg` | A network of in-game fluid pipes | [1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
 | `battery-water-loop` | `rain-v2.png` | A rainy forest biome in Satisfactory | [1Bod20Hsqz0P_ZXFgArRB5R8yvS-LDZCo](https://drive.google.com/file/d/1Bod20Hsqz0P_ZXFgArRB5R8yvS-LDZCo/view) |

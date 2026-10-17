@@ -458,7 +458,7 @@ describe('記事静的ページ', () => {
     expect(coalEn).toContain('https://satisfactory.wiki.gg/wiki/Coal_generator')
     expect(coalJa).toContain('https://store.steampowered.com/news/posts/')
     expect(coalEn).toContain('https://store.steampowered.com/news/posts/')
-    expect(coalJa).toContain('Satisfactory公式Press KitのCoal generators and conveyor belts。記事用の見出しを重ねたカバー。')
+    expect(coalJa).toContain('Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。')
     expect(coalEn).toContain('Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial.')
     expect(coalJa).toContain('公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。')
     expect(coalEn).toContain('does not show calculations or a specific machine layout from the guide')
