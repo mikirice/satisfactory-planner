@@ -1,6 +1,6 @@
 # Satisfactory Planner cover images
 
-Updated 2026-10-17. The 24 Japanese and English guide covers use 1280×720 WebP images with a shared bold-title layout and a high-contrast orange category label. `content/article-covers.ts` supplies the same localized image to article heroes, article cards, and Open Graph metadata.
+Updated 2026-10-17. The 28 Japanese and English guide covers use 1280×720 WebP images with a shared bold-title layout and a high-contrast orange category label. `content/article-covers.ts` supplies the same localized image to article heroes, article cards, and Open Graph metadata.
 
 ## Source and editorial use
 
@@ -35,7 +35,11 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 | `nuclear-simplified` | `satisfactory-factory-general.webp` | A broad factory and rail scene from official Satisfactory media | [storyblok](https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg) |
 | `nuclear-uranium` | `randomized-nodes.png` | A resource field viewed with the in-game scanner | [1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE](https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view) |
 | `nuclear-plutonium` | `satisfactory-factory-general.webp` | A broad factory and rail scene from official Satisfactory media | [storyblok](https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg) |
-| `nuclear-reprocessing` | `Throughput display.png` | A conveyor line with in-game throughput readouts | [1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v](https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view) |
+| `nuclear-reprocessing` | `Throughput display.png` | Conveyor belts visibly carrying nuclear-waste drums, with throughput readouts; thematic process context, not proof of the article's recipe chain | [1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v](https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view) |
+| `factory-floor-area` | `blueprint-autoconnect.jpg` | A Blueprint hologram being placed on a foundation grid in a factory; the cover is spatial context, not the article's calculated plan | [1BJm3wA78l309yQ_UQsz11WBSpsVbqomx](https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view) |
+| `fluid-truck-delivery` | `fluid-station-truck.png` | An official Update 1.2 Fluid Truck and Fluid Stations scene; thematic context, not a delivery-rate measurement | [1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0](https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view) |
+| `vehicle-paths` | `fluid-station-truck.png` | An early Update 1.2 Vehicle Path screenshot; not presented as the current UI or a route test | [1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0](https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view) |
+| `power-connector-daisy-chain` | `Factory.jpg` | A broad factory and power-line scene; not a daisy-chain connection or unlock demonstration | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
 
 ## Layout
 
@@ -43,3 +47,5 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 - Japanese and English title images are localized separately, with a bold two-line title, an orange label, concise context text, and the Satisfactory Planner name.
 - Image source mapping, localized alt text, captions, source links, and hero/card/OG paths are kept together in `content/article-covers.ts`.
 - Each theme was visually reviewed at 1280×720 and at a 390×219 article-list preview. The verified preview sheets are retained in `satisfactory-cover-refresh-samples-20261017/output/` on the external SSD.
+- The `factory-floor-area` pair was generated from the same inspected official screenshot and template on the external SSD; its captions clarify that it is not the 60 Iron Plates/min layout, a Planner result, or a finished placement plan.
+- The fluid-truck and vehicle-path pair uses the inspected official Update 1.2 gameplay capture. Their captions distinguish illustrative gameplay from a capacity/throughput measurement and current-UI claim. Daisy chaining uses an inspected official Press Kit factory scene, not as evidence of a specific connection or unlock screen.

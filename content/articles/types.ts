@@ -62,5 +62,7 @@ export type HandwrittenArticle = {
   readonly publishedDate?: string
   /** Last factual/content revision date (YYYY-MM-DD); omit if no known update date exists. */
   readonly updatedDate?: string
+  /** Article-specific game-version scope when the page explains a newer mechanic than the Planner's bundled dataset. */
+  readonly versionNotice?: string
   readonly cta: ArticleCta
 }

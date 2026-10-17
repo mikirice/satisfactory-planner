@@ -271,11 +271,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き14本とループ10本、および記事indexを生成する', async () => {
+  it('手書き18本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(24)
+    expect(articleSlugs).toHaveLength(28)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -319,8 +319,8 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('手書き記事14本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(14)
+  it('手書き記事18本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(18)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -384,7 +384,8 @@ describe('記事静的ページ', () => {
   })
 
   it('日英すべての記事で収録データ版とUpdate 1.2未照合を明示する', async () => {
-    expect(articleSlugs).toHaveLength(24)
+    expect(articleSlugs).toHaveLength(28)
+    const update12Guides = new Set(['fluid-truck-delivery', 'vehicle-paths', 'power-connector-daisy-chain'])
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
       const en = await readFile(join(outputDirectory, `en/articles/${slug}/index.html`), 'utf8')
@@ -392,7 +393,12 @@ describe('記事静的ページ', () => {
         expect(html, slug).toContain('class="version article-data-version-notice"')
         expect(html, slug).toContain('https://www.satisfactorygame.com/')
         expect(html, slug).toContain('Update 1.2')
-        expect(html, slug).toContain('1.1.x')
+        if (update12Guides.has(slug)) {
+          expect(html, slug).toContain('Update 1.2')
+          expect(html, slug).not.toContain('1.1.x')
+        } else {
+          expect(html, slug).toContain('1.1.x')
+        }
       }
     }
     const jaTutorial = await readFile(
@@ -1011,10 +1017,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 228（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事24）
-    // ＋ 英語 227（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(455)
-    expect(manifest.urls).toHaveLength(455)
+    // 日本語 232（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事28）
+    // ＋ 英語 231（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(463)
+    expect(manifest.urls).toHaveLength(463)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -2555,6 +2561,105 @@ describe('公式名トークンの解決', () => {
       }
     }
     await visit(outputDirectory)
+  })
+})
+
+describe('工場床面積ガイド', () => {
+  it('日英ページに計算境界・実配置の制約を示し、一覧ジャンルとsitemapへ登録する', async () => {
+    expect(manifest.articleSlugs).toContain('factory-floor-area')
+    expect(sitemapPaths()).toContain('/articles/factory-floor-area/')
+    expect(sitemapPaths()).toContain('/en/articles/factory-floor-area/')
+
+    const ja = await readFile(join(outputDirectory, 'articles/factory-floor-area/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/factory-floor-area/index.html'), 'utf8')
+    expect(ja).toContain('Plannerの概算機能')
+    expect(ja).toContain('390m²')
+    expect(ja).toContain('585m²')
+    expect(ja).toContain('10枚分')
+    expect(ja).toContain('配置する向き、列数')
+    expect(ja).toContain('プラットフォームの境界')
+    expect(en).toContain('Planner’s area estimate')
+    expect(en).toContain('390 m²')
+    expect(en).toContain('585 m²')
+    expect(en).toContain('ten Foundation equivalents')
+    expect(en).toContain('site boundaries')
+    expect(en).toContain('Update 1.2')
+
+    const jaIndex = await readFile(join(outputDirectory, 'articles/index.html'), 'utf8')
+    const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
+    expect(jaIndex).toContain('data-genres="planner factory"')
+    expect(enIndex).toContain('data-genres="planner factory"')
+    expect(jaIndex).toContain('工場の床面積をPlannerで見積もる')
+    expect(enIndex).toContain('Estimate Factory Floor Area')
+
+    const sitemap = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
+    expect(sitemap).toContain('https://satisfactory-planner.net/articles/factory-floor-area/')
+    expect(sitemap).toContain('https://satisfactory-planner.net/en/articles/factory-floor-area/')
+  })
+})
+
+describe('Update 1.2追加ガイド', () => {
+  it('日英3テーマの独自記事、公式出典、一覧・sitemap・localized coversを生成する', async () => {
+    const cases = [
+      {
+        slug: 'fluid-truck-delivery',
+        jaTitle: '流体トラックの在庫と補給間隔を計画する',
+        enTitle: 'Plan Fluid Truck Buffers and Refill Intervals',
+        jaProof: '3,200 m³',
+        enProof: '3,200 m³',
+        jaGenre: 'data-genres="planner"',
+        enGenre: 'data-genres="planner"',
+      },
+      {
+        slug: 'vehicle-paths',
+        jaTitle: '車両パスで新しい車両ルートを作る',
+        enTitle: 'Build a New Vehicle Route with Vehicle Paths',
+        jaProof: 'Build Menu',
+        enProof: 'Transport tab',
+        jaGenre: 'data-genres="factory"',
+        enGenre: 'data-genres="factory"',
+      },
+      {
+        slug: 'power-connector-daisy-chain',
+        jaTitle: '電源コネクタのデイジーチェーン入門',
+        enTitle: 'Power Connector Daisy Chaining: An Introduction',
+        jaProof: 'Computer 15個',
+        enProof: '15 Computers',
+        jaGenre: 'data-genres="power"',
+        enGenre: 'data-genres="power"',
+      },
+    ]
+    const jaIndex = await readFile(join(outputDirectory, 'articles/index.html'), 'utf8')
+    const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
+    const sitemap = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
+    for (const item of cases) {
+      const ja = await readFile(join(outputDirectory, `articles/${item.slug}/index.html`), 'utf8')
+      const en = await readFile(join(outputDirectory, `en/articles/${item.slug}/index.html`), 'utf8')
+      expect(ja).toContain(item.jaTitle)
+      expect(en).toContain(item.enTitle)
+      expect(ja).toContain(item.jaProof)
+      expect(en).toContain(item.enProof)
+      expect(ja).toContain('https://store.steampowered.com/news/app/526870/')
+      expect(en).toContain('https://store.steampowered.com/news/app/526870/')
+      expect(ja).toContain(`${item.slug}-ja.webp`)
+      expect(en).toContain(`${item.slug}-en.webp`)
+      expect(jaIndex).toContain(item.jaGenre)
+      expect(enIndex).toContain(item.enGenre)
+      expect(sitemap).toContain(`https://satisfactory-planner.net/articles/${item.slug}/`)
+      expect(sitemap).toContain(`https://satisfactory-planner.net/en/articles/${item.slug}/`)
+      expect(articleCoverFor(item.slug, 'ja').width).toBe(1280)
+      expect(articleCoverFor(item.slug, 'ja').height).toBe(720)
+      expect(articleCoverFor(item.slug, 'ja').creditLinks?.[0].href).toBe('https://www.satisfactorygame.com/press/')
+      expect(articleCoverFor(item.slug, 'en').caption).toBeTruthy()
+      if (item.slug === 'vehicle-paths') {
+        expect(ja).toContain(`<title>${item.jaTitle} | サティスファクトリー生産計画ツール</title>`)
+        expect(ja).not.toContain('Vehicle Path')
+        expect(jaIndex).toContain(item.jaTitle)
+        expect(articleCoverFor(item.slug, 'ja').alt).toContain('車両パス')
+        expect(articleCoverFor(item.slug, 'ja').alt).not.toContain('Vehicle Path')
+        expect(articleCoverFor(item.slug, 'en').alt).toContain('vehicle path')
+      }
+    }
   })
 })
 

@@ -1,0 +1,56 @@
+import type { HandwrittenArticle } from './types.ts'
+
+export const vehiclePathsArticle = {
+  slug: 'vehicle-paths',
+  publishedDate: '2026-10-17',
+  title: '車両パスで新しい車両ルートを作る',
+  description:
+    'Update 1.2の車両パスを使う基本手順と旧自動ルートとの違いを整理します。開発元が案内する設置方法と1.2.4.0の関連修正に基づくガイドです。',
+  versionNotice:
+    'この記事はSatisfactory Update 1.2の車両パス機能を対象にしています。基本手順は開発元の案内、車両パスの修正点は公式1.2.4.0告知に基づきます。2026年10月12日の1.2.4.1告知にこの機能の変更は記載されていませんが、表示や挙動は現行ゲームを優先してください。',
+  sections: [
+    {
+      heading: '新しい車両パスと旧ルートを区別する',
+      paragraphs: [
+        'Update 1.2では車両自動化が新しい車両パス方式に作り直されました。開発元は既存の自動ルートが引き続き動く想定だと案内しています。旧ルートの記録方式と新しい車両パスの配置を同じ手順として混ぜず、追加区間を作る前にどちらを使っているか確認します。',
+        '新方式ではBuild MenuのTransportタブからBuild Gunで車両パスを置き、その上に車両を配置します。長い直線にはStraight build modeを使え、車両タイプごとに車両パスを選べます。車両へ乗り込んでVehicle Menuを開くと、利用できるVehicle StationsとRoutesを確認できます。',
+      ],
+    },
+    {
+      heading: '短い区間から組み立てる',
+      paragraphs: [
+        '1. Transportタブから使う車両タイプの車両パスを選び、始点から目的地まで短い区間を配置します。まずは必要な建物間の接続を試し、長距離を一度に作り込まないようにします。',
+        '2. 直線区間を引くときはStraight build modeを使います。曲がりや接続部は車両パスの見た目だけで通行できると判断せず、車両を置いて走行を確認します。公式のUpdate 1.2.4.0ノートでは、Gateを通る車両パス、Blueprintに含めた車両パスの自動接続表示、待機中のAutopilot表示に修正が記録されています。',
+        '3. 車両へ乗り、Vehicle Menuで使えるStationsとRoutesを確認します。車両の色はOptionsのUser Interface設定で変えられます。色は複数ルートの見分けに使い、停車先や運行の確認はRoute表示と実際の走行で行います。',
+      ],
+    },
+    {
+      heading: '旧ルートを移す前に見ること',
+      paragraphs: [
+        '開発元はUpdate 1.2前の自動ルートがそのまま動く見込みだと説明しています。したがって、動作中の旧ルートを一度に撤去する必要はありません。新しい車両パスが必要な区間だけを別に作り、駅への到着や戻りまで確認してから移行範囲を広げます。旧ルートと新しい車両パスの細かな移行制限は公式告知に規定されていないため、断定しません。',
+        '現行公式発表一覧では2026年10月12日にv1.2.4.1が告知され、音響・Mod対応とクラッシュ修正が中心でした。車両パスの操作や挙動に関する直近の明記は、v1.2.4.0のGate、Blueprint接続表示、待機車両のAutopilot表示の修正です。問題を切り分けるときは、まず車両パスの接続と車両タイプ、次にGateやBlueprint由来の区間、最後にRoute表示を確認します。',
+      ],
+    },
+    {
+      heading: 'この記事が扱わない設計',
+      paragraphs: [
+        'このガイドはBuild Menuからの基本配置と公式に記録された変更点を案内します。地形ごとの最大勾配、車両間隔、衝突回避の保証、すべての車両に適した分岐形状といった未記載の仕様を追加していません。記事中のPress Kit画像はUpdate 1.2の車両パス配置を示す初期ゲーム画面で、現行版の操作UIを再現した手順画像ではありません。',
+      ],
+    },
+  ],
+  references: {
+    heading: '公式手順とパッチ履歴',
+    links: [
+      { label: '開発元: Satisfactory 1.2 Update out now!', href: 'https://store.steampowered.com/news/app/526870/view/695387676933621085' },
+      { label: '開発元: 1.2 Update Fixes v1.2.4.0', href: 'https://store.steampowered.com/news/app/526870/view/716786751176181501' },
+      { label: '開発元公式告知一覧（v1.2.4.1を含む）', href: 'https://steamcommunity.com/app/526870/announcements/?l=english' },
+    ],
+  },
+  relatedItemIds: [],
+  relatedArticleSlugs: ['build-checklist-guide', 'production-planning-tutorial'],
+  cta: {
+    kind: 'sample',
+    label: '輸送する生産ラインの必要台数をPlannerで確認する',
+    sampleId: 'iron-plate',
+  },
+} as const satisfies HandwrittenArticle
