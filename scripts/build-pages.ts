@@ -1355,6 +1355,7 @@ function articleSchema(
   description: string,
   breadcrumbId: string,
   publishedDate: string = PUBLISHED_DATE,
+  updatedDate?: string,
   extraNodes: readonly object[] = [],
 ): object {
   return {
@@ -1375,7 +1376,7 @@ function articleSchema(
         description,
         image: ogImageUrl(ctx.locale),
         datePublished: publishedDate,
-        dateModified: publishedDate,
+        ...(updatedDate === undefined ? {} : { dateModified: updatedDate }),
         inLanguage: ctx.locale,
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
         author: { '@type': 'Organization', name: ctx.site, url: SITE_URL },
@@ -1569,6 +1570,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
   const breadcrumbId = `${path}#breadcrumb`
   // 公開日は日本語版を正典にする（翻訳側で日付がずれても ja に合わせる）。
   const publishedDate = source.publishedDate ?? PUBLISHED_DATE
+  const updatedDate = source.updatedDate
   const sections = article.sections
     .map(
       (section) => `<section>
@@ -1626,6 +1628,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
         article.description,
         breadcrumbId,
         publishedDate,
+        updatedDate,
         HOW_TO_ARTICLE_SLUGS.has(article.slug) ? [howToSchema(ctx, path, article)] : [],
       ),
     },
@@ -1824,6 +1827,7 @@ function loopRelatedItemIds(solution: Solution, sample: SamplePlan): readonly st
 
 /** ループ記事の表示テキスト。日本語はテンプレート定義、英語は content/loop-guides/en.ts。 */
 type LoopContent = {
+  updatedDate?: string
   title: string
   headline: string
   description: string
@@ -1831,6 +1835,14 @@ type LoopContent = {
   mechanism: readonly string[]
   tips: readonly string[]
   sources?: readonly { readonly label: string; readonly href: string }[]
+  illustration?: {
+    readonly src: string
+    readonly width: number
+    readonly height: number
+    readonly alt: string
+    readonly caption: string
+    readonly creditLinks: readonly { readonly label: string; readonly href: string }[]
+  }
   circulationMeaning?: string
 }
 
@@ -1845,7 +1857,9 @@ function loopContent(ctx: Ctx, sample: SamplePlan): LoopContent {
       highlight: sample.highlight ?? sample.description,
       mechanism: guide.sections.mechanism,
       tips: guide.sections.tips,
+      ...(guide.updatedDate === undefined ? {} : { updatedDate: guide.updatedDate }),
       ...(guide.sources === undefined ? {} : { sources: guide.sources }),
+      ...(guide.illustration === undefined ? {} : { illustration: guide.illustration }),
       ...(guide.circulationMeaning === undefined
         ? {}
         : { circulationMeaning: guide.circulationMeaning }),
@@ -1862,7 +1876,9 @@ function loopContent(ctx: Ctx, sample: SamplePlan): LoopContent {
     highlight: guide.highlight,
     mechanism: guide.mechanism,
     tips: guide.tips,
+    ...(guide.updatedDate === undefined ? {} : { updatedDate: guide.updatedDate }),
     ...(guide.sources === undefined ? {} : { sources: guide.sources }),
+    ...(guide.illustration === undefined ? {} : { illustration: guide.illustration }),
     ...(guide.circulationMeaning === undefined
       ? {}
       : { circulationMeaning: guide.circulationMeaning }),
@@ -1913,6 +1929,15 @@ function renderLoopGuideText(text: string): string {
     }
     return `<a href="${escapeHtml(url)}" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(trailing)}`
   }).join('')
+}
+
+function renderLoopIllustration(illustration: NonNullable<LoopContent['illustration']>): string {
+  return `<figure class="article-illustration">
+    <img src="${escapeHtml(illustration.src)}" alt="${escapeHtml(illustration.alt)}" width="${illustration.width}" height="${illustration.height}" loading="lazy" decoding="async">
+    <figcaption>${escapeHtml(illustration.caption)}<span class="article-illustration__credits">${illustration.creditLinks
+      .map((link) => `<a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`)
+      .join(' · ')}</span></figcaption>
+  </figure>`
 }
 
 function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
@@ -1973,6 +1998,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
         <h2>${escapeHtml(ctx.L.loopMechanismHeading)}</h2>
         <ol>${content.mechanism.map((line) => `<li>${renderLoopGuideText(line)}</li>`).join('')}</ol>
       </section>
+      ${content.illustration === undefined ? '' : renderLoopIllustration(content.illustration)}
       <section>
         <h2>${escapeHtml(comparisonHeading)}</h2>
         <p class="version">${escapeHtml(ctx.L.loopSolverNote(meta.gameVersion))}</p>
@@ -2001,7 +2027,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
       ogType: 'article',
       ogImage: articleSocialImage(sample.id, ctx.locale),
       publishedTime: PUBLISHED_DATE,
-      structuredData: articleSchema(ctx, path, content.headline, description, breadcrumbId),
+      structuredData: articleSchema(ctx, path, content.headline, description, breadcrumbId, PUBLISHED_DATE, content.updatedDate),
     },
     body,
   )

@@ -11,6 +11,7 @@ export const coalPowerStartupArticle = {
   description:
     '8台の石炭発電機を例に、燃料・水・搬送量の見積もり、仮設電源を使った始動、停電時に供給を守る配線、プランナーの定格出力とゲーム内の実負荷の違いを解説します。',
   publishedDate: '2026-08-26',
+  updatedDate: '2026-10-17',
   sections: [
     {
       heading: '必要な発電容量と燃料を決める',
@@ -28,9 +29,18 @@ export const coalPowerStartupArticle = {
     },
     {
       heading: '仮設電源で燃料と水を先に流す',
+      illustration: {
+        src: '/article-images/coal-power-startup-generators-presskit-2020.webp',
+        alt: 'Satisfactoryの石炭発電機とコンベアの一般的なゲーム内風景。2020年の公式Press Kit画像で、記事の起動手順や発電機数は示していません。',
+        caption: '2020年の公式Press Kitに含まれる石炭発電のゲーム内風景です。記事の仮設電源による起動順、特定の台数、電力計算を示すものではありません。',
+        creditLinks: [
+          { label: '公式Satisfactory Press & Content Creatorsページ', href: 'https://www.satisfactorygame.com/press/' },
+          { label: '元画像（公式Press Kit）', href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view' },
+        ],
+      },
       paragraphs: [
         '揚水ポンプと採鉱機を動かす電力を、石炭発電機を立ち上げる前に用意します。最初はバイオマス発電機などの仮設電源から供給し、石炭ベルトと水配管を発電機へ接続します。各発電機に燃料が届き、水が流れていることを見てから、発電機を工場の電力網へつなぎます。搬送マニフォールドは末端まで満たされるのに時間がかかるため、立ち上げ直後だけでなく、少し運転して末端側の供給も確かめてください。',
-        '供給設備を工場本体と別の電力網に置くと、工場側のブレーカーが落ちても採鉱機と揚水ポンプを動かし続けられ、復旧が楽になります。8台構成で採掘機Mk.2を1台使う例なら、揚水ポンプ3台が60 MW、採鉱機が15 MWで、供給設備の定格消費は合計75 MWです。発電設備自体の使用電力も含め、使える電力は発電量から差し引いて見積もります。',
+        '供給設備を工場本体と別の電力網に置くと、工場側のブレーカーが落ちても採鉱機と揚水ポンプを動かし続けられ、復旧が楽になります。8台構成で採鉱機Mk.2を1台使う例なら、揚水ポンプ3台が60 MW、採鉱機が15 MWで、供給設備の定格消費は合計75 MWです。発電設備自体の使用電力も含め、使える電力は発電量から差し引いて見積もります。',
       ],
     },
     {

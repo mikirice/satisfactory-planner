@@ -28,6 +28,15 @@ export const coalPowerStartupArticleEn = {
     },
     {
       heading: 'Bring fuel and water online with temporary power',
+      illustration: {
+        src: '/article-images/coal-power-startup-generators-presskit-2020.webp',
+        alt: 'A general in-game Satisfactory scene with coal generators and a conveyor. This is an official 2020 Press Kit image, not the article’s startup sequence or generator count.',
+        caption: 'A coal-power scene from the official 2020 Press Kit. It does not show the temporary-power startup order, a specific number of generators or the calculations in this guide.',
+        creditLinks: [
+          { label: 'Official Satisfactory Press & Content Creators page', href: 'https://www.satisfactorygame.com/press/' },
+          { label: 'Original image (official Press Kit)', href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view' },
+        ],
+      },
       paragraphs: [
         'Before the coal generators can supply the plant, power the Water Extractors and Miner from a temporary source such as Biomass Burners. Connect the coal belt and water pipes to the generators. Check that fuel reaches the generators and water is flowing before connecting their power output to the factory grid. A conveyor manifold can take time to fill all the way to its last machines, so check the far end after the plant has run for a while as well as during startup.',
         'Keeping the supply machines on a separate power circuit from the factory makes recovery easier: a factory breaker trip does not also stop the Miner and Water Extractors. In an eight-generator example supplied by one Miner Mk.2, three Water Extractors draw 60 MW and the Miner draws 15 MW, for 75 MW of rated support load. Include this support power, along with the generators’ own draw, when estimating usable power.',

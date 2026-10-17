@@ -60,5 +60,7 @@ export type HandwrittenArticle = {
    * 追加した記事だけ日付が違うので、記事ごとに持たせる。
    */
   readonly publishedDate?: string
+  /** Last factual/content revision date (YYYY-MM-DD); omit if no known update date exists. */
+  readonly updatedDate?: string
   readonly cta: ArticleCta
 }

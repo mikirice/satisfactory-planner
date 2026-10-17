@@ -26,6 +26,8 @@ export const TEMPLATE_CATEGORIES = [
 export type TemplateCategoryId = (typeof TEMPLATE_CATEGORIES)[number]['id']
 
 export type SampleGuide = {
+  /** Last article update date for JSON-LD; omit unless the guide was materially revised. */
+  updatedDate?: string
   sections: {
     /** 構成が動く順番。初心者がフローチャートを追える短い文にする。 */
     mechanism: string[]
@@ -34,6 +36,15 @@ export type SampleGuide = {
   }
   /** レシピやゲーム内挙動の根拠として静的ガイドに表示するリンク。 */
   sources?: { label: string; href: string }[]
+  /** Localized gameplay context image rendered inside the bilingual loop article. */
+  illustration?: {
+    src: string
+    width: number
+    height: number
+    alt: string
+    caption: string
+    creditLinks: { label: string; href: string }[]
+  }
   /** 代替レシピ比較が適さない副産物循環で表示する説明。 */
   circulationMeaning?: string
 }
@@ -68,7 +79,7 @@ export type SamplePlan = {
   snapshot: PlanSnapshot
 }
 
-/** サンプル共通の既定値（採掘機・搬送手段・目的関数）。 */
+/** サンプル共通の既定値（採鉱機・搬送手段・目的関数）。 */
 const DEFAULTS = {
   v: PLAN_SCHEMA_VERSION,
   l: {},
@@ -157,7 +168,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
           'ポリマー樹脂 133.33/min と水 133.33 m³/min を「残留ゴム」に入れ、ゴム 66.67/min を作ります。水の合計は 666.67 m³/min です。',
           '「リサイクル・プラスチック」はゴム 277.78/min と燃料 277.78/min を使い、プラスチック 555.56/min を出します。うち 255.56/min を「リサイクル・ゴム」に戻し、300/min を製品にします。',
           '「リサイクル・ゴム」はプラスチック 255.56/min と燃料 255.56/min を使い、ゴム 511.11/min を出します。残留ゴム分を足したゴム 577.78/min のうち 277.78/min を戻し、300/min を製品にします。',
-          '燃料 533.33 m³/min は2つのリサイクル工程に全量消費されます。計画上の製造建物は精製機30棟と混合機6棟の計36棟で、採油機・水抽出機は含みません。',
+          '燃料 533.33 m³/min は2つのリサイクル工程に全量消費されます。計画上の製造建物は精製機30棟と混合機6棟の計36棟で、原油抽出機・揚水ポンプは含みません。',
         ],
         tips: [
           '定常計算に初期在庫は含まれません。標準設定で再生プラスチック側10棟・再生ゴム側9棟を一斉に最初の1バッチ動かすなら、ゴム60個・プラスチック54個と燃料114個が必要です。まず樹脂からゴムと燃料の在庫を作り、片側を先に動かして必要在庫をためてからもう片側を起動します。',
@@ -245,7 +256,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
           '標準の燃料レシピは原油6 m³/minから燃料4 m³/minとポリマー樹脂3個/minを作ります。燃料72 m³/minには原油108 m³/minが必要で、精製機1.8台相当（2台を100%と80%ではなく、90%ずつなら合計1.8台分）が目安です。樹脂54個/minも出るため搬出先を用意します。',
           '組立機の圧縮石炭レシピは石炭5個/minと硫黄5個/minから圧縮石炭5個/minを作ります。48個/minには石炭と硫黄が各48個/min必要で、組立機1.92台相当です。',
           '硫黄（鉄）レシピは変換機で活性SAM 1個/minと鉄鉱石30個/minから硫黄12個/minを作ります。必要な硫黄48個/minを作るには、活性SAM 4個/min、鉄鉱石120個/minを投入します。活性SAMは生SAM16個/minから製作機で4個/min作ります。',
-          '発電機8台の定格出力は2,000 MWです。レシピを100%クロック相当でそろえた製造設備の消費電力は標準値279.3 MW（変換機の変動を含む範囲219.3〜339.3 MW）で、差し引きの計算上は1,720.7 MW（範囲1,660.7〜1,780.7 MW）が残ります。採掘機や揚水機、配管ポンプ、ほかの工場負荷は含まれません。',
+          '発電機8台の定格出力は2,000 MWです。レシピを100%クロック相当でそろえた製造設備の消費電力は標準値279.3 MW（変換機の変動を含む範囲219.3〜339.3 MW）で、差し引きの計算上は1,720.7 MW（範囲1,660.7〜1,780.7 MW）が残ります。採鉱機や揚水機、配管ポンプ、ほかの工場負荷は含まれません。',
         ],
         tips: [
           '「圧縮石炭」と「ターボ燃料」はMAMの硫黄研究で解放します。この構成の硫黄製造には変換機（Tier 9の物質変換）と活性SAMが必要です。活性SAMはMAMの異星技術研究、またはTier 9で入手条件を確認してください。計算レートは収録済みの1.1.xデータに基づき、Update 1.2以降のレシピ値は未照合です。レシピが揃う前は通常燃料発電を先に建て、セーブで解放済みの燃料だけをPlannerで選び直します。',
@@ -284,6 +295,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
     icon: 'Desc_AluminumIngot_C',
     hasCycle: true,
     guide: {
+      updatedDate: '2026-10-17',
       sections: {
         mechanism: [
           '標準レシピでアルミナ溶液を120m³/分作ります。精製機1台ぶんで、ボーキサイト120個/分と水180m³/分を使い、シリカ50個/分も出ます。',
@@ -300,6 +312,17 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
       },
       circulationMeaning:
         '標準レシピではスクラップ工程が60m³/分の水を返し、すべてをアルミナ溶液に再利用できます。下の数値はこの循環量です。120m³/分の正味給水と混同しないでください。',
+      illustration: {
+        src: '/article-images/official-straight-pipes-1.1.jpg',
+        width: 1920,
+        height: 1080,
+        alt: '複数の流体配管が工場内を通る様子を示す公式ゲーム画面。',
+        caption: '公式Press Kitの配管配置の一般例です。画像はアルミ精錬や本記事の水循環を示していません。',
+        creditLinks: [
+          { label: 'Press & Content Creators', href: 'https://www.satisfactorygame.com/press/' },
+          { label: '元画像: straight-pipes.jpg', href: 'https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view' },
+        ],
+      },
     },
     snapshot: {
       ...DEFAULTS,
@@ -504,7 +527,7 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
           'FICSONIUM燃料棒を燃やすと核廃棄物は出ません。全量を燃やす設定ではウラン廃棄物とプルトニウム廃棄物の収支がともにゼロになります。',
         ],
         tips: [
-          '起動前に原子炉以外の電源を用意します。この例の製造工程だけで約3,026 MWを使い、採掘機の電力はこの数に含みません。初回分のウラン燃料棒も外から作ります。ウラン廃棄物処理と、硫酸・硝酸・シンギュラリティセル・ダークマターの残留物の供給を先に整え、ウラン発電所、プルトニウム燃料棒と発電所、FICSONIUM系統の順に起動します。ウラン廃棄物の2経路は30個/分と10個/分なので、両方の搬送先を先に用意します。',
+          '起動前に原子炉以外の電源を用意します。この例の製造工程だけで約3,026 MWを使い、採鉱機の電力はこの数に含みません。初回分のウラン燃料棒も外から作ります。ウラン廃棄物処理と、硫酸・硝酸・シンギュラリティセル・ダークマターの残留物の供給を先に整え、ウラン発電所、プルトニウム燃料棒と発電所、FICSONIUM系統の順に起動します。ウラン廃棄物の2経路は30個/分と10個/分なので、両方の搬送先を先に用意します。',
           '各廃棄物のベルトに余裕のある一時保管庫を挟みます。これは詰まりに気づく時間を稼ぐバッファで、処分先にはなりません。保管庫が増え続けたら、該当する発電所への燃料供給を止め、下流のベルト・設備の電力・入力・出力詰まりを直してから再開します。',
           'FICSONIUM系が止まったら、粒子加速器にプルトニウム廃棄物・シンギュラリティセル・ダークマターの残留物が揃っているかを確認し、次に量子エンコーダーの励起フォトニック物質・出力先・戻り配管を見ます。原子炉が止まる場合は燃料棒、冷却水、廃棄物出口の順です。',
           'ウラン廃棄物とプルトニウム廃棄物はAWESOMEシンクへ直接投入できません（1.1.xデータでシンクポイント0）。プルトニウム燃料棒はシンク可能ですが、燃やすとシンク不能のプルトニウム廃棄物が出ます。プルトニウムで止めるなら棒を燃やさずにシンクへ送り、FICSONIUM燃料棒はシンクせず発電所で燃やします（同データでシンクポイント0、燃焼時に核廃棄物なし）。',
