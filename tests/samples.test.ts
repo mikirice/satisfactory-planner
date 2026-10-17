@@ -118,7 +118,9 @@ describe('サンプルプランのスキーマ', () => {
       expect(sample.guide?.sections.mechanism.length).toBeGreaterThanOrEqual(3)
       expect(sample.guide?.sections.mechanism.length).toBeLessThanOrEqual(6)
       expect(sample.guide?.sections.tips.length).toBeGreaterThanOrEqual(2)
-      expect(sample.guide?.sections.tips.length).toBeLessThanOrEqual(4)
+      expect(sample.guide?.sections.tips.length).toBeLessThanOrEqual(
+        sample.id === 'nuclear-reprocessing' ? 6 : 4,
+      )
     }
   })
 

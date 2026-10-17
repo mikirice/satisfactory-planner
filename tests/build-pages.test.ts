@@ -468,6 +468,17 @@ describe('記事静的ページ', () => {
     // 精製機のプラスチック（原油30 → プラスチック20 + 廃重油10）
     expect(await read('oil-products-basics', 'ja')).toContain('プラスチック20個/分と廃重油10m³/min')
     expect(await read('oil-products-basics', 'en')).toContain('20 Plastic/min plus 10 m³/min')
+    for (const [slug, ref] of [
+      ['oil-products-basics', 'https://satisfactory.wiki.gg/wiki/Oil_Refinery'],
+      ['aluminum-production-guide', 'https://satisfactory.wiki.gg/wiki/Alumina_Solution'],
+    ] as const) {
+      for (const locale of ['ja', 'en'] as const) {
+        const html = await read(slug, locale)
+        expect(html).toContain('https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
+        expect(html).toContain(`href="${ref}" rel="noopener noreferrer"`)
+        expect(html).toContain('1.1.x')
+      }
+    }
     // アルミのインゴット60個/分の原料（ソルバーの解と一致）
     expect(await read('aluminum-production-guide', 'ja')).toContain(
       'ボーキサイト60個/分・石炭30個/分・未加工石英30個/分・水60m³/min',
@@ -589,11 +600,40 @@ describe('記事静的ページ', () => {
       join(outputDirectory, 'articles/turbofuel-power/index.html'),
       'utf8',
     )
-    expect(turbofuel).toContain('SAMを「活性SAM」に変え、鉄鉱石と変換機へ入れて硫黄を用意します')
+    expect(turbofuel).toContain('燃料72 m³/minと圧縮石炭48個/min')
+    expect(turbofuel).toContain('1,720.7 MW')
+    expect(turbofuel).toContain('変換機（Tier 9の物質変換）')
     expect(turbofuel).toContain('鉄鉱石</a></td>')
     expect(turbofuel).toContain('120.00')
     expect(turbofuel).toContain('SAM</a></td>')
     expect(turbofuel).toContain('16.00')
+    expect(turbofuel).toContain('href="https://satisfactory.wiki.gg/wiki/Turbofuel"')
+    const turbofuelEn = await readFile(
+      join(outputDirectory, 'en/articles/turbofuel-power/index.html'),
+      'utf8',
+    )
+    expect(turbofuelEn).toContain('72 m³/min of Fuel')
+    expect(turbofuelEn).toContain('1,720.7 MW net')
+    expect(turbofuelEn).toContain('Tier 9 Matter Conversion')
+    expect(turbofuelEn).toContain('href="https://satisfactory.wiki.gg/wiki/Turbofuel"')
+    const diluted = await readFile(
+      join(outputDirectory, 'articles/diluted-fuel-power/index.html'),
+      'utf8',
+    )
+    expect(diluted).toContain('原油75 m³/min')
+    expect(diluted).toContain('燃料200 m³/min')
+    expect(diluted).toContain('2,275 MW')
+    expect(diluted).toContain('1.2以降のレシピ値は未照合')
+    expect(diluted).toContain('href="https://satisfactory.wiki.gg/wiki/Diluted_Fuel"')
+    expect(diluted).toContain('hreflang="en"')
+    const dilutedEn = await readFile(
+      join(outputDirectory, 'en/articles/diluted-fuel-power/index.html'),
+      'utf8',
+    )
+    expect(dilutedEn).toContain('75 m³/min of Crude Oil')
+    expect(dilutedEn).toContain('2,275 MW')
+    expect(dilutedEn).toContain('href="https://satisfactory.wiki.gg/wiki/Diluted_Fuel"')
+    expect(dilutedEn).toContain('hreflang="ja"')
     const battery = await readFile(
       join(outputDirectory, 'articles/battery-water-loop/index.html'),
       'utf8',
@@ -643,8 +683,15 @@ describe('記事静的ページ', () => {
     expect(nuclear).toContain('2台 → 7台')
     expect(nuclear).toContain('17,500 MW')
     expect(nuclear).toContain('20.00 → 0.00 個/分')
+    expect(nuclear).toContain('ウラン廃棄物40個/分')
+    expect(nuclear).toContain('30個/分と10個/分')
+    expect(nuclear).toContain('https://satisfactory.wiki.gg/wiki/Uranium_Waste')
+    expect(nuclear).toContain('https://satisfactory.wiki.gg/wiki/Plutonium_Waste')
+    expect(nuclear).toContain('https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
+    expect(nuclear).toContain('AWESOMEシンクへ直接投入できません')
+    expect(nuclear).toContain('初回分のウラン燃料棒')
     expect(nuclear).not.toContain('プルトニウム廃棄物</a></td>')
-    expect(nuclear).toContain('FICSONIUM燃料棒にします')
+    expect(nuclear).toContain('FICSONIUM2個/分を電磁制御棒')
     expect(nuclear).not.toContain('再処理チェーンの終点として取り出します')
     // 簡略版は「代替レシピなしとの差」を build-time solver の実値で出す（本文に数値を書かない）
     const simplified = await readFile(
@@ -1182,6 +1229,12 @@ describe('英語ミラーの生成', () => {
     expect(nuclear).toContain('40.00 → 80.00')
     expect(nuclear).toContain('2 → 7')
     expect(nuclear).toContain('17,500 MW')
+    expect(nuclear).toContain('40 Uranium Waste/min')
+    expect(nuclear).toContain('30/min through Non-fissile Uranium and 10/min through Plutonium Pellet')
+    expect(nuclear).toContain('Plutonium Waste cannot go directly into the AWESOME Sink')
+    expect(nuclear).toContain('https://satisfactory.wiki.gg/wiki/Ficsonium_Fuel_Rod')
+    expect(nuclear).toContain('https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
+    expect(nuclear).toContain('separate grid before starting the nuclear plants')
     expect(nuclear).not.toContain('Plutonium Waste</a> left over</td>')
   })
 

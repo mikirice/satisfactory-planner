@@ -1743,6 +1743,7 @@ type LoopContent = {
   highlight: string
   mechanism: readonly string[]
   tips: readonly string[]
+  sources?: readonly { readonly label: string; readonly href: string }[]
   circulationMeaning?: string
 }
 
@@ -1757,6 +1758,7 @@ function loopContent(ctx: Ctx, sample: SamplePlan): LoopContent {
       highlight: sample.highlight ?? sample.description,
       mechanism: guide.sections.mechanism,
       tips: guide.sections.tips,
+      ...(guide.sources === undefined ? {} : { sources: guide.sources }),
       ...(guide.circulationMeaning === undefined
         ? {}
         : { circulationMeaning: guide.circulationMeaning }),
@@ -1773,6 +1775,7 @@ function loopContent(ctx: Ctx, sample: SamplePlan): LoopContent {
     highlight: guide.highlight,
     mechanism: guide.mechanism,
     tips: guide.tips,
+    ...(guide.sources === undefined ? {} : { sources: guide.sources }),
     ...(guide.circulationMeaning === undefined
       ? {}
       : { circulationMeaning: guide.circulationMeaning }),
@@ -1846,6 +1849,18 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
       : baselineTitle === undefined
         ? ctx.L.loopComparisonHeading
         : ctx.L.loopStageComparisonHeading(baselineTitle)
+  const sources =
+    content.sources === undefined || content.sources.length === 0
+      ? ''
+      : `<section class="article-references">
+        <h2>${ctx.locale === 'ja' ? '参考資料' : 'Sources'}</h2>
+        <ul>${content.sources
+          .map(
+            (source) =>
+              `<li><a href="${escapeHtml(source.href)}" rel="noopener noreferrer">${escapeHtml(source.label)}</a></li>`,
+          )
+          .join('')}</ul>
+      </section>`
   const body = `${renderBreadcrumbs(
     [
       { label: ctx.L.home, href: landingPagePath(ctx.locale) },
@@ -1881,6 +1896,7 @@ function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
         <h2>${escapeHtml(ctx.L.loopTipsHeading)}</h2>
         <ul>${content.tips.map((line) => `<li>${renderLoopGuideText(line)}</li>`).join('')}</ul>
       </section>
+      ${sources}
       ${renderRelatedItems(ctx, loopRelatedItemIds(current, sample))}
       <section>
         <h2>${escapeHtml(ctx.L.loopOpenHeading)}</h2>

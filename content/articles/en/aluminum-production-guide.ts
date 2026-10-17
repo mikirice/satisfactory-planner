@@ -1,49 +1,87 @@
 import type { HandwrittenArticle } from '../types.ts'
 
+/** Per-minute figures are scaled directly from src/data/recipes.json and buildings.json. */
 export const aluminumProductionGuideArticleEn = {
   slug: 'aluminum-production-guide',
-  title: 'The Aluminum Chain — Three Stages, and Balancing Water Against Silica',
+  title: 'Aluminum Production Basics — Three Stages, Water and Silica',
   description:
-    'The three-stage chain from Bauxite to Aluminum Ingot broken down into per-minute rates, what to do with the Water the line gives back, where to source Silica, and how to read the power and resource caps.',
+    'Follow the standard chain from Bauxite to Aluminum Ingot with per-minute balances, a 60/min worked example, and practical steps for Water, Silica, start-up and troubleshooting.',
   publishedDate: '2026-08-26',
   sections: [
     {
-      heading: 'Three stages, written as per-minute rates',
+      heading: 'Turn Bauxite into Ingots in three stages',
       paragraphs: [
-        'Aluminum is three stages. A Refinery makes Alumina Solution (120 Bauxite/min plus 180 m³/min of Water into 120 m³/min of Alumina Solution and 50 Silica/min). A second Refinery makes Aluminum Scrap (240 m³/min of Alumina Solution plus 120 Coal/min into 360 Aluminum Scrap/min and 120 m³/min of Water). A Foundry makes the ingot (90 Aluminum Scrap/min plus 75 Silica/min into 60 Aluminum Ingot/min).',
-        'What makes aluminum different from other metals is that stage one drinks a lot of Water and stage two hands some of it back. Design those two independently and you end up short on supply at one end while flooding a pipe at the other. Getting the water balance right is most of the work.',
+        'The standard chain has three stages: (1) a Refinery makes Alumina Solution from Bauxite and Water, (2) another Refinery turns the solution and Coal into Aluminum Scrap, and (3) a Foundry combines Scrap and Silica into Aluminum Ingots. The table gives per-minute rates at 100% clock for each machine.',
+        'The first stage also makes Silica, and the second returns Water. You can feed that Water back to stage one, but outside Water is still needed to prime the line. If the return Water has nowhere to go, the Scrap step stalls and the blockage can stop Alumina Solution production upstream.',
+      ],
+      tables: [
+        {
+          caption: 'Standard Aluminum chain rates per minute (repository 1.1.x data)',
+          headers: ['Stage and machine', 'Inputs', 'Outputs'],
+          rows: [
+            ['Alumina Solution · Refinery', '120 Bauxite + 180 m³ Water', '120 m³ solution + 50 Silica'],
+            ['Aluminum Scrap · Refinery', '240 m³ solution + 120 Coal', '360 Scrap + 120 m³ Water'],
+            ['Aluminum Ingot · Foundry', '90 Scrap + 75 Silica', '60 Ingots'],
+          ],
+        },
       ],
     },
     {
-      heading: 'Breaking down 60 Aluminum Ingot/min',
+      heading: 'Work backward from 60 Aluminum Ingots/min',
       paragraphs: [
-        'Take one full Foundry, 60 Aluminum Ingot/min. That needs 90 Aluminum Scrap/min, which is 0.25 of a scrap Refinery, consuming 60 m³/min of Alumina Solution and 30 Coal/min and giving back 30 m³/min of Water. The 60 m³/min of Alumina Solution is 0.5 of an Alumina Solution Refinery, consuming 60 Bauxite/min and 90 m³/min of Water and producing 25 Silica/min as a byproduct.',
-        'The Foundry wants 75 Silica/min, so the 25 Silica/min byproduct leaves you 50 short. Covering that with the standard Silica recipe (a Constructor turning 22.5 Raw Quartz/min into 37.5 Silica/min) takes 1.333 Constructors and 30 Raw Quartz/min. On the water side you put in 90 m³/min and get 30 m³/min back, so only 60 m³/min has to come from outside.',
-        'Altogether, 60 Aluminum Ingot/min costs 60 Bauxite/min, 30 Coal/min, 30 Raw Quartz/min and a net 60 m³/min of Water, built from 0.75 Refineries, one Foundry and 1.333 Constructors. At 100% clock that is 22.5 MW of Refineries plus 16 MW of Foundry plus 5.33 MW of Constructors, about 43.8 MW. Underclocking the fractional machines brings it below that.',
+        'Start with one Foundry at 100% clock. It makes 60 Aluminum Ingots/min and needs 90 Scrap/min plus 75 Silica/min. A quarter of a Scrap Refinery supplies 90 Scrap/min, using 60 m³/min of Alumina Solution and 30 Coal/min while returning 30 m³/min of Water.',
+        'The 60 m³/min of solution is half of an Alumina Solution Refinery. It uses 60 Bauxite/min and 90 m³/min of Water, and also produces 25 Silica/min. Make the remaining 50 Silica/min with the standard recipe and you need 30 Raw Quartz/min and one and one-third Constructors. Altogether, 60 Aluminum Ingots/min takes 60 Bauxite/min, 30 Coal/min, 30 Raw Quartz/min and a net 60 m³/min of Water.',
+        'The fractional line uses 0.75 Refineries, one Foundry and 1⅓ Constructors. At 100% machine power rates, that is 22.5 MW for Refineries, 16 MW for the Foundry and about 5.33 MW for Constructors, for a total of about 43.83 MW. You can underclock the fractional machines instead of running full machines at 100%.',
+      ],
+      tables: [
+        {
+          caption: 'A standard-recipe build for 60 Aluminum Ingots/min',
+          headers: ['Requirement', 'Per minute'],
+          rows: [
+            ['Bauxite', '60 items'],
+            ['Coal', '30 items'],
+            ['Raw Quartz', '30 items'],
+            ['Outside Water (after reusing return Water)', '60 m³ net'],
+            ['Machine power', 'about 43.83 MW'],
+          ],
+        },
       ],
     },
     {
-      heading: 'Return the byproduct Water instead of dumping it',
+      heading: 'Reuse the byproduct Water once the line is running',
       paragraphs: [
-        'The Water the scrap Refinery produces can go straight back into the Alumina Solution supply. In the example above that covers 30 of the 90 m³/min needed. In a real build you have to lay the return pipe first, otherwise the scrap refinery has nowhere to push its Water and stalls. Pipe junctions are sensitive to head lift and elevation changes, so keep the return line short and at the same height.',
-        'One thing to watch: the planner\'s default objective assigns no cost to Water. Water is treated as uncapped on the map, so a "minimise raw resources" objective sees no downside to using more of it. The solved numbers will not push you towards a closed loop on their own — that is a decision you make. Opening one of the existing loop templates is the quickest way to see which recipe combinations actually close the water balance.',
+        'In the 60 Ingots/min example, the Alumina Solution step uses 90 m³/min of Water, while the Scrap step returns 30 m³/min. Feed that return upstream in steady operation and the outside supply only has to cover a net 60 m³/min. The [Aluminum Water Loop guide](/en/articles/aluminum-water-loop/) covers the return-pipe layout, priming and overflow route. When adding batteries to the same site, use the separate [Battery Water Loop guide](/en/articles/battery-water-loop/) for the additional return stream.',
+        'This is a steady-state material balance. When you first build the line, supply outside Water to fill the pipes and solution step; check the return path after Scrap production begins. Even if the Planner shows a balanced plan, a high return pipe, insufficient head lift or a backed-up receiving pipe can prevent flow in game. If you add an emergency outlet, confirm that it will not drain inputs or product during normal operation.',
       ],
     },
     {
-      heading: 'Where to get Silica',
+      heading: 'Source Silica from the byproduct, Quartz or an alternate',
       paragraphs: [
-        'There are three sources. The standard Silica recipe runs in a Constructor, 22.5 Raw Quartz/min into 37.5 Silica/min. The alternate Cheap Silica runs in an Assembler, 22.5 Raw Quartz/min plus 37.5 Limestone/min into 52.5 Silica/min — 1.4 times as much Silica per unit of Raw Quartz. Limestone is capped at 69,300 items/min across the map against 13,500 items/min for Raw Quartz, so trading quartz for limestone is usually the cheaper direction.',
-        'The third source is the 50 Silica/min that comes out of Alumina Solution for free. That free Silica disappears if you switch to the alternate Sloppy Alumina (200 Bauxite/min plus 200 m³/min of Water into 240 m³/min of Alumina Solution). Sloppy Alumina gets 1.2 times as much Alumina Solution per Bauxite, but you then have to make all your Silica separately. Pick based on whether Bauxite or Raw Quartz is the tighter constraint at your site.',
+        'The standard Silica recipe turns 22.5 Raw Quartz/min into 37.5 Silica/min. The Cheap Silica alternate adds 37.5 Limestone/min to the same 22.5 Raw Quartz/min and returns 52.5 Silica/min. To make the extra 50 Silica/min in the 60 Ingot example with Cheap Silica alone, you need about 21.43 Raw Quartz/min and 35.71 Limestone/min. It uses an Assembler instead of a Constructor, so compare the Limestone supply and whether the recipe is unlocked.',
+        'The standard Alumina Solution step supplies some Silica as a byproduct. By contrast, the Sloppy Alumina alternate uses 200 Bauxite/min and 200 m³/min of Water to make 240 m³/min of solution and produces no Silica. It makes more solution per unit of Bauxite than the standard recipe, but you must supply all Silica separately. Choose based on which resource is constrained at your site and how far it must be transported.',
       ],
     },
     {
-      heading: 'Why the planner reaches for the Converter',
+      heading: 'Match the Planner result to your site and trace a stoppage',
       paragraphs: [
-        'Set Aluminum Ingot as a target here and the solver may propose making Bauxite in a Converter from Copper Ore and Reanimated SAM rather than mining it. The default objective, "minimise raw resources", weights each resource by how much of it the map can supply. Bauxite tops out at 12,300 items/min against 92,100 items/min for Iron Ore, so a unit of Bauxite is scored as expensive.',
-        'If you have the Bauxite nodes secured, switch the objective to "minimise power" or "minimise buildings". That lowers the weight on resource cost and the solution returns to the direct Bauxite route broken down above. Resource caps can also be overridden in the settings, so entering the node count you actually control gives you a comparison that matches your own base.',
+        'Set Aluminum Ingot to 60/min in the Planner and review the recipes, buildings and resource limits. Under the default “minimise raw resources” objective, the solver may make Bauxite in a Converter instead of mining it because Bauxite is scarcer across the whole map. Enter limits for the nodes you can actually use, or compare objectives that prioritize power or building count to find a plan closer to your site. See [How to Compare Alternate Recipes](/en/articles/alternate-recipe-metrics/) for choosing among recipe trade-offs.',
+        'If production stops, check in this order: (1) whether Alumina Solution reaches the Scrap Refineries, (2) whether Silica reaches the Foundries in the needed amount, (3) whether the return Water pipe and receiving point are clear, and (4) whether Bauxite, Coal and Quartz mining and belts meet the required rates. The Planner solves selected recipes and steady-state balances; it does not lay out pipe height, head lift or start-up filling for you.',
       ],
     },
   ],
+  references: {
+    heading: 'Data and recipe sources',
+    links: [
+      {
+        label: 'Planner game-data source and version record (1.1.x)',
+        href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md',
+      },
+      { label: 'Alumina Solution — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Alumina_Solution' },
+      { label: 'Aluminum Scrap — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Aluminum_Scrap' },
+      { label: 'Aluminum Ingot — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Aluminum_Ingot' },
+      { label: 'Silica — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Silica' },
+    ],
+  },
   relatedItemIds: [
     'Desc_OreBauxite_C',
     'Desc_AluminaSolution_C',
@@ -61,7 +99,7 @@ export const aluminumProductionGuideArticleEn = {
   ],
   cta: {
     kind: 'item',
-    label: 'Open a plan for 60 Aluminum Ingot/min',
+    label: 'Open a plan for 60 Aluminum Ingots/min',
     itemId: 'Desc_AluminumIngot_C',
     ratePerMin: 60,
   },
