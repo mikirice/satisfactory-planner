@@ -1,1 +1,92 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Õ¥µÁ½ÉĞÑåÁ”ì!…¹‘İÉ¥ÑÑ•¹ÉÑ¥±”ô™É½´€œ¸¸½ÑåÁ•Ì¹ÑÌœ((¼¨¨I•¥Á”É…Ñ•Ì…¹¥¹ÁÕÑÌ…É”…±Õ±…Ñ•™É½´Ñ¡”É•Á½Í¥Ñ½ÉäÌÙ•É¥™¥•M…Ñ¥Í™…Ñ½Éä€Ä¸Ä¹à‘…Ñ„¸€¨¼)•áÁ½ÉĞ½¹ÍĞµ½Ñ½ÉAÉ½‘ÕÑ¥½¹I•¥Á•ÍÉÑ¥±•¸€ôì(€Í±Õœè€µ½Ñ½ÈµÁÉ½‘ÕÑ¥½¸µÉ•¥Á•Ìœ°(€Ñ¥Ñ±”è€M…Ñ¥Í™…Ñ½Éä5½Ñ½ÈI•¥Á•Ì½µÁ…É•èI½Ñ½È°MÑ…Ñ½È½È½¹ÑÉ½°I½üœ°(€‘•ÍÉ¥ÁÑ¥½¸è(€€€€½µÁ…É”Ñ¡”ÍÑ…¹‘…É5½Ñ½È°±•ÑÉ¥Œ5½Ñ½È…¹I¥½È5½Ñ½ÈÉ•¥Á•Ì…Ğ€ÄÔ5½Ñ½ÉÌ½µ¥¸ÕÍ¥¹œM…Ñ¥Í™…Ñ½Éä€Ä¸Ä¹à‘…Ñ„¸M•”Ñ¡•¥È‘¥É•Ğ¥¹ÁÕÑÌ…¹µ…¡¥¹”½Õ¹ÑÌ°Ñ¡•¸¡½½Í”…É½Õ¹Ñ¡”Á…ÉÑÌå½ÕÈ™…Ñ½Éä…±É•…‘äµ…­•Ì¸œ°(€ÁÕ‰±¥Í¡•‘…Ñ”è€œÈÀÈØ´ÄÀ´ÄÜœ°(€Í•Ñ¥½¹Ìèl(€€€ì(€€€€€¡•…‘¥¹œè€MÑ…ÉĞİ¥Ñ Ñ¡”Á…ÉÑÌå½Ô…¸ÍÕÁÁ±äœ°(€€€€€Á…É…É…Á¡Ìèl(€€€€€€€€Q¡•É”…É”Ñ¡É•”5½Ñ½ÈÉ•¥Á•ÌÑ¼½µÁ…É”èÑ¡”ÍÑ…¹‘…ÉÉ•¥Á”°±•ÑÉ¥Œ5½Ñ½È…¹I¥½È5½Ñ½È¸=ÕÑÁÕĞ…±½¹”‘½•Ì¹½ĞÑ•±°å½Ôİ¡¥ ½¹”Ñ¼ÕÍ”¸Q¡”ÍÑ…¹‘…ÉÉ•¥Á”¹••‘Ì‰½Ñ I½Ñ½ÉÌ…¹MÑ…Ñ½ÉÌì±•ÑÉ¥Œ5½Ñ½ÈÉ•Á±…•ÌMÑ…Ñ½ÉÌİ¥Ñ ±•ÑÉ½µ…¹•Ñ¥Œ½¹ÑÉ½°I½‘ÌìI¥½È5½Ñ½È…‘‘ÌÉåÍÑ…°=Í¥±±…Ñ½ÉÌİ¡¥±”ÕÍ¥¹œ™•İ•ÈI½Ñ½ÉÌ…¹MÑ…Ñ½ÉÌ¸¡½½Í”…É½Õ¹Ñ¡”Á…ÉÑÌå½ÕÈ™…Ñ½Éä…¸…±É•…‘äÁÉ½Ù¥‘”¸œ°(€€€€€€€€Ğ„½µµ½¸Ñ…É•Ğ½˜€ÄÔ5½Ñ½ÉÌ½µ¥¸°Ñ¡”ÍÑ…¹‘…ÉÉ•¥Á”¹••‘Ì€ÌÀI½Ñ½ÉÌ½µ¥¸…¹€ÌÀMÑ…Ñ½ÉÌ½µ¥¸¸±•ÑÉ¥Œ5½Ñ½È¹••‘Ì€ÄÔI½Ñ½ÉÌ½µ¥¸…¹€Ü¸Ô±•ÑÉ½µ…¹•Ñ¥Œ½¹ÑÉ½°I½‘Ì½µ¥¸¸I¥½È5½Ñ½È¹••‘Ì€Ü¸ÔI½Ñ½ÉÌ½µ¥¸°€Ü¸ÔMÑ…Ñ½ÉÌ½µ¥¸…¹€È¸ÔÉåÍÑ…°=Í¥±±…Ñ½ÉÌ½µ¥¸¸Q¡•Í”…É”¹½µ¥¹…°É…Ñ•ÌÍ…±•™É½´É•¥Á”¥¹ÁÕÑÌìÑ¡•ä‘¼¹½Ğ…½Õ¹Ğ™½ÈÑÉ…¹ÍÁ½ÉĞ©…µÌ½È‘½İ¹Ñ¥µ”¸œ°(€€€€€t°(€€€€€¥±±ÕÍÑÉ…Ñ¥½¹Ìèl(€€€€€€€ì(€€€€€€€€€ÍÉŒè€œ½…ÉÑ¥±”µ¥µ…•Ì½Í…Ñ¥Í™…Ñ½Éäµ™…Ñ½Éäµ•¹•É…°¹İ•‰Àœ°(€€€€€€€€€…±Ğè€•¹•É…°¥¸µ…µ”M…Ñ¥Í™…Ñ½Éä™…Ñ½Éä…¹É…¥°Í•¹”¸%Ğ¥Ì¹½Ğ„5½Ñ½ÈµÍÁ•¥™¥Œ±¥¹”½ÈÉ•¥Á”ÍÉ••¸¸œ°(€€€€€€€€€…ÁÑ¥½¸è€•¹•É…°™…Ñ½ÉäÍ•¹”™É½´½™™¥¥…°M…Ñ¥Í™…Ñ½Éäµ•‘¥„¸%Ğ‘½•Ì¹½ĞÍ¡½Ü„5½Ñ½ÈµÍÁ•§Í5¶‰ËkºwµçrGvòÖ÷F÷'2WfW'’b6V6öæG2–ââ76VÖ&ÆW"Â÷"rãRöÖ–âW"Ö6†–æRâ—B6öç7VÖW2Gvò&÷F÷'2æBöæRVÆV7G&öÖvæWF–26öçG&öÂ&öBW"7–6ÆRâf÷"RÖ÷F÷'2öÖ–âÂF†B—2Gvò76VÖ&ÆW'2ÂR&÷F÷'2öÖ–âæBrãR6öçG&öÂ&öG2öÖ–ââ—BW6W2†ÆbF†R&÷F÷"&FRöbF†R7FæF&B&V6—RæB&WÆ6W27FF÷'2v—F‚VÆV7G&öÖvæWF–26öçG&öÂ&öG2ârÀ¢uF†—26âf—Bf7F÷'’F†BÇ&VG’&öGV6W2VÆV7G&öÖvæWF–26öçG&öÂ&öG2f÷"æ÷F†W"Æ–æRâ–b–÷RæVVBFò'V–ÆBæWr6öçG&öÂ&öB7WÇ’§W7Bf÷"Ö÷F÷'2Â–æ6ÇVFRF†BW7G&VÒ6†–âv†Vâ6ö×&–ærF÷FÂ÷&RÂ÷vW"æB'V–ÆF–æw2âfWvW"–çWG2BF†Rf–æÂ&V6—RFòæ÷BWFöÖF–6ÆÇ’ÖVâ6ÖÆÆW"f7F÷'’÷fW&ÆÂârÀ¢ÒÀ¢ÒÀ¢°¢†VF–æs¢u&–v÷"Ö÷F÷#¢G&FR7'—7FÂ'G2f÷"fWvW"&÷F÷'2æB7FF÷'2rÀ¢&w&‡3¢°¢u&–v÷"Ö÷F÷"&öGV6W26—‚Ö÷F÷'2WfW'’C‚6V6öæG2–âÖçVf7GW&W"Â÷"rãRöÖ–âW"Ö6†–æRâ—B6öç7VÖW2F‡&VR&÷F÷'2ÂF‡&VR7FF÷'2æBöæR7'—7FÂ÷66–ÆÆF÷"â66Æ–ærFòRÖ÷F÷'2öÖ–â'&–æw2&÷F÷"æB7FF÷"W6RF÷vâFòrãRöÖ–âV6‚ÂÇW2"ãR7'—7FÂ÷66–ÆÆF÷'2öÖ–âârÀ¢uF†RF—&V7B&V6—R–çWG26†÷rsRR&VGV7F–öâ–â&÷F÷'2æB7FF÷'2Â'WBF†—2—2æ÷BF÷FÂ&W6÷W&6RÖVff–6–Væ7’6ö×&—6öâ&V6W6R—BFG27'—7FÂ÷66–ÆÆF÷'2â–b–÷RæVVBFò'V–ÆBF†BVçF—&RW7G&VÒ6†–âÂ&–v÷"Ö÷F÷"Ö’æ÷BÖ¶RF†R÷fW&ÆÂf7F÷'’Æ–v‡FW"F†âF†R7FæF&B÷"VÆV7G&–2Ö÷F÷"&V6—Râ6ö×&RF†R6ö×ÆWFR&öGV7F–öâÆâ&Vf÷&R6†ö÷6–ærârÀ¢ÒÀ¢ÒÀ¢°¢†VF–æs¢t6ö×&RBF†R6ÖRF&vWB–âF†RÆææW"rÀ¢&w&‡3¢°¢uF†RÆâBF†RVæBöbF†—2'F–6ÆRF&vWG2RÖ÷F÷'2öÖ–ââ–â&V6—R6WGF–æw2ÂVæ&ÆRöæÇ’F†RÇFW&æFR&V6—W2–÷R†fRVæÆö6¶VBÂF†Vâ6ö×&RF†R&W7VÇG2v–ç7BF†R6öç7G&–çB–÷R6&R&÷WC¢&W6÷W&6RVff–6–Væ7’Â÷vW"÷"'V–ÆF–ær6÷VçBâVæ&Æ–ærWfW'’ÇFW&æFR&V6—R6â–æ6ÇVFR&V6—W2–÷R†fRæ÷BVæÆö6¶VBÂ6òÖF6‚F†R6WGF–æw2Fò–÷W"6fRârÀ¢uF†RÆææW"6Æ7VÆFW2&öGV7F–öâ&V6—R&Ææ6W2â—BFöW2æ÷B6–×VÆFR6öçfW–÷"¦×2Â÷W&F–ærWF–ÖRÂ'V–ÆF–ærÆ6VÖVçB÷"÷vW"f–ÇW&W2â6†V6²G&ç7÷'B66—G’æB÷vW"6öææV7F–öç26W&FVÇ’–â–÷W"f7F÷'’ârÀ¢ÒÀ¢ÒÀ¢ÒÀ¢&VfW&Væ6W3¢°¢†VF–æs¢u&VfW&Væ6W2rÀ¢Æ–æ·3¢°¢²Æ&VÃ¢töff–6–Â6F—6f7F÷'’v–¶’(	BÖ÷F÷"„VævÆ—6‚’rÂ‡&Vc¢v‡GG3¢ò÷6F—6f7F÷'’çv–¶’ævr÷v–¶’ôÖ÷F÷"rÒÀ¢²Æ&VÃ¢töff–6–Â6F—6f7F÷'’&W72b6öçFVçB7&VF÷'2vR†–ÖvR6÷W&6R’rÂ‡&Vc¢v‡GG3¢ò÷wwrç6F—6f7F÷'–vÖRæ6öÒ÷&W72òrÒÀ¢²Æ&VÃ¢u6F—6f7F÷'’ÆææW"(	BvÖRFFæBfW'6–öâæ÷FW2„¦æW6R’rÂ‡&Vc¢v‡GG3¢òöv—F‡V"æ6öÒöÖ–¶—&–6R÷6F—6f7F÷'’×ÆææW"ö&Æö"öÖ–âöFF×6÷W&6RôDDõ4õU$4U2æÖBrÒÀ¢²Æ&VÃ¢u7G&öærÇFW&æFR&V6—W2æBv†VâFòW6RF†VÒ„VævÆ—6‚’rÂ‡&Vc¢v‡GG3¢ò÷6F—6f7F÷'’×ÆææW"ææWBöVâö'F–6ÆW2÷7G&öærÖÇFW&æFR×&V6—W2òrÒÀ¢ÒÀ¢ÒÀ¢&VÆFVD—FVÔ–G3¢²tFW65ôÖ÷F÷%ô2rÂtFW65õ&÷F÷%ô2rÂtFW65õ7FF÷%ô2rÂtFW65ôVÆV7G&öÖvæWF–46öçG&öÅ&öEô2rÂtFW65ô7'—7FÄ÷66–ÆÆF÷%ô2uÒÀ¢&VÆFVD'F–6ÆU6ÇVw3¢²w7G&öærÖÇFW&æFR×&V6—W2rÂvÇFW&æFR×&V6—RÖÖWG&–72rÂw&öGV7F–öâ×Æææ–ær×GWF÷&–ÂuÒÀ¢7F¢°¢¶–æC¢v—FVÒrÀ¢Æ&VÃ¢t÷VâF†RRÖ÷F÷'2öÖ–âÆâæB6ö×&R&V6—W2rÀ¢—FVÔ–C¢tFW65ôÖ÷F÷%ô2rÀ¢&FUW$Ö–ã¢RÀ¢ÇFW&æFU&V6—T–G3¢²u&V6—UôÇFW&æFUôVÆV7G&–4Ö÷F÷%ô2rÂu&V6—UôÇFW&æFUôÖ÷F÷%óô2uÒÀ¢ÒÀ§Ò26öç7B6F—6f–W2†æGw&—GFVä'F–6ÆP
+import type { HandwrittenArticle } from '../types.ts'
+
+/** Recipe rates and inputs are calculated from the repository's verified Satisfactory 1.1.x data. */
+export const motorProductionRecipesArticleEn = {
+  slug: 'motor-production-recipes',
+  title: 'Satisfactory Motor Recipes Compared: Rotor, Stator or Control Rod?',
+  description:
+    'Compare the standard Motor, Electric Motor and Rigor Motor recipes at 15 Motors/min using Satisfactory 1.1.x data. See their direct inputs and machine counts, then choose around the parts your factory already makes.',
+  publishedDate: '2026-10-17',
+  sections: [
+    {
+      heading: 'Start with the parts you can supply',
+      paragraphs: [
+        'There are three Motor recipes to compare: the standard recipe, Electric Motor and Rigor Motor. Output alone does not tell you which one to use. The standard recipe needs both Rotors and Stators; Electric Motor replaces Stators with Electromagnetic Control Rods; Rigor Motor adds Crystal Oscillators while using fewer Rotors and Stators. Choose around the parts your factory can already provide.',
+        'At a common target of 15 Motors/min, the standard recipe needs 30 Rotors/min and 30 Stators/min. Electric Motor needs 15 Rotors/min and 7.5 Electromagnetic Control Rods/min. Rigor Motor needs 7.5 Rotors/min, 7.5 Stators/min and 2.5 Crystal Oscillators/min. These are nominal rates scaled from recipe inputs; they do not account for transport jams or downtime.',
+      ],
+      illustrations: [
+        {
+          src: '/article-images/satisfactory-factory-general.webp',
+          alt: 'A general in-game Satisfactory factory and rail scene. It is not a Motor-specific line or recipe screen.',
+          caption: 'General factory scene from official Satisfactory media. It does not show a Motor-specific line or the calculations in this article.',
+          creditLinks: [
+            { label: 'Satisfactory screenshot Â© Coffee Stain Studios / Source: official Press & Content Creators page', href: 'https://www.satisfactorygame.com/press/' },
+            { label: 'Image source', href: 'https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg' },
+          ],
+        },
+        {
+          src: '/article-images/motor-recipe-inputs-en.svg',
+          alt: 'A diagram comparing the direct inputs and machine counts for three recipes producing 15 Motors per minute. Standard: 3 Assemblers, 30 Rotors/min and 30 Stators/min. Electric: 2 Assemblers, 15 Rotors/min and 7.5 Electromagnetic Control Rods/min. Rigor: 2 Manufacturers, 7.5 Rotors/min, 7.5 Stators/min and 2.5 Crystal Oscillators/min.',
+          caption: 'Original recipe comparison diagram. Rates are scaled from 1.1.x direct recipe inputs to 15 Motors/min; upstream production and power are excluded. This is not a game screenshot.',
+        },
+      ],
+      tables: [
+        {
+          caption: 'Direct recipe inputs for 15 Motors/min (repository 1.1.x data)',
+          headers: ['Recipe', 'Required machines', 'Rotors', 'Stators', 'Additional input'],
+          rows: [
+            ['Motor', '3 Assemblers', '30/min', '30/min', 'None'],
+            ['Electric Motor', '2 Assemblers', '15/min', 'None', '7.5 Electromagnetic Control Rods/min'],
+            ['Rigor Motor', '2 Manufacturers', '7.5/min', '7.5/min', '2.5 Crystal Oscillators/min'],
+          ],
+        },
+      ],
+    },
+    {
+      heading: 'Standard Motor: balance Rotors and Stators',
+      paragraphs: [
+        'The standard recipe makes one Motor every 12 seconds in an Assembler, or 5/min per machine. It consumes two Rotors and two Stators per cycle. A 15/min target therefore takes three Assemblers, 30 Rotors/min and 30 Stators/min. If both component lines already exist, this is the baseline that needs no extra intermediate product.',
+        'If either Rotors or Stators are in short supply, check that upstream line before expanding the standard recipe. The figures here cover only the Motor recipe inputs; they do not include the materials or power needed to make Rotors and Stators.',
+      ],
+    },
+    {
+      heading: 'Electric Motor: swap Stators for Control Rods',
+      paragraphs: [
+        'Electric Motor produces two Motors every 16 seconds in an Assembler, or 7.5/min per machine. It consumes two Rotors and one Electromagnetic Control Rod per cycle. For 15 Motors/min, that is two Assemblers, 15 Rotors/min and 7.5 Control Rods/min. It uses half the Rotor rate of the standard recipe and replaces Stators with Electromagnetic Control Rods.',
+        'This can fit a factory that already produces Electromagnetic Control Rods for another line. If you need to build a new Control Rod supply just for Motors, include that upstream chain when comparing total ore, power and buildings. Fewer inputs at the final recipe do not automatically mean a smaller factory overall.',
+      ],
+    },
+    {
+      heading: 'Rigor Motor: trade crystal parts for fewer Rotors and Stators',
+      paragraphs: [
+        'Rigor Motor produces six Motors every 48 seconds in a Manufacturer, or 7.5/min per machine. It consumes three Rotors, three Stators and one Crystal Oscillator. Scaling to 15 Motors/min brings Rotor and Stator use down to 7.5/min each, plus 2.5 Crystal Oscillators/min.',
+        'The direct recipe inputs show a 75% reduction in Rotors and Stators, but this is not a total resource-efficiency comparison because it adds Crystal Oscillators. If you need to build that entire upstream chain, Rigor Motor may not make the overall factory lighter than the standard or Electric Motor recipe. Compare the complete production plan before choosing.',
+      ],
+    },
+    {
+      heading: 'Compare at the same target in the planner',
+      paragraphs: [
+        'The plan at the end of this article targets 15 Motors/min. In recipe settings, enable only the alternate recipes you have unlocked, then compare the results against the constraint you care about: resource efficiency, power or building count. Enabling every alternate recipe can include recipes you have not unlocked, so match the settings to your save.',
+        'The planner calculates production recipe balances. It does not simulate conveyor jams, operating uptime, building placement or power failures. Check transport capacity and power connections separately in your factory.',
+      ],
+    },
+  ],
+  references: {
+    heading: 'References',
+    links: [
+      { label: 'Official Satisfactory Wiki â€” Motor (English)', href: 'https://satisfactory.wiki.gg/wiki/Motor' },
+      { label: 'Official Satisfactory Press & Content Creators page (image source)', href: 'https://www.satisfactorygame.com/press/' },
+      { label: 'Satisfactory Planner â€” game data and version notes (Japanese)', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Strong Alternate Recipes and When to Use Them (English)', href: 'https://satisfactory-planner.net/en/articles/strong-alternate-recipes/' },
+    ],
+  },
+  relatedItemIds: ['Desc_Motor_C', 'Desc_Rotor_C', 'Desc_Stator_C', 'Desc_ElectromagneticControlRod_C', 'Desc_CrystalOscillator_C'],
+  relatedArticleSlugs: ['strong-alternate-recipes', 'alternate-recipe-metrics', 'production-planning-tutorial'],
+  cta: {
+    kind: 'item',
+    label: 'Open the 15 Motors/min plan and compare recipes',
+    itemId: 'Desc_Motor_C',
+    ratePerMin: 15,
+    alternateRecipeIds: ['Recipe_Alternate_ElectricMotor_C', 'Recipe_Alternate_Motor_1_C'],
+  },
+} as const satisfies HandwrittenArticle

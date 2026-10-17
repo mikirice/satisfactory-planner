@@ -1,22 +1,228 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Ô¼¨¨(€¨=É¥¥¹…°°Ñ•áĞµ™É•”•‘¥Ñ½É¥…°¥±±ÕÍÑÉ…Ñ¥½¹ÌÍ¡…É•‰äÑ¡”)…Á…¹•Í”…¹¹±¥Í …ÉÑ¥±”Á…•Ì¸(€¨Q¡•ä…É”‘•½É…Ñ¥Ù”½Ù•È…ÉĞ°¹½ĞÍÉ••¹Í¡½ÑÌ°‘¥…É…µÌ°½È…±Õ±…Ñ•ÁÉ½‘ÕÑ¥½¸É•ÍÕ±ÑÌ¸(€¨¼)•áÁ½ÉĞÑåÁ”ÉÑ¥±•½Ù•É1½…±”€ô€©„œğ€•¸œ()ÑåÁ”½Ù•É•™¥¹¥Ñ¥½¸€ôì(€É•…‘½¹±ä…±ĞèI•…‘½¹±äñI•½ÉñÉÑ¥±•½Ù•É1½…±”°ÍÑÉ¥¹œøø(€É•…‘½¹±ä…ÁÑ¥½¸üèI•…‘½¹±äñI•½ÉñÉÑ¥±•½Ù•É1½…±”°ÍÑÉ¥¹œøø(€É•…‘½¹±ä‰…‘”üèI•…‘½¹±äñI•½ÉñÉÑ¥±•½Ù•É1½…±”°ÍÑÉ¥¹œøø(€É•…‘½¹±ä±½…±¥é•‘MÉŒüèI•…‘½¹±äñI•½ÉñÉÑ¥±•½Ù•É1½…±”°ÍÑÉ¥¹œøø(€É•…‘½¹±äİ¥‘Ñ üè¹Õµ‰•È(€É•…‘½¹±ä¡•¥¡Ğüè¹Õµ‰•È(€É•…‘½¹±äÑåÁ”üèÍÑÉ¥¹œ)ô()•áÁ½ÉĞ½¹ÍĞIQ%1}=YIL€ôì(€€ÁÉ½‘ÕÑ¥½¸µÁ±…¹¹¥¹œµÑÕÑ½É¥…°œèì(€€€…±Ğèì(€€€€€©„è€Ÿ–Ş—–‚Ó¢¢·–
-g£ÒƒšvC
-K’â›çRR¢¢#Rï»
-“§
-ç œ°(€€€€€•¸è€‘¥Ñ½É¥…°¥±±ÕÍÑÉ…Ñ¥½¸½˜™…Ñ½Éä•ÅÕ¥Áµ•¹Ğ…¹µ…Ñ•É¥…±Ì™½ÈÁÉ½‘ÕÑ¥½¸Á±…¹¹¥¹œœ°(€€€ô°(€ô°(€€…±Ñ•É¹…Ñ”µÉ•¥Á”µµ•ÑÉ¥Ìœèì(€€€…±Ğèì(€€€€€©„è€ŸVÃ«
-/ÒƒšvC£¢÷¦ƒš¦
-K’â›ç’îšnÿ³
-ßSš¾S¢ò»
-“§
-ç œ°(€€€€€•¸è€‘¥Ñ½É¥…°¥±±ÕÍÑÉ…Ñ¥½¸½˜½¹ÑÉ…ÍÑ¥¹œµ…Ñ•É¥…±Ì‰•Í¥‘”„ÁÉ½‘ÕÑ¥½¸µ…¡¥¹”œ°(€€€ô°(€ô°(€€Á½İ•Èµ•¹•É…Ñ¥½¸µÁ±…¹¹¥¹œœèì(€€€…±Ğèì(€€€€€©„è€Ÿ¢’šVÃ»fë¦nï¢¢·–
-g
-Kš>?¦nï–*o¢¢#Rï»
-“§
-ç œ°(€€€€€•¸è€‘¥Ñ½É¥…°¥±±ÕÍÑÉ…Ñ¥½¸½˜Í•Ù•É…°Á½İ•ÈÍ½ÕÉ•Ì™½È™…Ñ½ÉäÁ±…¹¹¥¹œœ°(€€€ô°(€ô°(€€Í½µ•ÉÍ±½½Àµ…¹µÁ½İ•ÈµÍ¡…É‘Ìœèì(€€€…±Ğèì(€€€€€©„è€ŸÒ¯¢&Ë»ÖCšfÛ£fë–'g
-/‚Ó&
-Kš>?
-“§
-ç œ°(€€€€€•¸è€‘¥Ñ½É¥…°¥±±ÕÍÑÉ…Ñ¥½¸½˜„Ù¥½±•ĞÉåÍÑ…°±½½À…¹±½İ¥¹œ…µ‰•ÈÍ¡…É‘Ìœ°(€€€ô°(€ô°(€€•á•°µ•áÁ½ÉĞµÕ¥‘”œèì(€€€…±Ğèì(€€€€€©„è€Ÿ–Ş—–‚Ó»š¢‡–z/£¦ëš²»¢†£
-Kš>?
-“§
-ç œ°(€€€€€•¸è€‘¥Ñ½É¥…°¥±±ÕÍÑÉ…Ñ¥½¸½˜„™…Ñ½Éäµ½‘•°‰•Í¥‘”„‰±…¹¬ÍÁÉ•…‘Í¡••Ğœ°(€€€ô°(€ô°(€€½…°µÁ½İ•ÈµÍÑ…ÉÑÕÀœèì(€€€…±Ğèì(€€€€€©„è€Ÿ~Ï
-·»–ÆÇ£›Í5¶‰Ëkºwµçx"rÀ¢Vã¢tvVæW&Âf7F÷'’66VæRg&öÒöff–6–Â6F—6f7F÷'’ÖVF–â—B—2æ÷BÖ÷F÷"×7V6–f–2Æ–æR÷"&W7VÇBg&öÒF†—2'F–6ÆRârÀ¢ÒÀ¢&FvS¢²¦¢~8+.8;Î8:yK¾X8òrÂVã¢tvÖR67&VVç6†÷BrÒÀ¢ÒÀ¢vö–ÂÖÆö÷Ö6ö×ÆWFRs¢°¢ÇC¢°¢¦¢~Xéşk+8î8~8®8ş8ŠH~i[8î{+îŠ;Ş8+ş8;>8*ş8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbâö–ÂG&÷ÆWBæB&Vf–æW'’Fæ·2rÀ¢ÒÀ¢ÒÀ¢vF–ÇWFVBÖgVVÂ×÷vW"s¢°¢ÇC¢°¢¦¢~xx>ii8+ş8;>8*ş8y›®™»¾j™ş8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbgVVÂFæ²&W6–FRâ–æGW7G&–ÂvVæW&F÷"rÀ¢ÒÀ¢ÒÀ¢wGW&&ögVVÂ×÷vW"s¢°¢ÇC¢°¢¦¢~8+ş8;Î89>8;>8{+îŠ;ŞŠŠŞX)8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbGW&&–æRæB&Vf–æW'’WV—ÖVçBrÀ¢ÒÀ¢ÒÀ¢w6¶vVBÖF–ÇWFVBÖgVVÂÖÆö÷s¢°¢ÇC¢°¢¦¢~xx>ii8*Ş8:>88¾8+8+ş8;Î8[şYè¾89Ş8;>89~8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbgVVÂ6æ—7FW"æB6ÖÆÂV×rÀ¢ÒÀ¢ÒÀ¢vÇVÖ–çVÒ×vFW"ÖÆö÷s¢°¢ÇC¢°¢¦¢~89Î8;Î8*Ş8+^8*N8888*.8:¾89ş8î8*N8;>8+N88>888kN‹ë®8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöb&W†—FRÂâÇVÖ–çVÒ–æv÷BÂæBvFW"rÀ¢ÒÀ¢ÒÀ¢v&GFW'’×vFW"ÖÆö÷s¢°¢ÇC¢°¢¦¢~8988>88n8:®8;Î8+¾8:¾8kNk»N8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöb&GFW'’6VÆÂæBvFW"G&÷ÆWG2rÀ¢ÒÀ¢ÒÀ¢vçV6ÆV"×6–×Æ–f–VBs¢°¢ÇC¢°¢¦¢~{yˆ›.8¾XX8(¾xx>iij9.8[şYè¾XéşZÙx(8î8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbw&VVâÖvÆ÷v–ærgVVÂ&öBæB6ö×7B&V7F÷"rÀ¢ÒÀ¢ÒÀ¢vçV6ÆV"×W&æ—VÒs¢°¢ÇC¢°¢¦¢~XéşZÙX©¾y›®™»¾h˜88*n8:8;>xx>iij9.8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbçV6ÆV"ÆçBæBW&æ—VÒgVVÂ&öBrÀ¢ÒÀ¢ÒÀ¢vçV6ÆV"×ÇWFöæ—VÒs¢°¢ÇC¢°¢¦¢~[¸>j8NxšZëYš8{J¾ˆ›.8îxx>ii89®8:Î88>888).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbv7FR6æ—7FW"æBf–öÆWBgVVÂVÆÆWBrÀ¢ÒÀ¢ÒÀ¢vçV6ÆV"×&W&ö6W76–ærs¢°¢ÇC¢°¢¦¢~XéşZÙx(8î8Ş88~y+x«n8îiê8¾Y».8î8(Î8ş{J¾ˆ›.8îxx>ii8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöbf–öÆWBgVVÂ7†W&Rg&ÖVB'’&V7F÷"ÖÆ–¶R&–ærrÀ¢ÒÀ¢ÒÀ§Ò26öç7B6F—6f–W2&V6÷&CÇ7G&–ærÂ6÷fW$FVf–æ—F–öãà ¦W‡÷'BG—R'F–6ÆT6÷fW"Ò°¢&VFöæÇ’7&3¢7G&–æp¢&VFöæÇ’ÇC¢7G&–æp¢&VFöæÇ’6F–öãó¢7G&–æp¢&VFöæÇ’&FvSó¢7G&–æp¢&VFöæÇ’v–GFƒ¢çVÖ&W ¢&VFöæÇ’†V–v‡C¢çVÖ&W ¢&VFöæÇ’G—S¢7G&–æp§Ğ ¦W‡÷'BgVæ7F–öâ'F–6ÆT6÷fW$f÷"‡6ÇVs¢7G&–ærÂÆö6ÆS¢'F–6ÆT6÷fW$Æö6ÆR“¢'F–6ÆT6÷fW"°¢6öç7BFVf–æ—F–öâÒ%D”4ÄUô4õdU%5·6ÇVr2¶W–öbG—Vöb%D”4ÄUô4õdU%5Ğ¢–b†FVf–æ—F–öâÓÓÒVæFVf–æVB’F‡&÷ræWrW'&÷"†Ö—76–ær'F–6ÆR6÷fW#¢G·6ÇVwÖ¢&WGW&â°¢7&3 ¢vÆö6Æ—¦VE7&2r–âFVf–æ—F–öâbbFVf–æ—F–öâæÆö6Æ—¦VE7&2ÓÒVæFVf–æV@¢òFVf–æ—F–öâæÆö6Æ—¦VE7&5¶Æö6ÆUĞ¢¢ö'F–6ÆRÖ6÷fW'2òG·6ÇVwÒçvV'À¢ÇC¢FVf–æ—F–öâæÇE¶Æö6ÆUÒÀ¢6F–öã ¢v6F–öâr–âFVf–æ—F–öâbbFVf–æ—F–öâæ6F–öâÓÒVæFVf–æV@¢òFVf–æ—F–öâæ6F–öå¶Æö6ÆUĞ¢¢VæFVf–æVBÀ¢&FvS ¢v&FvRr–âFVf–æ—F–öâbbFVf–æ—F–öâæ&FvRÓÒVæFVf–æVBòFVf–æ—F–öâæ&FvU¶Æö6ÆUÒ¢VæFVf–æVBÀ¢v–GFƒ¢wv–GF‚r–âFVf–æ—F–öâbbG—VöbFVf–æ—F–öâçv–GF‚ÓÓÒvçVÖ&W"ròFVf–æ—F–öâçv–GF‚¢#À¢†V–v‡C ¢v†V–v‡Br–âFVf–æ—F–öâbbG—VöbFVf–æ—F–öâæ†V–v‡BÓÓÒvçVÖ&W"ròFVf–æ—F–öâæ†V–v‡B¢c3À¢G—S¢wG—Rr–âFVf–æ—F–öâbbG—VöbFVf–æ—F–öâçG—RÓÓÒw7G&–ærròFVf–æ—F–öâçG—R¢v–ÖvR÷vV'rÀ¢Ğ§Ğ ¦W‡÷'B6öç7B%D”4ÄUô”äDU…ô4õdU#¢'F–6ÆT6÷fW"Ò°¢7&3¢rö'F–6ÆRÖ6÷fW'2ö'F–6ÆRÖÆ–'&'’çvV'rÀ¢v–GFƒ¢#À¢†V–v‡C¢c3À¢G—S¢v–ÖvR÷vV'rÀ¢ÇC¢°¢¦¢~y›Ş{I8î8*Î8*N8889n88>8*ş8[z^ZN8îš*išş8).høş8N8ş8*N8:8+88‚rÀ¢Vã¢tVF—F÷&–Â–ÆÇW7G&F–öâöb&Ææ²wV–FV&öö²–ââ–æGW7G&–ÂÆæG66RrÀ¢Õ²v¦uÒÀ§Ğ ¦W‡÷'BgVæ7F–öâ'F–6ÆT–æFW„6÷fW$f÷"†Æö6ÆS¢'F–6ÆT6÷fW$Æö6ÆR“¢'F–6ÆT6÷fW"°¢&WGW&â°¢ââä%D”4ÄUô”äDU…ô4õdU"À¢ÇC ¢Æö6ÆRÓÓÒv¦p¢ò%D”4ÄUô”äDU…ô4õdU"æÇ@¢¢tVF—F÷&–Â–ÆÇW7G&F–öâöb&Ææ²wV–FV&öö²–ââ–æGW7G&–ÂÆæG66RrÀ¢Ğ§Ğ 
+/**
+ * Original, text-free editorial illustrations shared by the Japanese and English article pages.
+ * They are decorative cover art, not screenshots, diagrams, or calculated production results.
+ */
+export type ArticleCoverLocale = 'ja' | 'en'
+
+type CoverDefinition = {
+  readonly alt: Readonly<Record<ArticleCoverLocale, string>>
+  readonly caption?: Readonly<Record<ArticleCoverLocale, string>>
+  readonly badge?: Readonly<Record<ArticleCoverLocale, string>>
+  readonly localizedSrc?: Readonly<Record<ArticleCoverLocale, string>>
+  readonly width?: number
+  readonly height?: number
+  readonly type?: string
+}
+
+export const ARTICLE_COVERS = {
+  'production-planning-tutorial': {
+    alt: {
+      ja: 'å·¥å ´è¨­å‚™ã¨ç´ æã‚’ä¸¦ã¹ãŸç”Ÿç”£è¨ˆç”»ã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of factory equipment and materials for production planning',
+    },
+  },
+  'alternate-recipe-metrics': {
+    alt: {
+      ja: 'ç•°ãªã‚‹ç´ æã¨è£½é€ æ©Ÿã‚’ä¸¦ã¹ãŸä»£æ›¿ãƒ¬ã‚·ãƒ”æ¯”è¼ƒã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of contrasting materials beside a production machine',
+    },
+  },
+  'power-generation-planning': {
+    alt: {
+      ja: 'è¤‡æ•°ã®ç™ºé›»è¨­å‚™ã‚’æã„ãŸé›»åŠ›è¨ˆç”»ã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of several power sources for factory planning',
+    },
+  },
+  'somersloop-and-power-shards': {
+    alt: {
+      ja: 'ç´«è‰²ã®çµæ™¶ã¨ç™ºå…‰ã™ã‚‹ç ´ç‰‡ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a violet crystal loop and glowing amber shards',
+    },
+  },
+  'excel-export-guide': {
+    alt: {
+      ja: 'å·¥å ´ã®æ¨¡å‹ã¨ç©ºæ¬„ã®è¡¨ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a factory model beside a blank spreadsheet',
+    },
+  },
+  'coal-power-startup': {
+    alt: {
+      ja: 'çŸ³ç‚­ã®å±±ã¨æ°´é“ç®¡ã‚’å‚™ãˆãŸç™ºé›»æ©Ÿã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a coal generator with coal and a water pipe',
+    },
+  },
+  'oil-products-basics': {
+    alt: {
+      ja: 'åŸæ²¹ã®ã—ãšãã¨ç²¾è£½è¨­å‚™ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of crude oil droplets and refinery tanks',
+    },
+  },
+  'aluminum-production-guide': {
+    alt: {
+      ja: 'ãƒœãƒ¼ã‚­ã‚µã‚¤ãƒˆé‰±çŸ³ã¨ã‚¢ãƒ«ãƒŸãƒ‹ã‚¦ãƒ ã®ã‚¤ãƒ³ã‚´ãƒƒãƒˆã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of bauxite ore and an aluminum ingot',
+    },
+  },
+  'awesome-sink-points': {
+    alt: {
+      ja: 'ç´ æã‚’è¼‰ã›ãŸãƒ™ãƒ«ãƒˆã‚³ãƒ³ãƒ™ã‚¢ã¨å—ã‘å…¥ã‚Œå£ã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a conveyor carrying assorted materials toward a hopper',
+    },
+  },
+  'clock-and-efficiency': {
+    alt: {
+      ja: 'ç›®ç››ã‚Šã®ãªã„æ™‚è¨ˆã¨è£½é€ æ©Ÿã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of an unmarked clock face beside a factory machine',
+    },
+  },
+  'build-checklist-guide': {
+    alt: {
+      ja: 'ãƒã‚§ãƒƒã‚¯æ¬„ã®ã‚ã‚‹ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã¨å·¥å ´è¨­å‚™ã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a checklist clipboard beside factory buildings',
+    },
+  },
+  'strong-alternate-recipes': {
+    alt: {
+      ja: 'ãƒãƒ¼ãƒ‰ãƒ‰ãƒ©ã‚¤ãƒ–é¢¨ã®ç™ºè¦‹ç‰©ã¨ç´ æè¦‹æœ¬ã‚’ä¸¦ã¹ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial still life of a discovery drive and contrasting material samples',
+    },
+  },
+  'miner-rate-by-purity': {
+    width: 1280,
+    height: 720,
+    alt: {
+      ja: 'ç´”åº¦ã®é•ã†è³‡æºãƒãƒ¼ãƒ‰ã‹ã‚‰æ¡é‰±æ©Ÿã¸é‰±çŸ³ã‚’é‹ã¶æŠ½è±¡çš„ãªã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Abstract illustration of miners drawing ore from nodes of different purity',
+    },
+  },
+  'motor-production-recipes': {
+    width: 1280,
+    height: 720,
+    localizedSrc: {
+      ja: '/article-covers/motor-production-recipes-official-ja.webp',
+      en: '/article-covers/motor-production-recipes-official-en.webp',
+    },
+    alt: {
+      ja: 'Satisfactoryã®ä¸€èˆ¬çš„ãªå·¥å ´é¢¨æ™¯ã¨ã€ãƒ¢ãƒ¼ã‚¿ãƒ¼15å€‹/åˆ†ã®3ãƒ¬ã‚·ãƒ”ã‚’æ¯”è¼ƒã™ã‚‹è¦‹å‡ºã—ãƒ‘ãƒãƒ«',
+      en: 'General Satisfactory factory scene with a separate panel introducing three Motor recipes at 15 per minute',
+    },
+    caption: {
+      ja: 'å…¬å¼Satisfactoryãƒ¡ãƒ‡ã‚£ã‚¢ã®ä¸€èˆ¬çš„ãªå·¥å ´é¢¨æ™¯ã§ã™ã€‚Motorå°‚ç”¨ãƒ©ã‚¤ãƒ³ã‚„è¨˜äº‹ã®è¨ˆç®—çµæœã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚',
+      en: 'General factory scene from official Satisfactory media. It is not a Motor-specific line or a result from this article.',
+    },
+    badge: { ja: 'ã‚²ãƒ¼ãƒ ç”»åƒ', en: 'Game screenshot' },
+  },
+  'oil-loop-complete': {
+    alt: {
+      ja: 'åŸæ²¹ã®ã—ãšãã¨è¤‡æ•°ã®ç²¾è£½ã‚¿ãƒ³ã‚¯ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of an oil droplet and refinery tanks',
+    },
+  },
+  'diluted-fuel-power': {
+    alt: {
+      ja: 'ç‡ƒæ–™ã‚¿ãƒ³ã‚¯ã¨ç™ºé›»æ©Ÿã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a fuel tank beside an industrial generator',
+    },
+  },
+  'turbofuel-power': {
+    alt: {
+      ja: 'ã‚¿ãƒ¼ãƒ“ãƒ³ã¨ç²¾è£½è¨­å‚™ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a turbine and refinery equipment',
+    },
+  },
+  'packaged-diluted-fuel-loop': {
+    alt: {
+      ja: 'ç‡ƒæ–™ã‚­ãƒ£ãƒ‹ã‚¹ã‚¿ãƒ¼ã¨å°å‹ãƒãƒ³ãƒ—ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a fuel canister and a small pump',
+    },
+  },
+  'aluminum-water-loop': {
+    alt: {
+      ja: 'ãƒœãƒ¼ã‚­ã‚µã‚¤ãƒˆã¨ã‚¢ãƒ«ãƒŸã®ã‚¤ãƒ³ã‚´ãƒƒãƒˆã€æ°´è¾ºã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of bauxite, an aluminum ingot, and water',
+    },
+  },
+  'battery-water-loop': {
+    alt: {
+      ja: 'ãƒãƒƒãƒ†ãƒªãƒ¼ã‚»ãƒ«ã¨æ°´æ»´ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a battery cell and water droplets',
+    },
+  },
+  'nuclear-simplified': {
+    alt: {
+      ja: 'ç·‘è‰²ã«å…‰ã‚‹ç‡ƒæ–™æ£’ã¨å°å‹åŸå­ç‚‰ã®ã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a green-glowing fuel rod and compact reactor',
+    },
+  },
+  'nuclear-uranium': {
+    alt: {
+      ja: 'åŸå­åŠ›ç™ºé›»æ‰€ã¨ã‚¦ãƒ©ãƒ³ç‡ƒæ–™æ£’ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a nuclear plant and a uranium fuel rod',
+    },
+  },
+  'nuclear-plutonium': {
+    alt: {
+      ja: 'å»ƒæ£„ç‰©å®¹å™¨ã¨ç´«è‰²ã®ç‡ƒæ–™ãƒšãƒ¬ãƒƒãƒˆã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a waste canister and a violet fuel pellet',
+    },
+  },
+  'nuclear-reprocessing': {
+    alt: {
+      ja: 'åŸå­ç‚‰ã®ãã°ã§ç’°çŠ¶ã®æ ã«å›²ã¾ã‚ŒãŸç´«è‰²ã®ç‡ƒæ–™ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+      en: 'Editorial illustration of a violet fuel sphere framed by a reactor-like ring',
+    },
+  },
+} as const satisfies Record<string, CoverDefinition>
+
+export type ArticleCover = {
+  readonly src: string
+  readonly alt: string
+  readonly caption?: string
+  readonly badge?: string
+  readonly width: number
+  readonly height: number
+  readonly type: string
+}
+
+export function articleCoverFor(slug: string, locale: ArticleCoverLocale): ArticleCover {
+  const definition = ARTICLE_COVERS[slug as keyof typeof ARTICLE_COVERS]
+  if (definition === undefined) throw new Error(`missing article cover: ${slug}`)
+  return {
+    src:
+      'localizedSrc' in definition && definition.localizedSrc !== undefined
+        ? definition.localizedSrc[locale]
+        : `/article-covers/${slug}.webp`,
+    alt: definition.alt[locale],
+    caption:
+      'caption' in definition && definition.caption !== undefined
+        ? definition.caption[locale]
+        : undefined,
+    badge:
+      'badge' in definition && definition.badge !== undefined ? definition.badge[locale] : undefined,
+    width: 'width' in definition && typeof definition.width === 'number' ? definition.width : 1200,
+    height:
+      'height' in definition && typeof definition.height === 'number' ? definition.height : 630,
+    type: 'type' in definition && typeof definition.type === 'string' ? definition.type : 'image/webp',
+  }
+}
+
+export const ARTICLE_INDEX_COVER: ArticleCover = {
+  src: '/article-covers/article-library.webp',
+  width: 1200,
+  height: 630,
+  type: 'image/webp',
+  alt: {
+    ja: 'ç™½ç´™ã®ã‚¬ã‚¤ãƒ‰ãƒ–ãƒƒã‚¯ã¨å·¥å ´ã®é¢¨æ™¯ã‚’æã„ãŸã‚¤ãƒ©ã‚¹ãƒˆ',
+    en: 'Editorial illustration of a blank guidebook in an industrial landscape',
+  }['ja'],
+}
+
+export function articleIndexCoverFor(locale: ArticleCoverLocale): ArticleCover {
+  return {
+    ...ARTICLE_INDEX_COVER,
+    alt:
+      locale === 'ja'
+        ? ARTICLE_INDEX_COVER.alt
+        : 'Editorial illustration of a blank guidebook in an industrial landscape',
+  }
+}
