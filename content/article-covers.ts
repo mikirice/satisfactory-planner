@@ -8,6 +8,7 @@ type CoverDefinition = {
   readonly alt: Readonly<Record<ArticleCoverLocale, string>>
   readonly caption?: Readonly<Record<ArticleCoverLocale, string>>
   readonly badge?: Readonly<Record<ArticleCoverLocale, string>>
+  readonly creditLinks?: Readonly<Record<ArticleCoverLocale, readonly { href: string; label: string }[]>>
   readonly localizedSrc?: Readonly<Record<ArticleCoverLocale, string>>
   readonly width?: number
   readonly height?: number
