@@ -1,289 +1,47 @@
-/**
- * é™çš„ãƒšãƒ¼ã‚¸ï¼ˆã‚¢ã‚¤ãƒ†ãƒ åˆ¥ãƒšãƒ¼ã‚¸ãƒ»è§£èª¬è¨˜äº‹ãƒ»sitemapï¼‰ã®ç”Ÿæˆã€‚
- *
- * Stage 3 ã§æ—¥æœ¬èªã«åŠ ãˆã¦è‹±èªãƒŸãƒ©ãƒ¼ï¼ˆ/en/â€¦ï¼‰ã‚’å‡ºã™ï¼ˆè¨ˆç”»æ›¸ Â§5ï¼‰ã€‚
- * ãƒ­ã‚±ãƒ¼ãƒ«ä¾å­˜ã®ã‚‚ã®ã¯3ã‹æ‰€ã‹ã‚‰å–ã‚‹:
- *  - ã‚²ãƒ¼ãƒ å†…ã®åå‰: ãƒ‡ãƒ¼ã‚¿ã® `name[locale]`ï¼ˆå…¬å¼è¨³ãŒå”¯ä¸€ã®èªå½™æºï¼‰
- *  - UI ã¨å…±é€šã®èª: `UI_DICTIONARIES[locale]`ï¼ˆä½œã‚Šæ–¹/ä½¿ã„é“/å€‹/åˆ† ãªã©ï¼‰
- *  - é™çš„ãƒšãƒ¼ã‚¸å›ºæœ‰ã®æ–‡: `STATIC_PAGE_LABELS[locale]`ï¼ˆscripts/static-pages/labels.tsï¼‰
- * æ•°å€¤ã¯ãƒ­ã‚±ãƒ¼ãƒ«åˆ¥ã® Intl ã§ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã—ã€ã‚½ãƒ«ãƒãƒ¼ã®è¨ˆç®—ãã®ã‚‚ã®ã¯æ—¥è‹±ã§å…±æœ‰ã™ã‚‹
- * ï¼ˆåŒã˜è¨ˆç”»ã‚’2å›è§£ã‹ãªã„ï¼æ—¥è‹±ã§æ•°å€¤ãŒé£Ÿã„é•ã‚ãªã„ï¼‰ã€‚
- */
-import { readFileSync } from 'node:fs'
-import { mkdir, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Ô¼¨¨(€¨ƒ¦vgjkó
+ã¾ò#
+‹
+“ƒ–"—kó
+ãï¢¢ª³¢¢c’ê/íÍ¥Ñ•µ…Ã¾ò'»Rš"C(€¨(€¨MÑ…”€ÌƒŸš^—šr³¢ª{¯–*ƒ#›¢.Ç¢ª{§ó¾ò ½•¸¿Š›¾ò'
+K–ëg¾ò#¢¢#Rïšnàƒ
+œ×¾ò'(€¨ƒ·
+Çó¯’úw–¶c»
+»¼Ï/š&/
+'–>[
+,è(€¨€€´ƒ
+Ëóƒ–»–B7–&4èƒó
+ÿ¸¹…µ•m±½…±•uƒ¾ò#–³–ò?¢¢Ï3–R¿’â»¢ª{–ögšêC¾ò$(€¨€€´U$ƒ£–Ç¦k»¢ªxèU%}%Q%=9I%Mm±½…±•uƒ¾ò#’ös
++šZä¿’öÿ¦L¿–,¿–"ƒ«§¾ò$(€¨€€´ƒ¦vgjkó
+ã–nëšr'»šZèMQQ%}A}1	1Mm±½…±•uƒ¾ò!ÍÉ¥ÁÑÌ½ÍÑ…Ñ¥ŒµÁ…•Ì½±…‰•±Ì¹ÑÏ¾ò$(€¨ƒšVÃ–“¿·
+Çó¯–"—¸%¹Ñ°ƒŸW
+§ó{#_
+÷¯Có»¢¢#º_w»
+»¿š^—¢.ÇŸ–Çšr'g
+,(€¨ƒ¾ò#–B3c¢¢#Rï
+HË–n{¢/«¾òwš^—¢.ÇŸšVÃ–“3¦¦W
+?«¾ò'(€¨¼)¥µÁ½ÉĞìÉ•…‘¥±•Må¹Œô™É½´€¹½‘”é™Ìœ)¥µÁ½ÉĞìµ­‘¥È°İÉ¥Ñ•¥±”ô™É½´€¹½‘”é™Ì½ÁÉ½µ¥Í•Ìœ)¥µÁ½ÉĞìÉ•Í½±Ù”ô™É½´€¹½‘”éÁ…Ñ œ)¥µÁ½ÉĞì™¥±•UI1Q½A…Ñ ô™É½´€¹½‘”éÕÉ°œ()¥µÁ½ÉĞì¡…¹‘İÉ¥ÑÑ•¹ÉÑ¥±•Í¹	åM±Õœô™É½´€œ¸¸½½¹Ñ•¹Ğ½…ÉÑ¥±•Ì½•¸½¥¹‘•à¹ÑÌœ)¥µÁ½ÉĞì¡…¹‘İÉ¥ÑÑ•¹ÉÑ¥±•Ìô™É½´€œ¸¸½½¹Ñ•¹Ğ½…ÉÑ¥±•Ì½¥¹‘•à¹ÑÌœ)¥µÁ½ÉĞì…ÉÑ¥±•½Ù•É½È°…ÉÑ¥±•%¹‘•á½Ù•É½Èô™É½´€œ¸¸½½¹Ñ•¹Ğ½…ÉÑ¥±”µ½Ù•ÉÌ¹ÑÌœ)¥µÁ½ÉĞÑåÁ”ìÉÑ¥±•Ñ„°!…¹‘İÉ¥ÑÑ•¹ÉÑ¥±”ô™É½´€œ¸¸½½¹Ñ•¹Ğ½…ÉÑ¥±•Ì½ÑåÁ•Ì¹ÑÌœ)¥µÁ½ÉĞì1==A}U%M}8ô™É½´€œ¸¸½½¹Ñ•¹Ğ½±½½ÀµÕ¥‘•Ì½•¸¹ÑÌœ)¥µÁ½ÉĞ¥½¹%‘Í)Í½¸™É½´€œ¸¸½ÍÉŒ½‘…Ñ„½¥½¹Ì¹©Í½¸œ)¥µÁ½ÉĞì(€‰Õ¥±‘¥¹Í	å%°(€•¹•É…Ñ½ÉÌ°(€¥ÍM¥¹­…‰±•%Ñ•´°(€¥Ñ•µÌ°(€¥Ñ•µÍ	å%°(€µ•Ñ„°(€É…Ñ•A•É5¥¸°(€É•¥Á•Ì°(€É•¥Á•Í	å%°)ô™É½´€œ¸¸½ÍÉŒ½‘…Ñ„½¥¹‘•à¹ÑÌœ)¥µÁ½ÉĞÑåÁ”ì%Ñ•´°%Ñ•µµ½Õ¹Ğ°I•¥Á”ô™É½´€œ¸¸½ÍÉŒ½‘…Ñ„½ÑåÁ•Ì¹ÑÌœ)¥µÁ½ÉĞÑåÁ”ìU¥¥Ñ¥½¹…Éäô™É½´€œ¸¸½ÍÉŒ½¤Äá¸½ÑåÁ•Ì¹ÑÌœ)¥µÁ½ÉĞì(€…‰½ÕÑA…•A…Ñ °(€…ÁÁA…•A…Ñ °(€…ÉÑ¥±•A…•A…Ñ °(€…ÉÑ¥±•Í%¹‘•áA…Ñ °(€¥Ñ•µA…•A…Ñ °(€¥Ñ•µM±Õœ°(€¥Ñ•µÍ%¹‘•áA…Ñ °(€±…¹‘¥¹A…•A…Ñ °(€ÁÉ¥Ù…åA…•A…Ñ °)ô™É½´€œ¸¸½ÍÉŒ½Á±…¸½¥Ñ—Í5¶‰ËkºwµçVFS¢æöäçVÆÆ&ÆSÅ6×ÆUÆå²vwV–FRuÓâÒÓà¢6×ÆRæ6FVv÷'’ÓÒv&6–2rbb6×ÆRæwV–FRÓÒVæFVf–æVBÀ¢¢ò¢¢Š‰K¨¾KˆŠj~8;¾8:8;>88~8*>8;>8+8~8:¾8;Î89~Š‰K¨¾8).Xˆn88nKŠn88(¾88Ş8îšnûÈ[ê®y+(i"y›®™»¾ûÈ8Šh¾X{®8~8"¢ğ¦6öç7BÄôõô%D”4ÄUôu$õU2Ò°¢²6FVv÷'“¢w7V6–ÂrÂ†VF–æs¢„Ã¢7FF–5vTÆ&VÇ2“¢7G&–ærÓâÂæ'F–6ÆW4–æFW„Æö÷6V7F–öâÒÀ¢²6FVv÷'“¢w÷vW"rÂ†VF–æs¢„Ã¢7FF–5vTÆ&VÇ2“¢7G&–ærÓâÂæ'F–6ÆW4–æFW…÷vW%6V7F–öâÒÀ¥Ò26öç7@ ¢òò6ÇVr8îZéşŠ8^8ş8*.89~8:®8X[iÈ88(¾ûÈ‡7&2÷Æâö—FVÒ×vW2çG28ÎjÚ>X[ûÈ8.8>8>8~8şXhŞ‹ËX{®8888(¾8 ¦W‡÷'B²—FVÕ6ÇVrÒg&öÒrââ÷7&2÷Æâö—FVÒ×vW2çG2p ¦6öç7B—FVÕ6ÇVufÇVW2Ò—FV×2æÖ‚†—FVÒ’Óâ—FVÕ6ÇVr†—FVÒæ–B’ ¦W‡÷'B6öç7B'F–6ÆU6ÇVw3¢&VFöæÇ’7G&–æuµÒÒ°¢ââæ†æGw&—GFVä'F–6ÆW2æÖ‚†'F–6ÆR’Óâ'F–6ÆRç6ÇVr’À¢ââæÆö÷6×ÆW2æÖ‚‡6×ÆR’Óâ6×ÆRæ–B’À¥Ğ¦–b†æWr6WB†'F–6ÆU6ÇVw2’ç6—¦RÓÒ'F–6ÆU6ÇVw2æÆVæwF‚’°¢F‡&÷ræWrW'&÷"‚v'F–6ÆR6ÇVr6öÆÆ—6–öâFWFV7FVBr§Ğ ¢òòÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒĞ¢òò8:Ş8+8;Î8:¾ih~ˆH€¢òòÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒÒĞ ¢ò¢¢8:Ş8+8;Î8:¾Xˆn8îŠzK®‹8~k©ûÈ‹éîi»8;¾i[X
+Ni»[Èş8;¾KŠn8>šnûÈ8.XZ‚&VæFW"™j.i[8îzÊÃ[É^i[8"¢ğ§G—R7G‚Ò°¢Æö6ÆS¢7FF–4Æö6ÆP¢ò¢¢8(.8nKˆik8îŠˆŠ©îûÈˆ»YŞûÈşY(ÎYŞ8îKÛ^Š‰8‚‡&VfÆær8¾KÛş8nûÈ8"¢ğ¢÷F†W#¢7FF–4Æö6ÆP¢Ã¢7FF–5vTÆ&VÇ0¢V“¢V”F–7F–öæ'¢6—FS¢7G&–æp¢f×E&FS¢‡fÇVS¢çVÖ&W"’Óâ7G&–æp¢f×E÷vW#¢‡fÇVS¢çVÖ&W"’Óâ7G&–æp¢f×D–çFVvW#¢‡fÇVS¢çVÖ&W"’Óâ7G&–æp¢f×EW&6VçC¢‡fÇVS¢çVÖ&W"’Óâ7G&–æp¢ò¢ ¢¢iÈX«i[ZÙs>j8.[ş8^8NjùNxè~8).[şi[.j8~K‹8(8(¾8[zî8Îkh88n8~8î8nZN™Ú.8~KÛş8`¢¢ûÈiÙii“X¾8.8ş8(¢ã332Zûâãs’8ş8.j8š®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍh8àj8à#ŒÈ9kïˆŒ¸à#xàjøàj¸à¢‚ˆ
+ˆKù`#xàj8àa8àaº §yoàøàk¹ áyh,xàc:$/xàhxà¢ûï"xà ‚ˆ
+‹Âˆ›]ÚYÛšYšXØ[ˆ
+˜[YNˆ[X™\ŠHOˆİš[™ÂˆÊŠˆ8à#Kù`#xà#xà#¹`#xà#xàk¸à¢8àa¸àj¹`#yã¡øà ¹§*ùl/¸àkˆ8àkùaî¸àexàj¸àa8à ˆ
+‹Âˆ›]˜][Îˆ
+˜[YNˆ[X™\ŠHOˆİš[™ÂˆÛÜY][\Îˆ™XYÛ›H][V×Bˆ][QÜ›İ\Îˆ™XYÛ›H][QÜ›İ\×BŸB‚˜ÛÛœİ•SP‘T—ÓĞĞSTÎˆ™XYÛ›O™XÛÜ™İ]XÓØØ[Kİš[™ÏˆHÈ˜Nˆ	Ú˜KR”	Ë[ˆ	Ù[‹UTÉÈB‚™[˜İ[ÛˆÛX[“[X™\Š˜[YNˆ[X™\ŠNˆ[X™\ˆÂˆYˆ
+S[X™\‹š\Ñš[š]J˜[YJHX]˜XœÊ˜[YJHYKNJH™]\›ˆˆ™]\›ˆ˜[YBŸB‚™[˜İ[ÛˆÜ™X]PÛÛ^
+ØØ[Nˆİ]XÓØØ[JNˆİÂˆÛÛœİ[X™\“ØØ[HH•SP‘T—ÓĞĞSTÖÛØØ[WBˆÛÛœİ˜]Q›Ü›X]H™]È[“[X™\‘›Ü›X]
+[X™\“ØØ[KÂˆZ[š[][Qœ˜Xİ[Û‘YÚ]Îˆ‹ˆX^[][Qœ˜Xİ[Û‘YÚ]Îˆ‹ˆJBˆÛÛœİ[YÙ\‘›Ü›X]H™]È[“[X™\‘›Ü›X]
+[X™\“ØØ[KÈX^[][Qœ˜Xİ[Û‘YÚ]ÎˆJBˆÛÛœİ\˜Ù[›Ü›X]H™]È[“[X™\‘›Ü›X]
+[X™\“ØØ[KÂˆİ[Nˆ	Ü\˜Ù[	ËˆZ[š[][Qœ˜Xİ[Û‘YÚ]ÎˆKˆX^[][Qœ˜Xİ[Û‘YÚ]ÎˆKˆJBˆÛÛœİÚYÛšYšXØ[›Ü›X]H™]È[“[X™\‘›Ü›X]
+[X™\“ØØ[KÂˆZ[š[][TÚYÛšYšXØ[YÚ]ÎˆËˆX^[][TÚYÛšYšXØ[YÚ]ÎˆËˆJBˆÛÛœİ˜][Ñ›Ü›X]H™]È[“[X™\‘›Ü›X]
+[X™\“ØØ[KÂˆZ[š[][Qœ˜Xİ[Û‘YÚ]ÎˆˆX^[][Qœ˜Xİ[Û‘YÚ]Îˆ‹ˆJBˆÛÛœİ›Ü›X]H
+›Ü›X]\ˆ[“[X™\‘›Ü›X]
+HOˆ
+˜[YNˆ[X™\ŠHO‚ˆ›Ü›X]\‹™›Ü›X]
+ÛX[“[X™\Š˜[YJJB‚ˆÛÛœİZHHRWÑPÕSÓT’QTÖÛØØ[WBˆÛÛœİÛÜY][\ÈHË‹‹š][\×KœÛÜ
 
-import { handwrittenArticlesEnBySlug } from '../content/articles/en/index.ts'
-import { handwrittenArticles } from '../content/articles/index.ts'
-import { articleCoverFor, articleIndexCoverFor } from '../content/article-covers.ts'
-import type { ArticleCta, HandwrittenArticle } from '../content/articles/types.ts'
-import { LOOP_GUIDES_EN } from '../content/loop-guides/en.ts'
-import iconIdsJson from '../src/data/icons.json'
-import {
-  buildingsById,
-  generators,
-  isSinkableItem,
-  items,
-  itemsById,
-  meta,
-  ratePerMin,
-  recipes,
-  recipesById,
-} from '../src/data/index.ts'
-import type { Item, ItemAmount, Recipe } from '../src/data/types.ts'
-import type { UiDictionary } from '../src/i18n/types.ts'
-import {
-  aboutPagePath,
-  appPagePath,
-  articlePagePath,
-  articlesIndexPath,
-  itemPagePath,
-  itemSlug,
-  itemsIndexPath,
-  landingPagePath,
-  privacyPagePath,
-} from '../src/plan/item-pages.ts'
-import { hasLoopBaseline, loopBaselineSample, solveSampleSnapshot } from '../src/plan/loop-baseline.ts'
-import { getRecipesForItem, recipeMetrics } from '../src/plan/recipe-index.ts'
-import { SAMPLE_PLANS } from '../src/plan/samples.ts'
-import type { SamplePlan } from '../src/plan/samples.ts'
-import {
-  buildShareUrl,
-  defaultPlanInput,
-  PLAN_HASH_PARAM,
-  toPlanSnapshot,
-} from '../src/plan/serialize.ts'
-import { LAST_OPENED_STORAGE_KEY } from '../src/plan/storage.ts'
-import type { Solution, SolveResult } from '../src/solver/index.ts'
-import { faqPageSchema, renderFaqHtml, resolveOfficialNames } from './static-pages/faq.ts'
-import { itemInsight, relatedGuideSlugs } from './static-pages/item-insights.ts'
-import type { GuideSource } from './static-pages/item-insights.ts'
-import {
-  EN_LANDING,
-  HEADING_BREAK_MARKER,
-  HTML_LANG,
-  JA_LANDING,
-  LANDING_GUIDE_SLUGS,
-  STATIC_LOCALES,
-  STATIC_PAGE_LABELS,
-  UI_DICTIONARIES,
-} from './static-pages/labels.ts'
-import type {
-  LandingCopy,
-  LandingFeature,
-  LandingImageName,
-  StaticLocale,
-  StaticPageLabels,
-} from './static-pages/labels.ts'
-import {
-  escapeHtml,
-  LANDING_HEAD_SCRIPTS,
-  renderBreadcrumbs,
-  renderDocument,
-  siteName,
-  BRAND_MARK_URL,
-  ogImageUrl,
-  SITE_URL,
-  STATIC_PAGE_CSS,
-} from './static-pages/templates.ts'
-import type { PageAlternates } from './static-pages/templates.ts'
-
-const PUBLISHED_DATE = '2026-08-14'
-/** å•ã„åˆã‚ã›å…ˆï¼ˆå€‹äººã®é€£çµ¡å…ˆã¯å‡ºã•ãšã€å…¬é–‹ãƒªãƒã‚¸ãƒˆãƒªã® Issues ã«ä¸€æœ¬åŒ–ã™ã‚‹ï¼‰ã€‚ */
-const CONTACT_URL = 'https://github.com/mikirice/satisfactory-planner/issues'
-const iconIds = new Set<string>(iconIdsJson)
-const baseRecipes = recipes.filter((recipe) => !recipe.isAlternate)
-
-type ItemGroup = {
-  id: 'raw' | 'solid' | 'liquid' | 'gas'
-  label: string
-  items: readonly Item[]
-}
-
-type SolvedLoopArticle = {
-  sample: SamplePlan
-  current: Solution
-  baseline?: SolveResult
-}
-
-export type StaticPagesManifest = {
-  itemSlugs: readonly string[]
-  articleSlugs: readonly string[]
-  /** sitemap ã«è¼‰ã›ã‚‹å…¨URLï¼ˆæ—¥æœ¬èª â†’ è‹±èªãƒŸãƒ©ãƒ¼ã®é †ï¼‰ã€‚ */
-  urls: readonly string[]
-  locales: readonly StaticLocale[]
-}
-
-// ãƒ«ãƒ¼ãƒ—è¨˜äº‹ = åŸºæœ¬ãƒ©ã‚¤ãƒ³ä»¥å¤–ï¼ˆå¾ªç’°æ§‹æˆ special ï¼‹ ç™ºé›»ãƒã‚§ãƒ¼ãƒ³ powerï¼‰ã€‚URL ã¯åˆ†é¡ã«ä¾ã‚‰ãš /articles/<id>/
-const loopSamples = SAMPLE_PLANS.filter(
-  (sample): sample is SamplePlan & { guide: NonNullable<SamplePlan['guide']> } =>
-    sample.category !== 'basic' && sample.guide !== undefined,
-)
-/** è¨˜äº‹ä¸€è¦§ãƒ»ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã§ãƒ«ãƒ¼ãƒ—è¨˜äº‹ã‚’åˆ†ã‘ã¦ä¸¦ã¹ã‚‹ã¨ãã®é †ï¼ˆå¾ªç’° â†’ ç™ºé›»ï¼‰ã¨è¦‹å‡ºã—ã€‚ */
-const LOOP_ARTICLE_GROUPS = [
-  { category: 'special', heading: (L: StaticPageLabels): string => L.articlesIndexLoopSection },
-  { category: 'power', heading: (L: StaticPageLabels): string => L.articlesIndexPowerSection },
-] as const
-
-// slug ã®å®Ÿè£…ã¯ã‚¢ãƒ—ãƒªã¨å…±æœ‰ã™ã‚‹ï¼ˆsrc/plan/item-pages.ts ãŒæ­£å…¸ï¼‰ã€‚ã“ã“ã§ã¯å†è¼¸å‡ºã ã‘ã™ã‚‹ã€‚
-export { itemSlug } from '../src/plan/item-pages.ts'
-
-const itemSlugValues = items.map((item) => itemSlug(item.id))
-
-export const articleSlugs: readonly string[] = [
-  ...handwrittenArticles.map((article) => article.slug),
-  ...loopSamples.map((sample) => sample.id),
-]
-if (new Set(articleSlugs).size !== articleSlugs.length) {
-  throw new Error('article slug collision detected')
-}
-
-// ---------------------------------------------------------------------------
-// ãƒ­ã‚±ãƒ¼ãƒ«æ–‡è„ˆ
-// ---------------------------------------------------------------------------
-
-/** 1ãƒ­ã‚±ãƒ¼ãƒ«åˆ†ã®è¡¨ç¤ºè³‡æºï¼ˆè¾æ›¸ãƒ»æ•°å€¤æ›¸å¼ãƒ»ä¸¦ã³é †ï¼‰ã€‚å…¨ render é–¢æ•°ã®ç¬¬1å¼•æ•°ã€‚ */
-type Ctx = {
-  locale: StaticLocale
-  /** ã‚‚ã†ä¸€æ–¹ã®è¨€èªï¼ˆè‹±åï¼å’Œåã®ä½µè¨˜ã¨ hreflang ã«ä½¿ã†ï¼‰ã€‚ */
-  other: StaticLocale
-  L: StaticPageLabels
-  ui: UiDictionary
-  site: string
-  fmtRate: (value: number) => string
-  fmtPower: (value: number) => string
-  fmtInteger: (value: number) => string
-  fmtPercent: (value: number) => string
-  /**
-   * æœ‰åŠ¹æ•°å­—3æ¡ã€‚å°ã•ã„æ¯”ç‡ã‚’å°æ•°2æ¡ã§ä¸¸ã‚ã‚‹ã¨å·®ãŒæ¶ˆãˆã¦ã—ã¾ã†å ´é¢ã§ä½¿ã†
-   * ï¼ˆææ–™1å€‹ã‚ãŸã‚Š 0.0333 å¯¾ 0.0179 ã¯ã€2æ¡ã ã¨ã€Œ0.03 å¯¾ 0.02ã€ã«ãªã‚Š
-   *   1.87å€ã¨ã„ã†è‚å¿ƒã®æƒ…å ±ãŒè½ã¡ã‚‹ï¼‰ã€‚
-   */
-  fmtSignificant: (value: number) => string
-  /** ã€Œ1.87å€ã€ã€Œ2å€ã€ã®ã‚ˆã†ãªå€ç‡ã€‚æœ«å°¾ã® 0 ã¯å‡ºã•ãªã„ã€‚ */
-  fmtRatio: (value: number) => string
-  sortedItems: readonly Item[]
-  itemGroups: readonly ItemGroup[]
-}
-
-const NUMBER_LOCALES: Readonly<Record<StaticLocale, string>> = { ja: 'ja-JP', en: 'en-US' }
-
-function cleanNumber(value: number): number {
-  if (!Number.isFinite(value) || Math.abs(value) < 1e-9) return 0
-  return value
-}
-
-function createContext(locale: StaticLocale): Ctx {
-  const numberLocale = NUMBER_LOCALES[locale]
-  const rateFormat = new Intl.NumberFormat(numberLocale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-  const integerFormat = new Intl.NumberFormat(numberLocale, { maximumFractionDigits: 0 })
-  const percentFormat = new Intl.NumberFormat(numberLocale, {
-    style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })
-  const significantFormat = new Intl.NumberFormat(numberLocale, {
-    minimumSignificantDigits: 3,
-    maximumSignificantDigits: 3,
-  })
-  const ratioFormat = new Intl.NumberFormat(numberLocale, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })
-  const format = (formatter: Intl.NumberFormat) => (value: number) =>
-    formatter.format(cleanNumber(value))
-
-  const ui = UI_DICTIONARIES[locale]
-  const sortedItems = [...items].sort((left, right) =>
-    left.name[locale].localeCompare(right.name[locale], locale),
-  )
-  const itemGroups: readonly ItemGroup[] = [
-    {
-      id: 'raw',
-      label: ui.recipeBrowser.groups.raw,
-      items: sortedItems.filter((item) => item.isRawResource),
-    },
-    {
-      id: 'solid',
-      label: ui.recipeBrowser.groups.solid,
-      items: sortedItems.filter((item) => !item.isRawResource && item.form === 'solid'),
-    },
-    {
-      id: 'liquid',
-      label: ui.recipeBrowser.groups.liquid,
-      items: sortedItems.filter((item) => !item.isRawResource && item.form === 'liquid'),
-    },
-    {
-      id: 'gas',
-      label: ui.recipeBrowser.groups.gas,
-      items: sortedItems.filter((item) => !item.isRawResource && item.form === 'gas'),
-    },
-  ]
-
-  return {
-    locale,
-    other: locale === 'ja' ? 'en' : 'ja',
-    L: STATIC_PAGE_LABELS[locale],
-    ui,
-    site: siteName(locale),
-    fmtRate: format(rateFormat),
-    fmtPower: format(rateFormat),
-    fmtInteger: format(integerFormat),
-    fmtPercent: format(percentFormat),
-    fmtSignificant: format(significantFormat),
-    fmtRatio: format(ratioFormat),
-    sortedItems,
-    itemGroups,
-  }
-}
-
-// ---------------------------------------------------------------------------
-// åå‰ãƒ»å˜ä½ãƒ»ãƒªãƒ³ã‚¯
-// ---------------------------------------------------------------------------
-
-/**
- * <title>ã€‚ã‚µã‚¤ãƒˆåã¯ titleSiteName ã‚’ä½¿ã†ï¼ˆæ—¥æœ¬èªã¯ã‚«ã‚¿ã‚«ãƒŠè¡¨è¨˜ï¼æ¤œç´¢ã®å®Ÿéœ€è¦ã«åˆã‚ã›ã‚‹ã€‚
- * labels.ts ã® titleSiteName å‚ç…§ï¼‰ã€‚ãƒ˜ãƒƒãƒ€ãƒ¼ã®ãƒ–ãƒ©ãƒ³ãƒ‰ã‚„ og:site_name ã¯ siteName ã®ã¾ã¾ã€‚
- */
-function pageTitle(ctx: Ctx, headline: string): string {
-  return `${headline} | ${ctx.L.titleSiteName}`
-}
-
-function amountUnit(ctx: Ctx, itemId: string): string {
-  return itemsById.get(itemId)?.form === 'solid' ? ctx.ui.units.item : ctx.ui.units.cubicMeter
-}
-
-function rateUnit(ctx: Ctx, itemId: string): string {
-  return itemsById.get(itemId)?.form === 'solid'
-    ? ctx.ui.units.solidPerMinute
-    : ctx.ui.units.fluidPerMinute
-}
-
-function itemCategory(ctx: Ctx, item: Item): string {
-  const groups = ctx.ui.recipeBrowser.groups
-  if (item.isRawResource) return groups.raw
-  if (item.form === 'solid') return groups.solid
-  if (item.form === 'liquid') return groups.liquid
-  return groups.gas
-}
-
-function itemUrl(itemId: string, locale: StaticLocale): string {
-  const path = itemPagePath(itemId, locale)
-  if (path === null) throw new Error(`unknown item id: ${itemId}`)
-  return path
-}
-
-/** è¡Œã«ä¸¦ã¹ã‚‹ã‚¢ã‚¤ã‚³ãƒ³ã®å¤§ãã•(px)ã€‚æœ¬æ–‡15px/è¡Œé€ã‚Š26pxã‚’æŠ¼ã—åºƒã’ãªã„å¤§ãã•ã€‚ */
-const ROW_ICON_SIZE = 20
-
-/**
- * ã‚¢ã‚¤ãƒ†ãƒ åã®ç›´å‰ã«ç½®ãå°ã•ã„ã‚¢ã‚¤ã‚³ãƒ³ã€‚
- *
- * åå‰ãŒã™ãéš£ã«ã‚ã‚‹ã®ã§**è£…é£¾**ã¨ã—ã¦æ‰±ã„ã€alt ã‚’ç©º + aria-hidden ã«ã—ã¦
+YšYÚ
+HO‚ˆY›˜[YVÛØØ[WK›ØØ[PÛÛ\\™JšYÚ›˜[YVÛØØ[WKØØ[JKˆ
+BˆÛÛœİ][QÜ›İ\Îˆ™XYÛ›H][QÜ›İ\×HHÂˆÂˆYˆ	Ü˜]ÉËˆX™[ˆZKœ™XÚ\Pœ›İÜÙ\‹™Ü›İ\Ëœ˜]Ëˆ][\ÎˆÛÜY][\Ë™š[\Š
+][JHOˆ][Kš\Ô˜]Ô™\Ûİ\˜ÙJKˆKˆÂˆYˆ	ÜÛÛY	ËˆX™[ˆZKœ™XÚ\Pœ›İÜÙ\‹™Ü›İ\ËœÛÛYˆ<Ó[h‘éì¶»§q«^u§**è£…é£¾**ã¨ã—ã¦æ‰±ã„ã€alt ã‚’ç©º + aria-hidden ã«ã—ã¦
  * èª­ã¿ä¸Šã’ãŒåå‰ã‚’2å›è¨€ã‚ãªã„ã‚ˆã†ã«ã™ã‚‹ã€‚1ãƒšãƒ¼ã‚¸ã«ä½•åè¡Œã‚‚å‡ºã‚‹ã®ã§é…å»¶èª­ã¿è¾¼ã¿ã€‚
  * ã‚¢ã‚¤ã‚³ãƒ³ãŒç„¡ã„ã‚¢ã‚¤ãƒ†ãƒ ã¯ä½•ã‚‚æã‹ãªã„ï¼ˆã‚¢ãƒ—ãƒªã® ItemIcon ã¨åŒã˜ã€Œç„¡ã‘ã‚Œã°æã‹ãªã„ã€æ–¹é‡ã€‚
  * å¯†ãªè¡Œã«ã€Œç”»åƒæœªåéŒ²ã€ã®æ–‡å­—ã‚’å‡ºã™ã¨ãƒã‚¤ã‚ºã«ãªã‚‹ã ã‘ã§ã€åå‰ã¯éš£ã«ãã®ã¾ã¾æ®‹ã‚‹ï¼‰ã€‚
@@ -312,241 +70,47 @@ function itemIcon(ctx: Ctx, item: Item, size = 72): string {
   return `<img class="item-icon" src="/icons/${escapeHtml(item.id)}.png" alt="${escapeHtml(name)}" width="${size}" height="${size}" />`
 }
 
-function breadcrumbSchema(entries: readonly { name: string; path: string }[], id: string): object {
-  return {
-    '@type': 'BreadcrumbList',
-    '@id': `${SITE_URL}${id}`,
-    itemListElement: entries.map((entry, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: entry.name,
-      item: `${SITE_URL}${entry.path}`,
-    })),
-  }
-}
-
-/** åŒã˜ãƒšãƒ¼ã‚¸ã®æ—¥è‹±ãƒ‘ã‚¹ï¼ˆhreflang ã¨è¨€èªåˆ‡æ›¿ãƒªãƒ³ã‚¯ï¼‰ã€‚ */
-function alternatesOf(pathFor: (locale: StaticLocale) => string): PageAlternates {
-  return Object.fromEntries(STATIC_LOCALES.map((locale) => [locale, pathFor(locale)]))
-}
-
-function targetPlanHref(
-  ctx: Ctx,
-  item: Item,
-  options: {
-    ratePerMin?: number
-    alternateRecipeIds?: readonly string[]
-    somersloops?: number
-    minerId?: string
-  } = {},
-): string {
-  const firstRecipe = getRecipesForItem(item.id).producing[0]
-  const defaultRate = firstRecipe
-    ? recipeMetrics(firstRecipe, item.id).outputRatePerMin
-    : item.form === 'solid'
-      ? 1
-      : 60
-  const enabledAlternates: Record<string, true> = {}
-  for (const recipeId of options.alternateRecipeIds ?? []) enabledAlternates[recipeId] = true
-  // é€šå¸¸ãƒ¬ã‚·ãƒ”ãŒãªãä»£æ›¿ã ã‘ã§ä½œã‚Œã‚‹ã‚¢ã‚¤ãƒ†ãƒ ã‚‚ã€CTAã‹ã‚‰ãã®ã¾ã¾æ±‚è§£ã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
-  if (firstRecipe?.isAlternate === true) enabledAlternates[firstRecipe.id] = true
-
-  const snapshot = toPlanSnapshot({
-    ...defaultPlanInput(),
-    ...(options.minerId === undefined ? {} : { minerId: options.minerId }),
-    targets: [
-      {
-        key: 'seo-target',
-        item: item.id,
-        ratePerMin: options.ratePerMin ?? defaultRate,
-      },
-    ],
-    enabledAlternates,
-    somersloops: options.somersloops ?? 0,
-    planName: ctx.L.itemPlanName(item.name[ctx.locale]),
-  })
-  return buildShareUrl(appPagePath(), snapshot)
-}
-
-/**
- * CTAã®æ—¢å®šæ¡ä»¶ã§ã€ãƒãƒƒãƒ—åŸæ–™ã‹ã‚‰å¯¾è±¡ã¾ã§ãƒ¬ã‚·ãƒ”ã®ä¾å­˜ã‚’ãŸã©ã‚Œã‚‹ã‹ã‚’åˆ¤å®šã™ã‚‹ã€‚
- * ç™ºé›»å‰¯ç”£ç‰©ãƒ»æ‰‹å‹•æ¡å–å“ãªã©ã€è£½é€ ãƒ¬ã‚·ãƒ”å¤–ã®ä¾›çµ¦ãŒå¿…è¦ãªç›®æ¨™ã«ã¯æ³¨æ„æ›¸ãã‚’å‡ºã™ãŸã‚ã«ä½¿ã†ã€‚
- */
-function defaultTargetIsAutomatable(item: Item): boolean {
-  const firstRecipe = getRecipesForItem(item.id).producing[0]
-  const enabledRecipes =
-    firstRecipe?.isAlternate === true ? [...baseRecipes, firstRecipe] : baseRecipes
-  const reachable = new Set(
-    items.filter((candidate) => candidate.isRawResource).map((candidate) => candidate.id),
-  )
-  // ç™ºé›»æ©Ÿã®å‰¯ç”£ç‰©ï¼ˆæ ¸å»ƒæ£„ç‰©ï¼‰ã¯ãƒ¬ã‚·ãƒ”ã§ã¯ä½œã‚Œãªã„ãŒã€ãƒ„ãƒ¼ãƒ«ã¯ç™ºé›»è¨ˆç”»ã®æœ‰ç„¡ã«é–¢ä¿‚ãªã
-  // ã€Œç‡ƒæ–™(+æ°´) â†’ å‰¯ç”£ç‰©ã€ã¨ã—ã¦ç™ºé›»æ©Ÿã‚’å›ã›ã‚‹ï¼ˆsrc/solver/model.ts ã®éœ€è¦é§†å‹•ã®ç™ºé›»æ©Ÿï¼‰ã€‚
-  // ã“ã“ã§ã‚‚åŒã˜æ‰±ã„ã«ã—ãªã„ã¨ã€CTA ã®æ³¨æ„æ›¸ãã¨ãƒ„ãƒ¼ãƒ«ã®å®Ÿéš›ã®æŒ™å‹•ãŒé£Ÿã„é•ã†ã€‚
-  const byproductSources = generators.flatMap((generator) =>
-    generator.fuels
-      .filter((fuel) => fuel.byproduct !== undefined && fuel.byproduct.ratePerMin > 0)
-      .map((fuel) => ({
-        ingredients: [
-          fuel.item,
-          ...(fuel.supplementalItem && fuel.supplementalRatePerMin > 0
-            ? [fuel.supplementalItem]
-            : []),
-        ],
-        product: fuel.byproduct!.item,
-      })),
-  )
-
-  let changed = true
-  while (changed) {
-    changed = false
-    for (const recipe of enabledRecipes) {
-      if (!recipe.ingredients.every((ingredient) => reachable.has(ingredient.item))) continue
-      for (const product of recipe.products) {
-        if (reachable.has(product.item)) continue
-        reachable.add(product.item)
-        changed = true
-      }
-    }
-    for (const source of byproductSources) {
-      if (!source.ingredients.every((ingredient) => reachable.has(ingredient))) continue
-      if (reachable.has(source.product)) continue
-      reachable.add(source.product)
-      changed = true
-    }
-  }
-  return reachable.has(item.id)
-}
-
-function recipeRateList(ctx: Ctx, entries: readonly ItemAmount[], durationSec: number): string {
-  if (entries.length === 0) return `<p class="version">${escapeHtml(ctx.L.none)}</p>`
-  const rows = entries
-    .map(
-      (entry) => `<li>
-        <span>${itemLink(ctx, entry.item, { icon: true })}</span>
-        <span class="num">${ctx.fmtRate(ratePerMin(entry.amount, durationSec))} ${escapeHtml(rateUnit(ctx, entry.item))}</span>
-      </li>`,
-    )
-    .join('')
-  return `<ul class="rate-list">${rows}</ul>`
-}
-
-function recipePowerText(ctx: Ctx, recipe: Recipe): string {
-  const building = buildingsById.get(recipe.producedIn)
-  if (building === undefined) return ctx.L.unknown
-  const range = recipe.variablePower ?? building.variablePower
-  if (range === undefined) return ctx.L.powerFixed(ctx.fmtPower(building.powerConsumptionMW))
-  const average = (range.minMW + range.maxMW) / 2
-  return ctx.L.powerRange(
-    ctx.fmtPower(range.minMW),
-    ctx.fmtPower(range.maxMW),
-    ctx.fmtPower(average),
-  )
-}
-
-function renderProducingRecipe(ctx: Ctx, recipe: Recipe, outputItem: Item): string {
-  const metrics = recipeMetrics(recipe, outputItem.id)
-  const building = buildingsById.get(recipe.producedIn)
-  const browser = ctx.ui.recipeBrowser
-  const ingredientMetrics =
-    metrics.ingredients.length === 0
-      ? `<p class="version ingredient-metrics">${escapeHtml(ctx.L.noIngredients)}</p>`
-      : `<div class="ingredient-metrics">
-          <h4>${escapeHtml(ctx.L.ingredientComparisonHeading)}</h4>
-          <ul class="metric-list">
-            ${metrics.ingredients
-              .map(
-                (ingredient) => `<li>
-                  <span>${browser.perIngredient(itemLink(ctx, ingredient.item, { icon: true }), escapeHtml(amountUnit(ctx, ingredient.item)))}</span>
-                  <span class="num">${ctx.fmtRate(ingredient.outputPerIngredient)} ${escapeHtml(amountUnit(ctx, outputItem.id))}</span>
-                </li>`,
-              )
-              .join('')}
-          </ul>
-        </div>`
-
-  return `<article class="card" data-recipe-id="${escapeHtml(recipe.id)}">
-    <header>
-      <h3>${escapeHtml(recipe.name[ctx.locale])}</h3>
-      <span class="tag${recipe.isAlternate ? ' accent' : ''}">${escapeHtml(recipe.isAlternate ? browser.alternate : browser.standard)}</span>
-    </header>
-    <dl class="facts">
-      <div><dt>${escapeHtml(browser.building)}</dt><dd>${escapeHtml(building?.name[ctx.locale] ?? recipe.producedIn)}</dd></div>
-      <div><dt>${escapeHtml(browser.power)}</dt><dd>${escapeHtml(recipePowerText(ctx, recipe))}</dd></div>
-      <div><dt>${escapeHtml(browser.cycle)}</dt><dd>${escapeHtml(browser.seconds(ctx.fmtRate(recipe.durationSec)))}</dd></div>
-    </dl>
-    <div class="flow-columns">
-      <section><h4>${escapeHtml(browser.ingredients)}</h4>${recipeRateList(ctx, recipe.ingredients, recipe.durationSec)}</section>
-      <section><h4>${escapeHtml(browser.products)}</h4>${recipeRateList(ctx, recipe.products, recipe.durationSec)}</section>
-    </div>
-    <div class="metrics">
-      <dl>
-        <dt>${escapeHtml(browser.outputPerMachine)}</dt>
-        <dd>${ctx.fmtRate(metrics.outputRatePerMin)} ${escapeHtml(rateUnit(ctx, outputItem.id))}</dd>
-      </dl>
-      <dl>
-        <dt>${escapeHtml(browser.outputPerPower)}${metrics.powerRangeMW ? escapeHtml(ctx.L.averagePowerNote) : ''}</dt>
-        <dd>${ctx.fmtRate(metrics.outputPerMW)} ${escapeHtml(ctx.L.perPowerUnit(rateUnit(ctx, outputItem.id)))}</dd>
-      </dl>
-      ${ingredientMetrics}
-    </div>
-  </article>`
-}
-
-// ---------------------------------------------------------------------------
-// ã‚¢ã‚¤ãƒ†ãƒ ãƒšãƒ¼ã‚¸ã®çµè«–ï¼ˆJob Aï¼‰
-// ---------------------------------------------------------------------------
-
-/** ã€Œ20.00 å€‹/åˆ†ã€ã€‚è¡¨ã®ã€Œæ©Ÿæ¢°1å°ã‚ãŸã‚Šã€ã¨åŒã˜å€¤ãƒ»åŒã˜æ›¸å¼ã«ã™ã‚‹ã€‚ */
-function rateText(ctx: Ctx, itemId: string, value: number): string {
-  return `${ctx.fmtRate(value)} ${rateUnit(ctx, itemId)}`
-}
-
-/** ã€Œ5.00 å€‹/åˆ† / MWã€ã€‚è¡¨ã®ã€Œé›»åŠ›ã‚ãŸã‚Šã€ã¨åŒã˜å€¤ãƒ»åŒã˜æ›¸å¼ã«ã™ã‚‹ã€‚ */
-function perPowerText(ctx: Ctx, itemId: string, value: number): string {
-  return `${ctx.fmtRate(value)} ${ctx.L.perPowerUnit(rateUnit(ctx, itemId))}`
-}
-
-/**
- * ã€Œææ–™1å˜ä½ã‚ãŸã‚Šã®æ¯”è¼ƒã€ã®å€¤ã€‚è¡¨ã¨åŒã˜æ•°å€¤ã‚’**æœ‰åŠ¹æ•°å­—3æ¡**ã§å‡ºã™ã€‚
- *
- * è¡¨ã¯å°æ•°2æ¡ã ãŒã€ã“ã®æ¯”è¼ƒã¯å€¤ãŒå°ã•ã„ãƒ¬ã‚·ãƒ”ãŒå¤šãã€2æ¡ã§ã¯
- * ã€Œ0.03 å¯¾ 0.02ã€ã®ã‚ˆã†ã«å·®ãŒä¸¸ã‚ã§æ½°ã‚Œã¦ã—ã¾ã†ï¼ˆå®Ÿéš›ã«ã¯ 1.87 å€ã‚ã‚‹ï¼‰ã€‚
- * å·®ã®å¤§ãã•ã“ããŒã“ã®æ–‡ã®å­˜åœ¨ç†ç”±ãªã®ã§ã€ã“ã“ã ã‘æ¡ã‚’å¢—ã‚„ã™ã€‚
- * å˜ä½ã¯ä»˜ã‘ãªã„ï¼ˆæ—¥æœ¬èªã¯ã€Œ3.00å€‹ã€ã€è‹±èªã¯ã€Œper unit of â€¦: 3.00ã€ã¨ä»˜ã‘ã‚‹ä½ç½®ãŒé•ã†ãŸã‚ï¼‰ã€‚
- */
-function perIngredientText(ctx: Ctx, value: number): string {
-  return ctx.fmtSignificant(value)
-}
-
-/** ãƒ¬ã‚·ãƒ”åãŒãã®ç”Ÿæˆç‰©åã¨åŒã˜ã‹ï¼ˆã€Œã‚¢ãƒ«ãƒŸã®ã‚¹ã‚¯ãƒ©ãƒƒãƒ—ã‚’ä½œã‚‹ã€ã‚¢ãƒ«ãƒŸã®ã‚¹ã‚¯ãƒ©ãƒƒãƒ—ã€ã€ã‚’é¿ã‘ã‚‹ï¼‰ã€‚ */
-function namesItsProduct(ctx: Ctx, fact: { recipeId: string; mainProductId: string }): boolean {
-  return gameName(ctx, fact.recipeId) === gameName(ctx, fact.mainProductId)
-}
-
-function gameName(ctx: Ctx, id: string): string {
-  const name = itemsById.get(id)?.name ?? recipesById.get(id)?.name ?? buildingsById.get(id)?.name
-  if (name === undefined) throw new Error(`item summary references unknown id: ${id}`)
-  return name[ctx.locale]
-}
-
-function nameList(ctx: Ctx, ids: readonly string[]): string {
-  return ctx.L.joinList(ids.map((id) => gameName(ctx, id)))
-}
-
-/**
- * ã€Œçµå±€ã©ã®ãƒ¬ã‚·ãƒ”ã‚’ä½¿ãˆã°ã„ã„ã‹ã€ã‚’1ã€œ3æ–‡ã§è¨€ã†æ®µè½ã€‚
- *
- * çŠ¶æ³ã®åˆ¤å®šã¨æ•°å€¤ã¯ item-insights.tsã€æ–‡é¢ã¯ labels.ts ã® itemSummaryã€‚
- * ã“ã“ã¯**æ•°å€¤ã®æ•´å½¢ã¨åå‰ã®è§£æ±ºã ã‘**ã‚’è¡Œã†ã€‚æ•°å€¤ã¯å¿…ãšä¸‹ã®è¡¨ã¨åŒã˜æ•´å½¢é–¢æ•°ã‚’é€šã™
- * ï¼ˆè¡¨ã¨æ–‡ç« ã§é•ã†æ•°å­—ãŒå‡ºã‚‹ã¨ã€ãƒšãƒ¼ã‚¸å…¨ä½“ã®ä¿¡ç”¨ãŒæ¶ˆãˆã‚‹ï¼‰ã€‚
- * è¨€ã†ã“ã¨ãŒç„¡ã„ã‚¢ã‚¤ãƒ†ãƒ ã§ã¯ insight ãŒ null ã«ãªã‚Šã€ã“ã®ç¯€ã”ã¨å‡ºãªã„ã€‚
- */
-function renderItemSummary(ctx: Ctx, item: Item): string {
-  const insight = itemInsight(item)
-  if (insight === null) return ''
-  const S = ctx.L.itemSummary
-  const rate = (value: number): string => rateText(ctx, item.id, value)
-  const perPower = (value: number): string => perPowerText(ctx, item.id, value)
+function breadcrumbSchema(entries: readonly { name: string; path: striYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Õ¹œõmt°¥èÍÑÉ¥¹œ¤è½‰©•Ğì(€É•ÑÕÉ¸ì(€€€€ÑåÁ”œè€	É•…‘ÉÕµ‰1¥ÍĞœ°(€€€€¥œè€‘íM%Q}UI1ô‘í¥‘õ€°(€€€¥Ñ•µ1¥ÍÑ±•µ•¹Ğè•¹ÑÉ¥•Ì¹µ…À ¡•¹ÑÉä°¥¹‘•à¤€ôø€¡ì(€€€€€€ÑåÁ”œè€1¥ÍÑ%Ñ•´œ°(€€€€€Á½Í¥Ñ¥½¸è¥¹‘•à€¬€Ä°(€€€€€¹…µ”è•¹ÑÉä¹¹…µ”°(€€€€€¥Ñ•´è€‘íM%Q}UI1ô‘í•¹ÑÉä¹Á…Ñ¡õ€°(€€€ô¤¤°(€ô)ô((¼¨¨ƒ–B3ckó
+ã»š^—¢.ÇG
+ç¾ò!¡É•™±…¹œƒ£¢¢¢ª{–"šnÿ«Ï
+¿¾ò'€¨¼)™Õ¹Ñ¥½¸…±Ñ•É¹…Ñ•Í=˜¡Á…Ñ¡½Èè€¡±½…±”èMÑ…Ñ¥1½…±”¤€ôøÍÑÉ¥¹œ¤èA…•±Ñ•É¹…Ñ•Ìì(€É•ÑÕÉ¸=‰©•Ğ¹™É½µ¹ÑÉ¥•Ì¡MQQ%}1=1L¹µ…À ¡±½…±”¤€ôøm±½…±”°Á…Ñ¡½È¡±½…±”¥t¤¤)ô()™Õ¹Ñ¥½¸Ñ…É•ÑA±…¹!É•˜ (€ÑàèÑà°(€¥Ñ•´è%Ñ•´°(€½ÁÑ¥½¹Ìèì(€€€É…Ñ•A•É5¥¸üè¹Õµ‰•È(€€€…±Ñ•É¹…Ñ•I•¥Á•%‘ÌüèÉ•…‘½¹±äÍÑÉ¥¹mt(€€€Í½µ•ÉÍ±½½ÁÌüè¹Õµ‰•È(€€€µ¥¹•É%üèÍÑÉ¥¹œ(€ô€ôíô°(¤èÍÑÉ¥¹œì(€½¹ÍĞ™¥ÉÍÑI•¥Á”€ô•ÑI•¥Á•Í½É%Ñ•´¡¥Ñ•´¹¥¤¹ÁÉ½‘Õ¥¹lÁt(€½¹ÍĞ‘•™…Õ±ÑI…Ñ”€ô™¥ÉÍÑI•¥Á”(€€€€üÉ•¥Á•5•ÑÉ¥Ì¡™¥ÉÍÑI•¥Á”°¥Ñ•´¹¥¤¹½ÕÑÁÕÑI…Ñ•A•É5¥¸(€€€€è¥Ñ•´¹™½É´€ôôô€Í½±¥œ(€€€€€€ü€Ä(€€€€€€è€ØÀ(€½¹ÍĞ•¹…‰±•‘±Ñ•É¹…Ñ•ÌèI•½ÉñÍÑÉ¥¹œ°ÑÉÕ”ø€ôíô(€™½È€¡½¹ÍĞÉ•¥Á•%½˜½ÁÑ¥½¹Ì¹…±Ñ•É¹…Ñ•I•¥Á•%‘Ì€üümt¤•¹…‰±•‘±Ñ•É¹…Ñ•ÍmÉ•¥Á•%‘t€ôÑÉÕ”(€€¼¼ƒ¦k–âã³
+ßS3«?’îšnÿƒGŸ’ös
+3
+/
+‹
+“ƒ
+Q/
+'w»ûûšÆ¢Ÿ7
+/
+#¯g
+/(€¥˜€¡™¥ÉÍÑI•¥Á”ü¹¥Í±Ñ•É¹…Ñ”€ôôôÑÉÕ”¤•¹…‰±•‘±Ñ•É¹…Ñ•Ím™¥ÉÍÑI•¥Á”¹¥‘t€ôÑÉÕ”((€½¹ÍĞÍ¹…ÁÍ¡½Ğ€ôÑ½A±…¹M¹…ÁÍ¡½Ğ¡ì(€€€€¸¸¹‘•™…Õ±ÑA±…¹%¹ÁÕĞ ¤°(€€€€¸¸¸¡½ÁÑ¥½¹Ì¹µ¥¹•É%€ôôôÕ¹‘•™¥¹•€üíô€èìµ¥¹•É%è½ÁÑ¥½¹Ì¹µ¥¹•É%ô¤°(€€€Ñ…É•ÑÌèl(€€€€€ì(€€€€€€€­•äè€Í•¼µÑ…É•Ğœ°(€€€€€€€¥Ñ•´è¥Ñ•´¹¥°(€€€€€€€É…Ñ•A•É5¥¸è½ÁÑ¥½¹Ì¹É…Ñ•A•É5¥¸€üü‘•™…Õ±ÑI…Ñ”°(€€€€€ô°(€€€t°(€€€•¹…‰±•‘±Ñ•É¹…Ñ•Ì°(€€€Í½µ•ÉÍ±½½ÁÌè½ÁÑ¥½¹Ì¹Í½µ•ÉÍ±½½ÁÌ€üü€À°(€€€Á±…¹9…µ”èÑà¹0¹¥Ñ•µA±…¹9…µ”¡¥Ñ•´¹¹…µ•mÑà¹±½…±•t¤°(€ô¤(€É•ÑÕÉ¸‰Õ¥±‘M¡…É•UÉ°¡…ÁÁA…•A…Ñ  ¤°Í¹…ÁÍ¡½Ğ¤)ô((¼¨¨(€¨Q»š^‹–ºkšv‡’îÛŸ{Í5¶‰ËkºwµçGW&F–öå6V2’—ÒG¶W66T‡FÖÂ‡&FUVæ—B†7G‚ÂVçG'’æ—FVÒ’—ÓÂ÷7ãà¢ÂöÆ“æÀ¢¢æ¦ö–â‚rr¢&WGW&âÇVÂ6Æ73Ò'&FRÖÆ—7B#âG·&÷w7ÓÂ÷VÃæ §Ğ ¦gVæ7F–öâ&V6—U÷vW%FW‡B†7Gƒ¢7G‚Â&V6—S¢&V6—R“¢7G&–ær°¢6öç7B'V–ÆF–ærÒ'V–ÆF–æw4'”–BævWB‡&V6—Rç&öGV6VD–â¢–b†'V–ÆF–ærÓÓÒVæFVf–æVB’&WGW&â7G‚äÂçVæ¶æ÷và¢6öç7B&ævRÒ&V6—Rçf&–&ÆU÷vW"óò'V–ÆF–ærçf&–&ÆU÷vW ¢–b‡&ævRÓÓÒVæFVf–æVB’&WGW&â7G‚äÂç÷vW$f—†VB†7G‚æf×E÷vW"†'V–ÆF–ærç÷vW$6öç7V×F–öäÕr’¢6öç7BfW&vRÒ‡&ævRæÖ–äÕr²&ævRæÖ„Õr’ò ¢&WGW&â7G‚äÂç÷vW%&ævR€¢7G‚æf×E÷vW"‡&ævRæÖ–äÕr’À¢7G‚æf×E÷vW"‡&ævRæÖ„Õr’À¢7G‚æf×E÷vW"†fW&vR’À¢§Ğ ¦gVæ7F–öâ&VæFW%&öGV6–æu&V6—R†7Gƒ¢7G‚Â&V6—S¢&V6—RÂ÷WGWD—FVÓ¢—FVÒ“¢7G&–ær°¢6öç7BÖWG&–72Ò&V6—TÖWG&–72‡&V6—RÂ÷WGWD—FVÒæ–B¢6öç7B'V–ÆF–ærÒ'V–ÆF–æw4'”–BævWB‡&V6—Rç&öGV6VD–â¢6öç7B'&÷w6W"Ò7G‚çV’ç&V6—T'&÷w6W ¢6öç7B–æw&VF–VçDÖWG&–72Ğ¢ÖWG&–72æ–æw&VF–VçG2æÆVæwF‚ÓÓÒ ¢òÇ6Æ73Ò'fW'6–öâ–æw&VF–VçBÖÖWG&–72#âG¶W66T‡FÖÂ†7G‚äÂææô–æw&VF–VçG2—ÓÂ÷æ ¢¢ÆF—b6Æ73Ò&–æw&VF–VçBÖÖWG&–72#à¢ÆƒCâG¶W66T‡FÖÂ†7G‚äÂæ–æw&VF–VçD6ö×&—6öä†VF–ær—ÓÂöƒCà¢ÇVÂ6Æ73Ò&ÖWG&–2ÖÆ—7B#à¢G¶ÖWG&–72æ–æw&VF–VçG0¢æÖ€¢†–æw&VF–VçB’ÓâÆÆ“à¢Ç7ãâG¶'&÷w6W"çW$–æw&VF–VçB†—FVÔÆ–æ²†7G‚Â–æw&VF–VçBæ—FVÒÂ²–6öã¢G'VRÒ’ÂW66T‡FÖÂ†Ö÷VçEVæ—B†7G‚Â–æw&VF–VçBæ—FVÒ’’—ÓÂ÷7ãà¢Ç7â6Æ73Ò&çVÒ#âG¶7G‚æf×E&FR†–æw&VF–VçBæ÷WGWEW$–æw&VF–VçB—ÒG¶W66T‡FÖÂ†Ö÷VçEVæ—B†7G‚Â÷WGWD—FVÒæ–B’—ÓÂ÷7ãà¢ÂöÆ“æÀ¢¢æ¦ö–â‚rr—Ğ¢Â÷VÃà¢ÂöF—cæ  ¢&WGW&âÆ'F–6ÆR6Æ73Ò&6&B"FF×&V6—RÖ–CÒ"G¶W66T‡FÖÂ‡&V6—Ræ–B—Ò#à¢Æ†VFW#à¢Æƒ3âG¶W66T‡FÖÂ‡&V6—RææÖU¶7G‚æÆö6ÆUÒ—ÓÂöƒ3à¢š®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍOÜ[ˆÛ\ÜÏHYÉÜ™XÚ\Kš\Ğ[\›˜]HÈ	ÈXØÙ[	Èˆ	ÉßH‰Ù\ØØ\R[
+™XÚ\Kš\Ğ[\›˜]HÈœ›İÜÙ\‹˜[\›˜]Hˆœ›İÜÙ\‹œİ[™\™
+_OÜÜ[‚ˆÚXY\‚ˆÛ\ÜÏH™˜XİÈ‚ˆ]‰Ù\ØØ\R[
+œ›İÜÙ\‹˜Z[[™Ê_OÙ‰Ù\ØØ\R[
+Z[[™ÏË›˜[YVØİ›ØØ[WHÏÈ™XÚ\Kœ›ÙXÙY[Š_OÙÙ]‚ˆ]‰Ù\ØØ\R[
+œ›İÜÙ\‹œİÙ\Š_OÙ‰Ù\ØØ\R[
+™XÚ\TİÙ\•^
+İ™XÚ\JJ_OÙÙ]‚ˆ]‰Ù\ØØ\R[
+œ›İÜÙ\‹˜ŞXÛJ_OÙ‰Ù\ØØ\R[
+œ›İÜÙ\‹œÙXÛÛ™Êİ™›]˜]J™XÚ\K™\˜][Û”ÙXÊJJ_OÙÙ]‚ˆÙ‚ˆ]ˆÛ\ÜÏH™›İËXÛÛ[[œÈ‚ˆÙXİ[Û‰Ù\ØØ\R[
+œ›İÜÙ\‹š[™Ü™YY[Ê_OÚ‰Ü™XÚ\T˜]S\İ
+İ™XÚ\Kš[™Ü™YY[Ë™XÚ\K™\˜][Û”ÙXÊ_OÜÙXİ[Û‚ˆÙXİ[Û‰Ù\ØØ\R[
+œ›İÜÙ\‹œ›ÙXİÊ_OÚ‰Ü™XÚ\T˜]S\İ
+İ™XÚ\Kœ›ÙXİË™XÚ\K™\˜][Û”ÙXÊ_OÜÙXİ[Û‚ˆÙ]‚ˆ]ˆÛ\ÜÏH›Y]šXÜÈ‚ˆ‚ˆ‰Ù\ØØ\R[
+œ›İÜÙ\‹›İ]]\“XXÚ[™J_OÙ‚ˆ‰Øİ™›]˜]JY]šXÜË›İ]]˜]T\“Z[Š_H	Ù\ØØ\R[
+˜]U[š]
+İİ]]][KšY
+J_OÙ‚ˆÙ‚ˆ‚ˆ‰Ù\ØØ\R[
+œ›İÜÙ\‹›İ]]\”İÙ\Š_IÛY]šXÜËœİÙ\”˜[™ÙSUÈÈ\ØØ\R[
+İ“˜]™\˜YÙTİÙ\“›İJHˆ	ÉßOÙ‚ˆ‰Øİ™›]˜]JY]šXÜË›İ]]\“UÊ_H	Ù\ØØ\R[
+İ“œ\”İÙ\•[š]
+˜]U[š]
+İİ]]][KšY
+JJ_OÙ‚ˆÙ‚ˆ	Ú[™Ü™YY[Y]šXÜßBˆÙ]‚ˆØ\XÛO˜ŸB‚‹ËÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‹ËÈ8à¨¸à©8àá¸àè8àæ¸àï8à®8àk¹íd:*å»ï"›Øˆ{ï"B‹ËÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚‹ÊŠˆ8à#ŒŒ9`"Ëùb!¸à#xà º(j8àk¸à#9ªgù¨¬ycì8à`¸àgøà¢¸à#xàj9d#8àf9`)8àîùd#8àf9¦î9o#øàjøàfxà¢øà ˆ
+‹Â™[˜İ[Ûˆ˜]U^
+İˆİ][RYˆİš[™Ë˜[YNˆ[X™\ŠNˆİš[™ÈÂˆ™]\›ˆ	Øİ™›]˜]J˜[YJ_H	Ü˜]U[š]
+İ][RY
+_XŸB¼Ó[h‘éì¶»§q«^tvalue)
   const perIngredient = (value: number): string => perIngredientText(ctx, value)
 
   const text = ((): string => {
@@ -589,238 +153,22 @@ function renderItemSummary(ctx: Ctx, item: Item): string {
           name: item.name[ctx.locale],
           recipe: gameName(ctx, insight.route.recipeId),
           building: gameName(ctx, insight.route.buildingId),
-          rate: rate(insight.route.ratePerMin),
-          byproductCount: insight.byproductCount,
-          topRecipe: gameName(ctx, insight.top.recipeId),
-          topMainProduct: gameName(ctx, insight.top.mainProductId),
-          topRecipeNamesProduct: namesItsProduct(ctx, insight.top),
-          topRate: rate(insight.top.ratePerMin),
-          byproductIsLarger: insight.ratio >= 1,
-          // åŒæ•°ã®ã¨ãã«ã€Œ1.00å€ã€ã¨æ›¸ã„ã¦ã‚‚æ„å‘³ãŒãªã„ã®ã§ã€ãã®ã¨ãã¯å€ç‡ã‚’å‡ºã•ãªã„ã€‚
-          ...(Math.abs(insight.ratio - 1) < 0.005 ? {} : { ratio: ctx.fmtRate(insight.ratio) }),
-        })
-      case 'soleAlternate':
-        return S.soleAlternate({
-          name: item.name[ctx.locale],
-          recipe: gameName(ctx, insight.route.recipeId),
-          building: gameName(ctx, insight.route.buildingId),
-          rate: rate(insight.route.ratePerMin),
-        })
-      case 'identicalRoutes':
-        return S.identicalRoutes({
-          routeCount: insight.routeCount,
-          building: gameName(ctx, insight.buildingId),
-          rate: rate(insight.ratePerMin),
-          perPower: perPower(insight.outputPerMW),
-          ingredients: nameList(ctx, insight.distinctIngredientIds),
-        })
-      case 'sameOutputDifferentCost':
-        return S.sameOutputDifferentCost({
-          rate: rate(insight.ratePerMin),
-          efficientRecipe: gameName(ctx, insight.efficient.recipeId),
-          efficientBuilding: gameName(ctx, insight.efficient.buildingId),
-          efficientPerPower: perPower(insight.efficient.outputPerMW),
-          otherBuilding: gameName(ctx, insight.other.buildingId),
-          otherPerPower: perPower(insight.other.outputPerMW),
-          ...(insight.swappedIngredient === undefined
-            ? {}
-            : {
-                efficientIngredient: gameName(ctx, insight.swappedIngredient.efficientId),
-                otherIngredient: gameName(ctx, insight.swappedIngredient.otherId),
-              }),
-        })
-      case 'tiedLeaders': {
-        const [first, second] = insight.leaders
-        const [firstIngredients, secondIngredients] = insight.distinguishingIngredientIds
-        if (first === undefined || second === undefined) return ''
-        return S.tiedLeaders({
-          rate: rate(insight.ratePerMin),
-          firstRecipe: gameName(ctx, first.recipeId),
-          firstBuilding: gameName(ctx, first.buildingId),
-          firstIngredients: nameList(ctx, firstIngredients ?? []),
-          secondRecipe: gameName(ctx, second.recipeId),
-          secondBuilding: gameName(ctx, second.buildingId),
-          secondIngredients: nameList(ctx, secondIngredients ?? []),
-          runnerUpRecipe: gameName(ctx, insight.runnerUp.recipeId),
-          runnerUpRate: rate(insight.runnerUp.ratePerMin),
-        })
-      }
-      case 'splitWinners':
-        return S.splitWinners({
-          throughputRecipe: gameName(ctx, insight.throughput.recipeId),
-          throughputBuilding: gameName(ctx, insight.throughput.buildingId),
-          throughputRate: rate(insight.throughput.ratePerMin),
-          throughputPerIngredient: perIngredient(insight.throughputPerIngredient),
-          efficiencyRecipe: gameName(ctx, insight.efficiency.recipeId),
-          efficiencyPerIngredient: perIngredient(insight.efficiencyBest),
-          sharedIngredient: gameName(ctx, insight.sharedIngredientId),
-          amountUnit: amountUnit(ctx, insight.sharedIngredientId),
-          outputAmountUnit: amountUnit(ctx, item.id),
-          ratio: ctx.fmtRatio(insight.efficiencyBest / insight.throughputPerIngredient),
-        })
-      case 'recyclingPair':
-        return S.recyclingPair({
-          name: item.name[ctx.locale],
-          throughputRecipe: gameName(ctx, insight.throughput.recipeId),
-          throughputBuilding: gameName(ctx, insight.throughput.buildingId),
-          throughputRate: rate(insight.throughput.ratePerMin),
-          baselineRecipe: gameName(ctx, insight.baseline.recipeId),
-          baselineRate: rate(insight.baseline.ratePerMin),
-          loopIngredient: gameName(ctx, insight.loopIngredientId),
-          ...(insight.otherIngredientIds.length === 0
-            ? {}
-            : { otherIngredients: nameList(ctx, insight.otherIngredientIds) }),
-        })
-    }
-  })()
+          rateYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÔèÉ…Ñ”¡¥¹Í¥¡Ğ¹É½ÕÑ”¹É…Ñ•A•É5¥¸¤°(€€€€€€€€€‰åÁÉ½‘ÕÑ½Õ¹Ğè¥¹Í¥¡Ğ¹‰åÁÉ½‘ÕÑ½Õ¹Ğ°(€€€€€€€€€Ñ½ÁI•¥Á”è…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹Ñ½À¹É•¥Á•%¤°(€€€€€€€€€Ñ½Á5…¥¹AÉ½‘ÕĞè…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹Ñ½À¹µ…¥¹AÉ½‘ÕÑ%¤°(€€€€€€€€€Ñ½ÁI•¥Á•9…µ•ÍAÉ½‘ÕĞè¹…µ•Í%ÑÍAÉ½‘ÕĞ¡Ñà°¥¹Í¥¡Ğ¹Ñ½À¤°(€€€€€€€€€Ñ½ÁI…Ñ”èÉ…Ñ”¡¥¹Í¥¡Ğ¹Ñ½À¹É…Ñ•A•É5¥¸¤°(€€€€€€€€€‰åÁÉ½‘ÕÑ%Í1…É•Èè¥¹Í¥¡Ğ¹É…Ñ¥¼€øô€Ä°(€€€€€€€€€€¼¼ƒ–B3šVÃ»£7¯0Ä¸ÀÃ–77£šnã›
+š?–FÏ3«»Ÿw»£7¿–7:
+K–ëW«(€€€€€€€€€€¸¸¸¡5…Ñ ¹…‰Ì¡¥¹Í¥¡Ğ¹É…Ñ¥¼€´€Ä¤€ğ€À¸ÀÀÔ€üíô€èìÉ…Ñ¥¼èÑà¹™µÑI…Ñ”¡¥¹Í¥¡Ğ¹É…Ñ¥¼¤ô¤°(€€€€€€€ô¤(€€€€€…Í”€Í½±•±Ñ•É¹…Ñ”œè(€€€€€€€É•ÑÕÉ¸L¹Í½±•±Ñ•É¹…Ñ”¡ì(€€€€€€€€€¹…µ”è¥Ñ•´¹¹…µ•mÑà¹±½…±•t°(€€€€€€€€€É•¥Á”è…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹É½ÕÑ”¹É•¥Á•%¤°(€€€€€€€€€‰Õ¥±‘¥¹œè…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹É½ÕÑ”¹‰Õ¥±‘¥¹%¤°(€€€€€€€€€É…Ñ”èÉ…Ñ”¡¥¹Í¥¡Ğ¹É½ÕÑ”¹É…Ñ•A•É5¥¸¤°(€€€€€€€ô¤(€€€€€…Í”€¥‘•¹Ñ¥…±I½ÕÑ•Ìœè(€€€€€€€É•ÑÕÉ¸L¹¥‘•¹Ñ¥…±I½ÕÑ•Ì¡ì(€€€€€€€€€É½ÕÑ•½Õ¹Ğè¥¹Í¥¡Ğ¹É½ÕÑ•½Õ¹Ğ°(€€€€€€€€€‰Õ¥±‘¥¹œè…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹‰Õ¥±‘¥¹%¤°(€€€€€€€€€É…Ñ”èÉ…Ñ”¡¥¹Í¥¡Ğ¹É…Ñ•A•É5¥¸¤°(€€€€€€€€€Á•ÉA½İ•ÈèÁ•ÉA½İ•È¡¥¹Í¥¡Ğ¹½ÕÑÁÕÑA•É5\¤°(€€€€€€€€€¥¹É•‘¥•¹ÑÌè¹…µ•1¥ÍĞ¡Ñà°¥¹Í¥¡Ğ¹‘¥ÍÑ¥¹Ñ%¹É•‘¥•¹Ñ%‘Ì¤°(€€€€€€€ô¤(€€€€€…Í”€Í…µ•=ÕÑÁÕÑ¥™™•É•¹Ñ½ÍĞœè(€€€€€€€É•ÑÕÉ¸L¹Í…µ•=ÕÑÁÕÑ¥™™•É•¹Ñ½ÍĞ¡ì(€€€€€€€€€É…Ñ”èÉ…Ñ”¡¥¹Í¥¡Ğ¹É…Ñ•A•É5¥¸¤°(€€€€€€€€€•™™¥¥•¹ÑI•¥Á”è…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹•™™¥¥•¹Ğ¹É•¥Á•%¤°(€€€€€€€€€•™™¥¥•¹Ñ	Õ¥±‘¥¹œè…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹•™™¥¥•¹Ğ¹‰Õ¥±‘¥¹%¤°(€€€€€€€€€•™™¥¥•¹ÑA•ÉA½İ•ÈèÁ•ÉA½İ•È¡¥¹Í¥¡Ğ¹•™™¥¥•¹Ğ¹½ÕÑÁÕÑA•É5\¤°(€€€€€€€€€½Ñ¡•É	Õ¥±‘¥¹œè…µ•9…µ”¡Ñà°¥¹Í¥¡Ğ¹½Ñ¡•È¹‰Õ¥±‘¥¹%¤°(€€€€€€€€€½Ñ¡•ÉA•ÉA½İ•ÈèÁ•ÉA½İ•È¡¥¹Í¥¡Ğ¹½Ñ¡•È¹½ÕÑÁÕÑA•É5\¤°(€€€€€€€€€€¸¸¸¡¥¹Í¥¡Ğ¹Íİ…ÁÁ•‘%¹É•‘¥•¹Ğ€ôôôÕ¹‘•™¥¹•(€€€€€€€€€€€€üíô(€€€€€€€€€€€€èì(€€€€€€€€€€€€€€€•™™¥¥•¹Ñ%¹ËÍ5¶‰ËkºwµçwG‚Â–ç6–v‡Bæ÷F†W$–æw&VF–VçD–G2’Ò’À¢Ò¢Ğ¢Ò’‚ ¢–b‡FW‡BÓÓÒrr’&WGW&ârp¢&WGW&âÇ6Æ73Ò&—FVÒ×fW&F–7B#âG¶W66T‡FÖÂ‡FW‡B—ÓÂ÷æ §Ğ ¢ò¢¢8*.8*N88n8:89®8;Î8+‚(i"Šz>ŠªÎŠ‰K¨¾8.™j.Kø.8î8.8(¾8*.8*N88n8:888¾89n8:Ş88>8*ş8ÎK¹8şûÈ„¦ö".ûÈ8"¢ğ¦6öç7BuT”DUõ4õU$4S¢wV–FU6÷W&6RÒ°¢'F–6ÆW3¢†æGw&—GFVä'F–6ÆW2æÖ‚†'F–6ÆR’Óâ‡°¢6ÇVs¢'F–6ÆRç6ÇVrÀ¢&VÆFVD—FVÔ–G3¢'F–6ÆRç&VÆFVD—FVÔ–G2À¢Ò’’À¢Æö÷3¢Æö÷6×ÆW2æÖ‚‡6×ÆR’Óâ‡°¢6ÇVs¢6×ÆRæ–BÀ¢F&vWD—FVÔ–G3¢6×ÆRç6æ6†÷BçBæÖ‚…¶—FVÔ–EÒ’Óâ—FVÔ–B’À¢–6öä—FVÔ–C¢6×ÆRæ–6öâÀ¢Ò’’À§Ğ ¦gVæ7F–öâ&VæFW$6öç7VÖ–æu&V6—R†7Gƒ¢7G‚Â&V6—S¢&V6—RÂ6öç7VÖVD—FVÓ¢—FVÒ“¢7G&–ær°¢6öç7B'V–ÆF–ærÒ'V–ÆF–æw4'”–BævWB‡&V6—Rç&öGV6VD–â¢6öç7B'&÷w6W"Ò7G‚çV’ç&V6—T'&÷w6W ¢6öç7B6öç7VÖVE&FRÒ&V6—Ræ–æw&VF–VçG0¢æf–ÇFW"‚†–æw&VF–VçB’Óâ–æw&VF–VçBæ—FVÒÓÓÒ6öç7VÖVD—FVÒæ–B¢ç&VGV6R‚‡7VÒÂ–æw&VF–VçB’Óâ7VÒ²&FUW$Ö–â†–æw&VF–VçBæÖ÷VçBÂ&V6—RæGW&F–öå6V2’Â¢&WGW&âÆÆ’FF×&V6—RÖ–CÒ"G¶W66T‡FÖÂ‡&V6—Ræ–B—Ò#à¢ÆF—b6Æ73Ò'W6R×7VÖÖ'’#à¢Ç7G&öæsâG¶W66T‡FÖÂ‡&V6—RææÖU¶7G‚æÆö6ÆUÒ—ÓÂ÷7G&öæsà¢Ç7â6Æ73Ò&çVÒ#âG¶W66T‡FÖÂ†6öç7VÖVD—FVÒææÖU¶7G‚æÆö6ÆUÒ—ÒG¶7G‚æf×E&FR†6öç7VÖVE&FR—ÒG¶W66T‡FÖÂ‡&FUVæ—B†7G‚Â6öç7VÖVD—FVÒæ–B’—ÓÂ÷7ãà¢ÂöF—cà¢Ç6Æ73Ò'fW'6–öâ#âG¶W66T‡FÖÂ†7G‚äÂæ6öç7VÖ–æu&V6—TÖWF†'V–ÆF–æsòææÖU¶7G‚æÆö6ÆUÒóò&V6—Rç&öGV6VD–âÂ7G‚æf×E&FR‡&V6—RæGW&F–öå6V2’’—ÓÂ÷à¢ÆF—b6Æ73Ò&fÆ÷rÖ6öÇVÖç2#à¢Ç6V7F–öããÆƒCâG¶W66T‡FÖÂ†'&÷w6W"æ–æw&VF–VçG2—ÓÂöƒCâG·&V6—U&FTÆ—7B†7G‚Â&V6—Ræ–æw&VF–VçG2Â&V6—RæGW&F–öå6V2—ÓÂ÷6V7F–öãà¢Ç6V7F–öããÆƒCâG¶W66T‡FÖÂ†'&÷w6W"ç&öGV7G2—ÓÂöƒCâG·&V6—U&FTÆ—7B†7G‚Â&V6—Rç&öGV7G2Â&V6—RæGW&F–öå6V2—ÓÂ÷6V7F–öãà¢ÂöF—cà¢ÂöÆ“æ §Ğ ¦W‡÷'BgVæ7F–öâ&VæFW$—FVÕvR†7Gƒ¢7G‚Â—FVÓ¢š®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍR][JNˆİš[™ÈÂˆÛÛœİ[™^YHÙ]™XÚ\\Ñ›Ü’][J][KšY
+BˆÛÛœİ˜[YHH][K›˜[YVØİ›ØØ[WBˆÛÛœİİ\“˜[YHH][K›˜[YVØİ›İ\—BˆÛÛœİXY[™HHİ“š][TYÙU]J˜[YJBˆÛÛœİ]HHYÙU]JİXY[™JBˆÛÛœİ]H][U\›
+][KšYİ›ØØ[JBˆÛÛœİœ™XYÜ[X’YH	Ü]HØœ™XYÜ[X˜ˆÛÛœİØ]YÛÜHH][PØ]YÛÜJİ][JBˆÛÛœİÚ[šÈBˆ\ÔÚ[šØX›R][J][JBˆÈİ“œÚ[šÔÚ[Êİ™›][YÙ\Š][KœÚ[šÔÚ[ÊK[[İ[[š]
+İ][KšY
+JBˆˆİ“œÚ[šÕ[˜]˜Z[X›BˆÛÛœİ\Ô›ÙXÚ[™ÈH[™^Yœ›ÙXÚ[™Ë›[™İˆˆÛÛœİ\ĞÛÛœİ[Z[™ÈH[™^Y˜ÛÛœİ[Z[™Ë›[™İˆˆÛÛœİ\ØÜš\[ÛˆBˆ\Ô›ÙXÚ[™È	‰ˆ\ĞÛÛœİ[Z[™ÂˆÈİ“š][Q\ØÜš\[Û›İ
+ˆ˜[YKˆİ\“˜[YKˆ[™^Yœ›ÙXÚ[™Ë›[™İˆ[™^Y˜ÛÛœİ[Z[™Ë›[™İˆY]K™Ø[YU™\œÚ[Û‹ˆ
+Bˆˆ\Ô›ÙXÚ[™ÂˆÈİ“š][Q\ØÜš\[Û”›ÙXÚ[™ÓÛ›J˜[YKİ\“˜[YK[™^Yœ›ÙXÚ[™Ë›[™İ
+Bˆˆ\ĞÛÛœİ[Z[™ÂˆÈİ“š][Q\ØÜš\[ÛÛÛœİ[Z[™ÓÛ›J˜[YKİ\“˜[YK[™^Y˜ÛÛœİ[Z[™Ë›[™İ
+Bˆˆİ“š][Q\ØÜš\[Û“™Z]\Š˜[YKİ\“˜[YKY]K™Ø[YU™\œÚ[ÛŠBˆÛÛœİ[›ÈH][Kš\Ô˜]Ô™\Ûİ\˜ÙBˆÈİ“š][R[›Ô˜]Ê˜[YJBˆˆZ\Ô›ÙXÚ[™È	‰ˆZ\ĞÛÛœİ[Z[™ÂˆÈİ“š][R[›Ó™Z]\Š˜[YJBˆˆZ\Ô›ÙXÚ[™ÂˆÈİ“š][R[›ĞÛÛœİ[Z[™ÓÛ›J˜[YJBˆˆİ“š][R[›ÑY˜][
+˜[YJBˆÛÛœİ›ÙXÚ[™ÈBˆ[™^Yœ›ÙXÚ[™Ë›[™İOOHˆÈÛ\ÜÏH™[\K\İ]H‰Ù\ØØ\R[
+İ“œ›ÙXÚ[™Ñ[\J_OÜ˜ˆˆ]ˆÛ\ÜÏH™ÜšY‰Ú[™^Yœ›ÙXÚ[™Ë›X\
 
-  if (text === '') return ''
-  return `<p class="item-verdict">${escapeHtml(text)}</p>`
-}
-
-/** ã‚¢ã‚¤ãƒ†ãƒ ãƒšãƒ¼ã‚¸ â†’ è§£èª¬è¨˜äº‹ã€‚é–¢ä¿‚ã®ã‚ã‚‹ã‚¢ã‚¤ãƒ†ãƒ ã ã‘ã«ãƒ–ãƒ­ãƒƒã‚¯ãŒä»˜ãï¼ˆJob Bï¼‰ã€‚ */
-const GUIDE_SOURCE: GuideSource = {
-  articles: handwrittenArticles.map((article) => ({
-    slug: article.slug,
-    relatedItemIds: article.relatedItemIds,
-  })),
-  loops: loopSamples.map((sample) => ({
-    slug: sample.id,
-    targetItemIds: sample.snapshot.t.map(([itemId]) => itemId),
-    iconItemId: sample.icon,
-  })),
-}
-
-function renderConsumingRecipe(ctx: Ctx, recipe: Recipe, consumedItem: Item): string {
-  const building = buildingsById.get(recipe.producedIn)
-  const browser = ctx.ui.recipeBrowser
-  const consumedRate = recipe.ingredients
-    .filter((ingredient) => ingredient.item === consumedItem.id)
-    .reduce((sum, ingredient) => sum + ratePerMin(ingredient.amount, recipe.durationSec), 0)
-  return `<li data-recipe-id="${escapeHtml(recipe.id)}">
-    <div class="use-summary">
-      <strong>${escapeHtml(recipe.name[ctx.locale])}</strong>
-      <span class="num">${escapeHtml(consumedItem.name[ctx.locale])} ${ctx.fmtRate(consumedRate)} ${escapeHtml(rateUnit(ctx, consumedItem.id))}</span>
-    </div>
-    <p class="version">${escapeHtml(ctx.L.consumingRecipeMeta(building?.name[ctx.locale] ?? recipe.producedIn, ctx.fmtRate(recipe.durationSec)))}</p>
-    <div class="flow-columns">
-      <section><h4>${escapeHtml(browser.ingredients)}</h4>${recipeRateList(ctx, recipe.ingredients, recipe.durationSec)}</section>
-      <section><h4>${escapeHtml(browser.products)}</h4>${recipeRateList(ctx, recipe.products, recipe.durationSec)}</section>
-    </div>
-  </li>`
-}
-
-export function renderItemPage(ctx: Ctx, item: Item): string {
-  const indexed = getRecipesForItem(item.id)
-  const name = item.name[ctx.locale]
-  const otherName = item.name[ctx.other]
-  const headline = ctx.L.itemPageTitle(name)
-  const title = pageTitle(ctx, headline)
-  const path = itemUrl(item.id, ctx.locale)
-  const breadcrumbId = `${path}#breadcrumb`
-  const category = itemCategory(ctx, item)
-  const sink =
-    isSinkableItem(item)
-      ? ctx.L.sinkPoints(ctx.fmtInteger(item.sinkPoints), amountUnit(ctx, item.id))
-      : ctx.L.sinkUnavailable
-  const hasProducing = indexed.producing.length > 0
-  const hasConsuming = indexed.consuming.length > 0
-  const description =
-    hasProducing && hasConsuming
-      ? ctx.L.itemDescriptionBoth(
-          name,
-          otherName,
-          indexed.producing.length,
-          indexed.consuming.length,
-          meta.gameVersion,
-        )
-      : hasProducing
-        ? ctx.L.itemDescriptionProducingOnly(name, otherName, indexed.producing.length)
-        : hasConsuming
-          ? ctx.L.itemDescriptionConsumingOnly(name, otherName, indexed.consuming.length)
-          : ctx.L.itemDescriptionNeither(name, otherName, meta.gameVersion)
-  const intro = item.isRawResource
-    ? ctx.L.itemIntroRaw(name)
-    : !hasProducing && !hasConsuming
-      ? ctx.L.itemIntroNeither(name)
-      : !hasProducing
-        ? ctx.L.itemIntroConsumingOnly(name)
-        : ctx.L.itemIntroDefault(name)
-  const producing =
-    indexed.producing.length === 0
-      ? `<p class="empty-state">${escapeHtml(ctx.L.producingEmpty)}</p>`
-      : `<div class="grid">${indexed.producing.map((recipe) => renderProducingRecipe(ctx, recipe, item)).join('')}</div>`
-  const consuming =
-    indexed.consuming.length === 0
-      ? `<p class="empty-state">${escapeHtml(ctx.L.consumingEmpty)}</p>`
-      : `<ul class="use-list">${indexed.consuming.map((recipe) => renderConsumingRecipe(ctx, recipe, item)).join('')}</ul>`
-  const ctaNotice = defaultTargetIsAutomatable(item)
-    ? ''
-    : `<p class="version">${escapeHtml(ctx.L.itemCtaNotice)}</p>`
-  const scopeSection =
-    hasProducing || hasConsuming
-      ? `<section class="card">
-          <h2>${escapeHtml(ctx.L.scopeHeading)}</h2>
-          <p>${escapeHtml(ctx.L.scopeBody)}</p>
-          <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
-        </section>`
-      : `<section class="card">
-          <h2>${escapeHtml(ctx.L.scopeEmptyHeading)}</h2>
-          <p>${escapeHtml(ctx.L.scopeEmptyBody(name))}</p>
-          <p>${escapeHtml(ctx.L.scopeEmptyFacts(otherName, category, sink))}</p>
-          <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
-        </section>`
-
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      breadcrumbSchema(
-        [
-          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
-          { name: ctx.ui.footer.items, path: itemsIndexPath(ctx.locale) },
-          { name, path },
-        ],
-        breadcrumbId,
-      ),
-      {
-        '@type': 'ItemPage',
-        '@id': `${SITE_URL}${path}#webpage`,
-        url: `${SITE_URL}${path}`,
-        name: title,
-        description,
-        inLanguage: ctx.locale,
-        breadcrumb: { '@id': `${SITE_URL}${breadcrumbId}` },
-        mainEntity: {
-          '@type': 'Thing',
-          '@id': `${SITE_URL}${path}#item`,
-          name,
-          alternateName: otherName,
-          identifier: item.id,
-          ...(iconIds.has(item.id) ? { image: `${SITE_URL}/icons/${item.id}.png` } : {}),
-        },
-      },
-    ],
-  }
-
-  const body = `${renderBreadcrumbs(
-    [
-      { label: ctx.L.home, href: landingPagePath(ctx.locale) },
-      { label: ctx.ui.footer.items, href: itemsIndexPath(ctx.locale) },
-      { label: name },
-    ],
-    ctx.locale,
-  )}
-  <header class="hero">
-    <div class="hero-row">
-      ${itemIcon(ctx, item)}
-      <div>
-        <p class="eyebrow">${escapeHtml(ctx.L.itemEyebrow)}</p>
-        <h1>${escapeHtml(name)}</h1>
-        <p class="lead">${escapeHtml(intro)}</p>
-        ${renderItemSummary(ctx, item)}
-        <div class="meta-row">
-          <span class="tag accent">${escapeHtml(category)}</span>
-          <span class="tag">${escapeHtml(ctx.L.sinkTag(sink))}</span>
+™XÚ\JHOˆ™[™\”›ÙXÚ[™Ô™XÚ\Jİ™XÚ\K][JJKš›Ú[Š	ÉÊ_OÙ]˜ˆÛÛœİÛÛœİ[Z[™ÈBˆ[™^Y˜ÛÛœİ[Z[™Ë›[™İOOHˆÈÛ\ÜÏH™[\K\İ]H‰Ù\ØØ\R[
+İ“˜ÛÛœİ[Z[™Ñ[\J_OÜ˜ˆˆ[Û\ÜÏH\ÙK[\üÓ[h‘éì¶»§q«^v>${escapeHtml(ctx.L.sinkTag(sink))}</span>
           <span class="tag">${escapeHtml(ctx.L.otherNameTag(otherName))}</span>
           <span class="tag">${escapeHtml(ctx.L.idTag(item.id))}</span>
         </div>
@@ -864,236 +212,29 @@ function renderItemIndex(ctx: Ctx): string {
         <ul class="link-list">
           ${group.items
             .map((item) => {
-              const otherName = ctx.L.itemsIndexShowsOtherName
-                ? ` <small>${escapeHtml(item.name[ctx.other])}</small>`
-                : ''
-              return `<li>${itemLink(ctx, item.id, { icon: true })}${otherName}</li>`
-            })
-            .join('\n')}
-        </ul>
-      </section>`,
-    )
-    .join('')
-  const breadcrumbId = `${path}#breadcrumb`
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      breadcrumbSchema(
-        [
-          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
-          { name: ctx.ui.footer.items, path },
-        ],
-        breadcrumbId,
-      ),
-      {
-        '@type': 'CollectionPage',
-        '@id': `${SITE_URL}${path}#webpage`,
-        url: `${SITE_URL}${path}`,
-        name: title,
-        description,
-        inLanguage: ctx.locale,
-        breadcrumb: { '@id': `${SITE_URL}${breadcrumbId}` },
-        mainEntity: {
-          '@type': 'ItemList',
-          numberOfItems: items.length,
-          itemListElement: ctx.sortedItems.map((item, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            name: item.name[ctx.locale],
-            url: `${SITE_URL}${itemUrl(item.id, ctx.locale)}`,
-          })),
-        },
-      },
-    ],
-  }
-  const body = `${renderBreadcrumbs(
-    [{ label: ctx.L.home, href: landingPagePath(ctx.locale) }, { label: ctx.ui.footer.items }],
-    ctx.locale,
-  )}
-    <header class="hero">
-      <p class="eyebrow">${escapeHtml(ctx.L.itemsIndexEyebrow(items.length))}</p>
-      <h1>${escapeHtml(ctx.L.itemsIndexTitle)}</h1>
-      <p class="lead">${escapeHtml(ctx.L.itemsIndexLead)}</p>
-    </header>
-    ${sections}`
-  return renderDocument(
-    {
-      locale: ctx.locale,
-      title,
-      description,
-      canonicalPath: path,
-      alternates: alternatesOf((locale) => itemsIndexPath(locale)),
-      structuredData,
-    },
-    body,
-  )
-}
+              const otherName = ctx.L.itemsIYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Õ¹‘•áM¡½İÍ=Ñ¡•É9…µ”(€€€€€€€€€€€€€€€€ü€€ñÍµ…±°ø‘í•Í…Á•!Ñµ°¡¥Ñ•´¹¹…µ•mÑà¹½Ñ¡•Ét¥ôğ½Íµ…±°ù€(€€€€€€€€€€€€€€€€è€œœ(€€€€€€€€€€€€€É•ÑÕÉ¸€ñ±¤ø‘í¥Ñ•µ1¥¹¬¡Ñà°¥Ñ•´¹¥°ì¥½¸èÑÉÕ”ô¥ô‘í½Ñ¡•É9…µ•ôğ½±¤ù€(€€€€€€€€€€€ô¤(€€€€€€€€€€€€¹©½¥¸ q¸œ¥ô(€€€€€€€€ğ½Õ°ø(€€€€€€ğ½Í•Ñ¥½¸ù€°(€€€€¤(€€€€¹©½¥¸ œœ¤(€½¹ÍĞ‰É•…‘ÉÕµ‰%€ô€‘íÁ…Ñ¡ô‰É•…‘ÉÕµ‰€(€½¹ÍĞÍÑÉÕÑÕÉ•‘…Ñ„€ôì(€€€€½¹Ñ•áĞœè€¡ÑÑÁÌè¼½Í¡•µ„¹½Éœœ°(€€€€É…Á œèl(€€€€€‰É•…‘ÉÕµ‰M¡•µ„ (€€€€€€€l(€€€€€€€€€ì¹…µ”èÑà¹0¹¡½µ”°Á…Ñ è±…¹‘¥¹A…•A…Ñ ¡Ñà¹±½…±”¤ô°(€€€€€€€€€ì¹…µ”èÑà¹Õ¤¹™½½Ñ•È¹¥Ñ•µÌ°Á…Ñ ô°(€€€€€€€t°(€€€€€€€‰É•…‘ÉÕµ‰%°(€€€€€€¤°(€€€€€ì(€€€€€€€€ÑåÁ”œè€½±±•Ñ¥½¹A…”œ°(€€€€€€€€¥œè€‘íM%Q}UI1ô‘íÁ…Ñ¡ôİ•‰Á…•€°(€€€€€€€ÕÉ°è€‘íM%Q}UI1ô‘íÁ…Ñ¡õ€°(€€€€€€€¹…µ”èÑ¥Ñ±”°(€€€€€€€‘•ÍÉ¥ÁÑ¥½¸°(€€€€€€€¥¹1…¹Õ…”èÑà¹±½…±”°(€€€€€€€‰É•…‘ÉÕµˆèì€¥œè€‘íM%Q}UI1ô‘í‰É•…‘ÉÕµ‰%‘õ€ô°(€€€€€€€µ…¥¹¹Ñ¥Ñäèì(€€€€€€€€€€ÑåÁ”œè€%Ñ•µ1¥ÍĞœ°(€€€€€€€€€¹Õµ‰•É=™%Ñ•µÌè¥Ñ•µÌ¹±•¹Ñ °(€€€€€€€€€¥Ñ•µ1¥ÍÑ±•µ•¹ĞèÑà¹Í½ÉÑ•‘%Ñ•µÌ¹µ…À ¡¥Ñ•´°¥¹‘•à¤€ôø€¡ì(€€€€€€€€€€€€ÑåÁ”œè€1¥ÍÑ%Ñ•´œ°(€€€€€€€€€€€Á½Í¥Ñ¥½¸è¥¹‘•à€¬€Ä°(€€€€€€€€€€€¹…µ”è¥Ñ•´¹¹…µ•mÑà¹±½…±•t°(€€€€€€€€€€€ÕÉ°è€‘íM%Q}UI1ô‘í¥Ñ•µUÉ°¡¥Ñ•´¹¥°Ñà¹±½…±”¥õ€°(€€€€€€€€€ô¤¤°(€€€€€€€ô°(€€€€€ô°(€€€t°(€ô(€½¹ÍĞ‰½‘ä€ô€‘íÉ•¹‘•É	É•…‘ÉÕµ‰Ì (€€€mì±…‰•°èÑà¹0¹¡½µ”°¡É•˜è±…¹‘¥¹A…•A…Ñ ¡Ñà¹±½…±”¤ô°ì±…‰•°èÑà¹Õ¤¹™½½Ñ•È¹¥Ñ•µÌõt°(€€€Ñà¹±½…±”°(€€¥ô(€€€€ñ¡•…‘•È±…ÍÌô‰¡•É¼ˆø(€€€€€€ñÀ±…ÍÌô‰•å•‰É½Üˆø‘í•Í…Á•!Ñµ°¡Ñà¹0¹¥Ñ•µÍ%¹‘•áå•‰É½Ü¡¥Ñ•µÌ¹±•¹Ñ ¤¥ôğ½Àø(€€€€€€ñ Äø‘í•Í…Á•!Ñµ°¡Ñà¹0¹¥Ñ•µÍ%¹‘•áQ¥Ñ±”¥ôğ½ Äø(€€€€€€ñÀ±…ÍÌô‰±•…ˆø‘í•Í…Á•!Ñµ°¡Ñà¹0¹¥Ñ•µÍ%¹‘•á1•…¥ôğ½Àø(€€€€ğ½¡•…‘•Èø(€€€€‘íÍ•Ñ¥½¹Íõ€(€É•ÑÕÉ¸É•¹‘•É½Õµ•¹Ğ (€€€ì(€€€€€±½…±”èÑà¹±½…±”°(€€€€€Ñ¥Ñ±”°(€€€€€‘•ÍÉ¥ÁÑ¥½¸°(€€€€€…¹½¹¥…±A…Ñ èÁ…Ñ °(€€€€€…±Ñ•É¹…Ñ•Ìè…±Ñ•É¹…Ñ•Í=˜ ¡±½…±—Í5¶‰Ëkºwµç^8®8¾kˆ8î8¾8(¾8 ¢¢ğ¦gVæ7F–öâvV'F–ÖVç6–öç2†'—FW3¢V–çC„'&’“¢²v–GFƒ¢çVÖ&W#²†V–v‡C¢çVÖ&W"Ò°¢6öç7B66–’Ò†öfg6WC¢çVÖ&W"ÂÆVæwFƒ¢çVÖ&W"“¢7G&–ærÓà¢7G&–æræg&öÔ6†$6öFR‚ââæ'—FW2ç7V&'&’†öfg6WBÂöfg6WB²ÆVæwF‚’¢–b†66–’ƒÂB’ÓÒu$”dbrÇÂ66–’ƒ‚ÂB’ÓÒutT%r’F‡&÷ræWrW'&÷"‚uvV%8~8ş8.8(®8î8¾8)2r¢6öç7Bf–WrÒæWrFFf–Wr†'—FW2æ'VffW"Â'—FW2æ'—FTöfg6WBÂ'—FW2æ'—FTÆVæwF‚¢6öç7B6‡Væ²Ò66–’ƒ"ÂB¢–b†6‡Væ²ÓÓÒue…‚r’°¢6öç7B&VC#BÒ†öfg6WC¢çVÖ&W"“¢çVÖ&W"Óà¢'—FW5¶öfg6WEÒÂ†'—FW5¶öfg6WB²ÒÃÂ‚’Â†'—FW5¶öfg6WB²%ÒÃÂb¢&WGW&â²v–GFƒ¢&VC#Bƒ#B’²Â†V–v‡C¢&VC#Bƒ#r’²Ğ¢Ğ¢–b†6‡Væ²ÓÓÒue„Âr’°¢6öç7B&—G2Òf–WrævWEV–çC3"ƒ#ÂG'VR¢&WGW&â²v–GFƒ¢†&—G2bƒ6ffb’²Â†V–v‡C¢‚†&—G2ããâB’bƒ6ffb’²Ğ¢Ğ¢–b†6‡Væ²ÓÓÒue‚r’°¢&WGW&â²v–GFƒ¢f–WrævWEV–çCbƒ#bÂG'VR’bƒ6ffbÂ†V–v‡C¢f–WrævWEV–çCbƒ#‚ÂG'VR’bƒ6ffbĞ¢Ğ¢F‡&÷ræWrW'&÷"†iÊ®Zûî[ùÎ8âvV%888:>8;>8*ó¢G¶6‡Væ·Ö§Ğ ¦6öç7BÆæF–æt–ÖvU6—¦T66†RÒæWrÖÇ7G&–ærÂ²v–GFƒ¢çVÖ&W#²†V–v‡C¢çVÖ&W"Óâ‚ ¢ò¢¢yK¾X8ş8îZéşZûûÈyIşh‰i˜.8¾89^8*8*N8:¾8¾8(ŠªŞ8(8.i»8ŞXi8~88yK¾X8ş8).[zî8~i»ş88ş88Ş8¾8®8(Î8(¾ûÈ8"¢ğ¦gVæ7F–öâÆæF–æt–ÖvU6—¦R†Æö6ÆS¢7FF–4Æö6ÆRÂæÖS¢ÆæF–æt–ÖvTæÖR“¢²v–GFƒ¢çVÖ&W#²†V–v‡C¢çVÖ&W"Ò°¢6öç7B¶W’ÒG¶Æö6ÆWÒÒG¶æÖWÖ ¢6öç7B66†VBÒÆæF–æt–ÖvU6—¦T66†RævWB†¶W’¢–b†66†VBÓÒVæFVf–æVB’&WGW&â66†V@¢6öç7Bf–ÆRÒ&W6öÇfR„ÄäD”äuô”ÔtUôD•$T5Dõ%’ÂG¶¶W—ÒçvV'¢6öç7B6—¦RÒvV'F–ÖVç6–öç2‡&VDf–ÆU7–æ2†f–ÆR’¢ÆæF–æt–ÖvU6—¦T66†Rç6WB†¶W’Â6—¦R¢&WGW&â6—¦P§Ğ ¦gVæ7F–öâÆæF–æt–ÖvR€¢7Gƒ¢7G‚À¢æÖS¢ÆæF–æt–ÖvTæÖRÀ¢ÇC¢7G&–ærÀ¢ÆöF–æs¢vVvW"rÂvÆ§’rÀ¢“¢7G&–ær°¢6öç7B²v–GF‚Â†V–v‡BÒÒÆæF–æt–ÖvU6—¦R†7G‚æÆö6ÆRÂæÕš®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍYJBˆÛÛœİ]œÈHÂˆÜ˜ÏH‰Ù\ØØ\R[
+[™[™Ò[XYÙT]
+İ›ØØ[K˜[YJJ_H˜ˆÚYH‰İÚYH˜ˆZYÚH‰ÚZYÚH˜ˆ[H‰Ù\ØØ\R[
+™\ÛÛ™SÙ™šXÚX[˜[Y\Ê[İ›ØØ[JJ_H˜ˆØY[™ÏH‰ÛØY[™ßH˜ˆ	ÙXÛÙ[™ÏH˜\Ş[˜È‰ËˆBˆ™]\›ˆšYİ\™HÛ\ÜÏH›[™[™Ë\Úİ[YÈ	Ø]œËš›Ú[Š	È	Ê_HÏÙšYİ\™O˜ŸB‚‹ÊŠ‚ˆ
+ˆ8àêxàìøàáøà¨øàìøà¬8àk¸à#9bcyfç¸àk¹í¦¸àcxà¤ºe¢øàcøà#xà ¸àá8àï8àêù§+9/døàcØØ[İÜ˜YÙH8àjúe¢øàa8àgú*&:c,¸à¤¹ïk¸àcøàk¸àiÂˆ
+ˆ;ï"Ü˜ËĞ\Ş;ï"xà z*&:c,¸àc8à`¸à¢øàj8àcxàh8àdHY[ˆ8à¤¹i%¸àfxà ¸àêxàìøàáøà¨øàìøà¬8àjøà`¸à¢È”È8àkøàdøà£8àjˆ
+ˆ9¥éùaly§"UT“8àk¹¥dy®";ï"YØXŞTÚ\™T™Y\™XİØÜš\;ï"xàjĞH8àh8àdxà ‚ˆ
+‹Â™^ÜÛÛœİÓÓ•S•QWÓS’×ÒQH	ØÛÛ[YK[[šÉÂ‚™^Ü[˜İ[ÛˆÛÛ[YS[šÔØÜš\
 
-// ---------------------------------------------------------------------------
-// ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ï¼ˆ/ ã¨ /en/ï¼‰
-// ---------------------------------------------------------------------------
-
-/**
- * ãƒˆãƒƒãƒ—ï¼ˆ/ï¼‰ã¨è‹±èªãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ï¼ˆ/en/ï¼‰ã€‚ã©ã¡ã‚‰ã‚‚é™çš„ã§ã€è¨ˆç”»ãƒ„ãƒ¼ãƒ«æœ¬ä½“ï¼ˆ/app/ï¼‰ã¸é€ã‚Šå‡ºã™ã®ãŒä»•äº‹ã€‚
- *
- * ä»¥å‰ã¯ãƒˆãƒƒãƒ—ã« SPA ã‚’ç½®ãã€æ—¥æœ¬èªã®é™çš„èª¬æ˜ã‚’ #root ã®ä¸‹ã«è¶³ã—ã¦ã„ãŸãŒã€ã‚¯ãƒ­ãƒ¼ãƒ©ã®
- * ç¬¬ä¸€å°è±¡ãŒã€Œç©ºã®ãƒ„ãƒ¼ãƒ«ã€ã«ãªã‚‹ãŸã‚ã€ãƒ„ãƒ¼ãƒ«ã¯ /app/ ã¸ç§»ã—ã€ãƒˆãƒƒãƒ—ã¯èª¬æ˜æœ¬æ–‡ãŒä¸»ã®ãƒšãƒ¼ã‚¸ã«ã—ãŸã€‚
- * æ—¥è‹±ã¯åŒã˜ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆãƒ»åŒã˜ç¯€æ§‹æˆã§ã€æ–‡é¢ã ã‘ JA_LANDING / EN_LANDING ã‹ã‚‰å–ã‚‹ã€‚
- *
- * hreflang ã¯ã“ã®2ãƒšãƒ¼ã‚¸ã§ç›¸äº’ã«æŒ‡ã—åˆã†ï¼ˆja â†’ /ã€en â†’ /en/ã€x-default â†’ /ï¼‰ã€‚
- * ä»–10è¨€èªã®ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã¯ç„¡ã„ã®ã§å®£è¨€ã—ãªã„ï¼ˆ1URLã®ãƒ„ãƒ¼ãƒ«æœ¬ä½“ã«ã¯ hreflang ã‚’ä»˜ã‘ãªã„ï¼‰ã€‚
- */
-export const JA_LANDING_PATH = landingPagePath('ja')
-export const EN_LANDING_PATH = landingPagePath('en')
-
-/**
- * æ—§å…±æœ‰URLï¼ˆ/#plan=â€¦ï¼‰ã®æ•‘æ¸ˆã€‚ãƒ„ãƒ¼ãƒ«ãŒ / ã‹ã‚‰ /app/ ã¸ç§»ã£ãŸã®ã§ã€
- * æ—¢ã«é…ã‚‰ã‚ŒãŸãƒªãƒ³ã‚¯ã§é–‹ã‹ã‚ŒãŸã¨ãã¯ãƒãƒƒã‚·ãƒ¥ã”ã¨ /app/ ã¸é€ã‚‹ã€‚
- * head ã®å…ˆé ­ã«ç½®ãã€ä»–ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚„æç”»ã‚ˆã‚Šå…ˆã«èµ°ã‚‰ã›ã‚‹ã€‚
- * ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿åã¯ src/plan/serialize.ts ã® PLAN_HASH_PARAMï¼ˆã‚¢ãƒ—ãƒªå´ã®èª­ã¿å–ã‚Šã¨åŒã˜éµï¼‰ã€‚
- */
-export function legacyShareRedirectScript(): string {
-  const key = PLAN_HASH_PARAM
-  if (!/^[a-z]+$/.test(key)) throw new Error(`PLAN_HASH_PARAM ã¯æ­£è¦è¡¨ç¾ã«ç›´æ¥åŸ‹ã‚è¾¼ã‚ã‚‹å½¢ã«ã™ã‚‹: ${key}`)
-  return `<script>if(/(?:^#|&)${key}=/.test(location.hash))location.replace('${appPagePath()}' + location.hash)</script>`
-}
-
-/** ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã®ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ï¼ˆpublic/landing/ï¼‰ã€‚ãƒ­ã‚±ãƒ¼ãƒ«åˆ¥ãƒ»åå‰åˆ¥ã«1æšãšã¤ã€‚ */
-const LANDING_IMAGE_DIRECTORY = resolve(fileURLToPath(import.meta.url), '../../public/landing')
-
-function landingImagePath(locale: StaticLocale, name: LandingImageName): string {
-  return `/landing/${locale}-${name}.webp`
-}
-
-/**
- * WebP ã®å¯¸æ³•ã‚’ãƒ˜ãƒƒãƒ€ãƒ¼ã‹ã‚‰èª­ã‚€ï¼ˆVP8 / VP8L / VP8X ã®3å½¢å¼ï¼‰ã€‚
- * <img> ã« width/height ã‚’å‡ºã—ã¦ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚·ãƒ•ãƒˆã‚’é˜²ããŸã‚ã€‚ä¾å­˜ã‚’å¢—ã‚„ã•ãšã«æ¸ˆã¾ã›ã‚‹ã€‚
- */
-function webpDimensions(bytes: Uint8Array): { width: number; height: number } {
-  const ascii = (offset: number, length: number): string =>
-    String.fromCharCode(...bytes.subarray(offset, offset + length))
-  if (ascii(0, 4) !== 'RIFF' || ascii(8, 4) !== 'WEBP') throw new Error('WebP ã§ã¯ã‚ã‚Šã¾ã›ã‚“')
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-  const chunk = ascii(12, 4)
-  if (chunk === 'VP8X') {
-    const read24 = (offset: number): number =>
-      bytes[offset]! | (bytes[offset + 1]! << 8) | (bytes[offset + 2]! << 16)
-    return { width: read24(24) + 1, height: read24(27) + 1 }
-  }
-  if (chunk === 'VP8L') {
-    const bits = view.getUint32(21, true)
-    return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 }
-  }
-  if (chunk === 'VP8 ') {
-    return { width: view.getUint16(26, true) & 0x3fff, height: view.getUint16(28, true) & 0x3fff }
-  }
-  throw new Error(`æœªå¯¾å¿œã® WebP ãƒãƒ£ãƒ³ã‚¯: ${chunk}`)
-}
-
-const landingImageSizeCache = new Map<string, { width: number; height: number }>()
-
-/** ç”»åƒã®å®Ÿå¯¸ï¼ˆç”Ÿæˆæ™‚ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰èª­ã‚€ã€‚æ›¸ãå†™ã—ã ã¨ç”»åƒã‚’å·®ã—æ›¿ãˆãŸã¨ãã«ãšã‚Œã‚‹ï¼‰ã€‚ */
-function landingImageSize(locale: StaticLocale, name: LandingImageName): { width: number; height: number } {
-  const key = `${locale}-${name}`
-  const cached = landingImageSizeCache.get(key)
-  if (cached !== undefined) return cached
-  const file = resolve(LANDING_IMAGE_DIRECTORY, `${key}.webp`)
-  const size = webpDimensions(readFileSync(file))
-  landingImageSizeCache.set(key, size)
-  return size
-}
-
-function landingImage(
-  ctx: Ctx,
-  name: LandingImageName,
-  alt: string,
-  loading: 'eager' | 'lazy',
-): string {
-  const { width, height } = landingImageSize(ctx.locale, name)
-  const attrs = [
-    `src="${escapeHtml(landingImagePath(ctx.locale, name))}"`,
-    `width="${width}"`,
-    `height="${height}"`,
-    `alt="${escapeHtml(resolveOfficialNames(alt, ctx.locale))}"`,
-    `loading="${loading}"`,
-    'decoding="async"',
-  ]
-  return `<figure class="landing-shot"><img ${attrs.join(' ')} /></figure>`
-}
-
-/**
- * ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã®ã€Œå‰å›ã®ç¶šãã‚’é–‹ãã€ã€‚ãƒ„ãƒ¼ãƒ«æœ¬ä½“ãŒ localStorage ã«é–‹ã„ãŸè¨˜éŒ²ã‚’ç½®ãã®ã§
- * ï¼ˆsrc/App.tsxï¼‰ã€è¨˜éŒ²ãŒã‚ã‚‹ã¨ãã ã‘ hidden ã‚’å¤–ã™ã€‚ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã«ã‚ã‚‹ JS ã¯ã“ã‚Œã¨
- * æ—§å…±æœ‰URLã®æ•‘æ¸ˆï¼ˆlegacyShareRedirectScriptï¼‰ã¨ GA ã ã‘ã€‚
- */
-export const CONTINUE_LINK_ID = 'continue-link'
-
-export function continueLinkScript(): string {
-  return `<script>try{if(localStorage.getItem('${LAST_OPENED_STORAGE_KEY}'))document.addEventListener('DOMContentLoaded',function(){var a=document.getElementById('${CONTINUE_LINK_ID}');if(a)a.hidden=false})}catch(e){}</script>`
-}
-
-/** ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã®æ–‡ä¸­ã® `{{Desc_â€¦}}` ã‚’ã‚²ãƒ¼ãƒ å†…å…¬å¼åã«ç½®ãæ›ãˆãŸã†ãˆã§ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã™ã‚‹ã€‚ */
-function landingText(ctx: Ctx, text: string): string {
-  return escapeHtml(resolveOfficialNames(text, ctx.locale))
-}
-
-/**
- * è¦‹å‡ºã—ã€‚æ–‡ç¯€ã®å¢ƒã®ãƒãƒ¼ã‚«ãƒ¼ï¼ˆHEADING_BREAK_MARKERï¼‰ã‚’ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—å¾Œã« <wbr> ã¸å¤‰ãˆã‚‹ã€‚
- * CSS å´ï¼ˆ.landing-heading: word-break: keep-allï¼‰ã§ã€ãƒ–ãƒ©ã‚¦ã‚¶ãŒæ—¥æœ¬èªã‚’æ–‡å­—å˜ä½ã§
- * æŠ˜ã‚‰ãªã„ã‚ˆã†ã«ã—ã¦ã‚ã‚‹ã®ã§ã€æŠ˜ã‚Šè¿”ã—ã¯ã“ã“ã§ç½®ã„ãŸä½ç½®ã¨ç´„ç‰©ã®å¾Œã ã‘ã«ãªã‚‹ã€‚
- */
-function landingHeading(ctx: Ctx, text: string): string {
-  return landingText(ctx, text).replaceAll(HEADING_BREAK_MARKER, '<wbr>')
-}
-
-function renderLandingFeature(ctx: Ctx, feature: LandingFeature, index: number): string {
-  // æœ¬æ–‡ã¨ç”»åƒã‚’å·¦å³ã«ä¸¦ã¹ã€1è¡ŒãŠãã«å·¦å³ã‚’å…¥ã‚Œæ›¿ãˆã‚‹ï¼ˆç”»åƒã¯ã©ã‚Œã‚‚ä¸»ãƒ‘ãƒãƒ«ã®åˆ‡ã‚Šå‡ºã—ã§ç¸¦æ¨ªæ¯”ãŒè¿‘ã„ï¼‰
-  const classes = index % 2 === 1 ? 'feature-row feature-row--flip' : 'feature-row'
-  return `<div class="${classes}">
-      <div class="feature-row__text">
-        <h3 class="landing-heading">${landingHeading(ctx, feature.heading)}</h3>
-        ${feature.paragraphs.map((paragraph) => `<p>${landingText(ctx, paragraph)}</p>`).join('')}
-      </div>
-      ${landingImage(ctx, feature.image, feature.imageAlt, 'lazy')}
-    </div>`
-}
-
-/**
- * ãƒ«ãƒ¼ãƒ—ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã®ã‚«ãƒ¼ãƒ‰ã€‚ãƒªãƒ³ã‚¯ã¯ãƒ«ãƒ¼ãƒ—è¨˜äº‹ã®ã€Œãƒ„ãƒ¼ãƒ«ã§é–‹ãã€ã¨åŒã˜ä½œã‚Š
- * ï¼ˆbuildShareUrl(appPagePath(), snapshot)ï¼‰ã§ã€é–‹ãã¨ãã®æ¡ä»¶ãŒèª­ã¿è¾¼ã¾ã‚ŒãŸçŠ¶æ…‹ã«ãªã‚‹ã€‚
- * è¦‹å‡ºã—ã¨èª¬æ˜ã¯ samples.tsï¼ˆjaï¼‰ï¼content/loop-guides/en.tsï¼ˆenï¼‰ã‹ã‚‰å–ã‚Šã€ã“ã“ã§ã¯æ›¸ã‹ãªã„ã€‚
- */
-function renderLandingTemplates(ctx: Ctx, copy: LandingCopy): string {
-  return LOOP_ARTICLE_GROUPS.map((group) => {
-    const cards = loopSamples
-      .filter((sample) => sample.category === group.category)
-      .map((sample) => {
-        const content = loopContent(ctx, sample)
-        const href = buildShareUrl(appPagePath(), sample.snapshot)
-        return `<li><a class="template-card" href="${escapeHtml(href)}">
-          <strong class="landing-heading">${landingText(ctx, content.title)}</strong>
-          <span>${landingText(ctx, content.description)}</span>
-          <small>${escapeHtml(copy.templatesOpenLabel)}</small>
-        </a></li>`
-      })
-      .join('')
-    return `<h3 class="landing-heading">${escapeHtml(group.heading(ctx.L))}</h3>
-    <ul class="template-grid">${cards}</ul>`
-  }).join('')
-}
-
-function renderLandingGuides(ctx: Ctx, copy: LandingCopy): string {
-  const cards = LANDING_GUIDE_SLUGS.map(
-    (slug) =>
-      `<li><a class="guide-card" href="${escapeHtml(articlePagePath(slug, ctx.locale))}"><strong class="landing-heading">${escapeHtml(articleHeadline(ctx, slug))}</strong></a></li>`,
-  ).join('')
-  return `<ul class="guide-grid">${cards}</ul>
-    <p class="section-more"><a href="${escapeHtml(articlesIndexPath(ctx.locale))}">${escapeHtml(copy.guidesAllLabel)}</a></p>`
-}
-
-/**
- * ç¯€ã®é †ç•ªï¼ˆæ—¥è‹±ã§åŒã˜ï¼‰: ãƒ’ãƒ¼ãƒ­ãƒ¼ â†’ ä»–ã®ãƒ„ãƒ¼ãƒ«ã«ç„¡ã„3ã¤ã®ã“ã¨ â†’ 3ã‚¹ãƒ†ãƒƒãƒ— â†’
- * ãƒ«ãƒ¼ãƒ—ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆ â†’ è§£èª¬è¨˜äº‹ â†’ FAQ â†’ ãƒ•ãƒƒã‚¿ãƒ¼ï¼ˆtemplates.tsï¼‰ã€‚
+Nˆİš[™ÈÂˆ™]\›ˆØÜš\^ÚYŠØØ[İÜ˜YÙK™Ù]][J	ÉÓTÕÓÔS‘QÔÕÔQÑWÒÑV_IÊJYØİ[Y[˜Y]™[\İ[™\Š	ÑÓPÛÛ[ØYY	Ë[˜İ[ÛŠ
+^İ˜\ˆOYØİ[Y[™Ù][[Y[RY
+	ÉĞÓÓ•S•QWÓS’×ÒQIÊNÚYŠJXKšY[Y˜[Ù_J_XØ]Ú
+J^ßOÜØÜš\˜ŸB‚‹ÊŠˆ8àêxàìøàáøà¨øàìøà¬8àk¹¥¡ù.+xàkˆŞÑ\Ø×ø )Ÿ_X8à¤¸à¬¸àï8àè9a¡yak9o#ùd#xàjùïk¸àcy£æøàb8àgøàa¸àb8àiøàª8à®xà¬xàï8àåøàfxà¢øà ˆ
+‹Â™[˜İ[Ûˆ[™[™Õ^
+İˆİ^ˆİš[™ÊNˆİš[™ÈÂˆ™]\›ˆ\ØØ\R[
+™\ÛÛ™SÙ™šXÚX[˜[Y\Ê^İ›ØØ[JJBŸB‚‹ÊŠ‚ˆ
+ˆ:)¢ùaî¸àeøà ¹¥¡ùëà8àk¹h øàk¸àç¸àï8àªøàï;ï"PQS‘×Ğ”‘PR×ÓPT’ÑT»ï"xà¤¸àª8à®xà¬xàï8àåùo£8àjÈØœˆ8àn9i"xàb8à¢øà ‚ˆ
+ˆÔÔÈ9`m;ï"›[™[™ËZXY[™ÎˆÛÜ™Xœ™XZÎˆÙY\X[;ï"xàiøà xàå¸àêxà©¸à­¸àc9¥éy§+:*§¸à¤¹¥¡ùkeùcf9/cxàiÂˆ
+ˆ9¢¦8à¢xàj¸àa8à¢8àa¸àjøàeøài¸à`¸à¢øàk¸àiøà y¢¦8à¢º/å8àeøàkøàdøàdøàiùïk¸àa8àgù/cyïk¸àj9í!9âjxàk¹o£8àh8àdxàjøàj¸à¢øà ‚ˆ
+‹Â™[˜İ[Ûˆ[™[™ÒXY[™Êİˆİ^ˆİš[™ÊNˆİš[™ÈÂˆ™]\›ˆ[™[™Õ^
+İ^
+Kœ™\XÙP[
+PQS‘×Ğ”‘PR×ÓPT’ÑT‹	ÏØœ‰ÊBŸB‚™[˜İ[Ûˆ™[™\“[™[™Ñ™X]\™Jİˆİ™X]\™Nˆ[™[™Ñ™X]\™K[™^ˆ[X™\ŠNˆİš[™ÈÂˆËÈ<Ó[h‘éì¶»§q«^tãƒ¼ãƒˆ â†’ è§£èª¬è¨˜äº‹ â†’ FAQ â†’ ãƒ•ãƒƒã‚¿ãƒ¼ï¼ˆtemplates.tsï¼‰ã€‚
  *
  * å‹•ãã¯ã»ã¼å…¥ã‚Œãªã„ï¼ˆæ„å›³ã—ãŸåˆ¤æ–­ï¼‰ã€‚é™çš„ãªèª¬æ˜ãƒšãƒ¼ã‚¸ã«è¦ã‚‹æ¼”å‡ºã¯ CTA ã¨ã‚«ãƒ¼ãƒ‰ã®
  * hover ã ã‘ã§ã€ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«é€£å‹•ã‚„ãƒ«ãƒ¼ãƒ—ã™ã‚‹ã‚¢ãƒ‹ãƒ¡ã¯ç½®ã‹ãªã„
@@ -1134,254 +275,49 @@ function renderLandingPage(ctx: Ctx, copy: LandingCopy): string {
   const body = `<header class="hero landing-hero">
     <div class="landing-hero__text">
       <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
-      <h1 class="landing-heading">${landingHeading(ctx, copy.heading)}</h1>
-      <p class="lead">${landingText(ctx, copy.lead)}</p>
-      <p class="cta-row">
-        <a class="cta" href="${escapeHtml(appPagePath())}">${escapeHtml(copy.ctaLabel)}</a>
-        <a class="continue-link" id="${CONTINUE_LINK_ID}" href="${escapeHtml(appPagePath())}" hidden>${escapeHtml(copy.continueLabel)}</a>
-      </p>
-      <p class="version">${escapeHtml(copy.ctaNote)}</p>
-    </div>
-    ${landingImage(ctx, 'flowchart', copy.heroImageAlt, 'eager')}
-  </header>
-  <section class="landing-section" aria-labelledby="features-heading">
-    <h2 id="features-heading" class="landing-heading">${landingHeading(ctx, copy.featuresHeading)}</h2>
-    ${copy.features.map((feature, index) => renderLandingFeature(ctx, feature, index)).join('')}
-  </section>
-  <section class="landing-section" aria-labelledby="steps-heading">
-    <h2 id="steps-heading" class="landing-heading">${landingHeading(ctx, copy.stepsHeading)}</h2>
-    <ol class="steps">${copy.steps
-      .map(
-        (step, index) =>
-          `<li><span class="step-number" aria-hidden="true">${index + 1}</span><h3 class="landing-heading">${landingHeading(ctx, step.heading)}</h3><p>${landingText(ctx, step.body)}</p></li>`,
-      )
-      .join('')}</ol>
-  </section>
-  <section class="landing-section" aria-labelledby="templates-heading">
-    <h2 id="templates-heading" class="landing-heading">${landingHeading(ctx, copy.templatesHeading)}</h2>
-    <p class="section-intro">${landingText(ctx, copy.templatesIntro)}</p>
-    ${renderLandingTemplates(ctx, copy)}
-  </section>
-  <section class="landing-section" aria-labelledby="guides-heading">
-    <h2 id="guides-heading" class="landing-heading">${landingHeading(ctx, copy.guidesHeading)}</h2>
-    <p class="section-intro">${landingText(ctx, copy.guidesIntro)}</p>
-    ${renderLandingGuides(ctx, copy)}
-  </section>
-  <section class="landing-section landing-faq" aria-labelledby="faq-heading">
-    ${renderFaqHtml(locale)}
-  </section>
-  <p class="version landing-meta">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}${otherLanding}</p>`
+      <h1 class="landing-heading">${landingHeading(ctx, copy.hYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Õ•…‘¥¹œ¥ôğ½ Äø(€€€€€€ñÀ±…ÍÌô‰±•…ˆø‘í±…¹‘¥¹Q•áĞ¡Ñà°½Áä¹±•…¥ôğ½Àø(€€€€€€ñÀ±…ÍÌô‰Ñ„µÉ½Üˆø(€€€€€€€€ñ„±…ÍÌô‰Ñ„ˆ¡É•˜ôˆ‘í•Í…Á•!Ñµ°¡…ÁÁA…•A…Ñ  ¤¥ôˆø‘í•Í…Á•!Ñµ°¡½Áä¹Ñ…1…‰•°¥ôğ½„ø(€€€€€€€€ñ„±…ÍÌô‰½¹Ñ¥¹Õ”µ±¥¹¬ˆ¥ôˆ‘í=9Q%9U}1%9-}%ôˆ¡É•˜ôˆ‘í•Í…Á•!Ñµ°¡…ÁÁA…•A…Ñ  ¤¥ôˆ¡¥‘‘•¸ø‘í•Í…Á•!Ñµ°¡½Áä¹½¹Ñ¥¹Õ•1…‰•°¥ôğ½„ø(€€€€€€ğ½Àø(€€€€€€ñÀ±…ÍÌô‰Ù•ÉÍ¥½¸ˆø‘í•Í…Á•!Ñµ°¡½Áä¹Ñ…9½Ñ”¥ôğ½Àø(€€€€ğ½‘¥Øø(€€€€‘í±…¹‘¥¹%µ…”¡Ñà°€™±½İ¡…ÉĞœ°½Áä¹¡•É½%µ…•±Ğ°€•…•Èœ¥ô(€€ğ½¡•…‘•Èø(€€ñÍ•Ñ¥½¸±…ÍÌô‰±…¹‘¥¹œµÍ•Ñ¥½¸ˆ…É¥„µ±…‰•±±•‘‰äô‰™•…ÑÕÉ•Ìµ¡•…‘¥¹œˆø(€€€€ñ È¥ô‰™•…ÑÕÉ•Ìµ¡•…‘¥¹œˆ±…ÍÌô‰±…¹‘¥¹œµ¡•…‘¥¹œˆø‘í±…¹‘¥¹!•…‘¥¹œ¡Ñà°½Áä¹™•…ÑÕÉ•Í!•…‘¥¹œ¥ôğ½ Èø(€€€€‘í½Áä¹™•…ÑÕÉ•Ì¹µ…À ¡™•…ÑÕÉ”°¥¹‘•à¤€ôøÉ•¹‘•É1…¹‘¥¹•…ÑÕÉ”¡Ñà°™•…ÑÕÉ”°¥¹‘•à¤¤¹©½¥¸ œœ¥ô(€€ğ½Í•Ñ¥½¸ø(€€ñÍ•Ñ¥½¸±…ÍÌô‰±…¹‘¥¹œµÍ•Ñ¥½¸ˆ…É¥„µ±…‰•±±•‘‰äô‰ÍÑ•ÁÌµ¡•…‘¥¹œˆø(€€€€ñ È¥ô‰ÍÑ•ÁÌµ¡•…‘¥¹œˆ±…ÍÌô‰±…¹‘¥¹œµ¡•…‘¥¹œˆø‘í±…¹‘¥¹!•…‘¥¹œ¡Ñà°½Áä¹ÍÑ•ÁÍ!•…‘¥¹œ¥ôğ½ Èø(€€€€ñ½°±…ÍÌô‰ÍÑ•ÁÌˆø‘í½Áä¹ÍÑ•ÁÌ(€€€€€€¹µ…À (€€€€€€€€¡ÍÑ•À°¥¹‘•à¤€ôø(€€€€€€€€€€ñ±¤øñÍÁ…¸±…ÍÌô‰ÍÑ•Àµ¹Õµ‰•Èˆ…É¥„µ¡¥‘‘•¸ô‰ÑÉÕ”ˆø‘í¥¹‘•à€¬€Åôğ½ÍÁ…¸øñ Ì±…ÍÌô‰±…¹‘¥¹œµ¡•…‘¥¹œˆø‘í±…¹‘¥¹!•…‘¥¹œ¡Ñà°ÍÑ•À¹¡•…‘¥¹œ¥ôğ½ ÌøñÀø‘í±…¹‘¥¹Q•áĞ¡Ñà°ÍÑ•À¹‰½‘ä¥ôğ½Àøğ½±¤ù€°(€€€€€€¤(€€€€€€¹©½¥¸ œœ¥ôğ½½°ø(€€ğ½Í•Ñ¥½¸ø(€€ñÍ•Ñ¥½¸±…ÍÌô‰±…¹‘¥¹œµÍ•Ñ¥½¸ˆ…É¥„µ±…‰•±±•‘‰äô‰Ñ•µÁ±…Ñ•Ìµ¡•…‘¥¹œˆø(€€€€ñ È¥ô‰Ñ•µÁ±…Ñ•Ìµ¡•…‘¥¹œˆ±…ÍÌô‰±…¹‘¥¹œµ¡•…‘¥¹œˆø‘í±…¹‘¥¹!•…‘¥¹œ¡Ñà°½Áä¹Ñ•µÁ±…Ñ•Í!•…‘¥¹œ¥ôğ½ Èø(€€€€ñÀ±…ÍÌô‰Í•Ñ¥½¸µ¥¹ÑÉ¼ˆø‘í±…¹‘¥¹Q•áĞ¡Ñà°½Áä¹Ñ•µÁ±…Ñ•Í%¹ÑÉ¼¥ôğ½Àø(€€€€‘íÉ•¹‘•É1…¹‘¥¹Q•µÁ±…Ñ•Ì¡Ñà°½Áä¥ô(€€ğ½Í•Ñ¥½¸ø(€€ñÍ•Ñ¥½¸±…ÍÌô‰±…¹‘¥¹œµÍ•Ñ¥½¸ˆ…É¥„µ±…‰•±±•‘‰äô‰Õ¥‘•Ìµ¡•…‘¥¹œˆø(€€€€ñ È¥ô‰Õ¥‘•Ìµ¡•…‘¥¹œˆ±…ÍÌô‰±…¹‘¥¹œµ¡•…‘¥¹œˆø‘í±…¹‘¥¹!•…‘¥¹œ¡Ñà°½Áä¹Õ¥‘•Í!•…‘¥¹œ¥ôğ½ Èø(€€€€ñÀ±…ÍÌô‰Í•Ñ¥½¸µ¥¹ÑÉ¼ˆø‘í±…¹‘¥¹Q•áĞ¡Ñà°½Áä¹Õ¥‘•Í%¹ÑÉ¼¥ôğ½Àø(€€€€‘íÉ•¹“Í5¶‰Ëkºwµçvöç7BFW67&—F–öâÒ7G‚äÂæ&÷WDFW67&—F–öà¢6öç7B'&VF7'VÖ$–BÒG·F‡Ò6'&VF7'VÖ& ¢6öç7B7G'V7GW&VDFFÒ°¢t6öçFW‡Bs¢v‡GG3¢ò÷66†VÖæ÷&rrÀ¢tw&‚s¢°¢'&VF7'VÖ%66†VÖ€¢°¢²æÖS¢7G‚äÂæ†öÖRÂFƒ¢ÆæF–æuvUF‚†7G‚æÆö6ÆR’ÒÀ¢²æÖS¢7G‚äÂæ&÷WEF—FÆRÂF‚ÒÀ¢ÒÀ¢'&VF7'VÖ$–BÀ¢’À¢°¢tG—Rs¢t&÷WEvRrÀ¢t–Bs¢Gµ4•DUõU$ÇÒG·F‡Ò7vV'vVÀ¢W&Ã¢Gµ4•DUõU$ÇÒG·F‡ÖÀ¢æÖS¢F—FÆRÀ¢FW67&—F–öâÀ¢–äÆæwVvS¢7G‚æÆö6ÆRÀ¢'&VF7'VÖ#¢²t–Bs¢Gµ4•DUõU$ÇÒG¶'&VF7'VÖ$–GÖÒÀ¢Ö–äVçF—G“¢°¢tG—Rs¢uvV$Æ–6F–öârÀ¢t–Bs¢Gµ4•DUõU$ÇÒò7vV&À¢æÖS¢7G‚ç6—FRÀ¢W&Ã¢Gµ4•DUõU$ÇÒG¶vUF‚‚—ÖÀ¢Æ–6F–öä6FVv÷'“¢uWF–Æ—F–W4Æ–6F–öârÀ¢÷W&F–æu7—7FVÓ¢uvV"'&÷w6W"rÀ¢ÒÀ¢ÒÀ¢ÒÀ¢Ğ ¢6öç7B&öG’ÒG·&VæFW$'&VF7'VÖ'2€¢·²Æ&VÃ¢7G‚äÂæ†öÖRÂ‡&Vc¢ÆæF–æuvUF‚†7G‚æÆö6ÆR’ÒÂ²Æ&VÃ¢7G‚äÂæ&÷WEF—FÆRÕÒÀ¢7G‚æÆö6ÆRÀ¢—Ğ¢Æ†VFW"6Æ73Ò&†W&ò#à¢Ç6Æ73Ò&W–V'&÷r#âG¶W66T‡FÖÂ†7G‚äÂæ&÷WDW–V'&÷r—ÓÂ÷à¢ÆƒâG¶W66T‡FÖÂ†7G‚äÂæ&÷WEF—FÆR—ÓÂöƒà¢Ç6Æ73Ò&ÆVB#âG¶W66T‡FÖÂ†7G‚äÂæ&÷WDÆVB—ÓÂ÷à¢Âö†VFW#à¢Æ'F–6ÆR6Æ73Ò&'F–6ÆRÖ&öG’#à¢G¶&÷WE6V7F–öâ†7G‚äÂæ&÷WD÷fW'f–Wt†VF–ærÂ7G‚äÂæ&÷WD÷fW'f–Wu&w&‡2—Ğ¢Ç6V7F–öãà¢Æƒ#âG¶W66T‡FÖÂ†7G‚äÂæ&÷WDfVGW&W4†VF–ær—ÓÂöƒ#à¢ÇVÃâG¶7G‚äÂæ&÷WDfVGW&W2æÖ‚†fVGW&R’ÓâÆÆ“âG¶W66T‡FÖÂ†fVGW&R—ÓÂöÆ“æ’æ¦ö–â‚rr—ÓÂ÷VÃà¢Â÷6V7F–öãà¢G¶&÷WE6V7F–öâ†7G‚äÂæ&÷WDFF†VF–ærÂ7G‚äÂæ&÷WDFF&w&‡2—Ğ¢G¶&÷WE6V7F–öâ†7G‚äÂæ&÷WD÷W&F÷$†VF–ærÂ7G‚äÂæ&÷WD÷W&F÷%&w&‡2—Ğ¢Ç6V7F–öãà¢Æƒ#âG¶W66T‡FÖÂ†7G‚äÂæ&÷WD6öçF7D†VF–ær—ÓÂö…š®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍL‚ˆ	Øİ“˜X›İ]ÛÛXİ\˜YÜ˜\Ë›X\
 
-  return renderDocument(
-    {
-      locale,
-      title: copy.title,
-      description: copy.description,
-      canonicalPath: path,
-      alternates: { ja: JA_LANDING_PATH, en: EN_LANDING_PATH },
-      structuredData,
-      // FAQPage ã¯ @graph ã¨ã¯åˆ¥ãƒ–ãƒ­ãƒƒã‚¯ã§å‡ºã™ï¼ˆæœ¬æ–‡ã® Q&A ã¨åŒã˜å®šç¾©ã‹ã‚‰ä½œã‚‹ï¼‰ã€‚
-      extraStructuredData: [faqPageSchema(locale, `${SITE_URL}${path}`)],
-      headStart: `${legacyShareRedirectScript()}${continueLinkScript()}`,
-      headEnd: LANDING_HEAD_SCRIPTS,
-    },
-    body,
-  )
-}
+\˜YÜ˜\
+HOˆ‰Ù\ØØ\R[
+\˜YÜ˜\
+_OÜ˜
+Kš›Ú[Š	ÉÊ_BˆH™YH‰Ù\ØØ\R[
+ÓÓ•PÕÕT“
+_Hˆ™[H››ÛÜ[™\ˆ‰Ù\ØØ\R[
+İ“˜X›İ]ÛÛXİ[šÓX™[
+_OØOÜ‚ˆÜÙXİ[Û‚ˆ	ØX›İ]ÙXİ[ÛŠİ“˜X›İ]\ØÛZ[Y\’XY[™Ëİ“˜X›İ]\ØÛZ[Y\”\˜YÜ˜\Ê_BˆÙXİ[Û‚ˆ‰Ù\ØØ\R[
+İ“˜X›İ]YÒXY[™Ê_OÚ‚ˆ	Øİ“˜X›İ]YÔ\˜YÜ˜\Ë›X\
 
-/** ãƒ­ã‚±ãƒ¼ãƒ«ã‚’æŒ‡å®šã—ã¦ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã‚’1æšã ã‘æãï¼ˆãƒ†ã‚¹ãƒˆã‚„å˜ç™ºã®ç¢ºèªç”¨ã€‚æ–‡è„ˆã¯å†…éƒ¨ã§ä½œã‚‹ï¼‰ã€‚ */
-export function renderLandingPageHtml(locale: StaticLocale): string {
-  const ctx = createContext(locale)
-  return locale === 'ja' ? renderJaLandingPage(ctx) : renderEnLandingPage(ctx)
-}
+\˜YÜ˜\
+HOˆ‰Ù\ØØ\R[
+\˜YÜ˜\
+_OÜ˜
+Kš›Ú[Š	ÉÊ_BˆH™YH‰Ù\ØØ\R[
+š]˜XŞTYÙT]
+İ›ØØ[JJ_H‰Ù\ØØ\R[
+İ“˜X›İ]š]˜XŞS[šÓX™[
+_OØOÜ‚ˆÜÙXİ[Û‚ˆÙXİ[Û‚ˆ‰Ù\ØØ\R[
+İ“˜X›İ][šÜÒXY[™Ê_OÚ‚ˆ[Û\ÜÏH›[šË[\İ‚ˆOH™YH‰Ù\ØØ\R[
+\YÙT]
 
-/** æ—¥æœ¬èªã®ãƒˆãƒƒãƒ—ï¼ˆ/ï¼‰ã€‚ */
-export function renderJaLandingPage(ctx: Ctx): string {
-  if (ctx.locale !== 'ja') throw new Error('renderJaLandingPage ã¯ ja ã®æ–‡è„ˆã§å‘¼ã¶')
-  return renderLandingPage(ctx, JA_LANDING)
-}
-
-/** è‹±èªã®ãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ï¼ˆ/en/ï¼‰ã€‚ */
-export function renderEnLandingPage(ctx: Ctx): string {
-  if (ctx.locale !== 'en') throw new Error('renderEnLandingPage ã¯ en ã®æ–‡è„ˆã§å‘¼ã¶')
-  return renderLandingPage(ctx, EN_LANDING)
-}
-
-// ---------------------------------------------------------------------------
-// ã“ã®ã‚µã‚¤ãƒˆã«ã¤ã„ã¦
-// ---------------------------------------------------------------------------
-
-function aboutSection(heading: string, paragraphs: readonly string[]): string {
-  return `<section>
-    <h2>${escapeHtml(heading)}</h2>
-    ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-  </section>`
-}
-
-/**
- * é‹å–¶è€…ãƒ»å•ã„åˆã‚ã›å…ˆãƒ»å…è²¬ãƒ»åºƒå‘Šã®æ‰±ã„ã‚’ã¾ã¨ã‚ãŸãƒšãƒ¼ã‚¸ã€‚
- * è¨˜äº‹ã¨åŒã˜ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã§å‡ºã—ã€å†…å®¹ã¯ STATIC_PAGE_LABELS ã® about* ã ã‘ã‹ã‚‰å–ã‚‹ã€‚
- */
-export function renderAboutPage(ctx: Ctx): string {
-  const path = aboutPagePath(ctx.locale)
-  const title = pageTitle(ctx, ctx.L.aboutTitle)
-  const description = ctx.L.aboutDescription
-  const breadcrumbId = `${path}#breadcrumb`
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      breadcrumbSchema(
-        [
-          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
-          { name: ctx.L.aboutTitle, path },
-        ],
-        breadcrumbId,
-      ),
-      {
-        '@type': 'AboutPage',
-        '@id': `${SITE_URL}${path}#webpage`,
-        url: `${SITE_URL}${path}`,
-        name: title,
-        description,
-        inLanguage: ctx.locale,
-        breadcrumb: { '@id': `${SITE_URL}${breadcrumbId}` },
-        mainEntity: {
-          '@type': 'WebApplication',
-          '@id': `${SITE_URL}/#webapp`,
-          name: ctx.site,
-          url: `${SITE_URL}${appPagePath()}`,
-          applicationCategory: 'UtilitiesApplication',
-          operatingSystem: 'Web browser',
-        },
-      },
-    ],
-  }
-
-  const body = `${renderBreadcrumbs(
-    [{ label: ctx.L.home, href: landingPagePath(ctx.locale) }, { label: ctx.L.aboutTitle }],
-    ctx.locale,
-  )}
-    <header class="hero">
-      <p class="eyebrow">${escapeHtml(ctx.L.aboutEyebrow)}</p>
-      <h1>${escapeHtml(ctx.L.aboutTitle)}</h1>
-      <p class="lead">${escapeHtml(ctx.L.aboutLead)}</p>
-    </header>
-    <article class="article-body">
-      ${aboutSection(ctx.L.aboutOverviewHeading, ctx.L.aboutOverviewParagraphs)}
-      <section>
-        <h2>${escapeHtml(ctx.L.aboutFeaturesHeading)}</h2>
-        <ul>${ctx.L.aboutFeatures.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>
-      </section>
-      ${aboutSection(ctx.L.aboutDataHeading, ctx.L.aboutDataParagraphs)}
-      ${aboutSection(ctx.L.aboutOperatorHeading, ctx.L.aboutOperatorParagraphs)}
-      <section>
-        <h2>${escapeHtml(ctx.L.aboutContactHeading)}</h2>
-        ${ctx.L.aboutContactParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-        <p><a href="${escapeHtml(CONTACT_URL)}" rel="noopener">${escapeHtml(ctx.L.aboutContactLinkLabel)}</a></p>
-      </section>
-      ${aboutSection(ctx.L.aboutDisclaimerHeading, ctx.L.aboutDisclaimerParagraphs)}
-      <section>
-        <h2>${escapeHtml(ctx.L.aboutAdsHeading)}</h2>
-        ${ctx.L.aboutAdsParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-        <p><a href="${escapeHtml(privacyPagePath(ctx.locale))}">${escapeHtml(ctx.L.aboutPrivacyLinkLabel)}</a></p>
-      </section>
-      <section>
-        <h2>${escapeHtml(ctx.L.aboutLinksHeading)}</h2>
-        <ul class="link-list">
-          <li><a href="${escapeHtml(appPagePath())}">${escapeHtml(ctx.L.aboutPlannerLinkLabel)}</a></li>
-          <li><a href="${escapeHtml(itemsIndexPath(ctx.locale))}">${escapeHtml(ctx.ui.footer.items)}</a></li>
-          <li><a href="${escapeHtml(articlesIndexPath(ctx.locale))}">${escapeHtml(ctx.ui.footer.articles)}</a></li>
-        </ul>
-      </section>
-      <p class="version">${escapeHtml(ctx.L.generatedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
-    </article>`
-
-  return renderDocument(
-    {
-      locale: ctx.locale,
-      title,
-      description,
-      canonicalPath: path,
-      alternates: alternatesOf((locale) => aboutPagePath(locale)),
-      structuredData,
-    },
-    body,
-  )
-}
-
-// ---------------------------------------------------------------------------
-// è¨˜äº‹
-// ---------------------------------------------------------------------------
-
-/**
- * HowTo ã‚’å‡ºã™è¨˜äº‹ã® slugã€‚
- *
- * ã€Œé †ç•ªã«å®Ÿè¡Œã™ã‚‹ã¨1ã¤ã®çµæœã«è‡³ã‚‹ã€è¨˜äº‹ã ã‘ã«é™ã‚‹ï¼ˆæ§‹é€ åŒ–ãƒ‡ãƒ¼ã‚¿ã¯æœ¬æ–‡ã®ä¸»å¼µã¨
- * ä¸€è‡´ã—ã¦ã„ãªã„ã¨å˜˜ã«ãªã‚‹ã€‚è§£èª¬ãƒ»æ¯”è¼ƒãƒ»ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹çš„ãªè¨˜äº‹ã¯ Article ã®ã¾ã¾ã«ã™ã‚‹ï¼‰ã€‚
- * ã‚¹ãƒ†ãƒƒãƒ—ã¯è¨˜äº‹ã® section è¦‹å‡ºã—ã¨ç¬¬1æ®µè½ã‹ã‚‰ãã®ã¾ã¾ä½œã‚Šã€ã“ã“ã§æ›¸ãèµ·ã“ã•ãªã„ã€‚
- */
-const HOW_TO_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
-  // ç›®æ¨™å…¥åŠ› â†’ çµæœã‚¿ãƒ–ã‚’èª­ã‚€ â†’ æ¡ä»¶ã‚’èª¿æ•´ â†’ ç™ºé›»ãƒ»ä¿å­˜ã¸ã€ã®é †ã«å®Ÿè¡Œã™ã‚‹ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«
-  'production-planning-tutorial',
-  // ç™ºé›»æ©Ÿ1å°ã®æ¶ˆè²» â†’ 8å°ãƒ–ãƒ­ãƒƒã‚¯ â†’ æ¡æ˜ãƒ»çµ¦æ°´è¨­å‚™ â†’ ç‡ƒæ–™é¸æŠ â†’ ãƒ„ãƒ¼ãƒ«ã§è¨ˆç®—ã€ã®é †ã«çµ„ã‚€
-  'coal-power-startup',
-])
-
-/**
- * è¨˜äº‹ã® section ã‚’ãã®ã¾ã¾ HowToStep ã«å†™ã™ã€‚name ã¯è¦‹å‡ºã—ã€text ã¯ç¬¬1æ®µè½ã€‚
- * æœ¬æ–‡ã«ãªã„æ–‡è¨€ã¯è¶³ã•ãªã„ï¼ˆè¶³ã™ã¨æ§‹é€ åŒ–ãƒ‡ãƒ¼ã‚¿ã¨ãƒšãƒ¼ã‚¸ã®å†…å®¹ãŒãšã‚Œã‚‹ï¼‰ã€‚
- */
-function howToSchema(ctx: Ctx, path: string, article: HandwrittenArticle): object {
-  return {
-    '@type': 'HowTo',
-    '@id': `${SITE_URL}${path}#howto`,
-    name: article.title,
-    description: article.description,
-    inLanguage: ctx.locale,
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
-    step: article.sections.map((section, index) => ({
-      '@type': 'HowToStep',
-      position: index + 1,
-      name: section.heading,
-      text: section.paragraphs[0] ?? section.heading,
-    })),
-  }
-}
-
-function articleSchema(
-  ctx: Ctx,
-  path: string,
-  headline: string,
-  description: string,
-  breadcrumbId: string,
-  publishedDate: string = PUBLISHED_DATE,
-  extraNodes: readonly object[] = [],
-): object {
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
-      breadcrumbSchema(
-        [
-          { name: ctx.L.home, path: landingPagePath(ctx.locale) },
-          { name: ctx.ui.footer.articles, path: articlesIndexPath(ctx.locale) },
-          { name: headline, path },
-        ],
-        breadcrumbId,
-      ),
-      {
-        '@type': 'Article',
-        '@id': `${SITE_URL}${path}#article`,
-        headline,
-        description,
-        image: ogImageUrl(ctx.locale),
-        datePublished: publishedDate,
-        dateModified: publishedDate,
-        inLanguage: ctx.locale,
-        mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
-        author: { '@type': 'Organization', name: ctx.site, url: SITE_URL },
-        publisher: { '@type': 'Organization', name: ctx.site, url: SITE_URL },
-      },
-      ...extraNodes,
+J_H‰Ù\ØØ\R[
+İ“˜X›İ][›™\“[šÓX™[
+_OØOÛO‚ˆOH™YH‰Ù\ØØ\R[
+][\Ò[™^]
+İ›ØØ[JJ_H‰Ù\ØØ\R[
+İZK™›Ûİ\‹š][\Ê_OØOÛO‚ˆOH™YH‰Ù\ØØ\R[
+\XÛ\Ò[™^]
+İ›ØØ[JJ_H‰Ù\ØØ\R[
+İZK™›Ûİ\‹˜\XÛ\Ê_OØOÛO‚ˆİ[‚ˆÜÙXİ[Û‚ˆÛ\ÜÏH™\œÚ[Ûˆ‰Ù\ØØ\R[
+İ“™Ù[™\˜]Y[™JY]K™Ø[YU™\œÚ[Û‹P“TÒQÑUJJ_OÜ‚ˆØ\XÛO˜‚ˆ™]\›ˆ™[™\‘Øİ[Y[
+ˆÂˆØØ[Nˆİ›ØØ[Kˆ]Kˆ\ØÜš\[Û‹ˆØ[›ÛšXØ[]ˆ]ˆ[\›˜]\Îˆ[\›˜]\ÓÙŠ
+ØØ[JHOˆX›İ]YÙT]
+ØØ[JJKˆİXİ\™Y]KˆKˆ›ÙKˆ
+BŸB‚‹ËÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‹ËÈ:*&9.¢Â‹ËÈKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKB‚‹ÊŠ‚ˆ
+ˆİÕÈ8à¤¹aî¸àfz*&9.¢øàkˆÛYøà ‚ˆ
+‚ˆ
+ˆ8à#:h!¹åj¸àjùk§ú(c8àfxà¢øàjxài8àk¹íd9§§8àjú!ìøà¢øà#z*&9.¢øàh8àdxàjúfd8à¢ûï"9©âú`(9c%¸àáøàï8à¯øàkù§+9¥¡øàk¹..ùo-xàjˆ
+ˆ9. :!í8àeøài¸àa8àj¸àa8àj9f&8àjøàj¸üÓ[h‘éì¶»§q«^v.extraNodes,
     ],
   }
 }
@@ -1424,215 +360,33 @@ function renderRelatedArticles(ctx: Ctx, slugs: readonly string[] | undefined): 
 }
 
 function renderRelatedItems(ctx: Ctx, itemIds: readonly string[]): string {
-  const unique = [...new Set(itemIds)].filter((itemId) => itemsById.has(itemId))
-  if (unique.length === 0) return ''
-  return `<section>
-    <h2>${escapeHtml(ctx.L.relatedItems)}</h2>
-    <ul class="link-list">${unique.map((itemId) => `<li>${itemLink(ctx, itemId)}</li>`).join('')}</ul>
-  </section>`
-}
-
-/**
- * è¡¨ç¤ºãƒ­ã‚±ãƒ¼ãƒ«ã®è¨˜äº‹æœ¬æ–‡ã€‚è‹±èªã¯ content/articles/en/ ã®**å…¨æ–‡è¨³**ã‚’ä½¿ã†
- * ï¼ˆæ©Ÿæ¢°ç½®æ›ã§ã¯ãªã1æœ¬ãšã¤è‹±èªã¨ã—ã¦æˆç«‹ã•ã›ãŸã‚‚ã®ã€‚è¨ˆç”»æ›¸ Â§5ï¼‰ã€‚
- */
-function localizedArticle(ctx: Ctx, article: HandwrittenArticle): HandwrittenArticle {
-  if (ctx.locale === 'ja') return article
-  const translated = handwrittenArticlesEnBySlug.get(article.slug)
-  if (translated === undefined) {
-    throw new Error(`missing English article: ${article.slug} (content/articles/en/)`)
-  }
-  return translated
-}
-
-function articleCoverFigure(ctx: Ctx, slug: string): string {
-  const cover = articleCoverFor(slug, ctx.locale)
-  return `<figure class="article-cover article-cover--hero">
-      <img src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" fetchpriority="high" decoding="async" />
-      <figcaption>${escapeHtml(ctx.L.articleCoverCaption)}</figcaption>
-    </figure>`
-}
-
-function articleSocialImage(slug: string, locale: StaticLocale) {
-  const cover = articleCoverFor(slug, locale)
-  return {
-    url: `${SITE_URL}${cover.src}`,
-    alt: cover.alt,
-    type: cover.type,
-    width: cover.width,
-    height: cover.height,
-  }
-}
-
-function articleCard(
-  ctx: Ctx,
-  article: { readonly slug: string; readonly title: string; readonly description: string },
-): string {
-  const cover = articleCoverFor(article.slug, ctx.locale)
-  return `<li><a class="article-card" href="${escapeHtml(articlePagePath(article.slug, ctx.locale))}">
-        <span class="article-card__media"><img class="article-card__image" src="${escapeHtml(cover.src)}" alt="${escapeHtml(cover.alt)}" width="${cover.width}" height="${cover.height}" loading="lazy" decoding="async" /><span class="article-card__badge">${escapeHtml(ctx.L.articleCoverBadge)}</span></span>
-        <span class="article-card__text"><strong>${escapeHtml(article.title)}</strong><span class="article-card__description">${escapeHtml(article.description)}</span></span>
-      </a></li>`
-}
-
-function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string {
-  const article = localizedArticle(ctx, source)
-  const path = articlePagePath(article.slug, ctx.locale)
-  const title = pageTitle(ctx, article.title)
-  const breadcrumbId = `${path}#breadcrumb`
-  // å…¬é–‹æ—¥ã¯æ—¥æœ¬èªç‰ˆã‚’æ­£å…¸ã«ã™ã‚‹ï¼ˆç¿»è¨³å´ã§æ—¥ä»˜ãŒãšã‚Œã¦ã‚‚ ja ã«åˆã‚ã›ã‚‹ï¼‰ã€‚
-  const publishedDate = source.publishedDate ?? PUBLISHED_DATE
-  const sections = article.sections
-    .map(
-      (section) => `<section>
-        <h2>${escapeHtml(section.heading)}</h2>
-        ${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-        ${(section.tables ?? []).map((table) => `<div class="table-wrap"><table class="comparison-table">${table.caption ? `<caption>${escapeHtml(table.caption)}</caption>` : ''}<thead><tr>${table.headers.map((header) => `<th scope="col">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${table.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('')}
-      </section>`,
-    )
-    .join('')
-  const references = article.references === undefined
-    ? ''
-    : `<section><h2>${escapeHtml(article.references.heading)}</h2><ul class="link-list">${article.references.links.map((link) => `<li><a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a></li>`).join('')}</ul></section>`
-  const body = `${renderBreadcrumbs(
-    [
-      { label: ctx.L.home, href: landingPagePath(ctx.locale) },
-      { label: ctx.ui.footer.articles, href: articlesIndexPath(ctx.locale) },
-      { label: article.title },
-    ],
-    ctx.locale,
-  )}
-    <header class="hero">
-      <p class="eyebrow">${escapeHtml(ctx.L.articleEyebrow)}</p>
-      ${articleCoverFigure(ctx, article.slug)}
-      <h1>${escapeHtml(article.title)}</h1>
-      <p class="lead">${escapeHtml(article.description)}</p>
-      <p class="version">${escapeHtml(ctx.L.publishedOn(publishedDate))}</p>
-    </header>
-    <article class="article-body">
-      ${sections}
-      ${references}
-      ${renderRelatedItems(ctx, article.relatedItemIds)}
-      ${renderRelatedArticles(ctx, source.relatedArticleSlugs)}
-      <section>
-        <h2>${escapeHtml(ctx.L.tryInPlannerHeading)}</h2>
-        <p>${escapeHtml(ctx.L.tryInPlannerBody)}</p>
-        <a class="cta" href="${escapeHtml(articleCtaHref(ctx, article.cta))}">${escapeHtml(article.cta.label)}</a>
-      </section>
-    </article>`
-  return renderDocument(
-    {
-      locale: ctx.locale,
-      title,
-      description: article.description,
-      canonicalPath: path,
-      alternates: alternatesOf((locale) => articlePagePath(article.slug, locale)),
-      ogType: 'article',
-      ogImage: articleSocialImage(article.slug, ctx.locale),
-      publishedTime: publishedDate,
-      structuredData: articleSchema(
-        ctx,
-        path,
-        article.title,
-        article.description,
-        breadcrumbId,
-        publishedDate,
-        HOW_TO_ARTICLE_SLUGS.has(article.slug) ? [howToSchema(ctx, path, article)] : [],
-      ),
-    },
-    body,
-  )
-}
-
-/**
- * ãƒ«ãƒ¼ãƒ—è¨˜äº‹ã®æ±‚è§£ã¯è¨€èªã«ä¾å­˜ã—ãªã„ã®ã§ã€æ—¥è‹±ã§1å›ã®çµæœã‚’å…±æœ‰ã™ã‚‹ã€‚
- * æ¯”è¼ƒã®åŸºæº–ã¯ src/plan/loop-baseline.ts ã¨åŒã˜è¦å‰‡:
- *  - `baselineId` ãŒã‚ã‚Œã°ã€ãã®ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’ãã®ã¾ã¾ã®è¨­å®šã§è§£ã„ãŸçµæœï¼ˆåŸå­åŠ›ã®æ®µéšãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆï¼‰
- *  - ãªã‘ã‚Œã°ã€ä»£æ›¿ãƒ¬ã‚·ãƒ”ã‚’æŒã¤ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã ã‘ã€Œä»£æ›¿ãƒ¬ã‚·ãƒ”ãªã—ã®åŒã˜ç›®æ¨™ã€
- */
-async function solveLoopArticles(): Promise<readonly SolvedLoopArticle[]> {
-  const solved: SolvedLoopArticle[] = []
-  for (const sample of loopSamples) {
-    const current = await solveSampleSnapshot(sample.snapshot, { alternates: true })
-    if (current.status !== 'optimal') {
-      throw new Error(`loop article is infeasible: ${sample.id}: ${current.message}`)
-    }
-    const baselineSample = loopBaselineSample(sample)
-    const baseline =
-      baselineSample !== undefined
-        ? await solveSampleSnapshot(baselineSample.snapshot, { alternates: true })
-        : hasLoopBaseline(sample)
-          ? await solveSampleSnapshot(sample.snapshot, { alternates: false })
-          : undefined
-    solved.push({ sample, current, ...(baseline === undefined ? {} : { baseline }) })
-  }
-  return solved
-}
-
-function renderCurrentPlanMetrics(ctx: Ctx, solution: Solution): string {
-  const targets = solution.targets
-    .map(
-      (target) => `<li>${itemLink(ctx, target.item)}: <span class="num">${ctx.fmtRate(target.producedPerMin)} ${escapeHtml(rateUnit(ctx, target.item))}</span></li>`,
-    )
-    .join('')
-  const generation = solution.powerGeneration
-    ? `<li>${escapeHtml(ctx.L.loopTotalGeneration)}: <span class="num">${ctx.fmtPower(solution.powerGeneration.totalMW)} MW</span></li>
-       ${solution.powerGeneration.fuelUsage
-         .map(
-           (fuel) =>
-             `<li>${ctx.L.loopFuelUsage(itemLink(ctx, fuel.item))}: <span class="num">${ctx.fmtRate(fuel.ratePerMin)} ${escapeHtml(rateUnit(ctx, fuel.item))}</span></li>`,
-         )
-         .join('')}`
-    : ''
-  return `<ul>
-    ${targets}
-    ${generation}
-    ${
-      solution.powerGeneration && solution.powerGeneration.totalGeneratorCount > 0
-        ? `<li>${escapeHtml(ctx.L.loopGeneratorCount)}: <span class="num">${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(solution.powerGeneration.totalGeneratorCount)))}</span></li>`
-        : ''
-    }
-    ${solution.byproducts
-      .map(
-        (byproduct) =>
-          `<li>${ctx.L.loopByproductLeft(itemLink(ctx, byproduct.item))}: <span class="num">${ctx.fmtRate(byproduct.ratePerMin)} ${escapeHtml(rateUnit(ctx, byproduct.item))}</span></li>`,
-      )
-      .join('')}
-    <li>${escapeHtml(ctx.L.loopProductionPower)}: <span class="num">${ctx.fmtPower(solution.totalClockedPowerMW)} MW</span></li>
-    <li>${escapeHtml(ctx.L.loopBuildings)}: <span class="num">${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(solution.totalBuildingCount)))}</span></li>
-  </ul>`
-}
-
-function renderRawResourceTable(ctx: Ctx, solution: Solution): string {
-  const rows = solution.rawResources
-    .map(
-      (resource) => `<tr>
-        <td>${itemLink(ctx, resource.item)}</td>
-        <td class="num">${ctx.fmtRate(resource.ratePerMin)}</td>
-        <td>${escapeHtml(rateUnit(ctx, resource.item))}</td>
-      </tr>`,
-    )
-    .join('')
-  return `<div class="table-wrap"><table class="comparison-table">
-    <thead><tr><th scope="col">${escapeHtml(ctx.L.loopRawTableCaption)}</th><th scope="col">${escapeHtml(ctx.L.loopRawTableRate)}</th><th scope="col">${escapeHtml(ctx.L.loopRawTableUnit)}</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`
-}
-
-function renderBaselineComparison(
-  ctx: Ctx,
-  current: Solution,
-  baseline: SolveResult,
-  baselineTitle: string | undefined,
-): string {
-  if (baseline.status !== 'optimal') {
-    return `<p class="article-note">${escapeHtml(ctx.L.loopBaselineInfeasible)}</p>`
-  }
-  const baselineByItem = new Map(baseline.rawResources.map((raw) => [raw.item, raw.ratePerMin]))
-  const currentByItem = new Map(current.rawResources.map((raw) => [raw.item, raw.ratePerMin]))
-  const resourceIds = [
-    ...new Set([
-      ...baseline.rawResources.map((raw) => raw.item),
+  const unique = [...new Set(itemIds)].filYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÕÑ•È ¡¥Ñ•µ%¤€ôø¥Ñ•µÍ	å%¹¡…Ì¡¥Ñ•µ%¤¤(€¥˜€¡Õ¹¥ÅÕ”¹±•¹Ñ €ôôô€À¤É•ÑÕÉ¸€œœ(€É•ÑÕÉ¸€ñÍ•Ñ¥½¸ø(€€€€ñ Èø‘í•Í…Á•!Ñµ°¡Ñà¹0¹É•±…Ñ•‘%Ñ•µÌ¥ôğ½ Èø(€€€€ñÕ°±…ÍÌô‰±¥¹¬µ±¥ÍĞˆø‘íÕ¹¥ÅÕ”¹µ…À ¡¥Ñ•µ%¤€ôø€ñ±¤ø‘í¥Ñ•µ1¥¹¬¡Ñà°¥Ñ•µ%¥ôğ½±¤ù€¤¹©½¥¸ œœ¥ôğ½Õ°ø(€€ğ½Í•Ñ¥½¸ù€)ô((¼¨¨(€¨ƒ¢†£’ë·
+Çó¯»¢¢c’ê/šr³šZ¢.Ç¢ª{¼½¹Ñ•¹Ğ½…ÉÑ¥±•Ì½•¸¼ƒ¸¨«–£šZ¢¢Ì¨«
+K’öÿ(€¨ƒ¾ò#š¦šŠÃö»š>oŸ¿«<Çšr³k“¢.Ç¢ª{£_›š"C®/Wo
+»¢¢#Rïšnàƒ
+œ×¾ò'(€¨¼)™Õ¹Ñ¥½¸±½…±¥é•‘ÉÑ¥±”¡ÑàèÑà°…ÉÑ¥±”è!…¹‘İÉ¥ÑÑ•¹ÉÑ¥±”¤è!…¹‘İÉ¥ÑÑ•¹ÉÑ¥±”ì(€¥˜€¡Ñà¹±½…±”€ôôô€©„œ¤É•ÑÕÉ¸…ÉÑ¥±”(€½¹ÍĞÑÉ…¹Í±…Ñ•€ô¡…¹‘İÉ¥ÑÑ•¹ÉÑ¥±•Í¹	åM±Õœ¹•Ğ¡…ÉÑ¥±”¹Í±Õœ¤(€¥˜€¡ÑÉ…¹Í±…Ñ•€ôôôÕ¹‘•™¥¹•¤ì(€€€Ñ¡É½Ü¹•ÜÉÉ½È¡µ¥ÍÍ¥¹œ¹±¥Í …ÉÑ¥±”è€‘í…ÉÑ¥±”¹Í±Õô€¡½¹Ñ•¹Ğ½…ÉÑ¥±•Ì½•¸¼¥€¤(€ô(€É•ÑÕÉ¸ÑÉ…¹Í±…Ñ•)ô()™Õ¹Ñ¥½¸…ÉÑ¥±•½Ù•É¥ÕÉ”¡ÑàèÑà°Í±ÕœèÍÑÉ¥¹œ¤èÍÑÉ¥¹œì(€½¹ÍĞ½Ù•È€ô…ÉÑ¥±•½Ù•É½È¡Í±Õœ°Ñà¹±½…±”¤(€É•ÑÕÉ¸€ñ™¥ÕÉ”±…ÍÌô‰…ÉÑ¥±”µ½Ù•È…ÉÑ¥±”µ½Ù•È´µ¡•É¼ˆø(€€€€€€ñ¥µœÍÉŒôˆ‘í•Í…Á•!Ñµ°¡½Ù•È¹ÍÉŒ¥ôˆ…±Ğôˆ‘í•Í…Á•!Ñµ°¡½Ù•È¹…±Ğ¥ôˆİ¥‘Ñ ôˆ‘í½Ù•È¹İ¥‘Ñ¡ôˆ¡•¥¡Ğôˆ‘í½Ù•È¹¡•¥¡Ñôˆ™•Ñ¡ÁÉ¥½É¥Ñäô‰¡¥ ˆ‘•½‘¥¹œô‰…Íå¹Œˆ€¼ø(€€€€€€ñ™¥…ÁÑ¥½¸ø‘í•Í…Á•!Ñµ°¡½Ù•È¹…ÁÑ¥½¸€üüÑà¹0¹…ÉÑ¥±•½Ù•É…ÁÑ¥½¸¥ôğ½™¥…ÁÑ¥½¸ø(€€€€ğ½™¥ÕÉ”ù€)ô()™Õ¹Ñ¥½¸…ÉÑ¥±•M½¥…±%µ…”¡Í±ÕœèÍÑÉ¥¹œ°±½…±”èMÑ…Ñ¥1½…±”¤ì(€½¹ÍĞ½Ù•È€ô…ÉÑ¥±•½Ù•É½È¡Í±Õœ°±½…±”¤(€É•ÑÕÉ¸ì(€€€ÕÉ°è€‘íM%Q}UI1ô‘í½Ù•È¹ÍÉõ€°(€€€…±Ğè½Ù•È¹…±Ğ°(€€€ÑåÁ”è½Ù•È¹ÑåÁ”°(€€€İ¥‘Ñ è½Ù•È¹İ¥‘Ñ °(€€€¡•¥¡Ğè½Ù•È¹¡•¥¡Ğ°(€ô)ô()™Õ¹Ñ¥½¸…ÉÑ¥±•…É (€ÑàèÑà°(€…ÉÑ¥±”èìÉ•…‘½¹±äÍ±ÕœèÍÑÉ¥¹œìÉ•…‘½¹±äÑ¥Ñ±”èÍÑÉ¥¹œìÉ•…‘½¹±ä‘•ÍÉ¥ÁÑ¥½¸èÍÑÉ¥¹œô°(¤èÍÑÉ¥¹œì(€½¹ÍĞ½Ù•È€ô…ÉÑ¥±•½Ù•É½È¡…ÉÑ¥±”¹Í±Õœ°Ñà¹±½…±”¤(€É•ÑÕÉ¸€ñ±¤øñ„±…ÍÌô‰…ÉÑ¥±”µ…Éˆ¡É•˜ôˆ‘í•Í…Á•!Ñµ°¡…ÉÑ¥±•A…•A…Ñ ¡…ÉÑ¥±”¹Í±Õœ°Ñà¹±½Í5¶‰ËkºwµçFVF–ær—ÓÂöƒ#ãÇVÂ6Æ73Ò&Æ–æ²ÖÆ—7B#âG¶'F–6ÆRç&VfW&Væ6W2æÆ–æ·2æÖ‚†Æ–æ²’ÓâÆÆ“ãÆ‡&VcÒ"G¶W66T‡FÖÂ†Æ–æ²æ‡&Vb—Ò"&VÃÒ&æö÷VæW"æ÷&VfW'&W"#âG¶W66T‡FÖÂ†Æ–æ²æÆ&VÂ—ÓÂöãÂöÆ“æ’æ¦ö–â‚rr—ÓÂ÷VÃãÂ÷6V7F–öãæ ¢6öç7B&öG’ÒG·&VæFW$'&VF7'VÖ'2€¢°¢²Æ&VÃ¢7G‚äÂæ†öÖRÂ‡&Vc¢ÆæF–æuvUF‚†7G‚æÆö6ÆR’ÒÀ¢²Æ&VÃ¢7G‚çV’æfö÷FW"æ'F–6ÆW2Â‡&Vc¢'F–6ÆW4–æFW…F‚†7G‚æÆö6ÆR’ÒÀ¢²Æ&VÃ¢'F–6ÆRçF—FÆRÒÀ¢ÒÀ¢7G‚æÆö6ÆRÀ¢—Ğ¢Æ†VFW"6Æ73Ò&†W&ò#à¢Ç6Æ73Ò&W–V'&÷r#âG¶W66T‡FÖÂ†7G‚äÂæ'F–6ÆTW–V'&÷r—ÓÂ÷à¢G¶'F–6ÆT6÷fW$f–wW&R†7G‚Â'F–6ÆRç6ÇVr—Ğ¢ÆƒâG¶W66T‡FÖÂ†'F–6ÆRçF—FÆR—ÓÂöƒà¢Ç6Æ73Ò&ÆVB#âG¶W66T‡FÖÂ†'F–6ÆRæFW67&—F–öâ—ÓÂ÷à¢Ç6Æ73Ò'fW'6–öâ#âG¶W66T‡FÖÂ†7G‚äÂçV&Æ—6†VDöâ‡V&Æ—6†VDFFR’—ÓÂ÷à¢Âö†VFW#à¢Æ'F–6ÆR6Æ73Ò&'F–6ÆRÖ&öG’#à¢G·6V7F–öç7Ğ¢G·&VfW&Væ6W7Ğ¢G·&VæFW%&VÆFVD—FV×2†7G‚Â'F–6ÆRç&VÆFVD—FVÔ–G2—Ğ¢G·&VæFW%&VÆFVD'F–6ÆW2†7G‚Â6÷W&6Rç&VÆFVD'F–6ÆU6ÇVw2—Ğ¢Ç6V7F–öãà¢Æƒ#âG¶W66T‡FÖÂ†7G‚äÂçG'”–åÆææW$†VF–ær—ÓÂöƒ#à¢ÇâG¶W66T‡FÖÂ†7G‚äÂçG'”–åÆææW$&öG’—ÓÂ÷à¢Æ6Æ73Ò&7F"‡&VcÒ"G¶W66T‡FÖÂ†'F–6ÆT7F‡&Vb†7G‚Â'F–6ÆRæ7F’—Ò#âG¶W66T‡FÖÂ†'F–6ÆRæ7FæÆ&VÂ—ÓÂöà¢Â÷6V7F–öãà¢Âö'F–6ÆSæ ¢&WGW&â&VæFW$Fö7VÖVçB€¢°¢Æö6ÆS¢7G‚æÆö6ÆRÀ¢F—FÆRÀ¢FW67&—F–öã¢'F–6ÆRæFW67&—F–öâÀ¢6æöæ–6ÅFƒ¢F‚À¢ÇFW&æFW3¢ÇFW&æFW4öb‚†Æö6ÆR’Óâ'F–6ÆUvUF‚†'F–6ÆRç6ÇVrÂÆö6ÆR’’À¢öuG—S¢v'F–6ÆRrÀ¢öt–ÖvS¢'F–6ÆU6ö6–Ä–ÖvR†'F–6ÆRç6ÇVrÂ7G‚æÆö6ÆR’À¢V&Æ—6†VEF–ÖS¢V&Æ—6†VDFFRÀ¢7G'V7GW&VDFF¢'F–6ÆU66†VÖ€¢7G‚À¢F‚À¢'F–6ÆRçF—FÆRÀ¢'F–6ÆRæFW67&—F–öâÀ¢'&VF7'VÖ$–BÀ¢V&Æ—6†VDFFRÀ¢„õuõDõô%D”4ÄUõ4ÅTu2æ†2†'F–6ÆRç6Åš®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍ]YÊHÈÚİÕÔØÚ[XJİ]\XÛJWHˆ×Kˆ
+KˆKˆ›ÙKˆ
+BŸB‚‹ÊŠ‚ˆ
+ˆ8àêøàï8àåú*&9.¢øàk¹¬`º)èøàkú* :*§¸àjù/§ykf8àeøàj¸àa8àk¸àiøà y¥éz"ìxàiÌyfç¸àk¹íd9§§8à¤¹aly§"xàfxà¢øà ‚ˆ
+ˆ9«å:/ øàk¹gî¹®¥¸àkÈÜ˜ËÜ[‹ÛÛÜX˜\Ù[[™KÈ8àj9d#8àf:)£ùbaÎ‚ˆ
+ˆH˜\Ù[[™RY8àc8à`¸à£8àl8à xàgxàk¸àá¸àìøàåøàë8àï8àâ8à¤¸àgxàk¸ào¸ào¸àkº*+yk¦¸àiú)èøàa8àgùíd9§§;ï"9c§ùkd9b¦øàk¹«­zf£¸àá¸àìøàåøàë8àï8àâ;ï"Bˆ
+ˆH8àj¸àdxà£8àl8à y.èù¦ïøàë8à­øàå8à¤¹£ xài8àá¸àìøàåøàë8àï8àâ8àh8àdxà#9.èù¦ïøàë8à­øàå8àj¸àeøàk¹d#8àf9æë¹ª&xà#Bˆ
+‹Â˜\Ş[˜È[˜İ[ÛˆÛÛ™SÛÜ\XÛ\Ê
+Nˆ›ÛZ\ÙO™XYÛ›HÛÛ™YÛÜ\XÛV×OˆÂˆÛÛœİÛÛ™YˆÛÛ™YÛÜ\XÛV×HH×Bˆ›Üˆ
+ÛÛœİØ[\HÙˆÛÜØ[\\ÊHÂˆÛÛœİİ\œ™[H]ØZ]ÛÛ™TØ[\TÛ˜\Úİ
+Ø[\KœÛ˜\ÚİÈ[\›˜]\ÎˆYHJBˆYˆ
+İ\œ™[œİ]\ÈOOH	ÛÜ[X[	ÊHÂˆ›İÈ™]È\œ›ÜŠÛÜ\XÛH\È[™™X\ÚX›Nˆ	ÜØ[\KšYNˆ	Øİ\œ™[›Y\ÜØYÙ_X
+BˆBˆÛÛœİ˜\Ù[[™TØ[\HHÛÜ˜\Ù[[™TØ[\JØ[\JBˆÛÛœİ˜\Ù[[™HBˆ˜\Ù[[™TØ[\HOOH[™Yš[™YˆÈ]ØZ]ÛÛ™TØ[\TÛ˜\Úİ
+˜\Ù[[™TØ[\KœÛ˜\ÚİÈ[\›˜]\ÎˆYHJBˆˆ\ÓÛÜ˜\Ù[[™JØ[\JBˆÈ]ØZ]ÛÛ™TØ[\TÛ˜\Úİ
+Ø[\KœÛ˜\ÚİÈ[\›˜]\Îˆ˜[ÙHJBˆˆ[™Yš[™YˆÛÛ™Yœ\Ú
+ÈØ[\Kİ\œ™[‹‹Š˜\Ù[[™HOOH[™Yš[™YÈßHˆÈ˜\Ù[[™HJHJBˆBˆ™]\›ˆÛÛ™YŸB‚™[˜İ[Ûˆ™[™\İ\œ™[[“Y]šXÜÊİˆİÛÛ][ÛˆÛÛ][ÛŠNˆİš[™ÈÂˆÛÛœİ\™Ù]ÈHÛÛ][Û‹\™Ù]Âˆ›X\
+ˆ
+\™Ù]
+HOˆO‰Ú][S[šÊİ\™Ù]š][J_NˆÜ[ˆÛ\ÜÏH›[H‰Øİ™›]˜]J\™Ù]œ›ÙXÙY\“Z[Š_H	Ù\ØØ\R[
+˜]U[š]
+İ\™Ù]š][JJ_OÜÜ[ÛO˜ˆ
+Bˆš›Ú[Š	ÉÊBˆÛÛœİÙ[™\˜][ÛˆHÛÛ][Û‹œİÙ\‘Ù[™\˜][Û‚ˆÈO‰Ù\ØØ\R[
+İ“›ÛÜİ[Ù[™\˜][ÛŠ_NˆÜ[ˆÛ\ÜÏH›[H‰Øİ™›]İÙ\ŠÛÛ][Û‹œİÙ\‘Ù[™\˜][Û‹İ[UÊ_HUÏÜÜ[¼Ó[h‘éì¶»§q«^t...baseline.rawResources.map((raw) => raw.item),
       ...current.rawResources.map((raw) => raw.item),
     ]),
   ]
@@ -1669,253 +423,26 @@ function renderBaselineComparison(
     <td class="num">${escapeHtml(powerChange)}</td>
   </tr>`
   // ç™ºé›»æ©Ÿã®å°æ•°ã¨ä½™ã‚‹å‰¯ç”£ç‰©ï¼ˆæ ¸å»ƒæ£„ç‰©ï¼‰ã€‚æ®µéšãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã®æ¯”è¼ƒã§æ„å‘³ã‚’æŒã¤è¡Œãªã®ã§ã€
-  // å·®ãŒç„¡ã„ã¨ãã¯å‡ºã•ãªã„ï¼ˆæ—¢å­˜ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã®è¡¨ã¯å¤‰ã‚ã‚‰ãªã„ï¼‰
-  const baselineGenerators = baseline.powerGeneration?.totalGeneratorCount ?? 0
-  const currentGenerators = current.powerGeneration?.totalGeneratorCount ?? 0
-  const generatorRow =
-    baselineGenerators === currentGenerators
-      ? ''
-      : `<tr>
-    <td>${escapeHtml(ctx.L.loopGeneratorCount)}</td>
-    <td class="num">${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(baselineGenerators)))} â†’ ${escapeHtml(ctx.L.loopBuildingCount(ctx.fmtInteger(currentGenerators)))}</td>
-    <td class="num">${escapeHtml(countChange(ctx, baselineGenerators, currentGenerators))}</td>
-  </tr>`
-  const baselineByproducts = new Map(baseline.byproducts.map((entry) => [entry.item, entry.ratePerMin]))
-  const currentByproducts = new Map(current.byproducts.map((entry) => [entry.item, entry.ratePerMin]))
-  const byproductRows = [...new Set([...baselineByproducts.keys(), ...currentByproducts.keys()])].flatMap(
-    (itemId) => {
-      const baselineRate = baselineByproducts.get(itemId) ?? 0
-      const currentRate = currentByproducts.get(itemId) ?? 0
-      if (Math.abs(baselineRate - currentRate) <= 0.005) return []
-      const change =
-        baselineRate <= 0.005
-          ? ctx.L.loopChangeAppears
-          : currentRate <= 0.005
-            ? ctx.L.loopChangeGone
-            : countChange(ctx, baselineRate, currentRate)
-      return [
-        `<tr>
-        <td>${ctx.L.loopByproductLeft(itemLink(ctx, itemId))}</td>
-        <td class="num">${ctx.fmtRate(baselineRate)} â†’ ${ctx.fmtRate(currentRate)} ${escapeHtml(rateUnit(ctx, itemId))}</td>
-        <td class="num">${escapeHtml(change)}</td>
-      </tr>`,
-      ]
-    },
-  )
-  const intro =
-    baselineTitle === undefined
-      ? ctx.L.loopComparisonIntro
-      : ctx.L.loopStageComparisonIntro(baselineTitle)
-  return `<p>${escapeHtml(intro)}</p>
-    <div class="table-wrap"><table class="comparison-table">
-      <thead><tr><th scope="col">${escapeHtml(ctx.L.loopComparisonMetric)}</th><th scope="col">${escapeHtml(ctx.L.loopComparisonBaseline)}</th><th scope="col">${escapeHtml(ctx.L.loopComparisonChange)}</th></tr></thead>
-      <tbody>${resourceRows.join('')}${generatorRow}${byproductRows.join('')}${powerRow}</tbody>
-    </table></div>
-    <p class="version">${escapeHtml(ctx.L.loopComparisonPowerNote)}</p>`
-}
-
-function countChange(ctx: Ctx, baseline: number, current: number): string {
-  const ratio = baseline <= 0 ? 0 : Math.abs(current - baseline) / baseline
-  return current > baseline
-    ? ctx.L.loopChangeIncrease(ctx.fmtPercent(ratio))
-    : ctx.L.loopChangeDecrease(ctx.fmtPercent(ratio))
-}
-
-function loopRelatedItemIds(solution: Solution, sample: SamplePlan): readonly string[] {
-  return [
-    sample.icon,
-    ...solution.targets.map((target) => target.item),
-    ...solution.rawResources.map((raw) => raw.item),
-    ...solution.steps.flatMap((step) => [
-      ...step.inputs.map((input) => input.item),
-      ...step.outputs.map((output) => output.item),
-    ]),
-  ]
-}
-
-/** ãƒ«ãƒ¼ãƒ—è¨˜äº‹ã®è¡¨ç¤ºãƒ†ã‚­ã‚¹ãƒˆã€‚æ—¥æœ¬èªã¯ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆå®šç¾©ã€è‹±èªã¯ content/loop-guides/en.tsã€‚ */
-type LoopContent = {
-  title: string
-  headline: string
-  description: string
-  highlight: string
-  mechanism: readonly string[]
-  tips: readonly string[]
-  circulationMeaning?: string
-}
-
-function loopContent(ctx: Ctx, sample: SamplePlan): LoopContent {
-  if (ctx.locale === 'ja') {
-    const guide = sample.guide
-    if (guide === undefined) throw new Error(`missing loop guide: ${sample.id}`)
-    return {
-      title: sample.title,
-      headline: ctx.L.loopHeadline(sample.title),
-      description: sample.description,
-      highlight: sample.highlight ?? sample.description,
-      mechanism: guide.sections.mechanism,
-      tips: guide.sections.tips,
-      ...(guide.circulationMeaning === undefined
-        ? {}
-        : { circulationMeaning: guide.circulationMeaning }),
-    }
-  }
-  const guide = LOOP_GUIDES_EN[sample.id]
-  if (guide === undefined) {
-    throw new Error(`missing English loop guide: ${sample.id} (content/loop-guides/en.ts)`)
-  }
-  return {
-    title: guide.title,
-    headline: guide.headline,
-    description: guide.description,
-    highlight: guide.highlight,
-    mechanism: guide.mechanism,
-    tips: guide.tips,
-    ...(guide.circulationMeaning === undefined
-      ? {}
-      : { circulationMeaning: guide.circulationMeaning }),
-  }
-}
-
-function renderWaterCirculation(ctx: Ctx, content: LoopContent, solution: Solution): string {
-  if (content.circulationMeaning === undefined) return ''
-  const waterByRecipe = new Map<string, number>()
-  for (const step of solution.steps) {
-    const producedWater = step.outputs
-      .filter((output) => output.item === 'Desc_Water_C')
-      .reduce((sum, output) => sum + output.ratePerMin, 0)
-    if (producedWater <= 0.005) continue
-    const recipeName = step.recipeName[ctx.locale]
-    waterByRecipe.set(recipeName, (waterByRecipe.get(recipeName) ?? 0) + producedWater)
-  }
-  const totalWater = [...waterByRecipe.values()].reduce((sum, rate) => sum + rate, 0)
-  const breakdown = [...waterByRecipe]
-    .map(
-      ([recipeName, rate]) =>
-        `<li>${escapeHtml(recipeName)}: <span class="num">${ctx.fmtRate(rate)} ${escapeHtml(ctx.ui.units.cubicMetersPerMinute)}</span></li>`,
-    )
-    .join('')
-  return `<section>
-    <h2>${escapeHtml(ctx.L.loopCirculationHeading)}</h2>
-    <p>${escapeHtml(content.circulationMeaning)}</p>
-    ${
-      totalWater <= 0.005
-        ? ''
-        : `<p class="article-note">${escapeHtml(ctx.L.loopReusedWater)}: <span class="num">${ctx.fmtRate(totalWater)} ${escapeHtml(ctx.ui.units.cubicMetersPerMinute)}</span></p>
-           <h3>${escapeHtml(ctx.L.loopCirculationBreakdown)}</h3><ul>${breakdown}</ul>`
-    }
-  </section>`
-}
-
-function renderLoopArticle(ctx: Ctx, entry: SolvedLoopArticle): string {
-  const { sample, current, baseline } = entry
-  const content = loopContent(ctx, sample)
-  const path = articlePagePath(sample.id, ctx.locale)
-  const title = pageTitle(ctx, content.headline)
-  const description = ctx.L.loopDescription(content.description, meta.gameVersion)
-  const breadcrumbId = `${path}#breadcrumb`
-  const circulation = renderWaterCirculation(ctx, content, current)
-  const baselineSample = loopBaselineSample(sample)
-  const baselineTitle =
-    baselineSample === undefined ? undefined : loopContent(ctx, baselineSample).title
-  const comparison =
-    baseline === undefined
-      ? `<p>${escapeHtml(ctx.L.loopCurrentPlanNote)}</p>${renderCurrentPlanMetrics(ctx, current)}${renderRawResourceTable(ctx, current)}`
-      : `${renderBaselineComparison(ctx, current, baseline, baselineTitle)}<h3>${escapeHtml(ctx.L.loopTemplateResourcesHeading)}</h3>${renderRawResourceTable(ctx, current)}`
-  const comparisonHeading =
-    baseline === undefined
-      ? ctx.L.loopResultHeading
-      : baselineTitle === undefined
-        ? ctx.L.loopComparisonHeading
-        : ctx.L.loopStageComparisonHeading(baselineTitle)
-  const body = `${renderBreadcrumbs(
-    [
-      { label: ctx.L.home, href: landingPagePath(ctx.locale) },
-      { label: ctx.ui.footer.articles, href: articlesIndexPath(ctx.locale) },
-      { label: content.headline },
-    ],
-    ctx.locale,
-  )}
-    <header class="hero">
-      <p class="eyebrow">${escapeHtml(sample.category === 'power' ? ctx.L.powerEyebrow : ctx.L.loopEyebrow)}</p>
-      ${articleCoverFigure(ctx, sample.id)}
-      <h1>${escapeHtml(content.headline)}</h1>
-      <p class="lead">${escapeHtml(content.description)}</p>
-      <p class="version">${escapeHtml(ctx.L.loopPublishedLine(meta.gameVersion, PUBLISHED_DATE))}</p>
-    </header>
-    <article class="article-body">
-      <section>
-        <h2>${escapeHtml(ctx.L.loopInsightHeading)}</h2>
-        <p>${escapeHtml(content.highlight)}</p>
-      </section>
-      <section>
-        <h2>${escapeHtml(ctx.L.loopMechanismHeading)}</h2>
-        <ol>${content.mechanism.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ol>
-      </section>
-      <section>
-        <h2>${escapeHtml(comparisonHeading)}</h2>
-        <p class="version">${escapeHtml(ctx.L.loopSolverNote(meta.gameVersion))}</p>
-        ${comparison}
-      </section>
-      ${circulation}
-      <section>
-        <h2>${escapeHtml(ctx.L.loopTipsHeading)}</h2>
-        <ul>${content.tips.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>
-      </section>
-      ${renderRelatedItems(ctx, loopRelatedItemIds(current, sample))}
-      <section>
-        <h2>${escapeHtml(ctx.L.loopOpenHeading)}</h2>
-        <p>${escapeHtml(ctx.L.loopOpenBody)}</p>
-        <a class="cta" href="${escapeHtml(buildShareUrl(appPagePath(), sample.snapshot))}">${escapeHtml(ctx.L.loopOpenCta(content.title))}</a>
-      </section>
-    </article>`
-  return renderDocument(
-    {
-      locale: ctx.locale,
-      title,
-      description,
-      canonicalPath: path,
-      alternates: alternatesOf((locale) => articlePagePath(sample.id, locale)),
-      ogType: 'article',
-      ogImage: articleSocialImage(sample.id, ctx.locale),
-      publishedTime: PUBLISHED_DATE,
-      structuredData: articleSchema(ctx, path, content.headline, description, breadcrumbId),
-    },
-    body,
-  )
-}
-
-function renderArticlesIndex(ctx: Ctx): string {
-  const title = pageTitle(ctx, ctx.L.articlesIndexTitle)
-  const description = ctx.L.articlesIndexDescription
-  const path = articlesIndexPath(ctx.locale)
-  const handwritten = handwrittenArticles.map((article) => localizedArticle(ctx, article))
-  const loops = loopSamples.map((sample) => ({
-    slug: sample.id,
-    category: sample.category,
-    content: loopContent(ctx, sample),
-  }))
-  const handwrittenList = handwritten
-    .map((article) => articleCard(ctx, article))
-    .join('')
-  const loopSections = LOOP_ARTICLE_GROUPS.map((group) => {
-    const list = loops
-      .filter((loop) => loop.category === group.category)
-      .map((loop) =>
-        articleCard(ctx, {
-          slug: loop.slug,
-          title: loop.content.headline,
-          description: loop.content.description,
-        }),
-      )
-      .join('')
-    return `<section>
-      <h2>${escapeHtml(group.heading(ctx.L))}</h2>
-      <ul class="article-list article-list--cards">${list}</ul>
-    </section>`
-  }).join('\n    ')
-  const articleEntries = [
-    ...handwritten.map((article) => ({ title: article.title, slug: article.slug })),
+  // å·®ãŒç„¡ã„ã¨ãã¯å‡ºã•ãªã„ï¼ˆæ—¢å­˜ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã®è¡¨ã¯å¤‰ã‚ã‚‰ãªYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬×¾ò$(€½¹ÍĞ‰…Í•±¥¹••¹•É…Ñ½ÉÌ€ô‰…Í•±¥¹”¹Á½İ•É•¹•É…Ñ¥½¸ü¹Ñ½Ñ…±•¹•É…Ñ½É½Õ¹Ğ€üü€À(€½¹ÍĞÕÉÉ•¹Ñ•¹•É…Ñ½ÉÌ€ôÕÉÉ•¹Ğ¹Á½İ•É•¹•É…Ñ¥½¸ü¹Ñ½Ñ…±•¹•É…Ñ½É½Õ¹Ğ€üü€À(€½¹ÍĞ•¹•É…Ñ½ÉI½Ü€ô(€€€‰…Í•±¥¹••¹•É…Ñ½ÉÌ€ôôôÕÉÉ•¹Ñ•¹•É…Ñ½ÉÌ(€€€€€€ü€œœ(€€€€€€è€ñÑÈø(€€€€ñÑø‘í•Í…Á•!Ñµ°¡Ñà¹0¹±½½Á•¹•É…Ñ½É½Õ¹Ğ¥ôğ½Ñø(€€€€ñÑ±…ÍÌô‰¹Õ´ˆø‘í•Í…Á•!Ñµ°¡Ñà¹0¹±½½Á	Õ¥±‘¥¹½Õ¹Ğ¡Ñà¹™µÑ%¹Ñ••È¡‰…Í•±¥¹••¹•É…Ñ½ÉÌ¤¤¥ôƒŠH€‘í•Í…Á•!Ñµ°¡Ñà¹0¹±½½Á	Õ¥±‘¥¹½Õ¹Ğ¡Ñà¹™µÑ%¹Ñ••È¡ÕÉÉ•¹Ñ•¹•É…Ñ½ÉÌ¤¤¥ôğ½Ñø(€€€€ñÑ±…ÍÌô‰¹Õ´ˆø‘í•Í…Á•!Ñµ°¡½Õ¹Ñ¡…¹”¡Ñà°‰…Í•±¥¹••¹•É…Ñ½ÉÌ°ÕÉÉ•¹Ñ•¹•É…Ñ½ÉÌ¤¥ôğ½Ñø(€€ğ½ÑÈù€(€½¹ÍĞ‰…Í•±¥¹•	åÁÉ½‘ÕÑÌ€ô¹•Ü5…À¡‰…Í•±¥¹”¹‰åÁÉ½‘ÕÑÌ¹µ…À ¡•¹ÑÉä¤€ôøm•¹ÑÉä¹¥Ñ•´°•¹ÑÉä¹É…Ñ•A•É5¥¹t¤¤(€½¹ÍĞÕÉÉ•¹Ñ	åÁÉ½‘ÕÑÌ€ô¹•Ü5…À¡ÕÉÉ•¹Ğ¹‰åÁÉ½‘ÕÑÌ¹µ…À ¡•¹ÑÉä¤€ôøm•¹ÑÉä¹¥Ñ•´°•¹ÑÉä¹É…Ñ•A•É5¥¹t¤¤(€½¹ÍĞ‰åÁÉ½‘ÕÑI½İÌ€ôl¸¸¹¹•ÜM•Ğ¡l¸¸¹‰…Í•±¥¹•	åÁÉ½‘ÕÑÌ¹­•åÌ ¤°€¸¸¹ÕÉÉ•¹Ñ	åÁÉ½‘ÕÑÌ¹­•åÌ ¥t¥t¹™±…Ñ5…À (€€€€¡¥Ñ•µ%¤€ôøì(€€€€€½¹ÍĞ‰…Í•±¥¹•I…Ñ”€ô‰…Í•±¥¹•	åÁÉ½‘ÕÑÌ¹•Ğ¡¥Ñ•µ%¤€üü€À(€€€€€½¹ÍĞÕÉÉ•¹ÑI…Ñ”€ôÕÉÉ•¹Ñ	åÁÉ½‘ÕÑÌ¹•Ğ¡¥Ñ•µ%¤€üü€À(€€€€€¥˜€¡5…Ñ ¹…‰Ì¡‰…Í•±¥¹•I…Ñ”€´ÕÉÉ•¹ÑI…Ñ”¤€ğô€À¸ÀÀÔ¤É•ÑÕÉ¸mt(€€€€€½¹ÍĞ¡…¹”€ô(€€€€€€€‰…Í•±¥¹•I…Ñ”€ğô€À¸ÀÀÔ(€€€€€€€€€€üÑà¹0¹±½½Á¡…¹•ÁÁ•…ÉÌ(€€€€€€€€€€èÕÉÉ•¹ÑI…Ñ”€ğô€À¸ÀÀÔ(€€€€€€€€€€€€üÑà¹0¹±½½Á¡…¹•½¹”(€€€€€€€€€€€€è½Õ¹Ñ¡…¹”¡Ñà°‰…Í•±¥¹•I…Ñ”°ÕÉÉ•¹ÑI…Ñ”¤(€€€€€É•ÑÕÉ¸l(€€€€€€€€ñÑÈø(€€€€€€€€ñÑø‘íÑà¹0¹±½½Á	åÁÉ½‘ÕÑ1•™Ğ¡¥Ñ•µ1¥¹¬¡Ñà°¥Ñ•µ%¤¥ôğ½Ñø(€€€€€€€€ñÑ±…ÍÌô‰¹Õ´ˆø‘íÑà¹™µÑI…Ñ”¡‰…Í•±¥¹•I…Ñ”¥ôƒŠH€‘íÑà¹™µÑI…Ñ”¡ÕÉÉ•¹ÑI…Ñ”¥ô€‘í•Í…Á•!Ñµ°¡É…Ñ•U¹¥Ğ¡Ñà°¥Ñ•µ%¤¥ôğ½Ñø(€€€€€€€€ñÑ±…ÍÌô‰¹Õ´ˆø‘í•Í…Á•!Ñµ°¡¡…¹”¥ôğ½Ñø(€€€€€€ğ½ÑÈù€°(€€€€€t(€€€ô°(€€¤(€½¹ÍĞ¥¹ÑÉ¼€ô(€€€‰…Í•±¥¹•Q¥Ñ±”€ôôôÕ¹‘•™¥¹•(€€€€€€üÑà¹0¹±½½Á½µÁ…É¥Í½¹%¹ÑÉ¼(€€€€€€èÑà¹0¹±½½ÁMÑ…•½µÁ…É¥Í½¹%¹ÑÉ¼¡‰…Í•±¥¹•Q¥Ñ±”¤(€É•ÑÕÉ¸€ñÀø‘í•Í…Á•!Ñµ°£Í5¶‰ËkºwµçRÀ¢F—3¢wV–FRçF—2À¢âââ†wV–FRæ6—&7VÆF–öäÖVæ–ærÓÓÒVæFVf–æV@¢ò·Ğ¢¢²6—&7VÆF–öäÖVæ–æs¢wV–FRæ6—&7VÆF–öäÖVæ–ærÒ’À¢Ğ§Ğ ¦gVæ7F–öâ&VæFW%vFW$6—&7VÆF–öâ†7Gƒ¢7G‚Â6öçFVçC¢Æö÷6öçFVçBÂ6öÇWF–öã¢6öÇWF–öâ“¢7G&–ær°¢–b†6öçFVçBæ6—&7VÆF–öäÖVæ–ærÓÓÒVæFVf–æVB’&WGW&ârp¢6öç7BvFW$'•&V6—RÒæWrÖÇ7G&–ærÂçVÖ&W#â‚¢f÷"†6öç7B7FWöb6öÇWF–öâç7FW2’°¢6öç7B&öGV6VEvFW"Ò7FWæ÷WGWG0¢æf–ÇFW"‚†÷WGWB’Óâ÷WGWBæ—FVÒÓÓÒtFW65õvFW%ô2r¢ç&VGV6R‚‡7VÒÂ÷WGWB’Óâ7VÒ²÷WGWBç&FUW$Ö–âÂ¢–b‡&öGV6VEvFW"ÃÒãR’6öçF–çVP¢6öç7B&V6—TæÖRÒ7FWç&V6—TæÖU¶7G‚æÆö6ÆUĞ¢vFW$'•&V6—Rç6WB‡&V6—TæÖRÂ‡vFW$'•&V6—RævWB‡&V6—TæÖR’óò’²&öGV6VEvFW"¢Ğ¢6öç7BF÷FÅvFW"Ò²ââçvFW$'•&V6—RçfÇVW2‚•Òç&VGV6R‚‡7VÒÂ&FR’Óâ7VÒ²&FRÂ¢6öç7B'&V¶F÷vâÒ²ââçvFW$'•&V6—UĞ¢æÖ€¢…·&V6—TæÖRÂ&FUÒ’Óà¢ÆÆ“âG¶W66T‡FÖÂ‡&V6—TæÖR—Ó¢Ç7â6Æ73Ò&çVÒ#âG¶7G‚æf×E&FR‡&FR—ÒG¶W66T‡FÖÂ†7G‚çV’çVæ—G2æ7V&–4ÖWFW'5W$Ö–çWFR—ÓÂ÷7ããÂöÆ“æÀ¢¢æ¦ö–â‚rr¢&WGW&âÇ6V7F–öãà¢Æƒ#âG¶W66T‡FÖÂ†7G‚äÂæÆö÷6—&7VÆF–öä†VF–ær—ÓÂöƒ#à¢ÇâG¶W66T‡FÖÂ†6öçFVçBæ6—&7VÆF–öäÖVæ–ær—ÓÂ÷à¢G°¢F÷FÅvFW"ÃÒãP¢òrp¢¢Ç6Æ73Ò&'F–6ÆRÖæ÷FR#âG¶W66T‡FÖÂ†7G‚äÂæÆö÷&WW6VEvFW"—Ó¢Ç7â6Æ73Ò&çVÒ#âG¶7G‚æf×E&FR‡F÷FÅvFW"—ÒG¶W66T‡FÖÂ†7G‚çV’çVæ—G2æ7V&–4ÖWFW'5W$Ö–çWFR—ÓÂ÷7ããÂ÷à¢Æƒ3âG¶W66T‡FÖÂ†7G‚äÂæÆö÷6—&7VÆF–öä'&V¶F÷vâ—ÓÂöƒ3ãÇVÃâG¶'&V¶F÷vçÓÂ÷VÃæ ¢Ğ¢Â÷6V7F–öãæ §Ğ ¦gVæ7F–öâ&VæFW$Æö÷'F–6ÆR†7Gƒ¢7G‚ÂVçG'“¢6öÇfVDÆö÷'F–6ÆR“¢7G&–ær°¢6öç7B²6×ÆRÂ7W'&VçBÂ&6VÆ–æRÒÒVçG'¢6öç7B6öçFVçBÒÆö÷6öçFVçB†7G‚Â6×ÆR¢6öç7BF‚Ò'F–6ÆUvUF‚‡6×ÆRæ–BÂ7G‚æÆö6ÆR¢6öç7BF—FÆRÒvUF—FÆR†7G‚Â6öçFVçBæ†VFÆ–æR¢6öç7BFW67%š®x§‚ÚîÆ­yÚ.¶›­¢¸ Šv¥¶‰Ê.İ´ÓTèµ©hºÚn¶X§zÍZ\[ÛˆHİ“›ÛÜ\ØÜš\[ÛŠÛÛ[™\ØÜš\[Û‹Y]K™Ø[YU™\œÚ[ÛŠBˆÛÛœİœ™XYÜ[X’YH	Ü]HØœ™XYÜ[X˜ˆÛÛœİÚ\˜İ[][ÛˆH™[™\•Ø]\Ú\˜İ[][ÛŠİÛÛ[İ\œ™[
+BˆÛÛœİ˜\Ù[[™TØ[\HHÛÜ˜\Ù[[™TØ[\JØ[\JBˆÛÛœİ˜\Ù[[™U]HBˆ˜\Ù[[™TØ[\HOOH[™Yš[™YÈ[™Yš[™YˆÛÜÛÛ[
+İ˜\Ù[[™TØ[\JK]BˆÛÛœİÛÛ\\š\ÛÛˆBˆ˜\Ù[[™HOOH[™Yš[™YˆÈ‰Ù\ØØ\R[
+İ“›ÛÜİ\œ™[[“›İJ_OÜ‰Ü™[™\İ\œ™[[“Y]šXÜÊİİ\œ™[
+_IÜ™[™\”˜]Ô™\Ûİ\˜ÙUX›Jİİ\œ™[
+_Xˆˆ	Ü™[™\˜\Ù[[™PÛÛ\\š\ÛÛŠİİ\œ™[˜\Ù[[™K˜\Ù[[™U]J_OÏ‰Ù\ØØ\R[
+İ“›ÛÜ[\]T™\Ûİ\˜Ù\ÒXY[™Ê_OÚÏ‰Ü™[™\”˜]Ô™\Ûİ\˜ÙUX›Jİİ\œ™[
+_XˆÛÛœİÛÛ\\š\ÛÛ’XY[™ÈBˆ˜\Ù[[™HOOH[™Yš[™YˆÈİ“›ÛÜ™\İ[XY[™Âˆˆ˜\Ù[[™U]HOOH[™Yš[™YˆÈİ“›ÛÜÛÛ\\š\ÛÛ’XY[™Âˆˆİ“›ÛÜİYÙPÛÛ\\š\ÛÛ’XY[™Ê˜\Ù[[™U]JBˆÛÛœİ›ÙHH	Ü™[™\œ™XYÜ[XœÊˆÂˆÈX™[ˆİ“šÛYK™Yˆ[™[™ÔYÙT]
+İ›ØØ[JHKˆÈX™[ˆİZK™›Ûİ\‹˜\XÛ\Ë™Yˆ\XÛ\Ò[™^]
+İ›ØØ[JHKˆÈX™[ˆÛÛ[šXY[™HKˆKˆİ›ØØ[Kˆ
+_BˆXY\ˆÛ\ÜÏHš\›È‚ˆÛ\ÜÏH™^YXœ›İÈ‰Ù\ØØ\R[
+Ø[\K˜Ø]YÛÜHOOH	ÜİÙ\‰ÈÈİ“œİÙ\‘^YXœ›İÈˆİ“›ÛÜ^YXœ›İÊ_OÜ‚ˆ	Ø\XÛPÛİ™\‘šYİ\™JİØ[\KšY
+_BˆO‰Ù\ØØ\R[
+ÛÛ[šXY[™J_OÚO‚ˆÛ\ÜÏH›XY‰Ù\ØØ\R[
+ÛÛ[™\ØÜš\[ÛŠ_OÜ‚ˆÛ\ÜÏH™\œÚ[Ûˆ‰Ù\ØØ\R[
+İ“›ÛÜX›\ÚY[™JY]K™Ø[YU™\œÚ[Û‹P“TÒQÑUJJ_OÜ‚ˆÚXY\‚ˆ\XÛHÛ\ÜÏH˜\XÛKX›ÙH‚ˆÙXİ[Û‚ˆ‰Ù\ØØ\R[
+İ“›ÛÜ[œÚYÚXY[™Ê_OÚ‚ˆ‰Ù\ØØ\R[
+ÛÛ[šYÚYÚ
+_OÜ‚ˆÜÙXİ[Û‚ˆÙXİ[Û‚ˆ‰Ù\ØØ\R[
+İ“›üÓ[h‘éì¶»§q«^v    ...handwritten.map((article) => ({ title: article.title, slug: article.slug })),
     ...loops.map((loop) => ({ title: loop.content.headline, slug: loop.slug })),
   ]
   const breadcrumbId = `${path}#breadcrumb`
@@ -1967,133 +494,26 @@ function renderArticlesIndex(ctx: Ctx): string {
   return renderDocument(
     {
       locale: ctx.locale,
-      title,
-      description,
-      canonicalPath: path,
-      alternates: alternatesOf((locale) => articlesIndexPath(locale)),
-      ogImage: (() => {
-        const cover = articleIndexCoverFor(ctx.locale)
-        return { url: `${SITE_URL}${cover.src}`, alt: cover.alt, type: 'image/webp' }
-      })(),
-      structuredData,
-    },
-    body,
-  )
-}
-
-// ---------------------------------------------------------------------------
-// å‡ºåŠ›
-// ---------------------------------------------------------------------------
-
-/**
- * sitemap ã®ãƒ‘ã‚¹ã€‚æ—¥æœ¬èªï¼ˆãƒˆãƒƒãƒ—ã¨ãƒ„ãƒ¼ãƒ«æœ¬ä½“ /app/ ã‚’å«ã‚€ï¼‰â†’ è‹±èªãƒŸãƒ©ãƒ¼ã®é †ã€‚
- * ãƒˆãƒƒãƒ—ã¯æ—¥è‹±ã¨ã‚‚é™çš„ãªãƒ©ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ï¼ˆ/ ã¨ /en/ï¼‰ã€‚ãƒ„ãƒ¼ãƒ«æœ¬ä½“ï¼ˆ/app/ï¼‰ã¯1URLã§
- * è¨€èªãŒåˆ‡ã‚Šæ›¿ã‚ã‚‹ã®ã§1å›ã ã‘è¼‰ã›ã‚‹ã€‚
- * ãƒ—ãƒ©ã‚¤ãƒã‚·ãƒ¼ãƒãƒªã‚·ãƒ¼ã¯æ—¥è‹±ã§åˆ¥ãƒ•ã‚¡ã‚¤ãƒ«ï¼ˆpublic/privacy.html ã¨ public/en/privacy.htmlï¼‰
- * ã‚’ç½®ã„ã¦ã„ã‚‹ã®ã§ã€ä¸¡æ–¹ã‚’è¼‰ã›ã‚‹ã€‚URLã¯æ‹¡å¼µå­ãªã—ï¼ˆCloudflare Pages ãŒ 308 ã§æ­£è¦åŒ–ï¼‰ã€‚
- */
-export function localeSitemapPaths(locale: StaticLocale): readonly string[] {
-  return [
-    landingPagePath(locale),
-    // è¨ˆç”»ãƒ„ãƒ¼ãƒ«æœ¬ä½“ã¯è¨€èªã‚’å•ã‚ãš1URLã€‚æ—¥æœ¬èªå´ã®ä¸¦ã³ã«1å›ã ã‘è¼‰ã›ã‚‹
-    ...(locale === 'ja' ? [appPagePath()] : []),
-    privacyPagePath(locale),
-    aboutPagePath(locale),
-    itemsIndexPath(locale),
-    ...items.map((item) => itemUrl(item.id, locale)),
-    articlesIndexPath(locale),
-    ...articleSlugs.map((slug) => articlePagePath(slug, locale)),
-  ]
-}
-
-export function sitemapPaths(): readonly string[] {
-  return STATIC_LOCALES.flatMap((locale) => localeSitemapPaths(locale))
-}
-
-export function renderSitemap(paths: readonly string[]): string {
-  const urls = paths
-    .map(
-      (path) => `  <url>
-    <loc>${escapeHtml(`${SITE_URL}${path}`)}</loc>
-  </url>`,
-    )
-    .join('\n')
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
-</urlset>
-`
-}
-
-async function writeHtml(filePath: string, html: string): Promise<void> {
-  await mkdir(resolve(filePath, '..'), { recursive: true })
-  await writeFile(filePath, html, 'utf8')
-}
-
-/** ãã®ãƒ­ã‚±ãƒ¼ãƒ«ã®å‡ºåŠ›å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªï¼ˆja ã¯æ—¢å­˜URLã®ã¾ã¾ãƒ«ãƒ¼ãƒˆç›´ä¸‹ï¼‰ã€‚ */
-function localeDirectory(output: string, locale: StaticLocale): string {
-  return locale === 'ja' ? output : resolve(output, locale)
-}
-
-export async function generateStaticPages(outputDirectory: string): Promise<StaticPagesManifest> {
-  const output = resolve(outputDirectory)
-  await mkdir(output, { recursive: true })
-
-  // æ•°å€¤ã¯è¨€èªã«ä¾å­˜ã—ãªã„ã®ã§ã€ã‚½ãƒ«ãƒãƒ¼ã¯å…¨ãƒ­ã‚±ãƒ¼ãƒ«åˆ†ã¾ã¨ã‚ã¦1å›ã ã‘å›ã™ã€‚
-  const solvedLoops = await solveLoopArticles()
-
-  for (const locale of STATIC_LOCALES) {
-    const ctx = createContext(locale)
-    const directory = localeDirectory(output, locale)
-    await Promise.all([
-      // ãƒˆãƒƒãƒ—ï¼ˆ/ ã¨ /en/ï¼‰ã€‚ãƒ„ãƒ¼ãƒ«æœ¬ä½“ï¼ˆ/app/ï¼‰ã¯ vite ãŒå‡ºã™ã®ã§ã€ã“ã“ã§ã¯è§¦ã‚‰ãªã„
-      writeHtml(
-        resolve(directory, 'index.html'),
-        locale === 'ja' ? renderJaLandingPage(ctx) : renderEnLandingPage(ctx),
-      ),
-      writeHtml(resolve(directory, 'about/index.html'), renderAboutPage(ctx)),
-      writeHtml(resolve(directory, 'items/index.html'), renderItemIndex(ctx)),
-      ...items.map((item) =>
-        writeHtml(
-          resolve(directory, 'items', itemSlug(item.id), 'index.html'),
-          renderItemPage(ctx, item),
-        ),
-      ),
-      writeHtml(resolve(directory, 'articles/index.html'), renderArticlesIndex(ctx)),
-      ...handwrittenArticles.map((article) =>
-        writeHtml(
-          resolve(directory, 'articles', article.slug, 'index.html'),
-          renderHandwrittenArticle(ctx, article),
-        ),
-      ),
-      ...solvedLoops.map((entry) =>
-        writeHtml(
-          resolve(directory, 'articles', entry.sample.id, 'index.html'),
-          renderLoopArticle(ctx, entry),
-        ),
-      ),
-    ])
-  }
-
-  const paths = sitemapPaths()
-  await Promise.all([
-    writeFile(resolve(output, 'static-pages.css'), STATIC_PAGE_CSS, 'utf8'),
-    writeFile(resolve(output, 'sitemap.xml'), renderSitemap(paths), 'utf8'),
-  ])
-
-  return {
-    itemSlugs: itemSlugValues,
-    articleSlugs,
-    urls: paths.map((path) => `${SITE_URL}${path}`),
-    locales: STATIC_LOCALES,
-  }
-}
-
-const entryFile = process.argv[1]
-if (entryFile !== undefined && resolve(entryFile) === fileURLToPath(import.meta.url)) {
-  const manifest = await generateStaticPages(resolve('dist'))
-  console.log(
-    `[build-pages] ${manifest.locales.join('/')}: ${manifest.itemSlugs.length} item pages and ` +
-      `${manifest.articleSlugs.length} article pages per locale, ${manifest.urls.length} sitemap URLs`,
-  )
-}
+      titlYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×ŸzN‹Z–‹­¦ëeŠw¬Õ”°(€€€€€‘•ÍÉ¥ÁÑ¥½¸°(€€€€€…¹½¹¥…±A…Ñ èÁ…Ñ °(€€€€€…±Ñ•É¹…Ñ•Ìè…±Ñ•É¹…Ñ•Í=˜ ¡±½…±”¤€ôø…ÉÑ¥±•Í%¹‘•áA…Ñ ¡±½…±”¤¤°(€€€€€½%µ…”è€  ¤€ôøì(€€€€€€€½¹ÍĞ½Ù•È€ô…ÉÑ¥±•%¹‘•á½Ù•É½È¡Ñà¹±½…±”¤(€€€€€€€É•ÑÕÉ¸ìÕÉ°è€‘íM%Q}UI1ô‘í½Ù•È¹ÍÉõ€°…±Ğè½Ù•È¹…±Ğ°ÑåÁ”è€¥µ…”½İ•‰Àœô(€€€€€ô¤ ¤°(€€€€€ÍÑÉÕÑÕÉ•‘…Ñ„°(€€€ô°(€€€‰½‘ä°(€€¤)ô((¼¼€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´(¼¼ƒ–ë–*l(¼¼€´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´((¼¨¨(€¨Í¥Ñ•µ…Àƒ»G
+çš^—šr³¢ª{¾ò##_£ó¯šr³’öL€½…ÁÀ¼ƒ
+K–B¯
+¾ò'ŠHƒ¢.Ç¢ª{§ó»¦‚(€¨ƒ#_¿š^—¢.Ç£
+¦vgj«§Ï
+Ï
+Ã¾ò ¼ƒ €½•¸¿¾ò'ó¯šr³’öO¾ò ½…ÁÀ¿¾ò'¼ÅUI3œ(€¨ƒ¢¢¢ª{3–"
++šnÿ
+?
+/»œÇ–n{ƒG¢ò'o
+/(€¨ƒ_§
+“C
+ßów«
+ßó¿š^—¢.ÇŸ–"—W
+‡
+“¯¾ò!ÁÕ‰±¥Œ½ÁÉ¥Ù…ä¹¡Ñµ°ƒ ÁÕ‰±¥Œ½•¸½ÁÉ¥Ù…ä¹¡Ñµ³¾ò$(€¨ƒ
+Kö»›
+/»Ÿ’â‡šZç
+K¢ò'o
+/	UI3¿š.‡–ò×–¶C«_¾ò!±½Õ‘™±…É”A…•Ìƒ0€ÌÀàƒŸš¶¢š?–2[¾ò'(€¨¼)•áÁ½ÉĞ™Õ¹Ñ¥½¸±½…±•M¥Ñ•µ…ÁA…Ñ¡Ì¡±½…±”èMÑ…Ñ¥1½…±”¤èÉ•…‘½¹±äÍÑÉ¥¹mtì(€É•ÑÕÉ¸l(€€€±…¹‘¥¹A…•A…Ñ ¡±½…±”¤°(€€€€¼¼ƒ¢¢#Rïó¯šr³’öO¿¢¢¢ª{
+K–V?
+?hÅUI3š^—šr³¢ª{–Ó»’â›Ï¬Ç–n{ƒG¢ò'o
+,(€€€€¸¸¸¡±½…±”€ôôô€©„œ€üm…ÁÁA…•A…Ñ  ¥t€èmt¤°(€€€ÁÉ¥Ù…åA…•A…Ñ ¡±½…±”¤°(€€€…‰½ÕÑA…•A…Ñ ¡±½…±”¤°(€€€¥Ñ•µÍ%¹‘•áA…Ñ ¡±½…±”¤°(€€€€¸¸¹¥Ñ•µÌ¹µ…À ¡¥Ñ•´¤€ôø¥Ñ•µUÉ°¡¥Ñ•´¹¥°±½…±”¤¤°(€€€…ÉÑ¥±•Í%¹‘•áA…Ñ ¡±½…±”¤°(€€€€¸¸¹…ÉÑ¥±•M±ÕÌ¹µ…À ¡Í±Õœ¤€ôø…ÉÑ¥±•A…•A…Ñ ¡Í±Õœ°±½…±”¤¤°(€t)ô()•áÁ½ÉĞ™Õ¹Ñ¥½¸Í¥Ñ•µ…ÁA…Ñ¡Ì ¤èÉ•…‘½¹±äÍÑÉ¥¹mtì(€É•ÑÕÉ¸MQQ%}1=1L¹™±…Ñ5…À ¡±½…±”¤€ôø±½…±•M¥Ñ•µ…ÁA…Ñ¡Ì¡±½…±”¤¤)ô()•áÁ½ÉĞ™Õ¹Ñ¥½¸É•¹‘•ÉM¥Ñ•µ…À¡Á…Ñ¡ÌèÉ•…‘½¹±äÍÑÉ¥¹mt¤èÍÑÉ¥¹œì(€½¹ÍĞÕÉ±Ì€ôÁ…Ñ¡Ì(€€€€¹µ…À (€€€€€€¡Á…Ñ ¤€ôø€€€ñÕÉ°ø(€€€€ñ±½Œø‘í•Íz¶‰Ëkºwµç{È8òf—FR8ÎX{®88î8~88>8>8~8şŠzn8(8®8@¢w&—FT‡FÖÂ€¢&W6öÇfR†F—&V7F÷'’Âv–æFW‚æ‡FÖÂr’À¢Æö6ÆRÓÓÒv¦rò&VæFW$¦ÆæF–æuvR†7G‚’¢&VæFW$VäÆæF–æuvR†7G‚’À¢’À¢w&—FT‡FÖÂ‡&W6öÇfR†F—&V7F÷'’Âv&÷WBö–æFW‚æ‡FÖÂr’Â&VæFW$&÷WEvR†7G‚’’À¢w&—FT‡FÖÂ‡&W6öÇfR†F—&V7F÷'’Âv—FV×2ö–æFW‚æ‡FÖÂr’Â&VæFW$—FVÔ–æFW‚†7G‚’’À¢ââæ—FV×2æÖ‚†—FVÒ’Óà¢w&—FT‡FÖÂ€¢&W6öÇfR†F—&V7F÷'’Âv—FV×2rÂ—FVÕ6ÇVr†—FVÒæ–B’Âv–æFW‚æ‡FÖÂr’À¢&VæFW$—FVÕvR†7G‚Â—FVÒ’À¢’À¢’À¢w&—FT‡FÖÂ‡&W6öÇfR†F—&V7F÷'’Âv'F–6ÆW2ö–æFW‚æ‡FÖÂr’Â&VæFW$'F–6ÆW4–æFW‚†7G‚’’À¢ââæ†æGw&—GFVä'F–6ÆW2æÖ‚†'F–6ÆR’Óà¢w&—FT‡FÖÂ€¢&W6öÇfR†F—&V7F÷'’Âv'F–6ÆW2rÂ'F–6ÆRç6ÇVrÂv–æFW‚æ‡FÖÂr’À¢&VæFW$†æGw&—GFVä'F–6ÆR†7G‚Â'F–6ÆR’À¢’À¢’À¢ââç6öÇfVDÆö÷2æÖ‚†VçG'’’Óà¢w&—FT‡FÖÂ€¢&W6öÇfR†F—&V7F÷'’Âv'F–6ÆW2rÂVçG'’ç6×ÆRæ–BÂv–æFW‚æ‡FÖÂr’À¢&VæFW$Æö÷'F–6ÆR†7G‚ÂVçG'’’À¢’À¢’À¢Ò¢Ğ ¢6öç7BF‡2Ò6—FVÖF‡2‚¢v—B&öÖ—6RæÆÂ…°¢w&—FTf–ÆR‡&W6öÇfR†÷WGWBÂw7FF–2×vW2æ772r’Â5DD”5õtUô552ÂwWFc‚r’À¢w&—FTf–ÆR‡&W6öÇfR†÷WGWBÂw6—FVÖç†ÖÂr’Â&VæFW%6—FVÖ‡F‡2’ÂwWFc‚r’À¢Ò ¢&WGW&â°¢—FVÕ6ÇVw3¢—FVÕ6ÇVufÇVW2À¢'F–6ÆU6ÇVw2À¢W&Ç3¢F‡2æÖ‚‡F‚’ÓâGµ4•DUõU$ÇÒG·F‡Ö’À¢Æö6ÆW3¢5DD”5ôÄô4ÄU2À¢Ğ§Ğ ¦6öç7BVçG'”f–ÆRÒ&ö6W72æ&we³Ğ¦–b†VçG'”f–ÆRÓÒVæFVf–æVBbb&W6öÇfR†VçG'”f–ÆR’ÓÓÒf–ÆUU$ÅFõF‚†–×÷'BæÖWFçW&Â’’°¢6öç7BÖæ–fW7BÒv—BvVæW&FU7FF–5vW2‡&W6öÇfR‚vF—7Br’¢6öç6öÆRæÆör€¢¶'V–ÆB×vW5ÒG¶Öæ–fW7BæÆö6ÆW2æ¦ö–â‚ròr—Ó¢G¶Öæ–fW7Bæ—FVÕ6ÇVw2æÆVæwF‡Ò—FVÒvW2æB°¢G¶Öæ–fW7Bæ'F–6ÆU6ÇVw2æÆVæwF‡Ò'F–6ÆRvW2W"Æö6ÆRÂG¶Öæ–fW7BçW&Ç2æÆVæwF‡Ò6—FVÖU$Ç6À¢§Ğ 
