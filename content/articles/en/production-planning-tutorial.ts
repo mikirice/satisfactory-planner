@@ -4,36 +4,53 @@ export const productionPlanningTutorialArticleEn = {
   slug: 'production-planning-tutorial',
   title: 'Your First Production Plan — A Guided Tour of the Planner',
   description:
-    'Enter a target rate in the Satisfactory production planner, read the resources, buildings, power and flow it returns, then save, share and export the plan to Excel.',
+    'Follow the current planner from adding a target and adjusting conditions through the six result tabs, then save, share or export the plan.',
   sections: [
     {
-      heading: 'Enter your first target',
+      heading: 'Open a sample or add one target',
       paragraphs: [
-        'The planner works backwards from one question: what do you want to produce, and how much of it per minute? From that it derives the recipes, buildings, raw resources, power and logistics you need. You do not have to understand every setting on the first run — add a single target in Planner mode and read what comes back.',
-        'Type an item name into the output targets and pick it from the suggestions, then set a rate per minute. Ask for 60 Iron Plate per minute, for example, and the smelting and constructing steps that cover exactly that rate are recalculated for you. If you cannot settle on a number, switch the target to maximize and the planner returns the largest amount your resource limits allow. Only one item can be maximized at a time.',
+        'To get familiar with the screen, open “Your First Iron Plate Line” from the sample list. To start with your own factory, search for an item under output targets, select it, then enter a rate per minute in the row that appears. For example, request 60 Iron Plate/min. You cannot select an item that is absent from the suggestions. If that item is already a target, edit its existing row instead of adding a duplicate. Changing an input makes the planner solve again.',
+        'Usually you specify the amount you want to make. If you do not know the amount yet, select Maximize for that row to calculate the largest output allowed by the resource limits you set. Only one item can be maximized at a time. If no result appears or the plan is infeasible, review the requested rate, resource limits and enabled recipes.',
+      ],
+    },
+    {
+      heading: 'Adjust only the conditions you need',
+      paragraphs: [
+        'For a first comparison, leave the objective at its default and inspect the result before changing several settings at once. Switching objectives can change the chosen recipes and machine layout for the same target. Enable only alternate recipes you can use, and enter materials supplied by another factory or your stock in the “Items already available” list as a rate per minute. The plan may use only part of an available supply, so check the amount actually used in the summary.',
+        'The sidebar lets you adjust resource limits, the manufacturing clock cap, miner and extraction clock, and belt and pipe choices. Open Resources as well to inspect miner assignments, node purity and extraction power. Belt and pipe choices affect the displayed transport requirements. This is a steady recipe-flow calculation; it does not simulate inventory, physical belt or pipe routing, head lift, or temporary startup conditions in the game.',
       ],
     },
     {
       heading: 'Read the six result tabs',
       paragraphs: [
-        'Results are split across six tabs: Summary, Production steps, Resources, Item balance, Flowchart and Build list. Summary gives you output against target, power, building count, construction cost and an approximate footprint. Production steps shows each recipe, running-machine equivalents, the number of machines to place, clock speed and flows. Resources lists the extraction requirement and miner allocation; Item balance shows production, consumption and surplus; Flowchart draws the links between steps. Build list is the field checklist: it orders buildings by dependency and shows the recipe, machine count and transport requirement. Use Summary to size the factory, Production steps to inspect the process and Build list while you place it.',
+        'Start with Summary for output against target, the clock-adjusted power range, building counts, approximate footprint, byproducts and Sink points. Production steps groups recipes by machine type and shows running-machine equivalents, machines to build, clock speeds, and input and output rates. A plan with power generation also has a display-only option to hide generator steps.',
+        'Resources is where you check the required rate, share of the map limit, extractor and node allocation by purity. Item balance compares production, consumption, outside supply and the difference for each item. Flowchart draws the links between steps. The final tab, Build list, presents extraction and water, production, then power in that section order. Use Summary to size the plan, balance and steps to diagnose it, and Build list when you are ready to place machines.',
       ],
     },
     {
-      heading: 'Adjust the planning conditions',
+      heading: 'Walk through the 60 Iron Plate/min sample',
       paragraphs: [
-        'Use the objective to steer the layout. Minimizing resources weights scarce raw materials more heavily and keeps extraction down, minimizing power favours a lower factory draw, and minimizing buildings favours fewer machines running. Enable only the alternate recipes you have actually unlocked and the planner solves again with those candidates included. Intermediates shipped in from another factory belong in the list of items you already have, where they are consumed before anything is mined. Setting a resource limit to zero lets you look for a layout that avoids that resource entirely.',
+        'The “Your First Iron Plate Line” sample targets 60 Iron Plate/min with no alternate recipes. Compare requested and produced output in Summary, then follow the recipes and counts from Iron Ore to Iron Ingots to Iron Plates in Production steps. Check that the ore and intermediate rates line up in Resources and Item balance, trace the route in Flowchart, and then open Build list. Changing the target rate or alternate recipes changes the required machines, so recalculate for your own conditions instead of copying the sample counts blindly.',
       ],
     },
     {
-      heading: 'Move on to power, logistics and saving',
+      heading: 'Save or share the inputs and take the result with you',
       paragraphs: [
-        'To design power as well, pick the generator types and fuels, then set a target in MW or ask the plan to cover the factory’s own consumption. The belt and pipe you select under logistics never change the solution itself; they only decide how many lines each flow needs. Finished inputs can be saved in your browser, and a share URL lets someone else recalculate the same conditions on their own machine. Once a plan is solved, you can export it to Excel.',
-        'Start by opening the plan for 60 Iron Plate per minute and changing the target rate to match your own factory.',
+        'In the Plans panel, name a plan and save it in the browser, then load it from the saved list. Share creates a URL containing the current input conditions and tries to copy it. The recipient recalculates those conditions in their own environment, so a share URL is not a copy of the calculated output tables. In the Excel export panel, enter a plan name and download the workbook. Export is available when there is an optimal solution and no calculation is running; an error appears in the panel if workbook creation fails.',
+        'Recipe values come from the data version bundled with the planner. When checking for a difference from the game, consult the version and source record shown with the result; do not assume an unverified game version has matching values.',
       ],
     },
   ],
+  references: {
+    heading: 'Implementation and data references',
+    links: [
+      { label: 'Result tabs and their rendering', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/src/ui/ResultView.tsx' },
+      { label: 'Target input and defaults', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/src/ui/TargetsPanel.tsx' },
+      { label: 'Data version and source record', href: 'https://github.com/mikirice/satisfactory-planner/blob/48e5e7192ef51978eac6e3cb96b122aa37db32df/data-source/DATA_SOURCES.md' },
+    ],
+  },
   relatedItemIds: ['Desc_IronPlate_C', 'Desc_IronIngot_C'],
+  relatedArticleSlugs: ['build-checklist-guide', 'excel-export-guide'],
   cta: {
     kind: 'sample',
     label: 'Open the sample plan for 60 Iron Plate/min',
