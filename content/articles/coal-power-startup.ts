@@ -56,27 +56,27 @@ export const coalPowerStartupArticle = {
         href: 'https://www.satisfactorygame.com/press/',
       },
       {
-        label: 'Official press-kit screenshot: coal.jpg (2020)',
+        label: '公式Press Kit掲載画像: coal.jpg（2020年）',
         href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view',
       },
       {
-        label: 'Satisfactory Wiki: Coal-Powered Generator',
+        label: 'Satisfactory Wiki: 石炭発電機（英語）',
         href: 'https://satisfactory.wiki.gg/wiki/Coal_generator',
       },
       {
-        label: 'Satisfactory Wiki: Power',
+        label: 'Satisfactory Wiki: 電力（英語）',
         href: 'https://satisfactory.wiki.gg/wiki/Electricity',
       },
       {
-        label: 'Official Satisfactory Update 4 announcement (2021)',
+        label: '公式Satisfactory Update 4の告知（2021年・英語）',
         href: 'https://store.steampowered.com/news/posts/?appids=526870&enddate=1624027272&feed=steam_community_announcements',
       },
       {
-        label: 'Planner game-data provenance and version notes',
+        label: 'プランナーのゲームデータ出典・版情報（英語）',
         href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md',
       },
       {
-        label: 'Coal Power Tutorial — Satisfactory Guru (startup and pipe-layout comparison)',
+        label: 'Coal Power Tutorial — Satisfactory Guru（始動手順・配管比較、英語）',
         href: 'https://satisfactory.guru/articles/read/index/id/6/name/Coal%2BPower%2BTutorial',
       },
     ],
