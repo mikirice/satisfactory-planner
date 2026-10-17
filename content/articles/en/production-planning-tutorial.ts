@@ -14,9 +14,9 @@ export const productionPlanningTutorialArticleEn = {
       ],
     },
     {
-      heading: 'Read the five result tabs',
+      heading: 'Read the six result tabs',
       paragraphs: [
-        'Results are split across five tabs. Summary gives you output against target, power draw once clock speeds are applied, building count, construction cost and an approximate footprint. Production steps lists every recipe with its machine equivalent, the number of machines you actually build, the clock speed and the inputs and outputs. Resources covers what has to be extracted, including miners and node counts by purity; item balance shows production, consumption and surplus for every intermediate; the flowchart draws the connections between steps. The quickest route is to size up the factory in the summary, then read production steps and resources as your build sheet.',
+        'Results are split across six tabs: Summary, Production steps, Resources, Item balance, Flowchart and Build list. Summary gives you output against target, power, building count, construction cost and an approximate footprint. Production steps shows each recipe, running-machine equivalents, the number of machines to place, clock speed and flows. Resources lists the extraction requirement and miner allocation; Item balance shows production, consumption and surplus; Flowchart draws the links between steps. Build list is the field checklist: it orders buildings by dependency and shows the recipe, machine count and transport requirement. Use Summary to size the factory, Production steps to inspect the process and Build list while you place it.',
       ],
     },
     {
