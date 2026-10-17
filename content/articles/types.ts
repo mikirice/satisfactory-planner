@@ -2,6 +2,15 @@ export type ArticleSection = {
   readonly heading: string
   readonly paragraphs: readonly string[]
   readonly tables?: readonly ArticleTable[]
+  readonly illustration?: ArticleIllustration
+  readonly illustrations?: readonly ArticleIllustration[]
+}
+
+export type ArticleIllustration = {
+  readonly src: string
+  readonly alt: string
+  readonly caption: string
+  readonly creditLinks?: readonly { readonly label: string; readonly href: string }[]
 }
 
 export type ArticleTable = {
