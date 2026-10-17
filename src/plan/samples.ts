@@ -288,31 +288,37 @@ export const SAMPLE_PLANS: readonly SamplePlan[] = [
   {
     id: 'packaged-diluted-fuel-loop',
     category: 'special',
-    title: 'パッケージ希釈燃料の容器ループ',
-    description: '燃料 120/min。水を容器に詰め、希釈後に空容器を回収して再利用する。',
-    titleEn: 'Packaged {{Desc_LiquidFuel_C}} Canister Loop',
+    title: '容器入り希釈燃料の循環',
+    description:
+      '燃料 120 m³/min。水 120 m³/min と廃重油 60 m³/min から作り、空キャニスターを 120個/min で循環させる。',
+    titleEn: 'Packaged Diluted Fuel Canister Loop',
     descriptionEn:
-      '120/min of {{Desc_LiquidFuel_C}}. Package {{Desc_Water_C}}, then recover and reuse the empty canisters after dilution.',
-    highlight: '空の容器が水の包装工程へ戻る線に注目。',
+      '120 m³/min of {{Desc_LiquidFuel_C}} from 120 m³/min {{Desc_Water_C}} and 60 m³/min {{Desc_HeavyOilResidue_C}}, with 120 canisters/min circulating.',
+    highlight:
+      '水の包装機へ戻る空キャニスターの線がポイントです。このページの容器入り希釈燃料は、混合機で作る液体の希釈燃料とは別レシピです。',
     icon: 'Desc_Fuel_C',
     hasCycle: true,
     guide: {
       sections: {
         mechanism: [
-          '原油から廃重油を取り出し、空の容器へ水を詰めます。',
-          '廃重油と容器入りの水から「希釈された容器入り燃料」を作ります。',
-          '容器から燃料を取り出すと、空の容器が戻ります。',
-          '空の容器を水の包装工程へ戻し、同じ容器を繰り返し使います。',
+          '代替: 廃重油を使うと、原油 45 m³/min から廃重油 60 m³/min とポリマー樹脂 30個/min ができます。',
+          '充填機2台で水 120 m³/min と空キャニスター 120個/min を包装済み水 120個/min にします。',
+          '精製機2台の代替: 容器入り希釈燃料が、廃重油 60 m³/min と包装済み水 120個/min から包装済み燃料 120個/min を作ります。',
+          '充填機2台で包装済み燃料を未包装化すると、液体燃料 120 m³/min と空キャニスター 120個/min が戻ります。空キャニスターを水の包装機へ返すと、定常運転の正味消費は 0個/min です。',
+          '混合機の代替レシピ「希釈燃料」は廃重油 5 m³ と水 10 m³ から、6秒で液体燃料 10 m³ を作ります。120 m³/minなら必要な水・廃重油量はこの例と同じで、包装・未包装化の工程はありません。',
+          '100%クロック、オーバークロックなしなら、容器ループは精製機2台（廃重油用1台を50%）、容器入り希釈燃料用2台、充填機4台の計8台です。液体の希釈燃料は上流を含め計4台（精製機2台、混合機2台）です。',
         ],
         tips: [
-          '起動前に、最初の1周ぶんの空の容器を手動投入してください。',
-          '循環後は容器を作り続ける必要がないため、容器の供給ベルトを切り離せるようにします。',
+          '初回は2台の水包装機へ空キャニスターを2個ずつ入れると、1バッチ分（計4個）を開始できます。実機ではベルトや機械内の余裕を見て、予備も投入してください。',
+          '水包装機の入力へ空キャニスターの返却ベルトをつなぎ、起動用の供給ベルトは循環が回った後に切り離せるようにします。',
+          '生産が止まったら、未包装燃料の出力から空キャニスターが返っているか、包装済み水が希釈工程へ届いているかを順に確認します。ポリマー樹脂 30/min の搬出先も確保してください。',
+          'この定常計算はPlannerに収録した1.1.xゲームデータによるものです。出典と版判定: https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md 。起動在庫やベルト・配管の満たし具合はソルバーに含まれず、Update 1.2のレシピ値は未照合です。',
         ],
       },
     },
     snapshot: {
       ...DEFAULTS,
-      n: 'パッケージ希釈燃料の容器ループ',
+      n: '容器入り希釈燃料の循環',
       t: [['Desc_LiquidFuel_C', 120]],
       a: ['Recipe_Alternate_HeavyOilResidue_C', 'Recipe_Alternate_DilutedPackagedFuel_C'],
     },
