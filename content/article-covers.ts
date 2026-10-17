@@ -18,9 +18,25 @@ type CoverDefinition = {
 export const ARTICLE_COVERS = {
   'production-planning-tutorial': {
     alt: {
-      ja: '工場設備と素材を並べた生産計画のイラスト',
-      en: 'Editorial illustration of factory equipment and materials for production planning',
+      ja: 'Satisfactory公式Press Kitの核廃棄物ドラムを搬送するベルトと流量表示',
+      en: 'Conveyor throughput readouts beside nuclear-waste drums in the official Satisfactory Press Kit',
     },
+    caption: {
+      ja: '公式Press Kitの実ゲーム画像です。表示はゲーム内ベルトの流量で、Plannerの画面や記事内の計算結果ではありません。',
+      en: 'Real gameplay image from the official Press Kit. The readouts show in-game belt throughput, not the Planner interface or a result from this article.',
+    },
+    creditLinks: {
+      ja: [{ href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view', label: 'Satisfactory公式Press Kit' }],
+      en: [{ href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view', label: 'Official Satisfactory Press Kit' }],
+    },
+    badge: { ja: 'ゲーム画像', en: 'Game screenshot' },
+    localizedSrc: {
+      ja: '/article-covers/production-planning-tutorial-official.webp',
+      en: '/article-covers/production-planning-tutorial-official.webp',
+    },
+    width: 1280,
+    height: 720,
+    type: 'image/webp',
   },
   'alternate-recipe-metrics': {
     alt: {
