@@ -36,6 +36,15 @@ export const oilProductsBasicsArticleEn = {
     },
     {
       heading: 'Choose a residue outlet by power and Water supply',
+      illustration: {
+        src: '/article-images/official-straight-pipes-1.1.jpg',
+        alt: 'A pipe scene from the official Update 1.1 Satisfactory Press Kit. Its HUD is from the older UI and is not a current walkthrough or the 60 m³/min crude-oil layout in this guide.',
+        caption: 'A pipe-network screenshot from the official Update 1.1 Press Kit. The HUD and control prompts show the older UI and are not current instructions. It provides general fluid-routing context, not the 60 m³/min recipe chain or Heavy Oil Residue result in this article.',
+        creditLinks: [
+          { label: 'Official Satisfactory Press & Content Creators page', href: 'https://www.satisfactorygame.com/press/' },
+          { label: 'Original image (official Press Kit)', href: 'https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view' },
+        ],
+      },
       paragraphs: [
         'Compare three common destinations for the 30 m³/min of Heavy Oil Residue from the 20 Plastic/min and 20 Rubber/min block. The power figures below are gross output from burning only that byproduct; upstream production power is separate.',
         'Diluted Fuel is an alternate recipe: a Blender turns 50 m³/min of Heavy Oil Residue and 100 m³/min of Water into 100 m³/min of Fuel. Scaling it to 30 m³/min of residue takes 60 m³/min of Water and returns 60 m³/min of Fuel. That is 0.6 of a 75 MW Blender, or 45 MW. If you have not unlocked the alternate, start with Residual Fuel or Petroleum Coke.',

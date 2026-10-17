@@ -15,6 +15,15 @@ export const productionPlanningTutorialArticleEn = {
     },
     {
       heading: 'Adjust only the conditions you need',
+      illustration: {
+        src: '/article-images/production-planning-throughput-display-update-1-1.png',
+        alt: 'Satisfactory belt throughput counters showing examples of 14, 24, 195 and 200 items per minute. This is not the Planner interface.',
+        caption: 'An in-game throughput display from official Update 1.1 Press Kit material. It provides context for the difference between live transport and the Planner’s steady recipe-flow calculation; it is not the Iron Plate sample or a result from this article.',
+        creditLinks: [
+          { label: 'Official Satisfactory Press & Content Creators page', href: 'https://www.satisfactorygame.com/press/' },
+          { label: 'Original image (official Press Kit)', href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view' },
+        ],
+      },
       paragraphs: [
         'For a first comparison, leave the objective at its default and inspect the result before changing several settings at once. Switching objectives can change the chosen recipes and machine layout for the same target. Enable only alternate recipes you can use, and enter materials supplied by another factory or your stock in the “Items already available” list as a rate per minute. The plan may use only part of an available supply, so check the amount actually used in the summary.',
         'The sidebar lets you adjust resource limits, the manufacturing clock cap, miner and extraction clock, and belt and pipe choices. Open Resources as well to inspect miner assignments, node purity and extraction power. Belt and pipe choices affect the displayed transport requirements. This is a steady recipe-flow calculation; it does not simulate inventory, physical belt or pipe routing, head lift, or temporary startup conditions in the game.',

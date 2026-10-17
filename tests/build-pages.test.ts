@@ -56,6 +56,26 @@ const handwrittenArticles: readonly HandwrittenArticle[] = handwrittenArticlesCo
 let outputDirectory = ''
 let manifest: StaticPagesManifest
 
+async function jpegDimensions(filePath: string): Promise<{ width: number; height: number }> {
+  const bytes = await readFile(filePath)
+  if (bytes[0] !== 0xff || bytes[1] !== 0xd8) throw new Error(`not a JPEG: ${filePath}`)
+  const sofMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf])
+  let offset = 2
+  while (offset < bytes.length) {
+    if (bytes[offset] !== 0xff) throw new Error(`invalid JPEG marker at ${offset}: ${filePath}`)
+    while (bytes[offset] === 0xff) offset += 1
+    const marker = bytes[offset]
+    offset += 1
+    if (marker === 0xd8 || marker === 0xd9 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue
+    const segmentLength = bytes.readUInt16BE(offset)
+    if (sofMarkers.has(marker)) {
+      return { height: bytes.readUInt16BE(offset + 3), width: bytes.readUInt16BE(offset + 5) }
+    }
+    offset += segmentLength
+  }
+  throw new Error(`JPEG dimensions not found: ${filePath}`)
+}
+
 beforeAll(async () => {
   outputDirectory = await mkdtemp(join(tmpdir(), 'satisfactory-static-pages-'))
   manifest = await generateStaticPages(outputDirectory)
@@ -265,21 +285,38 @@ describe('記事静的ページ', () => {
     }
   })
 
-  /** 公開日は記事ごとに持てる（省略時はテンプレートの既定日）。日英で同じ日付になる。 */
-  it('記事の公開日を日英とも記事ごとの値で焼き込む', async () => {
+  /** 公開日と更新日は別の実日付として扱い、未知の更新日は付与しない。 */
+  it('公開日を維持し、既知の更新日だけ日英ともdateModifiedへ出す', async () => {
     const expected = new Map(
       handwrittenArticles.map((article) => [article.slug, article.publishedDate ?? '2026-08-14']),
     )
+    const updated = new Map(handwrittenArticles.map((article) => [article.slug, article.updatedDate]))
     for (const slug of articleSlugs) {
       const date = expected.get(slug) ?? '2026-08-14'
       for (const prefix of ['articles', 'en/articles']) {
         const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
         expect(html, `${prefix}/${slug}`).toContain(`"datePublished":"${date}"`)
-        expect(html, `${prefix}/${slug}`).toContain(`"dateModified":"${date}"`)
+        const modifiedDate = updated.get(slug)
+          ?? (slug === 'aluminum-water-loop' ? '2026-10-17' : undefined)
+        if (modifiedDate === undefined) {
+          expect(html, `${prefix}/${slug}`).not.toContain('"dateModified"')
+        } else {
+          expect(html, `${prefix}/${slug}`).toContain(`"dateModified":"${modifiedDate}"`)
+        }
       }
     }
     expect(expected.get('coal-power-startup')).toBe('2026-08-26')
     expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
+    expect(updated.get('motor-production-recipes')).toBe('2026-10-17')
+    for (const slug of ['coal-power-startup', 'production-planning-tutorial', 'oil-products-basics']) {
+      expect(updated.get(slug)).toBe('2026-10-17')
+    }
+    for (const slug of ['aluminum-water-loop']) {
+      for (const prefix of ['articles', 'en/articles']) {
+        const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
+        expect(html, `${prefix}/${slug}`).toContain('"dateModified":"2026-10-17"')
+      }
+    }
   })
 
   it('手書き記事14本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
@@ -792,6 +829,47 @@ describe('記事静的ページ', () => {
     expect(en).toContain('build eight machines')
     expect(en).toContain('steady-state net canister demand zero')
     expect(en).toContain('The solver does not model start-up inventory')
+  })
+
+  it('アルミ水循環の記事にのみ、出典付きの公式配管図版を付ける', async () => {
+    const assetPath = join(process.cwd(), 'public/article-images/official-straight-pipes-1.1.jpg')
+    expect(await jpegDimensions(assetPath)).toEqual({ width: 1920, height: 1080 })
+
+    const aluminumGuide = SAMPLE_PLANS.find((sample) => sample.id === 'aluminum-water-loop')?.guide
+    const aluminumEn = LOOP_GUIDES_EN['aluminum-water-loop']
+    const unusedOilGuide = SAMPLE_PLANS.find((sample) => sample.id === 'oil-loop-complete')?.guide
+    const unusedOilEn = LOOP_GUIDES_EN['oil-loop-complete']
+    expect(unusedOilGuide?.illustration).toBeUndefined()
+    expect(unusedOilEn?.illustration).toBeUndefined()
+    for (const image of [aluminumGuide?.illustration, aluminumEn?.illustration]) {
+      expect(image).toBeDefined()
+      expect(image?.src).toBe('/article-images/official-straight-pipes-1.1.jpg')
+      expect(image?.width).toBe(1920)
+      expect(image?.height).toBe(1080)
+      expect(image?.creditLinks.map((link) => link.href)).toEqual([
+        'https://www.satisfactorygame.com/press/',
+        'https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view',
+      ])
+      expect(image?.caption).toMatch(/does not|does not show|示していません|示す画面ではありません/)
+    }
+
+    for (const [locale, prefix] of [['ja', 'articles'], ['en', 'en/articles']] as const) {
+      const aluminum = await readFile(join(outputDirectory, prefix, 'aluminum-water-loop', 'index.html'), 'utf8')
+      expect(aluminum).toContain('<figure class="article-illustration">')
+      expect(aluminum).toContain('<img src="/article-images/official-straight-pipes-1.1.jpg"')
+      expect(aluminum).toContain('width="1920" height="1080" loading="lazy" decoding="async"')
+      expect(aluminum).toContain('https://www.satisfactorygame.com/press/')
+      expect(aluminum).toContain('https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view')
+      expect(aluminum).toContain(locale === 'ja' ? '公式Press Kit' : 'official Press Kit')
+      const oil = await readFile(join(outputDirectory, prefix, 'oil-loop-complete', 'index.html'), 'utf8')
+      expect(oil).not.toContain('/article-images/official-straight-pipes-1.1.jpg')
+      expect(oil).not.toContain('<figure class="article-illustration">')
+      for (const sample of SAMPLE_PLANS.filter((entry) => entry.category !== 'basic' && entry.id !== 'aluminum-water-loop')) {
+        const article = await readFile(join(outputDirectory, prefix, sample.id, 'index.html'), 'utf8')
+        expect(article).not.toContain('/article-images/official-straight-pipes-1.1.jpg')
+        expect(article).not.toContain('<figure class="article-illustration">')
+      }
+    }
   })
 
   it('全記事に最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {

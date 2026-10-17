@@ -14,6 +14,8 @@
  * tests/build-pages.test.ts fails if a loop template has no entry here.
  */
 export type LoopGuideEn = {
+  /** Last article update date for JSON-LD; omit unless the guide was materially revised. */
+  readonly updatedDate?: string
   /** Template name as shown in the CTA and the article index ("Open X in the planner"). */
   readonly title: string
   /** `<h1>` and `<title>` of the article. Written per template so the English reads naturally. */
@@ -27,6 +29,15 @@ export type LoopGuideEn = {
   /** Practical notes for building it in game. */
   readonly tips: readonly string[]
   readonly sources?: readonly { readonly label: string; readonly href: string }[]
+  /** Optional general gameplay context; caption must distinguish it from the exact plan. */
+  readonly illustration?: {
+    readonly src: string
+    readonly width: number
+    readonly height: number
+    readonly alt: string
+    readonly caption: string
+    readonly creditLinks: readonly { readonly label: string; readonly href: string }[]
+  }
   /** Only for byproduct loops: what the circulating fluid means. */
   readonly circulationMeaning?: string
 }
@@ -115,6 +126,7 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
   },
 
   'aluminum-water-loop': {
+    updatedDate: '2026-10-17',
     title: 'Aluminum Ingot Water Loop',
     headline: 'How the Aluminum Refining Water Loop Works and How to Build It',
     description:
@@ -135,6 +147,17 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
     ],
     circulationMeaning:
       'The standard Aluminum Scrap recipe returns 60 m³/min, all of which can be reused by Alumina Solution. The figure below is the circulating amount; it is separate from the 120 m³/min of fresh Water needed at steady state.',
+    illustration: {
+      src: '/article-images/official-straight-pipes-1.1.jpg',
+      width: 1920,
+      height: 1080,
+      alt: 'Official gameplay screenshot showing multiple fluid pipes crossing a factory.',
+      caption: 'A general pipe-routing example from the official Press Kit. The image does not depict aluminum production or this guide’s water-return circuit.',
+      creditLinks: [
+        { label: 'Press & Content Creators', href: 'https://www.satisfactorygame.com/press/' },
+        { label: 'Original image: straight-pipes.jpg', href: 'https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view' },
+      ],
+    },
   },
 
   'packaged-diluted-fuel-loop': {
