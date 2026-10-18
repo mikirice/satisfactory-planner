@@ -1496,7 +1496,18 @@ const ARTICLE_GENRE_IDS: readonly ArticleGenreId[] = [
 ]
 
 /** 現在の記事データのタイトル・説明から複数ジャンルを割り当てる。新しい記事も自動で分類する。 */
-function articleGenreIds(text: string, sampleCategory?: string): readonly ArticleGenreId[] {
+const ARTICLE_GENRES_BY_SLUG: Readonly<Record<string, readonly ArticleGenreId[]>> = {
+  'conveyor-throughput-monitor-guide': ['production'],
+  'priority-merger-use-cases-guide': ['optimization'],
+  'space-elevator-project-assembly-batch-planning-guide': ['planner', 'production'],
+  'dimensional-depot-refill-guide': ['factory'],
+  'hypertube-junction-routing-guide': ['factory'],
+}
+
+function articleGenreIds(text: string, sampleCategory?: string, slug?: string): readonly ArticleGenreId[] {
+  if (slug !== undefined && ARTICLE_GENRES_BY_SLUG[slug] !== undefined) {
+    return ARTICLE_GENRES_BY_SLUG[slug]
+  }
   const value = text.toLocaleLowerCase()
   const genres: ArticleGenreId[] = []
   const add = (id: ArticleGenreId) => {
@@ -1577,6 +1588,7 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       (section) => `<section>
         <h2>${escapeHtml(section.heading)}</h2>
         ${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+        ${(section.lists ?? []).map((list) => `<${list.ordered ? 'ol' : 'ul'}>${list.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</${list.ordered ? 'ol' : 'ul'}>`).join('')}
         ${(section.illustrations ?? (section.illustration ? [section.illustration] : [])).map((illustration) => `<figure class="article-illustration"><img src="${escapeHtml(illustration.src)}" alt="${escapeHtml(illustration.alt)}" width="1280" height="720" loading="lazy" decoding="async"><figcaption>${escapeHtml(illustration.caption)}${illustration.creditLinks?.length ? `<span class="article-illustration__credits">${illustration.creditLinks.map((link) => `<a href="${escapeHtml(link.href)}" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`).join(' · ')}</span>` : ''}</figcaption></figure>`).join('')}
         ${(section.tables ?? []).map((table) => `<div class="table-wrap"><table class="comparison-table">${table.caption ? `<caption>${escapeHtml(table.caption)}</caption>` : ''}<thead><tr>${table.headers.map((header) => `<th scope="col">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${table.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('')}
       </section>`,
@@ -1606,11 +1618,11 @@ function renderHandwrittenArticle(ctx: Ctx, source: HandwrittenArticle): string 
       ${references}
       ${renderRelatedItems(ctx, article.relatedItemIds)}
       ${renderRelatedArticles(ctx, source.relatedArticleSlugs)}
-      <section>
+      ${article.cta === undefined ? '' : `<section>
         <h2>${escapeHtml(ctx.L.tryInPlannerHeading)}</h2>
         <p>${escapeHtml(ctx.L.tryInPlannerBody)}</p>
         <a class="cta" href="${escapeHtml(articleCtaHref(ctx, article.cta))}">${escapeHtml(article.cta.label)}</a>
-      </section>
+      </section>`}
     </article>`
   return renderDocument(
     {
@@ -2054,7 +2066,7 @@ function renderArticlesIndex(ctx: Ctx): string {
       const english = handwrittenArticlesEnBySlug.get(article.slug)
       return articleCard(ctx, {
         ...article,
-        genreIds: articleGenreIds([article.slug, article.title, english?.title].join(' ')),
+        genreIds: articleGenreIds([article.slug, article.title, english?.title].join(' '), undefined, article.slug),
       })
     })
     .join('')

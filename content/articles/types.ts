@@ -1,6 +1,7 @@
 export type ArticleSection = {
   readonly heading: string
   readonly paragraphs: readonly string[]
+  readonly lists?: readonly { readonly ordered: boolean; readonly items: readonly string[] }[]
   readonly tables?: readonly ArticleTable[]
   readonly illustration?: ArticleIllustration
   readonly illustrations?: readonly ArticleIllustration[]
@@ -64,5 +65,5 @@ export type HandwrittenArticle = {
   readonly updatedDate?: string
   /** Article-specific game-version scope when the page explains a newer mechanic than the Planner's bundled dataset. */
   readonly versionNotice?: string
-  readonly cta: ArticleCta
+  readonly cta?: ArticleCta
 }

@@ -29,6 +29,12 @@ import { factoryFloorAreaArticleEn } from './factory-floor-area.ts'
 import { fluidTruckDeliveryArticleEn } from './fluid-truck-delivery.ts'
 import { vehiclePathsArticleEn } from './vehicle-paths.ts'
 import { powerConnectorDaisyChainArticleEn } from './power-connector-daisy-chain.ts'
+import { conveyor_throughput_monitor_guide_enArticle } from './conveyor-throughput-monitor-guide.ts'
+import { priority_merger_use_cases_guide_enArticle } from './priority-merger-use-cases-guide.ts'
+import { space_elevator_project_assembly_batch_planning_guide_enArticle } from './space-elevator-project-assembly-batch-planning-guide.ts'
+import { dimensional_depot_refill_guide_enArticle } from './dimensional-depot-refill-guide.ts'
+import { hypertube_junction_routing_guide_enArticle } from './hypertube-junction-routing-guide.ts'
+
 
 export const handwrittenArticlesEn = [
   productionPlanningTutorialArticleEn,
@@ -49,6 +55,11 @@ export const handwrittenArticlesEn = [
   fluidTruckDeliveryArticleEn,
   vehiclePathsArticleEn,
   powerConnectorDaisyChainArticleEn,
+  conveyor_throughput_monitor_guide_enArticle,
+  priority_merger_use_cases_guide_enArticle,
+  space_elevator_project_assembly_batch_planning_guide_enArticle,
+  dimensional_depot_refill_guide_enArticle,
+  hypertube_junction_routing_guide_enArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(

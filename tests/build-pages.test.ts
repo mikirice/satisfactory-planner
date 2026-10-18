@@ -52,6 +52,13 @@ import { escapeHtml, GA_MEASUREMENT_ID } from '../scripts/static-pages/templates
  * テストでは共通の型で見る。
  */
 const handwrittenArticles: readonly HandwrittenArticle[] = handwrittenArticlesConst
+const FIVE_NEW_GUIDE_SLUGS = [
+  'conveyor-throughput-monitor-guide',
+  'priority-merger-use-cases-guide',
+  'space-elevator-project-assembly-batch-planning-guide',
+  'dimensional-depot-refill-guide',
+  'hypertube-junction-routing-guide',
+] as const
 
 let outputDirectory = ''
 let manifest: StaticPagesManifest
@@ -271,17 +278,19 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き18本とループ10本、および記事indexを生成する', async () => {
+  it('手書き23本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(28)
+    expect(articleSlugs).toHaveLength(33)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
       const html = await readFile(join(outputDirectory, 'articles', slug, 'index.html'), 'utf8')
       expect(html, slug).toContain('"@type":"Article"')
-      expect(html, slug).toContain('class="cta" href="/app/#plan=')
+      const article = handwrittenArticles.find((candidate) => candidate.slug === slug)
+      if (article !== undefined && article.cta === undefined) expect(html, slug).not.toContain('class="cta"')
+      else expect(html, slug).toContain('class="cta" href="/app/#plan=')
     }
   })
 
@@ -319,8 +328,34 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('手書き記事18本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(18)
+  it('追加5テーマは日英本文・出典・ローカライズ表紙を持ち、不要なPlanner CTAを出さない', async () => {
+    for (const slug of FIVE_NEW_GUIDE_SLUGS) {
+      const ja: HandwrittenArticle = handwrittenArticles.find((article) => article.slug === slug)!
+      const en: HandwrittenArticle = handwrittenArticlesEn.find((article) => article.slug === slug)!
+      expect(ja.title, `${slug}/ja`).not.toBe('')
+      expect(en.title, `${slug}/en`).not.toBe('')
+      expect(ja.references?.links.length, `${slug}/ja references`).toBeGreaterThan(0)
+      expect(en.references?.links.length, `${slug}/en references`).toBeGreaterThan(0)
+      expect(ja.versionNotice, `${slug}/ja scope`).toContain('1.1.x')
+      expect(en.versionNotice, `${slug}/en scope`).toContain('1.1.x')
+      expect(ja.cta, `${slug}/ja CTA`).toBeUndefined()
+      expect(en.cta, `${slug}/en CTA`).toBeUndefined()
+      for (const locale of ['ja', 'en'] as const) {
+        const cover = articleCoverFor(slug, locale)
+        expect(cover.width, `${slug}/${locale} cover width`).toBe(1280)
+        expect(cover.height, `${slug}/${locale} cover height`).toBe(720)
+        expect(cover.alt, `${slug}/${locale} cover alt`).not.toBe('')
+        expect(cover.creditLinks?.length, `${slug}/${locale} cover credit`).toBeGreaterThan(0)
+        const prefix = locale === 'ja' ? 'articles' : 'en/articles'
+        const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
+        expect(html, `${slug}/${locale} canonical`).toContain(`<link rel="canonical" href="https://satisfactory-planner.net/${prefix}/${slug}/"`)
+        expect(html, `${slug}/${locale} OG image`).toContain(`content="https://satisfactory-planner.net${cover.src}"`)
+      }
+    }
+  })
+
+  it('手書き記事23本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(23)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -330,7 +365,11 @@ describe('記事静的ページ', () => {
       'miner-rate-by-purity',
     ])
     for (const article of handwrittenArticles) {
-      const length = article.sections.flatMap((section) => section.paragraphs).join('').length
+      const length = article.sections.flatMap((section) => [
+        ...section.paragraphs,
+        ...(section.lists ?? []).flatMap((list) => list.items),
+        ...(section.tables ?? []).flatMap((table) => [...table.headers, ...table.rows.flat()]),
+      ]).join('').length
       expect(length, article.slug).toBeGreaterThanOrEqual(
         longFormSlugs.has(article.slug) ? 1500 : 800,
       )
@@ -384,7 +423,7 @@ describe('記事静的ページ', () => {
   })
 
   it('日英すべての記事で収録データ版とUpdate 1.2未照合を明示する', async () => {
-    expect(articleSlugs).toHaveLength(28)
+    expect(articleSlugs).toHaveLength(33)
     const update12Guides = new Set(['fluid-truck-delivery', 'vehicle-paths', 'power-connector-daisy-chain'])
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
@@ -572,6 +611,8 @@ describe('記事静的ページ', () => {
   it('全記事CTAのhashを警告なしで復元できる', async () => {
     for (const slug of articleSlugs) {
       const html = await readFile(join(outputDirectory, 'articles', slug, 'index.html'), 'utf8')
+      const article = handwrittenArticles.find((candidate) => candidate.slug === slug)
+      if (article !== undefined && article.cta === undefined) continue
       const href = html.match(/class="cta" href="([^"]*#plan=[^"]+)"/)?.[1]
       expect(href, slug).toBeDefined()
       const encoded = readPlanParam(href!.slice(href!.indexOf('#')))
@@ -1017,10 +1058,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 232（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事28）
-    // ＋ 英語 231（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(463)
-    expect(manifest.urls).toHaveLength(463)
+    // 日本語 237（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事33）
+    // ＋ 英語 236（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(473)
+    expect(manifest.urls).toHaveLength(473)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -1242,14 +1283,18 @@ describe('英語ミラーの生成', () => {
       handwrittenArticles.map((article) => article.slug),
     )
     // CTA の飛び先（サンプル / アイテム）は翻訳で変えない
-    for (const [index, article] of handwrittenArticlesEn.entries()) {
-      const source = handwrittenArticles[index]!
-      expect(article.cta.kind, article.slug).toBe(source.cta.kind)
-      expect(article.cta.label, article.slug).not.toBe(source.cta.label)
+    for (const [index, entry] of handwrittenArticlesEn.entries()) {
+      const article: HandwrittenArticle = entry
+      const source: HandwrittenArticle = handwrittenArticles[index]!
+      expect(article.cta === undefined, article.slug).toBe(source.cta === undefined)
+      if (source.cta !== undefined && article.cta !== undefined) {
+        expect(article.cta.kind, article.slug).toBe(source.cta.kind)
+        expect(article.cta.label, article.slug).not.toBe(source.cta.label)
+        expect('minerId' in article.cta ? article.cta.minerId : undefined, article.slug).toBe(
+          'minerId' in source.cta ? source.cta.minerId : undefined,
+        )
+      }
       expect(article.relatedItemIds, article.slug).toEqual(source.relatedItemIds)
-      expect('minerId' in article.cta ? article.cta.minerId : undefined, article.slug).toBe(
-        'minerId' in source.cta ? source.cta.minerId : undefined,
-      )
     }
     const loopSlugs = articleSlugs.filter(
       (slug) => !handwrittenArticles.some((article) => article.slug === slug),
@@ -1400,6 +1445,8 @@ describe('英語ミラーの生成', () => {
 
     for (const slug of articleSlugs) {
       const html = await readFile(join(outputDirectory, 'en/articles', slug, 'index.html'), 'utf8')
+      const article = handwrittenArticles.find((candidate) => candidate.slug === slug)
+      if (article !== undefined && article.cta === undefined) continue
       const href = html.match(/class="cta" href="([^"]*#plan=[^"]+)"/)?.[1]
       expect(href, slug).toBeDefined()
       const encoded = readPlanParam(href!.slice(href!.indexOf('#')))
