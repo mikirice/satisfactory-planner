@@ -41,7 +41,7 @@ export const somersloopAndPowerShardsArticle = {
     links: [
       { label: 'Satisfactory Planner — 収録ゲームデータの取得元と対象版（1.1.x）', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
       { label: 'Satisfactory Planner — クロックとパワーシャードの計算', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/solver/overclock.ts' },
-      { label: 'Satisfactory Planner — Somersloopの出力・電力・台数制約', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/solver/model.ts' },
+      { label: 'Satisfactory Planner — サマースループの出力・電力・台数制約', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/src/solver/model.ts' },
     ],
   },
   cta: {

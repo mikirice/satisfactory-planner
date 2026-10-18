@@ -4,7 +4,7 @@ Four distinct 1280×720 WebP pairs follow the existing cover template. The offic
 
 | Theme | Asset | Visible subject | Source |
 |---|---|---|---|
-| train-replenishment-buffer-planning-guide | Factory.jpg | 工場と鉄道を含む広い工場風景 | [Original image](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
+| train-replenishment-buffer-planning-guide | Factory.jpg | 工場と鉄道を含む広い工場風景 | [Original image](https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view) |
 | finite-biomass-solid-biofuel-yield-guide | productionline.jpg | 製造機が並ぶ生産ライン | [Original image](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
 | fused-modular-frame-nitrogen-pipeline-capacity | straight-pipes.jpg | 複数の流体配管 | [Original image](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
 | heavy-modular-frame-screw-belt-capacity-guide | Throughput display.png | ベルト上の搬送量表示 | [Original image](https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view) |

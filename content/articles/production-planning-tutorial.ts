@@ -19,7 +19,7 @@ export const productionPlanningTutorialArticle = {
       illustration: {
         src: '/article-images/production-planning-throughput-display-update-1-1.png',
         alt: 'Satisfactoryのゲーム内ベルトに表示されたスループットカウンター。14個/分、24個/分、195個/分、200個/分の例が見える。Plannerの画面ではありません。',
-        caption: '公式Press KitのUpdate 1.1素材にある実ゲームの搬送量表示です。定常レシピ収支を計算するPlannerとの違いを示す参考で、この記事の鉄板サンプルや計算結果ではありません。',
+        caption: '公式プレスキットのアップデート1.1素材にある実ゲームの搬送量表示です。定常レシピ収支を計算するPlannerとの違いを示す参考で、この記事の鉄板サンプルや計算結果ではありません。',
         creditLinks: [
           { label: '公式Satisfactory Press & Content Creatorsページ', href: 'https://www.satisfactorygame.com/press/' },
           { label: '元画像（公式Press Kit）', href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view' },
@@ -33,7 +33,7 @@ export const productionPlanningTutorialArticle = {
     {
       heading: '六つの結果タブを順に確かめる',
       paragraphs: [
-        '「サマリー」で目標に対する産出、クロック適用後の電力範囲、設備台数、概算床面積、副産物やSinkポイントをつかみます。「生産ステップ」では機械種別ごとにレシピ、稼働換算台数、建てる台数、クロック、入出力レートを追えます。発電を含む計画では、表示だけ発電工程を隠す切り替えもあります。',
+        '「サマリー」で目標に対する産出、クロック適用後の電力範囲、設備台数、概算床面積、副産物やシンクポイントをつかみます。「生産ステップ」では機械種別ごとにレシピ、稼働換算台数、建てる台数、クロック、入出力レートを追えます。発電を含む計画では、表示だけ発電工程を隠す切り替えもあります。',
         '「原料」は必要量、マップ上限に対する割合、採鉱機と純度別ノード割当を確認する場所です。「アイテム収支」では各アイテムの産出・消費・外部供給と差分を照合します。「フローチャート」は工程間の接続を見る図です。最後の「建設リスト」は採掘・給水、製造、発電の順に設備と搬送レートを読む画面です。サマリーで規模を見てから収支や工程を調べ、現地作業には建設リストへ進むと整理しやすくなります。',
       ],
     },

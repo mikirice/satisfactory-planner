@@ -8,7 +8,7 @@ export const powerGridRecoveryArticle = {
   publishedDate: '2026-10-17',
   updatedDate: '2026-10-17',
   versionNotice:
-    'Plannerのアイテムデータは1.1.xです。Update 1.2での変更有無は未照合で、優先電源スイッチと蓄電の仕様は更新済みOfficial Wikiの索引記述を含みます。',
+    'Plannerのアイテムデータは1.1.xです。アップデート1.2での変更有無は未照合で、優先電源スイッチと蓄電の仕様は更新済み公式Wikiの索引記述を含みます。',
   sections: [
     {
       heading: '停電時の表示と直前の変更を記録する',
@@ -18,9 +18,9 @@ export const powerGridRecoveryArticle = {
       ],
     },
     {
-      heading: 'Priority Power Switchが示す遮断順を読む',
+      heading: '優先電源スイッチが示す遮断順を読む',
       paragraphs: [
-        'Coffee StainのUpdate 8告知では、Priority Power Switchは停電が迫ったとき、設定した優先順位に従って回路区画を切り離し、残った需要が供給に収まるまで負荷を落とす機能として説明されています。Official Satisfactory Wikiの現行索引記述では、未設定の区画が先に切られ、その後はGroup 8からGroup 1へ進みます。発電や燃料生産をGroup 1に置くことも推奨されています。',
+        'Coffee StainのUpdate 8告知では、優先電源スイッチは停電が迫ったとき、設定した優先順位に従って回路区画を切り離し、残った需要が供給に収まるまで負荷を落とす機能として説明されています。公式Wikiの現行索引記述では、未設定の区画が先に切られ、その後はGroup 8からGroup 1へ進みます。発電や燃料生産をGroup 1に置くことも推奨されています。',
         'スイッチは発電量を増やしません。発電、採掘、燃料、水の供給設備がどの回路側につながっているかを配線ごとに確認します。区画を保護する優先順位を設定しただけで、その支援設備が停電中も動くとは限りません。',
       ],
     },
@@ -32,10 +32,10 @@ export const powerGridRecoveryArticle = {
       ],
     },
     {
-      heading: 'Power Storageは有限のバッファとして扱う',
+      heading: '蓄電装置は有限のバッファとして扱う',
       paragraphs: [
-        'Official Satisfactory Wikiの現行索引には、Power Storage 1基あたり100 MWhの容量、最大100 MWの充電、最大放電量Unlimitedが記載されています。蓄電は一時的な発電不足を補う設備ですが、蓄電量は有限です。需要が発電を上回り続ければ、蓄電量は減り、継続する不足は解消できません。',
-        '停電時に使う場合は、停電前の充電状態、対象区画との接続、発電が戻った後の表示変化を確かめます。蓄電容量だけから何分の復旧猶予があるか、Fuseをどう戻せるかは断定できません。',
+        '公式Wikiの現行索引には、蓄電装置 1基あたり100 MWhの容量、最大100 MWの充電、最大放電量制限なしが記載されています。蓄電は一時的な発電不足を補う設備ですが、蓄電量は有限です。需要が発電を上回り続ければ、蓄電量は減り、継続する不足は解消できません。',
+        '停電時に使う場合は、停電前の充電状態、対象区画との接続、発電が戻った後の表示変化を確かめます。蓄電容量だけから何分の復旧猶予があるか、ヒューズをどう戻せるかは断定できません。',
       ],
     },
   ],
@@ -54,7 +54,7 @@ export const powerGridRecoveryArticle = {
   relatedArticleSlugs: ['power-generation-planning', 'coal-power-startup', 'power-connector-daisy-chain'],
   cta: {
     kind: 'item',
-    label: '燃料供給が原因ならCoalの搬送を計画する',
+    label: '燃料供給が原因なら石炭の搬送を計画する',
     itemId: 'Desc_Coal_C',
   },
 } as const satisfies HandwrittenArticle

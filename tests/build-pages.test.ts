@@ -313,9 +313,9 @@ describe('記事静的ページ', () => {
     expect(sitemapPaths()).toContain(`/en/articles/${slug}/`)
     const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
     const en = await readFile(join(outputDirectory, `en/articles/${slug}/index.html`), 'utf8')
-    expect(ja).toContain('完成済みCableの供給量')
-    expect(ja).toContain('WireとCopper Ingotsまで上流需要を展開')
-    expect(ja).toContain('16 Cable/分を内製するなら、追加でWire 32個/分とCopper Ingots 16個/分')
+    expect(ja).toContain('完成済みケーブルの供給量')
+    expect(ja).toContain('ワイヤーと銅のインゴットまで上流需要を展開')
+    expect(ja).toContain('16ケーブル/分を内製するなら、追加でワイヤー32個/分と銅のインゴット16個/分')
     expect(en).toContain('supply of finished Cable')
     expect(en).toContain('through Wire and Copper Ingots')
     expect(en).toContain('16 Cable/min in-house adds 32 Wire/min and 16 Copper Ingots/min')
@@ -421,7 +421,7 @@ describe('記事静的ページ', () => {
       expect(en.references?.links.length, `${slug}/en references`).toBeGreaterThan(0)
       expect(ja.versionNotice, `${slug}/ja scope`).toContain('1.1.x')
       expect(en.versionNotice, `${slug}/en scope`).toContain('1.1.x')
-      expect(ja.versionNotice, `${slug}/ja current-version caveat`).toContain('Update 1.2')
+      expect(ja.versionNotice, `${slug}/ja current-version caveat`).toContain('アップデート1.2')
       expect(en.versionNotice, `${slug}/en current-version caveat`).toContain('Update 1.2')
       expect(ja.cta, `${slug}/ja CTA`).toBeUndefined()
       expect(en.cta, `${slug}/en CTA`).toBeUndefined()
@@ -481,7 +481,7 @@ describe('記事静的ページ', () => {
     expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/satisfactory-factory-general.webp"')
     expect(ja).toContain('一般的な工場風景です。')
     expect(ja).toContain('Satisfactory screenshot © Coffee Stain Studios / 出典：公式Satisfactory Press &amp; Content Creators')
-    expect(ja).toContain('公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。')
+    expect(ja).toContain('公式Satisfactoryプレスキットのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。')
     expect(ja).not.toContain('イメージイラストです。ゲーム画面')
     expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/motor-recipe-inputs-ja.svg"')
     expect(ja).toContain('ゲーム画面ではありません。')
@@ -632,9 +632,9 @@ describe('記事静的ページ', () => {
     expect(coalEn).toContain('https://satisfactory.wiki.gg/wiki/Coal_generator')
     expect(coalJa).toContain('https://store.steampowered.com/news/posts/')
     expect(coalEn).toContain('https://store.steampowered.com/news/posts/')
-    expect(coalJa).toContain('Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。')
+    expect(coalJa).toContain('Satisfactory公式プレスキットの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。')
     expect(coalEn).toContain('Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial.')
-    expect(coalJa).toContain('公式Satisfactory Press Kitのゲーム内画像に記事用の見出しを合成しています。')
+    expect(coalJa).toContain('公式Satisfactoryプレスキットのゲーム内画像に記事用の見出しを合成しています。')
     expect(coalEn).toContain('does not show calculations or a specific machine layout from the guide')
     expect(coalJa).toContain('Satisfactory Wiki: 石炭発電機（英語）')
     expect(coalJa).not.toContain('電力網の負荷が小さければ定格分を常に燃やすわけではありません')
@@ -2753,7 +2753,7 @@ describe('Update 1.2追加ガイド', () => {
         slug: 'vehicle-paths',
         jaTitle: '車両パスで新しい車両ルートを作る',
         enTitle: 'Build a New Vehicle Route with Vehicle Paths',
-        jaProof: 'Build Menu',
+        jaProof: '建設メニュー',
         enProof: 'Transport tab',
         jaGenre: 'data-genres="factory"',
         enGenre: 'data-genres="factory"',
@@ -2762,7 +2762,7 @@ describe('Update 1.2追加ガイド', () => {
         slug: 'power-connector-daisy-chain',
         jaTitle: '電源コネクタのデイジーチェーン入門',
         enTitle: 'Power Connector Daisy Chaining: An Introduction',
-        jaProof: 'Computer 15個',
+        jaProof: 'コンピューター 15個',
         enProof: '15 Computers',
         jaGenre: 'data-genres="power"',
         enGenre: 'data-genres="power"',

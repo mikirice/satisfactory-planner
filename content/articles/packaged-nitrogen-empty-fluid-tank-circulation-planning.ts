@@ -5,7 +5,7 @@ export const packagedNitrogenEmptyFluidTankCirculationPlanningArticle = {
   "title": "包装済み窒素ガス用「空の液体タンク」の循環数を見積もる",
   "description": "包装済み窒素ガスの充填・輸送・開封・返却時間から、循環に必要な空の液体タンク数を見積もります。",
   "publishedDate": "2026-10-19",
-  "versionNotice": "レシピとアイテム名はPlannerの同梱Satisfactory 1.1.xデータに基づきます。Update 1.2との一致と現行UI名は未確認です。",
+  "versionNotice": "レシピとアイテム名はPlannerの同梱Satisfactory 1.1.xデータに基づきます。アップデート1.2との一致と現行UI名は未確認です。",
   "sections": [
     {
       "heading": "包装と開封で使う容器を確認する",
@@ -32,7 +32,7 @@ export const packagedNitrogenEmptyFluidTankCirculationPlanningArticle = {
     {
       "heading": "既存記事との違い",
       "paragraphs": [
-        "既存の包装済み希釈燃料ループ記事は、レシピ収支と毎分120個の容器循環、立ち上げ時の4個を例示します。本稿では容器の全往復時間を実測し、その時間と包装レートから循環在庫を整数個に切り上げて計算します。019の直接配管流量計画やFluid Truck輸送能力の説明とも別の判断です。"
+        "既存の包装済み希釈燃料ループ記事は、レシピ収支と毎分120個の容器循環、立ち上げ時の4個を例示します。本稿では容器の全往復時間を実測し、その時間と包装レートから循環在庫を整数個に切り上げて計算します。019の直接配管流量計画や流体トラック輸送能力の説明とも別の判断です。"
       ]
     }
   ],

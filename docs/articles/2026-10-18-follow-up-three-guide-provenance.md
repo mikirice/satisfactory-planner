@@ -16,6 +16,6 @@ The images were opened and visually inspected from the local sample folder befor
 |---|---|---|---|
 | Freight Platform Loading Diagnosis | [train-buffer-stops.jpg](https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view) | Freight locomotive and rail lines | Does not depict cargo-platform alignment or loading settings. |
 | Pipeline Flow and Head Lift Troubleshooting | [straight-pipes.jpg](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) | In-game fluid pipe network with Update 1.1-era HUD | Not the current interface or the proposed diagnostic. |
-| Smart Splitter Overflow Storage | [Factory.jpg](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) | General factory, conveyors, and production equipment | Does not show Smart Splitter settings or the described storage-to-Sink route. |
+| Smart Splitter Overflow Storage | [Factory.jpg](https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view) | General factory, conveyors, and production equipment | Does not show Smart Splitter settings or the described storage-to-Sink route. |
 
 Each cover is localized separately and exported as a 1280×720 WebP. The `article-covers` image paths are shared by the article hero, article index card, and Open Graph metadata. No cover is represented as proof of the article's exact recipe, flow, route, or settings.
