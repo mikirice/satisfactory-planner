@@ -1,4 +1,5 @@
 import { powerStorageOutageDurationSizingArticleEn } from './power-storage-outage-duration-sizing.ts'
+import { sharedCircuitBoardComputerFeedstockBudgetArticleEn } from './shared-circuit-board-computer-feedstock-budget.ts'
 import { variablePowerPeakLoadPlanningArticleEn } from './variable-power-peak-load-planning.ts'
 import { packagedNitrogenEmptyFluidTankCirculationPlanningArticleEn } from './packaged-nitrogen-empty-fluid-tank-circulation-planning.ts'
 import { sharedQuickwireAllocationArticleEn } from './shared-quickwire-allocation-ai-limiters-high-speed-connectors.ts'
@@ -92,6 +93,7 @@ export const handwrittenArticlesEn = [
   packagedNitrogenEmptyFluidTankCirculationPlanningArticleEn,
   variablePowerPeakLoadPlanningArticleEn,
   powerStorageOutageDurationSizingArticleEn,
+  sharedCircuitBoardComputerFeedstockBudgetArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(
