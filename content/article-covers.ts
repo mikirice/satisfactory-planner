@@ -1232,6 +1232,131 @@ export const ARTICLE_COVERS = {
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
     localizedSrc: { ja: "/article-covers/smart-splitter-overflow-storage-guide-ja.webp", en: "/article-covers/smart-splitter-overflow-storage-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
   },
+    "train-signals-guide": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの駅を走る貨物列車と右側の鉄道信号。記事用の太い見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit scene with a freight train at a station and a rail signal on the right. The bold cover title is editorial."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitの列車・線路・信号が写るゲーム画像を背景にしています。信号の設置例や記事内の交差点構成を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay showing a train, railway, and signal. It is contextual imagery, not a demonstration of the signal layout or junction described in the guide."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/train-signals-guide-ja.webp", "en": "/article-covers/train-signals-guide-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+    "blueprint-designer-workflow": {
+    "alt": {
+      "ja": "Satisfactory公式Press KitのAuto Connectホログラムと工場風景。設計・保存画面ではなく、記事用タイトルを重ねた参考カバー。",
+      "en": "Official Satisfactory Press Kit Auto Connect hologram and factory scene. This contextual cover does not show the Blueprint Designer save screen; the title is editorial."
+    },
+    "caption": {
+      "ja": "公式Press Kit画像をブループリント関連の雰囲気画像として使用しています。Auto Connectの古い操作画面で、Designerの作成・保存フォームや現行UIを示しません。",
+      "en": "Official Press Kit imagery used as a contextual blueprint scene. It is an older Auto Connect capture and does not show the Designer creation/save form or current UI."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/blueprint-designer-workflow-ja.webp", "en": "/article-covers/blueprint-designer-workflow-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+    "blueprint-auto-connect": {
+    "alt": {
+      "ja": "Satisfactory公式Press KitのAuto Connect設置ホログラム、鎖形の接続候補、工場内のBlueprint。太い記事タイトルは編集部による合成。",
+      "en": "Official Satisfactory Press Kit capture of Blueprint Auto Connect mode, a chain-shaped candidate link, and a factory hologram. The bold title is editorial."
+    },
+    "caption": {
+      "ja": "公式Press KitのAuto Connect候補表示が見える参考画像です。古いコントローラー操作画面で、現行UI・日本語表示・配置後の接続成立を示すものではありません。",
+      "en": "Official Press Kit reference image showing an Auto Connect candidate. It is an older controller capture, not evidence of the current UI, Japanese labels, or a completed connection after placement."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/blueprint-auto-connect-ja.webp", "en": "/article-covers/blueprint-auto-connect-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+    "power-grid-recovery": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの送電線と工場設備がある広いゲーム内風景。ヒューズ復旧UIではなく、記事用タイトルを重ねたカバー。",
+      "en": "Broad official Satisfactory Press Kit gameplay scene with power lines and factory equipment. It does not show fuse recovery UI; the title is editorial."
+    },
+    "caption": {
+      "ja": "公式Press Kitの工場画像を電力網の雰囲気画像として使用しています。ヒューズ、優先電源スイッチ、蓄電、復旧操作を示す画面ではありません。",
+      "en": "Official Press Kit factory image used as power-grid context. It does not show a fuse, Priority Power Switch, Power Storage, or a recovery procedure."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/power-grid-recovery-ja.webp", "en": "/article-covers/power-grid-recovery-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+    "hard-drive-mam-workflow": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの探索風景。墜落地点やハードドライブ、MAM画面ではなく、記事用タイトルを重ねたカバー。",
+      "en": "Exploration scene from the official Satisfactory Press Kit. It does not show a crash site, Hard Drive, or MAM screen; the title is editorial."
+    },
+    "caption": {
+      "ja": "公式Press Kitの探索風景を回収手順の雰囲気画像として使用しています。墜落現場、ハードドライブ、スキャナー、MAM UIの実証画像ではありません。",
+      "en": "Official Press Kit exploration scene used as context for recovery steps. It is not evidence of a crash site, Hard Drive, scanner, or MAM UI."
+    },
+    "creditLinks": {
+      "ja": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view", "label": "元画像" }
+      ],
+      "en": [
+        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
+        { "href": "https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view", "label": "Original screenshot" }
+      ]
+    },
+    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
+    "localizedSrc": { "ja": "/article-covers/hard-drive-mam-workflow-ja.webp", "en": "/article-covers/hard-drive-mam-workflow-en.webp" },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
 } as const satisfies Record<string, CoverDefinition>
 
 export type ArticleCover = {

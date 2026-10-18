@@ -64,6 +64,13 @@ const FOLLOWUP_THREE_GUIDE_SLUGS = [
   'pipeline-flow-head-lift-troubleshooting',
   'smart-splitter-overflow-storage-guide',
 ] as const
+const PREPARED_FIVE_GUIDE_SLUGS = [
+  'train-signals-guide',
+  'blueprint-designer-workflow',
+  'blueprint-auto-connect',
+  'power-grid-recovery',
+  'hard-drive-mam-workflow',
+] as const
 
 let outputDirectory = ''
 let manifest: StaticPagesManifest
@@ -283,11 +290,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き26本とループ10本、および記事indexを生成する', async () => {
+  it('手書き31本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(36)
+    expect(articleSlugs).toHaveLength(41)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -296,6 +303,25 @@ describe('記事静的ページ', () => {
       const article = handwrittenArticles.find((candidate) => candidate.slug === slug)
       if (article !== undefined && article.cta === undefined) expect(html, slug).not.toContain('class="cta"')
       else expect(html, slug).toContain('class="cta" href="/app/#plan=')
+    }
+  })
+
+  it('旧準備5テーマは日英本文・出典・1280×720の公式画像カバーを持つ', async () => {
+    for (const slug of PREPARED_FIVE_GUIDE_SLUGS) {
+      const ja: HandwrittenArticle = handwrittenArticles.find((article) => article.slug === slug)!
+      const en: HandwrittenArticle = handwrittenArticlesEn.find((article) => article.slug === slug)!
+      expect(ja.references?.links.length, `${slug}/ja references`).toBeGreaterThan(0)
+      expect(en.references?.links.length, `${slug}/en references`).toBeGreaterThan(0)
+      for (const locale of ['ja', 'en'] as const) {
+        const cover = articleCoverFor(slug, locale)
+        expect(cover.width).toBe(1280)
+        expect(cover.height).toBe(720)
+        expect(cover.creditLinks?.length).toBeGreaterThan(0)
+        const prefix = locale === 'ja' ? 'articles' : 'en/articles'
+        const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
+        expect(html).toContain(`<link rel="canonical" href="https://satisfactory-planner.net/${prefix}/${slug}/`)
+        expect(html).toContain(`content="https://satisfactory-planner.net${cover.src}"`)
+      }
     }
   })
 
@@ -385,8 +411,8 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('手書き記事26本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(26)
+  it('手書き記事31本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(31)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -453,9 +479,15 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('日英すべての記事で収録データ版とUpdate 1.2未照合を明示する', async () => {
-    expect(articleSlugs).toHaveLength(36)
-    const update12Guides = new Set(['fluid-truck-delivery', 'vehicle-paths', 'power-connector-daisy-chain'])
+  it('日英すべての記事で収録データ版とUpdate 1.2の確認範囲を明示する', async () => {
+    expect(articleSlugs).toHaveLength(41)
+    const nonPlannerDataGuides = new Set([
+      'fluid-truck-delivery',
+      'vehicle-paths',
+      'power-connector-daisy-chain',
+      'train-signals-guide',
+      'blueprint-auto-connect',
+    ])
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
       const en = await readFile(join(outputDirectory, `en/articles/${slug}/index.html`), 'utf8')
@@ -463,7 +495,7 @@ describe('記事静的ページ', () => {
         expect(html, slug).toContain('class="version article-data-version-notice"')
         expect(html, slug).toContain('https://www.satisfactorygame.com/')
         expect(html, slug).toContain('Update 1.2')
-        if (update12Guides.has(slug)) {
+        if (nonPlannerDataGuides.has(slug)) {
           expect(html, slug).toContain('Update 1.2')
           expect(html, slug).not.toContain('1.1.x')
         } else {
@@ -1089,10 +1121,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 240（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事36）
-    // ＋ 英語 239（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(479)
-    expect(manifest.urls).toHaveLength(479)
+    // 日本語 245（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事41）
+    // ＋ 英語 244（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(489)
+    expect(manifest.urls).toHaveLength(489)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
