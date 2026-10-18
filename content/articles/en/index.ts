@@ -37,6 +37,11 @@ import { hypertube_junction_routing_guide_enArticle } from './hypertube-junction
 import { freight_platform_loading_diagnosis_enArticle } from './freight-platform-loading-diagnosis.ts'
 import { pipeline_flow_head_lift_troubleshooting_enArticle } from './pipeline-flow-head-lift-troubleshooting.ts'
 import { smart_splitter_overflow_storage_guide_enArticle } from './smart-splitter-overflow-storage-guide.ts'
+import { trainSignalsGuideArticleEn } from './train-signals-guide.ts'
+import { blueprintDesignerWorkflowArticleEn } from './blueprint-designer-workflow.ts'
+import { blueprintAutoConnectArticleEn } from './blueprint-auto-connect.ts'
+import { powerGridRecoveryArticleEn } from './power-grid-recovery.ts'
+import { hardDriveMamWorkflowArticleEn } from './hard-drive-mam-workflow.ts'
 
 
 export const handwrittenArticlesEn = [
@@ -66,6 +71,11 @@ export const handwrittenArticlesEn = [
   freight_platform_loading_diagnosis_enArticle,
   pipeline_flow_head_lift_troubleshooting_enArticle,
   smart_splitter_overflow_storage_guide_enArticle,
+  trainSignalsGuideArticleEn,
+  blueprintDesignerWorkflowArticleEn,
+  blueprintAutoConnectArticleEn,
+  powerGridRecoveryArticleEn,
+  hardDriveMamWorkflowArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(

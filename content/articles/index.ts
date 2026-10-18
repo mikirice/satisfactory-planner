@@ -24,6 +24,11 @@ import { hypertube_junction_routing_guideArticle } from './hypertube-junction-ro
 import { freight_platform_loading_diagnosisArticle } from './freight-platform-loading-diagnosis.ts'
 import { pipeline_flow_head_lift_troubleshootingArticle } from './pipeline-flow-head-lift-troubleshooting.ts'
 import { smart_splitter_overflow_storage_guideArticle } from './smart-splitter-overflow-storage-guide.ts'
+import { trainSignalsGuideArticle } from './train-signals-guide.ts'
+import { blueprintDesignerWorkflowArticle } from './blueprint-designer-workflow.ts'
+import { blueprintAutoConnectArticle } from './blueprint-auto-connect.ts'
+import { powerGridRecoveryArticle } from './power-grid-recovery.ts'
+import { hardDriveMamWorkflowArticle } from './hard-drive-mam-workflow.ts'
 import type { HandwrittenArticle } from './types.ts'
 
 export type {
@@ -61,6 +66,11 @@ export const handwrittenArticles = [
   freight_platform_loading_diagnosisArticle,
   pipeline_flow_head_lift_troubleshootingArticle,
   smart_splitter_overflow_storage_guideArticle,
+  trainSignalsGuideArticle,
+  blueprintDesignerWorkflowArticle,
+  blueprintAutoConnectArticle,
+  powerGridRecoveryArticle,
+  hardDriveMamWorkflowArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']

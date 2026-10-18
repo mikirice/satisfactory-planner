@@ -1,0 +1,57 @@
+import type { HandwrittenArticle } from './types.ts'
+
+export const trainSignalsGuideArticle = {
+  slug: 'train-signals-guide',
+  publishedDate: '2026-10-17',
+  title: '工場間の共有線路を信号で整理する',
+  description:
+    '工場間で線路を共有するときのブロック信号とパス信号の役割、向き、設置エラーの切り分けを公式告知と公式Wikiから整理します。',
+  versionNotice:
+    'この記事はSatisfactory Update 1.2の案内として、Coffee StainのUpdate 5告知で説明された信号の基本と、公式Satisfactory Wikiの現行項目を区別して紹介します。「ブロック信号」「パス信号」は英語UI名 Block Signal / Path Signal の説明用表記です。',
+  sections: [
+    {
+      heading: '信号は線路の共有区間を分ける',
+      paragraphs: [
+        '列車が1編成だけで専用線路を走る場合と、複数編成が同じ線路を使う場合では、信号を考える理由が変わります。Coffee StainのUpdate 5告知では、Block Signal（ブロック信号）は線路を区間に分け、その区間を同時に占有できる列車を1編成に制限するものと説明されています。共有線路で信号を使わない列車は衝突し、脱線する可能性があると同告知は案内しています。',
+        'ここでいうブロックは、信号で区切られた線路区間です。公式Wikiによれば、列車の一部でも区間に入ると占有中になります。信号の設置プレビューにはブロックごとの色が表示されるので、置く前にどの分岐・線路が同じブロックとして扱われるか確認できます。目視で想定した区切りと色分けが違う場合は、そのまま信号を増やす前にレールの接続や交差を見直します。',
+      ],
+    },
+    {
+      heading: 'まずBlock Signalで待機箇所を作る',
+      paragraphs: [
+        '単純な共有線路では、まずBlock Signalで進入区間と次の区間を分けると動作を追いやすくなります。前方のブロックに列車がいれば、そのブロックへ入る信号は赤になり、空いていれば通行できます。駅や直線の待機区間を分ける用途にも使えます。信号は向きのある設備です。線路を双方向で使うなら、走行方向ごとに必要な信号を置き、設置矢印を確かめます。',
+        '配置は一定間隔で機械的に繰り返すより、分岐・合流と列車の待機場所を基準に考えます。公式Wikiはすべての路線に共通する最適ブロック長を定めていません。列車の長さは検討材料の一つですが、特定の間隔なら衝突や渋滞が起きないという保証ではありません。まず短い区間で色分けと待機位置を確認し、長編成を運ぶときは列車全体がどのブロックを占有するかを見ます。',
+      ],
+    },
+    {
+      heading: '交差点ではPath Signalの予約を検討する',
+      paragraphs: [
+        'Path Signal（パス信号）は、列車がブロック内を通る経路を予約する方式です。Update 5告知は、1つ以上のブロックを通る進路を確保し、複数方向の交差点を安全に運行する用途を説明しています。公式Wikiでは、同じ交差点ブロックでも進路が交差しない列車なら同時に進入できる一方、列車は予約した経路を抜けられない場合に進入できないと整理されています。',
+        'すべての交差点にPath Signalが必須という意味ではありません。列車が交差点で競合しない単純な路線はBlock Signalだけで動かせます。複雑な分岐や交通量の多い交差点で経路予約を使うときは、そのブロックへ入る信号の種類をそろえます。公式Wikiが紹介する「path in, block out」は交差点ブロックの入口にPath Signal、出口側にBlock Signalを使う基本形の呼び方です。駅はPath Signalの経路ブロック内に置けないため、駅の位置も色分けで確かめてください。',
+      ],
+    },
+    {
+      heading: '赤・エラー表示から原因を探す',
+      paragraphs: [
+        '自動列車が進まないときは、信号の向き、前方ブロックの占有、次の信号までの接続を順に見ます。エラー表示なら、信号が線路につながっているか、ブロックに出口信号があるか、ブロック入口の信号種類が混在していないかを確認します。Path Signalのブロック内に駅がある場合も配置エラーになります。',
+        '「Signal loops into itself」と表示された場合、必ずしも線路が目に見える輪になっているとは限りません。公式Wikiでは、近接する未接続線路が同じブロックとして扱われることなどを原因例に挙げています。ブロック色のプレビューで問題の信号がどこを区切れているかを調べ、レール同士の近さや交差を見直します。信号を追加し続けるより、まずブロックの境界を正しく理解する方が診断につながります。',
+        'このガイドは各信号の役割と切り分けの観点をまとめたものです。特定の駅配置、すべての交差点に通用する配線図、衝突しないことの保証は示していません。Press Kitのカバー画像は列車・線路・信号が写る場面ですが、記事内の設置例を撮影したものではありません。実際の建設では現行ゲームのブロック表示と信号状態を基準に調整してください。',
+      ],
+    },
+  ],
+  references: {
+    heading: '信号の仕様と設置を確認する資料',
+    links: [
+      { label: 'Coffee Stain Studios: Update 5 announcement — Signaling System', href: 'https://store.steampowered.com/news/posts/?appgroupname=Satisfactory&appids=526870&enddate=1638304636&feed=steam_community_announcements' },
+      { label: 'Official Satisfactory Wiki: Train Signals', href: 'https://satisfactory.wiki.gg/wiki/Train_Signals' },
+      { label: 'プレイヤーの質問例: Block SignalとPath Signal', href: 'https://www.reddit.com/r/SatisfactoryGame/comments/1qh18ms/can_someone_explain_path_block_signals/' },
+    ],
+  },
+  relatedItemIds: [],
+  relatedArticleSlugs: ['vehicle-paths', 'build-checklist-guide'],
+  cta: {
+    kind: 'sample',
+    label: '線路で運ぶ生産ラインの設備数を確認する',
+    sampleId: 'iron-plate',
+  },
+} as const satisfies HandwrittenArticle
