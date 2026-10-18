@@ -59,6 +59,11 @@ const FIVE_NEW_GUIDE_SLUGS = [
   'dimensional-depot-refill-guide',
   'hypertube-junction-routing-guide',
 ] as const
+const FOLLOWUP_THREE_GUIDE_SLUGS = [
+  'freight-platform-loading-diagnosis',
+  'pipeline-flow-head-lift-troubleshooting',
+  'smart-splitter-overflow-storage-guide',
+] as const
 
 let outputDirectory = ''
 let manifest: StaticPagesManifest
@@ -278,11 +283,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き23本とループ10本、および記事indexを生成する', async () => {
+  it('手書き26本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(33)
+    expect(articleSlugs).toHaveLength(36)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -354,8 +359,34 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('手書き記事23本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(23)
+  it('追加3テーマはQA済みの日英本文・出典・公式ゲーム画像カバーを持つ', async () => {
+    for (const slug of FOLLOWUP_THREE_GUIDE_SLUGS) {
+      const ja: HandwrittenArticle = handwrittenArticles.find((article) => article.slug === slug)!
+      const en: HandwrittenArticle = handwrittenArticlesEn.find((article) => article.slug === slug)!
+      expect(ja.references?.links.length, `${slug}/ja references`).toBeGreaterThan(0)
+      expect(en.references?.links.length, `${slug}/en references`).toBeGreaterThan(0)
+      expect(ja.versionNotice, `${slug}/ja scope`).toContain('1.1.x')
+      expect(en.versionNotice, `${slug}/en scope`).toContain('1.1.x')
+      expect(ja.versionNotice, `${slug}/ja current-version caveat`).toContain('Update 1.2')
+      expect(en.versionNotice, `${slug}/en current-version caveat`).toContain('Update 1.2')
+      expect(ja.cta, `${slug}/ja CTA`).toBeUndefined()
+      expect(en.cta, `${slug}/en CTA`).toBeUndefined()
+      for (const locale of ['ja', 'en'] as const) {
+        const cover = articleCoverFor(slug, locale)
+        expect(cover.width, `${slug}/${locale} cover width`).toBe(1280)
+        expect(cover.height, `${slug}/${locale} cover height`).toBe(720)
+        expect(cover.alt, `${slug}/${locale} cover alt`).not.toBe('')
+        expect(cover.creditLinks?.length, `${slug}/${locale} cover credit`).toBeGreaterThan(0)
+        const prefix = locale === 'ja' ? 'articles' : 'en/articles'
+        const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
+        expect(html, `${slug}/${locale} canonical`).toContain(`<link rel="canonical" href="https://satisfactory-planner.net/${prefix}/${slug}/"`)
+        expect(html, `${slug}/${locale} OG image`).toContain(`content="https://satisfactory-planner.net${cover.src}"`)
+      }
+    }
+  })
+
+  it('手書き記事26本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(26)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -423,7 +454,7 @@ describe('記事静的ページ', () => {
   })
 
   it('日英すべての記事で収録データ版とUpdate 1.2未照合を明示する', async () => {
-    expect(articleSlugs).toHaveLength(33)
+    expect(articleSlugs).toHaveLength(36)
     const update12Guides = new Set(['fluid-truck-delivery', 'vehicle-paths', 'power-connector-daisy-chain'])
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
@@ -1058,10 +1089,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 237（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事33）
-    // ＋ 英語 236（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(473)
-    expect(manifest.urls).toHaveLength(473)
+    // 日本語 240（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事36）
+    // ＋ 英語 239（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(479)
+    expect(manifest.urls).toHaveLength(479)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')

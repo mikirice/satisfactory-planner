@@ -1202,6 +1202,36 @@ export const ARTICLE_COVERS = {
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
     localizedSrc: { ja: "/article-covers/hypertube-junction-routing-guide-ja.webp", en: "/article-covers/hypertube-junction-routing-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
   },
+  "freight-platform-loading-diagnosis": {
+    alt: { ja: "Satisfactory公式Press Kitの貨物列車と線路設備。記事用の見出しを重ねたカバー。", en: "Official Satisfactory Press Kit image of a freight locomotive and rail lines, with an editorial cover title." },
+    caption: { ja: "公式Press Kitの貨物列車と線路設備を示す画像です。貨物駅の積み下ろし位置や設定を示すものではありません。", en: "Official Press Kit image showing a freight locomotive and rail lines. It does not depict freight-platform loading positions or settings." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/freight-platform-loading-diagnosis-ja.webp", en: "/article-covers/freight-platform-loading-diagnosis-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
+  "pipeline-flow-head-lift-troubleshooting": {
+    alt: { ja: "Satisfactory公式Press Kitの配管ネットワーク。記事用の見出しを重ねたカバー。", en: "Official Satisfactory Press Kit screenshot of an in-game pipe network, with an editorial cover title." },
+    caption: { ja: "公式Press KitのUpdate 1.1時代の配管画像です。現在のUIや本稿の診断手順を示すものではありません。", en: "Official Press Kit pipe image from the Update 1.1 era. It does not show the current interface or this guide’s diagnostics." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/pipeline-flow-head-lift-troubleshooting-ja.webp", en: "/article-covers/pipeline-flow-head-lift-troubleshooting-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
+  "smart-splitter-overflow-storage-guide": {
+    alt: { ja: "Satisfactory公式Press Kitの工場と製造設備。記事用の見出しを重ねたカバー。", en: "Official Satisfactory Press Kit factory scene used as general logistics context, with an editorial cover title." },
+    caption: { ja: "公式Press Kitの一般的な工場風景です。Smart Splitterの設定や保管庫からSinkへのルートを写した画面ではありません。", en: "General factory context from the official Press Kit. This is not a Smart Splitter settings screen or a storage-to-Sink routing example." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/smart-splitter-overflow-storage-guide-ja.webp", en: "/article-covers/smart-splitter-overflow-storage-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
 } as const satisfies Record<string, CoverDefinition>
 
 export type ArticleCover = {

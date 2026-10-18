@@ -34,6 +34,9 @@ import { priority_merger_use_cases_guide_enArticle } from './priority-merger-use
 import { space_elevator_project_assembly_batch_planning_guide_enArticle } from './space-elevator-project-assembly-batch-planning-guide.ts'
 import { dimensional_depot_refill_guide_enArticle } from './dimensional-depot-refill-guide.ts'
 import { hypertube_junction_routing_guide_enArticle } from './hypertube-junction-routing-guide.ts'
+import { freight_platform_loading_diagnosis_enArticle } from './freight-platform-loading-diagnosis.ts'
+import { pipeline_flow_head_lift_troubleshooting_enArticle } from './pipeline-flow-head-lift-troubleshooting.ts'
+import { smart_splitter_overflow_storage_guide_enArticle } from './smart-splitter-overflow-storage-guide.ts'
 
 
 export const handwrittenArticlesEn = [
@@ -60,6 +63,9 @@ export const handwrittenArticlesEn = [
   space_elevator_project_assembly_batch_planning_guide_enArticle,
   dimensional_depot_refill_guide_enArticle,
   hypertube_junction_routing_guide_enArticle,
+  freight_platform_loading_diagnosis_enArticle,
+  pipeline_flow_head_lift_troubleshooting_enArticle,
+  smart_splitter_overflow_storage_guide_enArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(
