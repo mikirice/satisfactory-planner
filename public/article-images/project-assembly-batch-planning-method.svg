@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="520" viewBox="0 0 1120 520">
+<rect width="1120" height="520" rx="24" fill="#101d16"/>
+<text x="56" y="58" fill="#ff9a3f" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="2">FINITE BATCH → RATE → PARALLEL TIME</text>
+<g font-family="Arial,sans-serif" text-anchor="middle">
+ <g font-size="26" font-weight="700">
+  <rect x="54" y="100" width="190" height="110" rx="14" fill="#24392e" stroke="#ff8a24" stroke-width="3"/><text x="149" y="145" fill="#fff">Qᵢ required</text><text x="149" y="181" fill="#d3dfd6" font-size="18">total parts</text>
+  <text x="267" y="166" fill="#ff8a24" font-size="38">−</text>
+  <rect x="292" y="100" width="190" height="110" rx="14" fill="#24392e" stroke="#6c9076" stroke-width="3"/><text x="387" y="145" fill="#fff">Dᵢ delivered</text><text x="387" y="181" fill="#d3dfd6" font-size="18">already submitted</text>
+  <text x="505" y="166" fill="#ff8a24" font-size="38">−</text>
+  <rect x="530" y="100" width="190" height="110" rx="14" fill="#24392e" stroke="#6c9076" stroke-width="3"/><text x="625" y="145" fill="#fff">Sᵢ reserved</text><text x="625" y="181" fill="#d3dfd6" font-size="18">usable stock</text>
+  <text x="744" y="166" fill="#ff8a24" font-size="38">=</text>
+  <rect x="770" y="100" width="294" height="110" rx="14" fill="#3b2b1d" stroke="#ff8a24" stroke-width="3"/><text x="917" y="145" fill="#fff">Mᵢ to make</text><text x="917" y="181" fill="#ffe0bd" font-size="18">max(0, Qᵢ − Dᵢ − Sᵢ)</text>
+ </g>
+ <path d="M560 229v40" stroke="#ff8a24" stroke-width="4"/><path d="m548 258 12 16 12-16" fill="#ff8a24"/>
+ <rect x="208" y="290" width="300" height="88" rx="14" fill="#24392e" stroke="#6c9076" stroke-width="3"/><text x="358" y="330" fill="#fff" font-size="25" font-weight="700">Rᵢ = Mᵢ ÷ H</text><text x="358" y="360" fill="#d3dfd6" font-size="18">target parts per minute</text>
+ <rect x="612" y="290" width="300" height="88" rx="14" fill="#24392e" stroke="#6c9076" stroke-width="3"/><text x="762" y="330" fill="#fff" font-size="25" font-weight="700">Tᵢ = Mᵢ ÷ Rᵢ</text><text x="762" y="360" fill="#d3dfd6" font-size="18">ideal minutes when Rᵢ &gt; 0</text>
+ <text x="560" y="435" fill="#fff" font-size="23" font-weight="700">Parallel lines: Tphase = max(T₁ … Tₙ)</text>
+ <text x="560" y="475" fill="#ffcf9f" font-size="18">Then check that shared-input supply can meet the combined rate.</text>
+</g></svg>

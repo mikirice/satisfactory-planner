@@ -16,6 +16,11 @@ import { factoryFloorAreaArticle } from './factory-floor-area.ts'
 import { fluidTruckDeliveryArticle } from './fluid-truck-delivery.ts'
 import { vehiclePathsArticle } from './vehicle-paths.ts'
 import { powerConnectorDaisyChainArticle } from './power-connector-daisy-chain.ts'
+import { conveyor_throughput_monitor_guideArticle } from './conveyor-throughput-monitor-guide.ts'
+import { priority_merger_use_cases_guideArticle } from './priority-merger-use-cases-guide.ts'
+import { space_elevator_project_assembly_batch_planning_guideArticle } from './space-elevator-project-assembly-batch-planning-guide.ts'
+import { dimensional_depot_refill_guideArticle } from './dimensional-depot-refill-guide.ts'
+import { hypertube_junction_routing_guideArticle } from './hypertube-junction-routing-guide.ts'
 import type { HandwrittenArticle } from './types.ts'
 
 export type {
@@ -45,6 +50,11 @@ export const handwrittenArticles = [
   fluidTruckDeliveryArticle,
   vehiclePathsArticle,
   powerConnectorDaisyChainArticle,
+  conveyor_throughput_monitor_guideArticle,
+  priority_merger_use_cases_guideArticle,
+  space_elevator_project_assembly_batch_planning_guideArticle,
+  dimensional_depot_refill_guideArticle,
+  hypertube_junction_routing_guideArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']

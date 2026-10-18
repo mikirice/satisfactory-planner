@@ -1150,7 +1150,58 @@ export const ARTICLE_COVERS = {
     "width": 1280,
     "height": 720,
     "type": "image/webp"
-  }
+  },
+
+  "conveyor-throughput-monitor-guide": {
+    alt: { ja: "Satisfactory公式Update 1.1 Press Kitのコンベアリフトと分岐・合流。記事用タイトルを重ねた背景画像。", en: "Satisfactory Update 1.1 Press Kit conveyor lifts and splitter/merger routing, with an editorial article title." },
+    caption: { ja: "公式Update 1.1 Press Kitの搬送経路画像です。スループットモニターや本稿の測定値は写していません。", en: "Official Update 1.1 Press Kit belt-routing context. It does not show a Throughput Monitor or a reading from this guide." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/172p9je6hfBFH_cYsuM2vgN-UlH8CnZ2c/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/172p9je6hfBFH_cYsuM2vgN-UlH8CnZ2c/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/conveyor-throughput-monitor-guide-ja.webp", en: "/article-covers/conveyor-throughput-monitor-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
+  "priority-merger-use-cases-guide": {
+    alt: { ja: "Satisfactory公式Update 1.1 Press KitのPriority Merger設定画面。記事用タイトルが左入力を覆い、右側にCenter/Right Highが見える。", en: "Official Update 1.1 Priority Merger settings screenshot; the editorial title panel masks the left input while Center and Right High remain visible." },
+    caption: { ja: "公式Update 1.1 Press Kitの設定画面です。タイトルパネルは左入力を覆います。例の流れや現行1.2.xを実証する画像ではありません。", en: "Official Update 1.1 settings screenshot. The title panel masks the left input; this is UI context, not a test of example flow or the current 1.2.x client." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1mle940oY6jkYeVbz-vynIvma6mLEd0Wy/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1mle940oY6jkYeVbz-vynIvma6mLEd0Wy/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/priority-merger-use-cases-guide-ja.webp", en: "/article-covers/priority-merger-use-cases-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
+  "space-elevator-project-assembly-batch-planning-guide": {
+    alt: { ja: "Satisfactory公式Press Kitの工場内スクリーンショット。生産設備の雰囲気を示す記事用カバー。", en: "Official Satisfactory Press Kit factory screenshot used as production context for an editorial guide cover." },
+    caption: { ja: "公式Press Kitの工場画像です。特定のProject Assembly必要数・レート・ライン構成を示すものではありません。", en: "Official Press Kit factory screenshot used as production context. It does not depict a specific Project Assembly quota, rate, or line layout." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/space-elevator-project-assembly-batch-planning-guide-ja.webp", en: "/article-covers/space-elevator-project-assembly-batch-planning-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
+  "dimensional-depot-refill-guide": {
+    alt: { ja: "Satisfactory公式Press Kitのコンベアと素材が並ぶ工場内風景。記事用タイトルを重ねたカバー。", en: "Official Satisfactory Press Kit factory interior with conveyors and stacked materials, used as general context for a Depot troubleshooting guide." },
+    caption: { ja: "公式Press Kitの工場内画像です。Dimensional Depotや補給状態を写したものではなく、素材搬送の一般的な背景です。", en: "Official Press Kit factory logistics context. This image does not depict a Dimensional Depot or confirm a refill state." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/dimensional-depot-refill-guide-ja.webp", en: "/article-covers/dimensional-depot-refill-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
+  "hypertube-junction-routing-guide": {
+    alt: { ja: "3本のチューブ経路につながるJunctionを示す公式Update 1.1 Press Kit画面。記事用タイトルを重ねたカバー。", en: "Official Update 1.1 Press Kit screenshot of a Hypertube Junction connected to several tube paths, with an editorial title." },
+    caption: { ja: "公式Update 1.1 Press Kitの接続形状の参考画像です。現行版の進路表示や選択中の経路を示すものではありません。", en: "Official Update 1.1 Press Kit image showing a Junction's connections. It does not show a current-client route prompt or selected route." },
+    creditLinks: {
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/18TR518-5BonLmKtsmhJ5mxhWsm3MRjS4/view", label: "元画像" }],
+      en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/18TR518-5BonLmKtsmhJ5mxhWsm3MRjS4/view", label: "Original screenshot" }],
+    },
+    badge: { ja: "ゲーム画像", en: "Game screenshot" },
+    localizedSrc: { ja: "/article-covers/hypertube-junction-routing-guide-ja.webp", en: "/article-covers/hypertube-junction-routing-guide-en.webp" }, width: 1280, height: 720, type: "image/webp",
+  },
 } as const satisfies Record<string, CoverDefinition>
 
 export type ArticleCover = {
