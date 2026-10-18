@@ -1,4 +1,5 @@
 import { powerStorageOutageDurationSizingArticle } from './power-storage-outage-duration-sizing.ts'
+import { sharedCircuitBoardComputerFeedstockBudgetArticle } from './shared-circuit-board-computer-feedstock-budget.ts'
 import { variablePowerPeakLoadPlanningArticle } from './variable-power-peak-load-planning.ts'
 import { packagedNitrogenEmptyFluidTankCirculationPlanningArticle } from './packaged-nitrogen-empty-fluid-tank-circulation-planning.ts'
 import { sharedQuickwireAllocationArticle } from './shared-quickwire-allocation-ai-limiters-high-speed-connectors.ts'
@@ -87,6 +88,7 @@ export const handwrittenArticles = [
   packagedNitrogenEmptyFluidTankCirculationPlanningArticle,
   variablePowerPeakLoadPlanningArticle,
   powerStorageOutageDurationSizingArticle,
+  sharedCircuitBoardComputerFeedstockBudgetArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']
