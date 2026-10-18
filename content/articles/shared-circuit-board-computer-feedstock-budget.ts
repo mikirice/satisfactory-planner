@@ -20,7 +20,7 @@ export const sharedCircuitBoardComputerFeedstockBudgetArticle = {
       paragraphs: [
         'CをComputerの目標生産量（個/分）、BをComputerライン以外へ出すCircuit Board量（個/分）とします。Computerラインには毎分4C枚、別用途には毎分B枚のCircuit Boardが必要です。',
         '毎分のCircuit Board合計は4C + B枚です。基板製造に必要なCopper Sheetは2(4C + B) = 8C + 2B枚、基板製造用Plasticは4(4C + B) = 16C + 4B個です。Computerレシピが直接使うPlastic 16C個/分も加えると、Plastic合計は32C + 4B個/分になります。',
-        'Cable = 8C 個/分。この8CはComputerラインで使う完成済みCableだけです。KをComputerラインに使える完成済みCableの供給量とします。この例ではCable製造を収支の外に置いています。Cableも同じ工場で基本レシピから作る場合は、WireとCopper Ingotsまで上流需要を展開し、追加の供給制約として確認してください。',
+        'Cable = 8C 個/分。この8CはComputerラインで使う完成済みCableだけです。KをComputerラインに使える完成済みCableの供給量とします。この例ではCable製造を収支の外に置いています。Cableも同じ工場で基本レシピから作る場合は、WireとCopper Ingotsまで上流需要を展開し、追加の供給制約として確認してください。数値例の16 Cable/分を内製するなら、追加でWire 32個/分とCopper Ingots 16個/分が必要です。',
       ],
     },
     {
