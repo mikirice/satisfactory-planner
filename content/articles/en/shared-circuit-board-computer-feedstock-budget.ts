@@ -20,7 +20,7 @@ export const sharedCircuitBoardComputerFeedstockBudgetArticleEn = {
       paragraphs: [
         'Let C be the Computer target in items per minute, and let B be Circuit Boards per minute sent to a separate output or consumer. The Computer line needs 4C boards per minute; the other use needs another B.',
         'Total Circuit Boards are 4C + B per minute. Board production needs 2(4C + B) = 8C + 2B Copper Sheets and 4(4C + B) = 16C + 4B Plastic per minute. Add the 16C Plastic used directly by the Computer recipe: total Plastic demand is 32C + 4B per minute.',
-        'Cable = 8C per minute. This 8C is finished Cable used by the Computer line. Let K mean the supply of finished Cable available to that line; this example leaves Cable production outside the balance. If the same factory makes Cable with the base recipe, expand upstream demand through Wire and Copper Ingots and check those as additional supply constraints.',
+        'Cable = 8C per minute. This 8C is finished Cable used by the Computer line. Let K mean the supply of finished Cable available to that line; this example leaves Cable production outside the balance. If the same factory makes Cable with the base recipe, expand upstream demand through Wire and Copper Ingots and check those as additional supply constraints. Making the example’s 16 Cable/min in-house adds 32 Wire/min and 16 Copper Ingots/min.',
       ],
     },
     {
