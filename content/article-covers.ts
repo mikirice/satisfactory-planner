@@ -1702,34 +1702,6 @@ export const ARTICLE_COVERS = {
     "width": 1280,
     "height": 720,
     "type": "image/webp"
-  },
-  "shared-circuit-board-computer-feedstock-budget": {
-    "alt": {
-      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用見出しを重ねたカバー。",
-      "en": "Official Satisfactory Press Kit image of machines along a production line; editorial cover title."
-    },
-    "caption": {
-      "ja": "公式Satisfactory Press Kitの生産ライン画像に記事用タイトルを重ねています。この記事の計算値や具体的な設備配置を示す実証画面ではありません。",
-      "en": "Official Satisfactory Press Kit production-line image with an editorial title. It is factory context, not a demonstration of the guide’s exact calculations or machine layout."
-    },
-    "creditLinks": {
-      "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
-        { "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view", "label": "元画像" }
-      ],
-      "en": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "Official Press & Content Creators" },
-        { "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view", "label": "Original screenshot" }
-      ]
-    },
-    "badge": { "ja": "ゲーム画像", "en": "Game screenshot" },
-    "localizedSrc": {
-      "ja": "/article-covers/shared-circuit-board-computer-feedstock-budget-ja.webp",
-      "en": "/article-covers/shared-circuit-board-computer-feedstock-budget-en.webp"
-    },
-    "width": 1280,
-    "height": 720,
-    "type": "image/webp"
   }
 
 } as const satisfies Record<string, CoverDefinition>
