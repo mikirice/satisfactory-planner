@@ -294,7 +294,7 @@ describe('記事静的ページ', () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(49)
+    expect(articleSlugs).toHaveLength(50)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -304,6 +304,32 @@ describe('記事静的ページ', () => {
       if (article !== undefined && article.cta === undefined) expect(html, slug).not.toContain('class="cta"')
       else expect(html, slug).toContain('class="cta" href="/app/#plan=')
     }
+  })
+
+  it('Computerの共有基板・原料記事を日英50本目として接続する', async () => {
+    const slug = 'shared-circuit-board-computer-feedstock-budget'
+    expect(articleSlugs).toContain(slug)
+    expect(sitemapPaths()).toContain(`/articles/${slug}/`)
+    expect(sitemapPaths()).toContain(`/en/articles/${slug}/`)
+    const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
+    const en = await readFile(join(outputDirectory, `en/articles/${slug}/index.html`), 'utf8')
+    expect(ja).toContain('完成済みCableの供給量')
+    expect(ja).toContain('WireとCopper Ingotsまで上流需要を展開')
+    expect(en).toContain('supply of finished Cable')
+    expect(en).toContain('through Wire and Copper Ingots')
+    expect(ja).toContain('32C + 4B')
+    expect(en).toContain('32C + 4B')
+    expect(ja).toContain('0.375個/分')
+    expect(en).toContain('0.375 per minute')
+    const jaIndex = await readFile(join(outputDirectory, 'articles/index.html'), 'utf8')
+    const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
+    expect(jaIndex).toContain(`data-genres="planner production" data-search="${slug}`)
+    expect(enIndex).toContain(`data-genres="planner production" data-search="${slug}`)
+    expect(ja).toContain('<table class="comparison-table">')
+    expect(en).toContain('<table class="comparison-table">')
+    for (const html of [ja, en]) expect(html).toContain('088cefd2578e47372d740ce953904187b071f9dd')
+    expect(ja).toContain('実証画面ではありません')
+    expect(en).toContain('not a demonstration of the guide')
   })
 
   it('旧準備5テーマは日英本文・出典・1280×720の公式画像カバーを持つ', async () => {
@@ -412,7 +438,7 @@ describe('記事静的ページ', () => {
   })
 
   it('手書き記事39本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(39)
+    expect(handwrittenArticles).toHaveLength(40)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -480,7 +506,7 @@ describe('記事静的ページ', () => {
   })
 
   it('日英すべての記事で収録データ版とUpdate 1.2の確認範囲を明示する', async () => {
-    expect(articleSlugs).toHaveLength(49)
+    expect(articleSlugs).toHaveLength(50)
     const nonPlannerDataGuides = new Set([
       'fluid-truck-delivery',
       'vehicle-paths',
@@ -1122,10 +1148,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 253（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事49）
-    // ＋ 英語 244（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(505)
-    expect(manifest.urls).toHaveLength(505)
+    // 日本語 254（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事50）
+    // ＋ 英語 245（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
+    expect(sitemapPaths()).toHaveLength(507)
+    expect(manifest.urls).toHaveLength(507)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
