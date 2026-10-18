@@ -25,6 +25,10 @@ import { somersloopAndPowerShardsArticleEn } from './somersloop-and-power-shards
 import { strongAlternateRecipesArticleEn } from './strong-alternate-recipes.ts'
 import { minerRateByPurityArticleEn } from './miner-rate-by-purity.ts'
 import { motorProductionRecipesArticleEn } from './motor-production-recipes.ts'
+import { factoryFloorAreaArticleEn } from './factory-floor-area.ts'
+import { fluidTruckDeliveryArticleEn } from './fluid-truck-delivery.ts'
+import { vehiclePathsArticleEn } from './vehicle-paths.ts'
+import { powerConnectorDaisyChainArticleEn } from './power-connector-daisy-chain.ts'
 
 export const handwrittenArticlesEn = [
   productionPlanningTutorialArticleEn,
@@ -41,6 +45,10 @@ export const handwrittenArticlesEn = [
   strongAlternateRecipesArticleEn,
   minerRateByPurityArticleEn,
   motorProductionRecipesArticleEn,
+  factoryFloorAreaArticleEn,
+  fluidTruckDeliveryArticleEn,
+  vehiclePathsArticleEn,
+  powerConnectorDaisyChainArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(

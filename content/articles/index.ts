@@ -12,6 +12,10 @@ import { somersloopAndPowerShardsArticle } from './somersloop-and-power-shards.t
 import { strongAlternateRecipesArticle } from './strong-alternate-recipes.ts'
 import { minerRateByPurityArticle } from './miner-rate-by-purity.ts'
 import { motorProductionRecipesArticle } from './motor-production-recipes.ts'
+import { factoryFloorAreaArticle } from './factory-floor-area.ts'
+import { fluidTruckDeliveryArticle } from './fluid-truck-delivery.ts'
+import { vehiclePathsArticle } from './vehicle-paths.ts'
+import { powerConnectorDaisyChainArticle } from './power-connector-daisy-chain.ts'
 import type { HandwrittenArticle } from './types.ts'
 
 export type {
@@ -37,6 +41,10 @@ export const handwrittenArticles = [
   strongAlternateRecipesArticle,
   minerRateByPurityArticle,
   motorProductionRecipesArticle,
+  factoryFloorAreaArticle,
+  fluidTruckDeliveryArticle,
+  vehiclePathsArticle,
+  powerConnectorDaisyChainArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']
