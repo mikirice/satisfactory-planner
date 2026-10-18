@@ -23,7 +23,7 @@ export const coalPowerStartupArticle = {
     {
       heading: 'ベルトと配管の上限に合わせて分ける',
       paragraphs: [
-        '石炭120個/分はMk.2ベルト1本の上限と一致します。Mk.1ベルトなら8台分を1本で運べないので、複数の供給線に分けるか台数を減らします。純度NormalのノードにMk.2採鉱機を100%で置いた場合も120個/分です。実際の採掘量はノード純度と採鉱機のクロックに合わせて確認してください。',
+        '石炭120個/分はMk.2ベルト1本の上限と一致します。Mk.1ベルトなら8台分を1本で運べないので、複数の供給線に分けるか台数を減らします。純度通常のノードにMk.2採鉱機を100%で置いた場合も120個/分です。実際の採掘量はノード純度と採鉱機のクロックに合わせて確認してください。',
         '水360 m³/分には揚水ポンプ3台（各120 m³/分）が必要です。Mk.1パイプ1本の上限は300 m³/分なので、8台分を1本だけで運ぶ設計には足りません。Mk.2パイプ1本（最大600 m³/分）を使うか、Mk.1配管を分割して複数箇所から給水します。揚程も確認し、抽出機の水面より高い場所へ送るときは必要なポンプを追加してください。',
       ],
     },
@@ -31,8 +31,8 @@ export const coalPowerStartupArticle = {
       heading: '仮設電源で燃料と水を先に流す',
       illustration: {
         src: '/article-images/coal-power-startup-generators-presskit-2020.webp',
-        alt: 'Satisfactoryの石炭発電機とコンベアの一般的なゲーム内風景。2020年の公式Press Kit画像で、記事の起動手順や発電機数は示していません。',
-        caption: '2020年の公式Press Kitに含まれる石炭発電のゲーム内風景です。記事の仮設電源による起動順、特定の台数、電力計算を示すものではありません。',
+        alt: 'Satisfactoryの石炭発電機とコンベアの一般的なゲーム内風景。2020年の公式プレスキット画像で、記事の起動手順や発電機数は示していません。',
+        caption: '2020年の公式プレスキットに含まれる石炭発電のゲーム内風景です。記事の仮設電源による起動順、特定の台数、電力計算を示すものではありません。',
         creditLinks: [
           { label: '公式Satisfactory Press & Content Creatorsページ', href: 'https://www.satisfactorygame.com/press/' },
           { label: '元画像（公式Press Kit）', href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view' },

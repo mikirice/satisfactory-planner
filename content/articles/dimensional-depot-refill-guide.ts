@@ -2,8 +2,8 @@ import type { HandwrittenArticle } from './types.ts'
 
 export const dimensional_depot_refill_guideArticle = {
   "slug": "dimensional-depot-refill-guide",
-  "title": "Dimensional Depot の補充停止を切り分ける",
-  "description": "Dimensional Depotへの補充が止まったように見えても、Uploaderが原因とは限りません。まずDepot側の保管上限、Uploaderへ入る直前の在庫、コンベアの接続と流れ、さらに上流の生産を順番に確認します。この手順は原因を切り分けるための診断ガイドです。混載ベルトが必ず詰まると断定したり、現行クライアントで数値を実測したりするものではありません。",
+  "title": "次元デポ の補充停止を切り分ける",
+  "description": "次元デポへの補充が止まったように見えても、Uploaderが原因とは限りません。まずDepot側の保管上限、Uploaderへ入る直前の在庫、コンベアの接続と流れ、さらに上流の生産を順番に確認します。この手順は原因を切り分けるための診断ガイドです。混載ベルトが必ず詰まると断定したり、現行クライアントで数値を実測したりするものではありません。",
   "sections": [
     {
       "heading": "1. Depot側に空きがあるか確認する",
@@ -76,5 +76,5 @@ export const dimensional_depot_refill_guideArticle = {
     "production-planning-tutorial",
     "build-checklist-guide"
   ],
-  "versionNotice": "Plannerの収録データは1.1.xです。現行1.2.xのDimensional Depot補給挙動とUIは実機確認していません。記事の手順は自分のゲーム画面で照合してください。"
+  "versionNotice": "Plannerの収録データは1.1.xです。現行1.2.xの次元デポ補給挙動とUIは実機確認していません。記事の手順は自分のゲーム画面で照合してください。"
 } as const satisfies HandwrittenArticle

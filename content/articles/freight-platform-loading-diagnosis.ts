@@ -8,7 +8,7 @@ export const freight_platform_loading_diagnosisArticle = {
     {
       heading: '貨物車とプラットフォームの位置を合わせる',
       paragraphs: [
-        '想定した品目が積み下ろされないときは、列車の貨物車と駅の貨物プラットフォームの順番を照合します。Community Wikiの「Setting up freight stations」では、駅の向き、機関車前方の▶表示と駅前面を基準にする方法、空のプラットフォームを車両位置の調整に使う方法が説明されています。コミュニティ資料に基づく手順であり、現行クライアントでの動作は未確認です。',
+        '想定した品目が積み下ろされないときは、列車の貨物車と駅の貨物プラットフォームの順番を照合します。コミュニティWikiの「Setting up freight stations」では、駅の向き、機関車前方の▶表示と駅前面を基準にする方法、空のプラットフォームを車両位置の調整に使う方法が説明されています。コミュニティ資料に基づく手順であり、現行クライアントでの動作は未確認です。',
       ],
       lists: [{ ordered: true, items: [
         '列車が停車する駅を開き、その駅が時刻表に含まれていることを確認します。',
@@ -34,7 +34,7 @@ export const freight_platform_loading_diagnosisArticle = {
     {
       heading: '関連記事との違い',
       paragraphs: [
-        '準備済みの列車信号ガイドはBlock Signal、Path Signal、共有線路、デッドロックを扱います。本稿は貨物車とプラットフォームの位置、積み下ろし、受け取り側へ混載が届く理由に絞ります。公開済みの車両パス記事は地上車両、流体トラック記事は液体のトラック輸送が主題で、貨物列車の積み下ろし診断とは異なります。',
+        '準備済みの列車信号ガイドはブロック信号、パス信号、共有線路、デッドロックを扱います。本稿は貨物車とプラットフォームの位置、積み下ろし、受け取り側へ混載が届く理由に絞ります。公開済みの車両パス記事は地上車両、流体トラック記事は液体のトラック輸送が主題で、貨物列車の積み下ろし診断とは異なります。',
       ],
     },
   ],
@@ -51,5 +51,5 @@ export const freight_platform_loading_diagnosisArticle = {
   relatedArticleSlugs: ['vehicle-paths', 'fluid-truck-delivery'],
   publishedDate: '2026-10-18',
   updatedDate: '2026-10-18',
-  versionNotice: 'Plannerの収録データは1.1.xです。貨物駅の手順はコミュニティWikiの説明に基づきます。Update 1.2以降の現行ゲーム内での貨物車とプラットフォームの対応、日本語UI名、受け取り側の動作は実機で未確認です。',
+  versionNotice: 'Plannerの収録データは1.1.xです。貨物駅の手順はコミュニティWikiの説明に基づきます。アップデート1.2以降の現行ゲーム内での貨物車とプラットフォームの対応、日本語UI名、受け取り側の動作は実機で未確認です。',
 } as const satisfies HandwrittenArticle

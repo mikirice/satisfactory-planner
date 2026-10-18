@@ -5,7 +5,7 @@ export const trainReplenishmentBufferPlanningGuideArticle = {
   "title": "列車補給間隔と受取側バッファを計画する",
   "description": "受取側で実測した列車の補給量と工場需要を比べ、到着間隔を越える在庫量を見積もります。",
   "publishedDate": "2026-10-18",
-  "versionNotice": "Plannerの生産レートデータはSatisfactory 1.1.xを基にします。列車の現行挙動やUpdate 1.2の挙動は主張しません。",
+  "versionNotice": "Plannerの生産レートデータはSatisfactory 1.1.xを基にします。列車の現行挙動やアップデート1.2の挙動は主張しません。",
   "sections": [
     {
       "heading": "先に受取側で数値を測る",
@@ -44,7 +44,7 @@ export const trainReplenishmentBufferPlanningGuideArticle = {
     {
       "heading": "既存テーマとの違い",
       "paragraphs": [
-        "準備済みのTrain Signals記事は線路の信号、共有線路、デッドロックを扱います。009「貨物プラットフォームの積み下ろし診断」は車両とプラットフォームの対応や荷下ろしの症状を調べます。本稿の対象は、受取側で測った搬入レートと工場需要の比較、および在庫の余裕を見積もる計算です。"
+        "準備済みの列車信号ガイドは線路の信号、共有線路、デッドロックを扱います。009「貨物プラットフォームの積み下ろし診断」は車両とプラットフォームの対応や荷下ろしの症状を調べます。本稿の対象は、受取側で測った搬入レートと工場需要の比較、および在庫の余裕を見積もる計算です。"
       ]
     }
   ],

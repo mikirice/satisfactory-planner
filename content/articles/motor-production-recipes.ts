@@ -19,7 +19,7 @@ export const motorProductionRecipesArticle = {
         {
           src: '/article-images/satisfactory-factory-general.webp',
           alt: 'Satisfactoryの工場とレールの一般的なゲーム内風景。モーター専用ラインやレシピ画面ではありません。',
-          caption: '公式Satisfactoryメディアの一般的な工場風景です。Motor専用ラインやこの記事の計算結果を示すものではありません。',
+          caption: '公式Satisfactoryメディアの一般的な工場風景です。モーター専用ラインやこの記事の計算結果を示すものではありません。',
           creditLinks: [
             { label: 'Satisfactory screenshot © Coffee Stain Studios / 出典：公式Satisfactory Press & Content Creators', href: 'https://www.satisfactorygame.com/press/' },
             { label: '掲載画像', href: 'https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg' },

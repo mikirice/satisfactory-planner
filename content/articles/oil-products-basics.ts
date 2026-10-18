@@ -39,8 +39,8 @@ export const oilProductsBasicsArticle = {
       heading: '廃重油の出口を発電量と水で選ぶ',
       illustration: {
         src: '/article-images/official-straight-pipes-1.1.jpg',
-        alt: 'Satisfactory公式Press KitのUpdate 1.1当時の配管画面。HUDは旧UIで、記事の原油60m³/分ラインを示す配置ではありません。',
-        caption: '公式Press KitのUpdate 1.1当時の配管画面です。HUDと操作表示は当時の旧UIで、現行操作手順ではありません。配管経路の一般参考であり、記事の60m³/分レシピ列や廃重油処理結果そのものではありません。',
+        alt: 'Satisfactory公式プレスキットのアップデート1.1当時の配管画面。HUDは旧UIで、記事の原油60m³/分ラインを示す配置ではありません。',
+        caption: '公式プレスキットのアップデート1.1当時の配管画面です。HUDと操作表示は当時の旧UIで、現行操作手順ではありません。配管経路の一般参考であり、記事の60m³/分レシピ列や廃重油処理結果そのものではありません。',
         creditLinks: [
           { label: '公式Satisfactory Press & Content Creatorsページ', href: 'https://www.satisfactorygame.com/press/' },
           { label: '元画像（公式Press Kit）', href: 'https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view' },

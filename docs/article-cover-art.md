@@ -1,6 +1,6 @@
 # Satisfactory Planner cover images
 
-Updated 2026-10-19. The 29 Japanese and English guide covers use 1280×720 WebP images with a shared bold-title layout and a high-contrast orange category label. `content/article-covers.ts` supplies the same localized image to article heroes, article cards, and Open Graph metadata.
+Updated 2026-10-19. The 53 Japanese and English guide cover pairs use 1280×720 WebP images with a shared bold-title layout and a high-contrast orange category label. `content/article-covers.ts` supplies the same localized image to article heroes, article cards, and Open Graph metadata.
 
 ## Source and editorial use
 
@@ -20,14 +20,14 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 | `coal-power-startup` | `coal-power-startup-1280x720.webp` | Coal generators and conveyor belts | [1bFlaTr2-ROI3J_V2GqWwXp3KODyze094](https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view) |
 | `oil-products-basics` | `straight-pipes.jpg` | A network of in-game fluid pipes | [1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
 | `aluminum-production-guide` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
-| `awesome-sink-points` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
+| `awesome-sink-points` | `Throughput display.png` | Conveyor belts with in-game throughput readouts; the image is illustrative and does not prove the guide's point values | [1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v](https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view) |
 | `clock-and-efficiency` | `productionline.jpg` | Machines arranged along a production line | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
 | `build-checklist-guide` | `blueprint-autoconnect.jpg` | A blueprint being placed in a factory | [1BJm3wA78l309yQ_UQsz11WBSpsVbqomx](https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view) |
-| `strong-alternate-recipes` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
+| `strong-alternate-recipes` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMwizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view) |
 | `miner-rate-by-purity` | `randomized-nodes.png` | A resource field viewed with the in-game scanner | [1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE](https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view) |
-| `motor-production-recipes` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
+| `motor-production-recipes` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMwizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view) |
 | `oil-loop-complete` | `straight-pipes.jpg` | A network of in-game fluid pipes | [1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
-| `diluted-fuel-power` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
+| `diluted-fuel-power` | `Factory.jpg` | A broad factory construction scene | [1yzSNatBbEwNULZMwizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view) |
 | `turbofuel-power` | `coal-power-startup-1280x720.webp` | Coal generators and conveyor belts | [1bFlaTr2-ROI3J_V2GqWwXp3KODyze094](https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view) |
 | `packaged-diluted-fuel-loop` | `fluid-station-truck.png` | A truck route serving fluid stations | [1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0](https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view) |
 | `aluminum-water-loop` | `straight-pipes.jpg` | A network of in-game fluid pipes | [1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY](https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view) |
@@ -39,7 +39,7 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 | `factory-floor-area` | `blueprint-autoconnect.jpg` | A Blueprint hologram being placed on a foundation grid in a factory; the cover is spatial context, not the article's calculated plan | [1BJm3wA78l309yQ_UQsz11WBSpsVbqomx](https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view) |
 | `fluid-truck-delivery` | `fluid-station-truck.png` | An official Update 1.2 Fluid Truck and Fluid Stations scene; thematic context, not a delivery-rate measurement | [1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0](https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view) |
 | `vehicle-paths` | `fluid-station-truck.png` | An early Update 1.2 Vehicle Path screenshot; not presented as the current UI or a route test | [1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0](https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view) |
-| `power-connector-daisy-chain` | `Factory.jpg` | A broad factory and power-line scene; not a daisy-chain connection or unlock demonstration | [1yzSNatBbEwNULZMizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view) |
+| `power-connector-daisy-chain` | `Factory.jpg` | A broad factory and power-line scene; not a daisy-chain connection or unlock demonstration | [1yzSNatBbEwNULZMwizCpr-F8TAkEgECz](https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view) |
 | `shared-circuit-board-computer-feedstock-budget` | `productionline.jpg` | Machines arranged along a production line; context for a multi-stage manufacturing plan | [1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7](https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view) |
 
 ## Layout
@@ -51,3 +51,9 @@ All cover text is editorial artwork placed over unmodified gameplay imagery. The
 - The `factory-floor-area` pair was generated from the same inspected official screenshot and template on the external SSD; its captions clarify that it is not the 60 Iron Plates/min layout, a Planner result, or a finished placement plan.
 - The fluid-truck and vehicle-path pair uses the inspected official Update 1.2 gameplay capture. Their captions distinguish illustrative gameplay from a capacity/throughput measurement and current-UI claim. Daisy chaining uses an inspected official Press Kit factory scene, not as evidence of a specific connection or unlock screen.
 - The `shared-circuit-board-computer-feedstock-budget` pair uses the inspected official production-line screenshot as manufacturing context. Its localized captions state that the image does not demonstrate the guide's calculations or exact layout.
+
+## Japanese cover text audit — 2026-10-19
+
+All 53 Japanese cover files were visually inspected at 1280×720, with 390×219 contact-sheet review. Thirty-five cover overlays were re-rendered from the same inspected original gameplay sources using the existing Pillow template, preserving each source screenshot and its gameplay UI. Editorial English category labels and explanatory lines were replaced with Japanese. English locale cover files were not changed. The Japanese branded site name and verified product / proper names remain where the game or software uses those names (for example Satisfactory Planner, AWESOME Sink, MAM, and Excel); English visible inside the original game screenshots remains part of the unmodified source image.
+
+The changed Japanese covers include localized labels such as `RECIPE GUIDE` → `代替レシピ`, `POWER GUIDE` → `発電ガイド`, `PROJECT ASSEMBLY` → `スペースエレベーター納品計画`, and `MINING GUIDE` → `採掘ガイド`; image sublines such as `Auto Connect`, `Conveyor Throughput Monitor`, `Block / Path Signal`, and the recovery / blueprint workflow instructions were also replaced with Japanese. `awesome-sink-points` now credits the Throughput Display screenshot visibly used in its cover. The Factory screenshot Drive link was corrected to its verified file ID in associated credits.
