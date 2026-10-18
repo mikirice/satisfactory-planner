@@ -1502,7 +1502,6 @@ const ARTICLE_GENRES_BY_SLUG: Readonly<Record<string, readonly ArticleGenreId[]>
   'space-elevator-project-assembly-batch-planning-guide': ['planner', 'production'],
   'dimensional-depot-refill-guide': ['factory'],
   'hypertube-junction-routing-guide': ['factory'],
-  'shared-circuit-board-computer-feedstock-budget': ['planner', 'production'],
 }
 
 function articleGenreIds(text: string, sampleCategory?: string, slug?: string): readonly ArticleGenreId[] {
