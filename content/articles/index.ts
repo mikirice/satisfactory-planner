@@ -1,3 +1,11 @@
+import { powerStorageOutageDurationSizingArticle } from './power-storage-outage-duration-sizing.ts'
+import { variablePowerPeakLoadPlanningArticle } from './variable-power-peak-load-planning.ts'
+import { packagedNitrogenEmptyFluidTankCirculationPlanningArticle } from './packaged-nitrogen-empty-fluid-tank-circulation-planning.ts'
+import { sharedQuickwireAllocationArticle } from './shared-quickwire-allocation-ai-limiters-high-speed-connectors.ts'
+import { heavyModularFrameScrewBeltCapacityGuideArticle } from './heavy-modular-frame-screw-belt-capacity-guide.ts'
+import { fusedModularFrameNitrogenPipelineCapacityArticle } from './fused-modular-frame-nitrogen-pipeline-capacity.ts'
+import { finiteBiomassSolidBiofuelYieldGuideArticle } from './finite-biomass-solid-biofuel-yield-guide.ts'
+import { trainReplenishmentBufferPlanningGuideArticle } from './train-replenishment-buffer-planning-guide.ts'
 import { aluminumProductionGuideArticle } from './aluminum-production-guide.ts'
 import { alternateRecipeMetricsArticle } from './alternate-recipe-metrics.ts'
 import { awesomeSinkPointsArticle } from './awesome-sink-points.ts'
@@ -71,6 +79,14 @@ export const handwrittenArticles = [
   blueprintAutoConnectArticle,
   powerGridRecoveryArticle,
   hardDriveMamWorkflowArticle,
+  trainReplenishmentBufferPlanningGuideArticle,
+  finiteBiomassSolidBiofuelYieldGuideArticle,
+  fusedModularFrameNitrogenPipelineCapacityArticle,
+  heavyModularFrameScrewBeltCapacityGuideArticle,
+  sharedQuickwireAllocationArticle,
+  packagedNitrogenEmptyFluidTankCirculationPlanningArticle,
+  variablePowerPeakLoadPlanningArticle,
+  powerStorageOutageDurationSizingArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']

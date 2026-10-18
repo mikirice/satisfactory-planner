@@ -1357,6 +1357,353 @@ export const ARTICLE_COVERS = {
     "height": 720,
     "type": "image/webp"
   },
+  "train-replenishment-buffer-planning-guide": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの工場と鉄道を含む広い工場風景。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing a broad factory scene with rail nearby. Editorial cover title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitのゲーム画像に記事用タイトルを重ねています。記事の計算値や配置を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay with an editorial title overlay. Contextual imagery, not proof of the guide’s calculations or layout."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/train-replenishment-buffer-planning-guide-ja.webp",
+      "en": "/article-covers/train-replenishment-buffer-planning-guide-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "finite-biomass-solid-biofuel-yield-guide": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing machines arranged along a production line. Editorial cover title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitのゲーム画像に記事用タイトルを重ねています。記事の計算値や配置を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay with an editorial title overlay. Contextual imagery, not proof of the guide’s calculations or layout."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/finite-biomass-solid-biofuel-yield-guide-ja.webp",
+      "en": "/article-covers/finite-biomass-solid-biofuel-yield-guide-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "fused-modular-frame-nitrogen-pipeline-capacity": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの複数の流体配管。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing a network of in-game fluid pipes. Editorial cover title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitのゲーム画像に記事用タイトルを重ねています。記事の計算値や配置を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay with an editorial title overlay. Contextual imagery, not proof of the guide’s calculations or layout."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/fused-modular-frame-nitrogen-pipeline-capacity-ja.webp",
+      "en": "/article-covers/fused-modular-frame-nitrogen-pipeline-capacity-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "heavy-modular-frame-screw-belt-capacity-guide": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitのベルト上の搬送量表示。記事用の見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing a conveyor with in-game throughput readouts. Editorial cover title."
+    },
+    "caption": {
+      "ja": "搬送量表示のあるベルトを写した公式画像です。記事のレシピや480個/分の実流量を示すものではありません。",
+      "en": "Official image of a conveyor with throughput readouts. It does not show this guide’s recipe or a live 480-items/min flow."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/heavy-modular-frame-screw-belt-capacity-guide-ja.webp",
+      "en": "/article-covers/heavy-modular-frame-screw-belt-capacity-guide-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  }
+,
+  "shared-quickwire-allocation-ai-limiters-high-speed-connectors": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの製造機が並ぶ生産ライン。記事用見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image of machines along a production line; editorial title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitの製造ラインに記事用タイトルを重ねています。記事の生産構成や数値を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit production-line image with an editorial title. It does not show the guide’s production layout or rates."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/shared-quickwire-allocation-ai-limiters-high-speed-connectors-ja.webp",
+      "en": "/article-covers/shared-quickwire-allocation-ai-limiters-high-speed-connectors-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+
+  "packaged-nitrogen-empty-fluid-tank-circulation-planning": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの流体ステーションを結ぶトラックの経路。記事用見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing a truck route serving fluid stations; editorial cover title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitのゲーム画像に記事用タイトルを重ねています。記事の具体的なレシピや計算を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay with an editorial title. It is contextual, not a demonstration of the guide’s exact recipe or calculation."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocY0/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocY0/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/packaged-nitrogen-empty-fluid-tank-circulation-planning-ja.webp",
+      "en": "/article-covers/packaged-nitrogen-empty-fluid-tank-circulation-planning-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "variable-power-peak-load-planning": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの石炭発電機とベルトコンベア。記事用見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing coal generators and conveyor belts; editorial cover title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitのゲーム画像に記事用タイトルを重ねています。記事の具体的なレシピや計算を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay with an editorial title. It is contextual, not a demonstration of the guide’s exact recipe or calculation."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/variable-power-peak-load-planning-ja.webp",
+      "en": "/article-covers/variable-power-peak-load-planning-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  },
+  "power-storage-outage-duration-sizing": {
+    "alt": {
+      "ja": "Satisfactory公式Press Kitの工場の建設現場。記事用見出しを重ねたカバー。",
+      "en": "Official Satisfactory Press Kit image showing a broad factory construction scene; editorial cover title."
+    },
+    "caption": {
+      "ja": "公式Satisfactory Press Kitのゲーム画像に記事用タイトルを重ねています。記事の具体的なレシピや計算を示す実証画面ではありません。",
+      "en": "Official Satisfactory Press Kit gameplay with an editorial title. It is contextual, not a demonstration of the guide’s exact recipe or calculation."
+    },
+    "creditLinks": {
+      "ja": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "公式Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view",
+          "label": "元画像"
+        }
+      ],
+      "en": [
+        {
+          "href": "https://www.satisfactorygame.com/press/",
+          "label": "Official Press & Content Creators"
+        },
+        {
+          "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMizCpr-F8TAkEgECz/view",
+          "label": "Original screenshot"
+        }
+      ]
+    },
+    "badge": {
+      "ja": "ゲーム画像",
+      "en": "Game screenshot"
+    },
+    "localizedSrc": {
+      "ja": "/article-covers/power-storage-outage-duration-sizing-ja.webp",
+      "en": "/article-covers/power-storage-outage-duration-sizing-en.webp"
+    },
+    "width": 1280,
+    "height": 720,
+    "type": "image/webp"
+  }
+
 } as const satisfies Record<string, CoverDefinition>
 
 export type ArticleCover = {

@@ -1,3 +1,11 @@
+import { powerStorageOutageDurationSizingArticleEn } from './power-storage-outage-duration-sizing.ts'
+import { variablePowerPeakLoadPlanningArticleEn } from './variable-power-peak-load-planning.ts'
+import { packagedNitrogenEmptyFluidTankCirculationPlanningArticleEn } from './packaged-nitrogen-empty-fluid-tank-circulation-planning.ts'
+import { sharedQuickwireAllocationArticleEn } from './shared-quickwire-allocation-ai-limiters-high-speed-connectors.ts'
+import { heavyModularFrameScrewBeltCapacityGuideArticleEn } from './heavy-modular-frame-screw-belt-capacity-guide.ts'
+import { fusedModularFrameNitrogenPipelineCapacityArticleEn } from './fused-modular-frame-nitrogen-pipeline-capacity.ts'
+import { finiteBiomassSolidBiofuelYieldGuideArticleEn } from './finite-biomass-solid-biofuel-yield-guide.ts'
+import { trainReplenishmentBufferPlanningGuideArticleEn } from './train-replenishment-buffer-planning-guide.ts'
 /**
  * English mirror of the handwritten guides (計画書 §5).
  *
@@ -76,6 +84,14 @@ export const handwrittenArticlesEn = [
   blueprintAutoConnectArticleEn,
   powerGridRecoveryArticleEn,
   hardDriveMamWorkflowArticleEn,
+  trainReplenishmentBufferPlanningGuideArticleEn,
+  finiteBiomassSolidBiofuelYieldGuideArticleEn,
+  fusedModularFrameNitrogenPipelineCapacityArticleEn,
+  heavyModularFrameScrewBeltCapacityGuideArticleEn,
+  sharedQuickwireAllocationArticleEn,
+  packagedNitrogenEmptyFluidTankCirculationPlanningArticleEn,
+  variablePowerPeakLoadPlanningArticleEn,
+  powerStorageOutageDurationSizingArticleEn,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export const handwrittenArticlesEnBySlug: ReadonlyMap<string, HandwrittenArticle> = new Map(

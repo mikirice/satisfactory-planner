@@ -290,11 +290,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き31本とループ10本、および記事indexを生成する', async () => {
+  it('手書き39本とループ10本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(41)
+    expect(articleSlugs).toHaveLength(49)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -411,8 +411,8 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('手書き記事31本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(31)
+  it('手書き記事39本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
+    expect(handwrittenArticles).toHaveLength(39)
     const longFormSlugs = new Set([
       'coal-power-startup',
       'oil-products-basics',
@@ -480,13 +480,14 @@ describe('記事静的ページ', () => {
   })
 
   it('日英すべての記事で収録データ版とUpdate 1.2の確認範囲を明示する', async () => {
-    expect(articleSlugs).toHaveLength(41)
+    expect(articleSlugs).toHaveLength(49)
     const nonPlannerDataGuides = new Set([
       'fluid-truck-delivery',
       'vehicle-paths',
       'power-connector-daisy-chain',
       'train-signals-guide',
       'blueprint-auto-connect',
+      'power-storage-outage-duration-sizing',
     ])
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
@@ -1121,10 +1122,10 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 245（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事41）
+    // 日本語 253（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事49）
     // ＋ 英語 244（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(489)
-    expect(manifest.urls).toHaveLength(489)
+    expect(sitemapPaths()).toHaveLength(505)
+    expect(manifest.urls).toHaveLength(505)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
