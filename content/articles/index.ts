@@ -21,6 +21,9 @@ import { priority_merger_use_cases_guideArticle } from './priority-merger-use-ca
 import { space_elevator_project_assembly_batch_planning_guideArticle } from './space-elevator-project-assembly-batch-planning-guide.ts'
 import { dimensional_depot_refill_guideArticle } from './dimensional-depot-refill-guide.ts'
 import { hypertube_junction_routing_guideArticle } from './hypertube-junction-routing-guide.ts'
+import { freight_platform_loading_diagnosisArticle } from './freight-platform-loading-diagnosis.ts'
+import { pipeline_flow_head_lift_troubleshootingArticle } from './pipeline-flow-head-lift-troubleshooting.ts'
+import { smart_splitter_overflow_storage_guideArticle } from './smart-splitter-overflow-storage-guide.ts'
 import type { HandwrittenArticle } from './types.ts'
 
 export type {
@@ -55,6 +58,9 @@ export const handwrittenArticles = [
   space_elevator_project_assembly_batch_planning_guideArticle,
   dimensional_depot_refill_guideArticle,
   hypertube_junction_routing_guideArticle,
+  freight_platform_loading_diagnosisArticle,
+  pipeline_flow_head_lift_troubleshootingArticle,
+  smart_splitter_overflow_storage_guideArticle,
 ] as const satisfies readonly HandwrittenArticle[]
 
 export type HandwrittenArticleSlug = (typeof handwrittenArticles)[number]['slug']
