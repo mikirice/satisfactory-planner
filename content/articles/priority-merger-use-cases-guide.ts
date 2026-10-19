@@ -14,8 +14,8 @@ export const priority_merger_use_cases_guideArticle = {
       "illustrations": [
         {
           "src": "/article-images/priority-merger-settings-presskit-1-1.jpg",
-          "alt": "Satisfactory 1.1 プレスキットの優先マージャー設定画面。左入力はLow、Center InputとRight InputはHigh。",
-          "caption": "優先マージャーの入力設定（Left: Low、Center/Right: High）を示すSatisfactory公式アップデート1.1 プレスキット画像です。UIの参考であり、鉄鉱石の例の流れや現行1.2.xの画面を示すものではありません。",
+          "alt": "Satisfactory 1.1 プレスキットの優先マージャー設定画面。左入力は「低」、中央・右入力は「高」の設定です。",
+          "caption": "左入力が優先度「低」、中央・右入力が「高」の優先マージャー設定を示すSatisfactory公式アップデート1.1のプレスキット画像です。画面表示の参考であり、鉄鉱石の例の流れや現行1.2.xの画面を示すものではありません。",
           "creditLinks": [
             {
               "label": "元画像",

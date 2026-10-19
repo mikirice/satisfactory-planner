@@ -480,7 +480,7 @@ describe('記事静的ページ', () => {
     const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
     expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/satisfactory-factory-general.webp"')
     expect(ja).toContain('一般的な工場風景です。')
-    expect(ja).toContain('Satisfactory screenshot © Coffee Stain Studios / 出典：公式Satisfactory Press &amp; Content Creators')
+    expect(ja).toContain('Satisfactoryのスクリーンショット © Coffee Stain Studios／出典：公式クリエイター向け案内（Press &amp; Content Creators）')
     expect(ja).toContain('公式Satisfactoryプレスキットのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。')
     expect(ja).not.toContain('イメージイラストです。ゲーム画面')
     expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/motor-recipe-inputs-ja.svg"')
@@ -507,7 +507,7 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('日英すべての記事で収録データ版とUpdate 1.2の確認範囲を明示する', async () => {
+  it('日英すべての記事で収録データ版とアップデート1.2の確認範囲を明示する', async () => {
     expect(articleSlugs).toHaveLength(50)
     const nonPlannerDataGuides = new Set([
       'fluid-truck-delivery',
@@ -520,12 +520,12 @@ describe('記事静的ページ', () => {
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
       const en = await readFile(join(outputDirectory, `en/articles/${slug}/index.html`), 'utf8')
-      for (const html of [ja, en]) {
+      for (const [html, language] of [[ja, 'ja'], [en, 'en']] as const) {
         expect(html, slug).toContain('class="version article-data-version-notice"')
         expect(html, slug).toContain('https://www.satisfactorygame.com/')
-        expect(html, slug).toContain('Update 1.2')
+        expect(html, slug).toContain(language === 'ja' ? '公式アップデート1.2' : 'Update 1.2')
         if (nonPlannerDataGuides.has(slug)) {
-          expect(html, slug).toContain('Update 1.2')
+          expect(html, slug).toContain(language === 'ja' ? 'アップデート1.2' : 'Update 1.2')
           expect(html, slug).not.toContain('1.1.x')
         } else {
           expect(html, slug).toContain('1.1.x')
@@ -833,7 +833,7 @@ describe('記事静的ページ', () => {
     )
     expect(turbofuel).toContain('燃料72 m³/minと圧縮石炭48個/min')
     expect(turbofuel).toContain('1,720.7 MW')
-    expect(turbofuel).toContain('変換機（Tier 9の物質変換）')
+    expect(turbofuel).toContain('変換機（ティア9の物質変換）')
     expect(turbofuel).toContain('鉄鉱石</a></td>')
     expect(turbofuel).toContain('120.00')
     expect(turbofuel).toContain('SAM</a></td>')
@@ -951,9 +951,9 @@ describe('記事静的ページ', () => {
       join(outputDirectory, 'en/articles/packaged-diluted-fuel-loop/index.html'),
       'utf8',
     )
-    for (const html of [ja, en]) {
+    for (const [html, language] of [[ja, 'ja'], [en, 'en']] as const) {
       expect(html).toContain('120.00')
-      expect(html).toContain('Update 1.2')
+      expect(html).toContain(language === 'ja' ? 'アップデート1.2' : 'Update 1.2')
       expect(html).toContain('1.1.x')
       expect(html).toContain('github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
       expect(html).toContain(
