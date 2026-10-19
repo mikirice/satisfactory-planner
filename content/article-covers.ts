@@ -29,7 +29,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg",
@@ -72,7 +72,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
@@ -115,7 +115,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
@@ -158,7 +158,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
@@ -201,7 +201,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view",
@@ -244,7 +244,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
@@ -287,7 +287,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view",
@@ -330,7 +330,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
@@ -373,7 +373,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
@@ -416,7 +416,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
@@ -459,7 +459,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view",
@@ -502,7 +502,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view",
@@ -545,7 +545,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view",
@@ -588,7 +588,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view",
@@ -631,7 +631,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view",
@@ -674,7 +674,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view",
@@ -717,7 +717,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
@@ -760,7 +760,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view",
@@ -803,7 +803,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view",
@@ -846,7 +846,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1Bod20Hsqz0P_ZXFgArRB5R8yvS-LDZCo/view",
@@ -889,7 +889,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg",
@@ -932,7 +932,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view",
@@ -975,7 +975,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg",
@@ -1018,7 +1018,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
@@ -1059,7 +1059,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "元画像" }
       ],
       "en": [
@@ -1087,7 +1087,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view", "label": "元画像" }
       ],
       "en": [
@@ -1112,7 +1112,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view", "label": "元画像" }
       ],
       "en": [
@@ -1137,7 +1137,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view", "label": "元画像" }
       ],
       "en": [
@@ -1156,7 +1156,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式アップデート1.1 プレスキットのコンベアリフトと分岐・合流。記事用タイトルを重ねた背景画像。", en: "Satisfactory Update 1.1 Press Kit conveyor lifts and splitter/merger routing, with an editorial article title." },
     caption: { ja: "公式アップデート1.1 プレスキットの搬送経路画像です。スループットモニターや本稿の測定値は写していません。", en: "Official Update 1.1 Press Kit belt-routing context. It does not show a Throughput Monitor or a reading from this guide." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/172p9je6hfBFH_cYsuM2vgN-UlH8CnZ2c/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/172p9je6hfBFH_cYsuM2vgN-UlH8CnZ2c/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/172p9je6hfBFH_cYsuM2vgN-UlH8CnZ2c/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1166,7 +1166,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式アップデート1.1 プレスキットの優先マージャー設定画面。記事用タイトルが左入力を覆い、右側に中央/右の優先度「高」が見える。", en: "Official Update 1.1 Priority Merger settings screenshot; the editorial title panel masks the left input while Center and Right High remain visible." },
     caption: { ja: "公式アップデート1.1 プレスキットの設定画面です。タイトルパネルは左入力を覆います。例の流れや現行1.2.xを実証する画像ではありません。", en: "Official Update 1.1 settings screenshot. The title panel masks the left input; this is UI context, not a test of example flow or the current 1.2.x client." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1mle940oY6jkYeVbz-vynIvma6mLEd0Wy/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/1mle940oY6jkYeVbz-vynIvma6mLEd0Wy/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1mle940oY6jkYeVbz-vynIvma6mLEd0Wy/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1176,7 +1176,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式プレスキットの工場内スクリーンショット。生産設備の雰囲気を示す記事用カバー。", en: "Official Satisfactory Press Kit factory screenshot used as production context for an editorial guide cover." },
     caption: { ja: "公式プレスキットの工場画像です。特定のProject Assembly必要数・レート・ライン構成を示すものではありません。", en: "Official Press Kit factory screenshot used as production context. It does not depict a specific Project Assembly quota, rate, or line layout." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1186,7 +1186,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式プレスキットのコンベアと素材が並ぶ工場内風景。記事用タイトルを重ねたカバー。", en: "Official Satisfactory Press Kit factory interior with conveyors and stacked materials, used as general context for a Depot troubleshooting guide." },
     caption: { ja: "公式プレスキットの工場内画像です。次元デポや補給状態を写したものではなく、素材搬送の一般的な背景です。", en: "Official Press Kit factory logistics context. This image does not depict a Dimensional Depot or confirm a refill state." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1Nua9FSNK4Z1sIKuxN9jCWFX9HgIcGB5N/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1196,7 +1196,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "3本のチューブ経路につながる接合部を示す公式アップデート1.1 プレスキット画面。記事用タイトルを重ねたカバー。", en: "Official Update 1.1 Press Kit screenshot of a Hypertube Junction connected to several tube paths, with an editorial title." },
     caption: { ja: "公式アップデート1.1 プレスキットの接続形状の参考画像です。現行版の進路表示や選択中の経路を示すものではありません。", en: "Official Update 1.1 Press Kit image showing a Junction's connections. It does not show a current-client route prompt or selected route." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/18TR518-5BonLmKtsmhJ5mxhWsm3MRjS4/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/18TR518-5BonLmKtsmhJ5mxhWsm3MRjS4/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/18TR518-5BonLmKtsmhJ5mxhWsm3MRjS4/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1206,7 +1206,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式プレスキットの貨物列車と線路設備。記事用の見出しを重ねたカバー。", en: "Official Satisfactory Press Kit image of a freight locomotive and rail lines, with an editorial cover title." },
     caption: { ja: "公式プレスキットの貨物列車と線路設備を示す画像です。貨物駅の積み下ろし位置や設定を示すものではありません。", en: "Official Press Kit image showing a freight locomotive and rail lines. It does not depict freight-platform loading positions or settings." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1216,7 +1216,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式プレスキットの配管ネットワーク。記事用の見出しを重ねたカバー。", en: "Official Satisfactory Press Kit screenshot of an in-game pipe network, with an editorial cover title." },
     caption: { ja: "公式プレスキットのアップデート1.1時代の配管画像です。現在のUIや本稿の診断手順を示すものではありません。", en: "Official Press Kit pipe image from the Update 1.1 era. It does not show the current interface or this guide’s diagnostics." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1226,7 +1226,7 @@ export const ARTICLE_COVERS = {
     alt: { ja: "Satisfactory公式プレスキットの工場と製造設備。記事用の見出しを重ねたカバー。", en: "Official Satisfactory Press Kit factory scene used as general logistics context, with an editorial cover title." },
     caption: { ja: "公式プレスキットの一般的な工場風景です。スマート・スプリッターの設定や保管庫からシンクへのルートを写した画面ではありません。", en: "General factory context from the official Press Kit. This is not a Smart Splitter settings screen or a storage-to-Sink routing example." },
     creditLinks: {
-      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式Press & Content Creators" }, { href: "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view", label: "元画像" }],
+      ja: [{ href: "https://www.satisfactorygame.com/press/", label: "公式クリエイター向け案内（Press & Content Creators）" }, { href: "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view", label: "元画像" }],
       en: [{ href: "https://www.satisfactorygame.com/press/", label: "Official Press & Content Creators" }, { href: "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view", label: "Original screenshot" }],
     },
     badge: { ja: "ゲーム画像", en: "Game screenshot" },
@@ -1243,7 +1243,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1PdYzwpPX21gLd4Ovav0KSzpXjl5z-Iv5/view", "label": "元画像" }
       ],
       "en": [
@@ -1268,7 +1268,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "元画像" }
       ],
       "en": [
@@ -1293,7 +1293,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1BJm3wA78l309yQ_UQsz11WBSpsVbqomx/view", "label": "元画像" }
       ],
       "en": [
@@ -1318,7 +1318,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view", "label": "元画像" }
       ],
       "en": [
@@ -1343,7 +1343,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1a82FG5LAzvFVbmvV8aYQUvv5wAm7SaXE/view", "label": "元画像" }
       ],
       "en": [
@@ -1370,7 +1370,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view",
@@ -1413,7 +1413,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
@@ -1456,7 +1456,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view",
@@ -1499,7 +1499,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view",
@@ -1543,7 +1543,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view",
@@ -1587,7 +1587,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view",
@@ -1630,7 +1630,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view",
@@ -1673,7 +1673,7 @@ export const ARTICLE_COVERS = {
       "ja": [
         {
           "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式Press & Content Creators"
+          "label": "公式クリエイター向け案内（Press & Content Creators）"
         },
         {
           "href": "https://drive.google.com/file/d/1yzSNatBbEwNULZMwizCpr-F8TAkEgECz/view",
@@ -1714,7 +1714,7 @@ export const ARTICLE_COVERS = {
     },
     "creditLinks": {
       "ja": [
-        { "href": "https://www.satisfactorygame.com/press/", "label": "公式Press & Content Creators" },
+        { "href": "https://www.satisfactorygame.com/press/", "label": "公式クリエイター向け案内（Press & Content Creators）" },
         { "href": "https://drive.google.com/file/d/1poSyLXsibWXiZ1Wpcc76fdGWnYF2FWo7/view", "label": "元画像" }
       ],
       "en": [

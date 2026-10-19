@@ -34,8 +34,8 @@ export const coalPowerStartupArticle = {
         alt: 'Satisfactoryの石炭発電機とコンベアの一般的なゲーム内風景。2020年の公式プレスキット画像で、記事の起動手順や発電機数は示していません。',
         caption: '2020年の公式プレスキットに含まれる石炭発電のゲーム内風景です。記事の仮設電源による起動順、特定の台数、電力計算を示すものではありません。',
         creditLinks: [
-          { label: '公式Satisfactory Press & Content Creatorsページ', href: 'https://www.satisfactorygame.com/press/' },
-          { label: '元画像（公式Press Kit）', href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view' },
+          { label: 'Satisfactory公式クリエイター向け案内（Press & Content Creators）', href: 'https://www.satisfactorygame.com/press/' },
+          { label: '元画像（公式プレスキット／Press Kit）', href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view' },
         ],
       },
       paragraphs: [
@@ -62,11 +62,11 @@ export const coalPowerStartupArticle = {
     heading: 'データと参考資料',
     links: [
       {
-        label: 'Satisfactory公式 Press & Content Creators / Press Kit',
+        label: 'Satisfactory公式クリエイター向け案内（Press & Content Creators）／プレスキット（Press Kit）',
         href: 'https://www.satisfactorygame.com/press/',
       },
       {
-        label: '公式Press Kit掲載画像: coal.jpg（2020年）',
+        label: '公式プレスキット掲載画像：coal.jpg（2020年）',
         href: 'https://drive.google.com/file/d/1bFlaTr2-ROI3J_V2GqWwXp3KODyze094/view',
       },
       {
@@ -78,7 +78,7 @@ export const coalPowerStartupArticle = {
         href: 'https://satisfactory.wiki.gg/wiki/Electricity',
       },
       {
-        label: '公式Satisfactory Update 4の告知（2021年・英語）',
+        label: 'Satisfactory公式アップデート4の告知（2021年・英語資料）',
         href: 'https://store.steampowered.com/news/posts/?appids=526870&enddate=1624027272&feed=steam_community_announcements',
       },
       {

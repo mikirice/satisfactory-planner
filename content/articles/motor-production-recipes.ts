@@ -21,7 +21,7 @@ export const motorProductionRecipesArticle = {
           alt: 'Satisfactoryの工場とレールの一般的なゲーム内風景。モーター専用ラインやレシピ画面ではありません。',
           caption: '公式Satisfactoryメディアの一般的な工場風景です。モーター専用ラインやこの記事の計算結果を示すものではありません。',
           creditLinks: [
-            { label: 'Satisfactory screenshot © Coffee Stain Studios / 出典：公式Satisfactory Press & Content Creators', href: 'https://www.satisfactorygame.com/press/' },
+            { label: 'Satisfactoryのスクリーンショット © Coffee Stain Studios／出典：公式クリエイター向け案内（Press & Content Creators）', href: 'https://www.satisfactorygame.com/press/' },
             { label: '掲載画像', href: 'https://a.storyblok.com/f/110098/2560x1440/243e0e90e4/satisfactory_10_screenshot_1.jpg' },
           ],
         },
@@ -76,7 +76,7 @@ export const motorProductionRecipesArticle = {
     heading: '参考資料',
     links: [
       { label: 'Official Satisfactory Wiki — Motor（英語）', href: 'https://satisfactory.wiki.gg/wiki/Motor' },
-      { label: 'Satisfactory公式Press & Content Creators（ゲーム画像の出典）', href: 'https://www.satisfactorygame.com/press/' },
+      { label: 'Satisfactory公式クリエイター向け案内（Press & Content Creators／ゲーム画像の出典）', href: 'https://www.satisfactorygame.com/press/' },
       { label: 'Satisfactory Planner — 対象ゲームデータと版の根拠', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
       { label: '強い代替レシピと使いどころ（日本語）', href: 'https://satisfactory-planner.net/articles/strong-alternate-recipes/' },
     ],

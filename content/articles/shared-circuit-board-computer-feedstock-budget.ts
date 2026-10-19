@@ -5,7 +5,7 @@ export const sharedCircuitBoardComputerFeedstockBudgetArticle = {
   title: '回路基板とコンピューターの共有原料を上流まで追う',
   description: 'コンピューター用の中間品と別用途の回路基板をまとめ、銅板・プラスチック・ケーブルの供給上限を見積もります。',
   publishedDate: '2026-10-18',
-  versionNotice: 'Satisfactory Plannerに同梱された固定データはSatisfactory 1.1.xです。正確な1.1パッチは不明で、Update 1.2とのレシピ一致は確認していません。例は連続レートの計算であり、ゲーム内の設備や搬送量を測定したものではありません。',
+  versionNotice: 'Satisfactory Plannerに同梱された固定データはSatisfactory 1.1.xです。正確な1.1パッチは不明で、アップデート1.2とのレシピ一致は確認していません。例は連続レートの計算であり、ゲーム内の設備や搬送量を測定したものではありません。',
   sections: [
     {
       heading: 'コンピューターの直接消費と中間品の消費を分ける',

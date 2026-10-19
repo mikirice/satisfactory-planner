@@ -405,8 +405,8 @@ const jaLabels = {
     'イメージイラストです。ゲーム画面・計算結果・実際の建設手順を示すものではありません。',
   publishedOn: (date: string): string => `公開日: ${date}`,
   articleVersionNotice: (gameVersion: string): string =>
-    `この記事の数値例は、本サイトに収録するSatisfactory ${gameVersion}のデータに基づきます。公式サイトではUpdate 1.2が2026年6月2日に公開済みですが、本サイトのデータは1.2との照合を終えていません。現行ゲームと異なる場合はゲーム内の情報を優先してください。`,
-  articleVersionNoticeLink: '公式 Update 1.2',
+    `この記事の数値例は、本サイトに収録するSatisfactory ${gameVersion}のデータに基づきます。公式サイトではアップデート1.2が2026年6月2日に公開済みですが、本サイトのデータは1.2との照合を終えていません。現行ゲームと異なる場合はゲーム内の情報を優先してください。`,
+  articleVersionNoticeLink: '公式アップデート1.2',
   relatedItems: '関連アイテム',
   relatedArticles: '関連記事',
   tryInPlannerHeading: 'ツールで試す',

@@ -21,7 +21,7 @@ export const productionPlanningTutorialArticle = {
         alt: 'Satisfactoryのゲーム内ベルトに表示されたスループットカウンター。14個/分、24個/分、195個/分、200個/分の例が見える。Plannerの画面ではありません。',
         caption: '公式プレスキットのアップデート1.1素材にある実ゲームの搬送量表示です。定常レシピ収支を計算するPlannerとの違いを示す参考で、この記事の鉄板サンプルや計算結果ではありません。',
         creditLinks: [
-          { label: '公式Satisfactory Press & Content Creatorsページ', href: 'https://www.satisfactorygame.com/press/' },
+          { label: 'Satisfactory公式クリエイター向け案内（Press & Content Creators）', href: 'https://www.satisfactorygame.com/press/' },
           { label: '元画像（公式Press Kit）', href: 'https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view' },
         ],
       },
