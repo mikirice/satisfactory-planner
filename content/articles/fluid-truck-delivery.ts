@@ -58,9 +58,4 @@ export const fluidTruckDeliveryArticle = {
   },
   relatedItemIds: ['Desc_Water_C', 'Desc_LiquidFuel_C'],
   relatedArticleSlugs: ['vehicle-paths', 'train-replenishment-buffer-planning-guide'],
-  cta: {
-    kind: 'sample',
-    label: '梱包燃料ループの生産収支をPlannerで確認する',
-    sampleId: 'packaged-diluted-fuel-loop',
-  },
 } as const satisfies HandwrittenArticle

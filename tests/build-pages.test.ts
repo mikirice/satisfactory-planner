@@ -2417,8 +2417,8 @@ describe('Update 1.2追加ガイド', () => {
         slug: 'vehicle-paths',
         jaTitle: '車両パスを安全に切り替える — 短い試走と失敗時の診断',
         enTitle: 'Switch Vehicle Paths Safely — Short Trials and Failure Diagnosis',
-        jaProof: '最短の区間で試します',
-        enProof: 'shortest segment that includes the stop',
+        jaProof: '短い往復で基本動作',
+        enProof: 'short round trip without junctions or loading',
         jaGenre: 'data-genres="factory"',
         enGenre: 'data-genres="factory"',
       },
@@ -2463,6 +2463,33 @@ describe('Update 1.2追加ガイド', () => {
         expect(articleCoverFor(item.slug, 'ja').alt).not.toContain('Vehicle Path')
         expect(articleCoverFor(item.slug, 'en').alt).toContain('vehicle path')
       }
+    }
+  })
+
+  it('独立レビューの指摘を日英本文で修正し、旧Packaged Fuel CTAを出さない', async () => {
+    const jaFluid = await readFile(join(outputDirectory, 'articles/fluid-truck-delivery/index.html'), 'utf8')
+    const enFluid = await readFile(join(outputDirectory, 'en/articles/fluid-truck-delivery/index.html'), 'utf8')
+    for (const [html, formula] of [[jaFluid, '終了在庫'], [enFluid, 'ending inventory']] as const) {
+      expect(html).toContain(formula)
+      expect(html).toContain('190 m³')
+      expect(html).toContain('300')
+      expect(html).toContain('50')
+      expect(html).not.toContain('packaged-diluted-fuel-loop')
+      expect(html).not.toContain('梱包燃料ループの生産収支')
+      expect(html).not.toContain('Packaged Fuel loop')
+    }
+
+    const jaVehicle = await readFile(join(outputDirectory, 'articles/vehicle-paths/index.html'), 'utf8')
+    const enVehicle = await readFile(join(outputDirectory, 'en/articles/vehicle-paths/index.html'), 'utf8')
+    for (const [html, terms] of [[jaVehicle, ['建設メニュー', '輸送', '建設ガン', 'Vehicle Menu', 'Stations / Routes', '駅A → 駅B → 駅A']], [enVehicle, ['Build Menu', 'Transport', 'Build Gun', 'Vehicle Menu', 'Stations / Routes', 'A → B → A']]] as const) {
+      for (const term of terms) expect(html).toContain(term)
+    }
+
+    const jaPower = await readFile(join(outputDirectory, 'articles/power-system-capacity-and-recovery/index.html'), 'utf8')
+    const enPower = await readFile(join(outputDirectory, 'en/articles/power-system-capacity-and-recovery/index.html'), 'utf8')
+    for (const [html, terms] of [[jaPower, ['カテリウム研究', '建物同士', '仮設のバイオマス発電機', '補機用の電柱列', '採鉱機', '採水機', '電源スイッチ']], [enPower, ['Caterium research tree', 'building-to-building', 'temporary Biomass Burner', 'support-circuit pole line', 'miners', 'water extractors', 'Power Switch']]] as const) {
+      for (const term of terms) expect(html).toContain(term)
+      expect(html).not.toContain('pole connections in sequence')
     }
   })
 })

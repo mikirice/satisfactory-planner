@@ -44,11 +44,17 @@ export const fluidTruckDeliveryArticleRevisionEn = revised(fluidTruckDeliveryArt
       'A 3,200 m³ capacity describes storage, not a per-minute delivery rate. To decide whether a route can support a consumer, measure the amount that actually reaches the consumer and the interval between deliveries. A full-load capacity divided by average loop time can mislead when the truck spends part of the loop driving without cargo.',
       'For continuous demand, compare average delivered rate with average consumption, then size a buffer for the longest gap without a delivery. A route can meet the long-run average and still starve a consumer between batches.',
     ], tables: [{ caption: 'Record one loop (illustrative values only)', headers: ['Event', 'Record', 'Example'], rows: [
-      ['Departure', 'Cargo, station display, consumer stock', '600 m³ loaded'],
-      ['Return', 'Loop time T, delivered amount, stock change', 'T=12 min, 480 m³ delivered'],
+      ['Start and end', 'Total inventory in the same receiving tanks', '100 m³ start, 40 m³ end'],
+      ['During interval', 'Consumption plus other inflows and outflows', '300 m³ consumed, 50 m³ other inflow'],
+      ['Return', 'Loop time T and calculated truck delivery', 'T=12 min, 300+(40−100)−50=190 m³'],
       ['Between stops', 'No-delivery time, traffic, loading wait', 'Record separately'],
       ['Next loop', 'Repeat under the same conditions', 'Use at least two loops'],
     ]}] },
+    { heading: 'Measure delivery while the receiver is consuming', paragraphs: [
+      'Fix the boundary at the receiving tank group. At the start and end, total the fluid in the same tanks. Separately record fluid consumed downstream during the interval, every non-truck inflow, and every drain or branch that leaves the boundary.',
+      'Truck delivery = ending inventory − starting inventory + consumption during the interval + other outflows − other inflows. For example, if inventory falls from 100 to 40 m³ while machines consume 300 m³, another pipe supplies 50 m³, and there are no other outflows, the truck delivered (40−100)+300−50=190 m³. The inventory change alone (−60 m³) is not the delivered amount.',
+      'Measure consumption for only the machines inside the boundary using their displayed input rate and actual run time, or an independent flow record. Let the pipe inventory settle before starting and avoid changing other connections during the interval. If another flow cannot be measured, report the result as an estimate rather than a confirmed truck delivery.',
+    ]},
     { heading: 'Calculate average supply and minimum buffer', paragraphs: [
       'Suppose a consumer uses 40 m³/min and a truck actually delivers 480 m³ every 12 minutes. Average supply is 480 ÷ 12 = 40 m³/min, exactly equal to demand. The stock needed to bridge that 12-minute gap is 40 × 12 = 480 m³. Add the longest observed gap, competing consumers, and any unload that stops early.',
       'A rough buffer requirement is consumption rate × longest minutes without delivery. If load size varies, calculate a conservative case using the smallest delivery and longest interval. A station capacity of 3,200 m³ does not by itself settle the question: truck cargo, consumer storage, and stop time are separate constraints.',
@@ -71,11 +77,12 @@ export const vehiclePathsArticleRevisionEn = revised(vehiclePathsArticleEn,
   'Test a new vehicle path on a short segment while preserving the old route; check passage, stops, and the return leg separately.',
   'Feature descriptions and fix history refer to official update notes. The author has not tested the current client or confirmed input-specific button labels.', [
     { heading: 'Build a short test before replacing a working route', paragraphs: [
-      'Do not judge a vehicle path from a single recording of a long loop. Test the shortest segment that includes the stop, turn, junction, and loading point. Keep the previous route until the new one passes, and compare both with the same vehicle, start, and destination. Follow the current on-screen prompt for recording; do not infer exact controls from another UI version.',
+      'First test a short round trip without junctions or loading. Add turns or junctions one at a time only if the production route needs them. Keep the previous route until the new one passes, and compare both with the same vehicle, start, and destination. Follow the current on-screen prompt; do not infer exact controls from another UI version.',
     ], lists: [{ ordered: true, items: [
-      'Choose a safe short segment and note its start and end.',
-      'After setting the path, observe the approach to the junction, the turn, and the stop separately.',
-      'Test the return leg independently; a successful outward route does not prove the reverse works.',
+      'In Build Menu > Transport, choose the Vehicle Path for your vehicle type. Use the Build Gun to place a short connected path from Station A to Station B and back to A.',
+      'Place the vehicle on the path and confirm that Stations A and B appear in its available Vehicle Menu entries.',
+      'Enter the vehicle and open Vehicle Menu > Stations / Routes. Select or configure one round trip in the order A → B → A, following the choices shown by the current UI. If a station is missing, check its connection to the path first.',
+      'Confirm the displayed stop order, then watch the vehicle complete the outward leg, stop at B, and return to A.',
       'Repeat at least two loops and record each stop, collision, or wrong turn.',
       'Switch the production route only after the test passes; keep the old route available for rollback.',
     ]}] },
