@@ -60,7 +60,7 @@ export const productionPlanningTutorialArticle = {
     ],
   },
   relatedItemIds: ['Desc_IronPlate_C', 'Desc_IronIngot_C'],
-  relatedArticleSlugs: ['build-checklist-guide', 'excel-export-guide'],
+  relatedArticleSlugs: ['excel-export-guide', 'strong-alternate-recipes'],
   cta: {
     kind: 'sample',
     label: '鉄板60個/分のサンプル計画を開く',

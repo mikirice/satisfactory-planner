@@ -74,7 +74,7 @@ export const dimensional_depot_refill_guide_enArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "build-checklist-guide"
+    "production-planning-tutorial"
   ],
   "versionNotice": "Planner's bundled data is 1.1.x. Dimensional Depot refill behavior and UI in the current 1.2.x client were not tested; check each step against your game."
 } as const satisfies HandwrittenArticle

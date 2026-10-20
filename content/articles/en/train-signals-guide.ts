@@ -48,7 +48,7 @@ export const trainSignalsGuideArticleEn = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['vehicle-paths', 'build-checklist-guide'],
+  relatedArticleSlugs: ['vehicle-paths', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: 'Check machine counts for the production line you will ship',

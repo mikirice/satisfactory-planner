@@ -57,7 +57,7 @@ export const fluidTruckDeliveryArticleEn = {
     ],
   },
   relatedItemIds: ['Desc_Water_C', 'Desc_LiquidFuel_C'],
-  relatedArticleSlugs: ['packaged-diluted-fuel-loop', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['packaged-nitrogen-empty-fluid-tank-circulation-planning', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: 'Review production balances in the Packaged Fuel loop',

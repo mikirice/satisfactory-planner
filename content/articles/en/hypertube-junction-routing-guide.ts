@@ -80,7 +80,7 @@ export const hypertube_junction_routing_guide_enArticle = {
   "relatedItemIds": [],
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
-    "power-generation-planning",
+    "power-system-capacity-and-recovery",
     "vehicle-paths"
   ],
   "versionNotice": "Planner's bundled data is 1.1.x. The behavior summary follows official stable Update 1.1 sources; route prompts and device-specific controls in the current 1.2.x client were not tested."

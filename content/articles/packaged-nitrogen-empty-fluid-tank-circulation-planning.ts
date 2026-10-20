@@ -51,8 +51,8 @@ export const packagedNitrogenEmptyFluidTankCirculationPlanningArticle = {
   },
   "relatedItemIds": [],
   "relatedArticleSlugs": [
-    "packaged-diluted-fuel-loop",
-    "fused-modular-frame-nitrogen-pipeline-capacity"
+    "packaged-nitrogen-empty-fluid-tank-circulation-planning",
+    "resource-throughput-capacity-guide"
   ],
   "cta": {
     "kind": "sample",

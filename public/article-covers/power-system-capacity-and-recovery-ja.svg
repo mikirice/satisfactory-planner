@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="発電余力を計算し、段階的に復旧する">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#102b2c"/><stop offset="1" stop-color="#17635c"/></linearGradient></defs>
+<rect width="1280" height="720" fill="url(#bg)"/><path d="M0 530H1280" stroke="#4ed3a2" stroke-opacity=".35" stroke-width="2"/>
+<g fill="none" stroke="#76e1ba" stroke-width="7"><rect x="140" y="300" width="190" height="125" rx="16"/><rect x="545" y="300" width="190" height="125" rx="16"/><rect x="950" y="300" width="190" height="125" rx="16"/><path d="M330 362h215m190 0h215"/></g>
+<g fill="#eef8f1" font-family="system-ui,sans-serif"><text x="140" y="150" font-size="48" font-weight="700">発電余力を計算し、段階的に復旧する</text><text x="140" y="220" font-size="34" fill="#9cebd0">利用可能出力 − ピーク負荷 = 予備</text><text x="235" y="375" font-size="26" text-anchor="middle">供給</text><text x="640" y="375" font-size="26" text-anchor="middle">上限</text><text x="1045" y="375" font-size="26" text-anchor="middle">対応</text><text x="140" y="620" font-size="23" fill="#b8d7cd">編集用の計算図・ゲーム内実測ではありません</text></g></svg>

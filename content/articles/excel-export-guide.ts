@@ -59,7 +59,7 @@ export const excelExportGuideArticle = {
     ],
   },
   relatedItemIds: ['Desc_ModularFrameHeavy_C', 'Desc_IronPlate_C'],
-  relatedArticleSlugs: ['production-planning-tutorial', 'build-checklist-guide'],
+  relatedArticleSlugs: ['production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: 'ヘビー・モジュラー・フレーム工場でExcel出力を試す',

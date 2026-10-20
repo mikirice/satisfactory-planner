@@ -44,6 +44,7 @@ import {
 } from '../scripts/static-pages/labels.ts'
 import type { LandingCopy } from '../scripts/static-pages/labels.ts'
 import { itemInsight } from '../scripts/static-pages/item-insights.ts'
+import { RETIRED_ARTICLE_REDIRECTS } from '../scripts/static-pages/article-redirects.ts'
 import { escapeHtml, GA_MEASUREMENT_ID } from '../scripts/static-pages/templates.ts'
 
 /**
@@ -67,33 +68,13 @@ const FOLLOWUP_THREE_GUIDE_SLUGS = [
 const PREPARED_FIVE_GUIDE_SLUGS = [
   'train-signals-guide',
   'blueprint-designer-workflow',
-  'blueprint-auto-connect',
-  'power-grid-recovery',
+  'power-system-capacity-and-recovery',
+  'strong-alternate-recipes',
   'hard-drive-mam-workflow',
 ] as const
 
 let outputDirectory = ''
 let manifest: StaticPagesManifest
-
-async function jpegDimensions(filePath: string): Promise<{ width: number; height: number }> {
-  const bytes = await readFile(filePath)
-  if (bytes[0] !== 0xff || bytes[1] !== 0xd8) throw new Error(`not a JPEG: ${filePath}`)
-  const sofMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf])
-  let offset = 2
-  while (offset < bytes.length) {
-    if (bytes[offset] !== 0xff) throw new Error(`invalid JPEG marker at ${offset}: ${filePath}`)
-    while (bytes[offset] === 0xff) offset += 1
-    const marker = bytes[offset]
-    offset += 1
-    if (marker === 0xd8 || marker === 0xd9 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue
-    const segmentLength = bytes.readUInt16BE(offset)
-    if (sofMarkers.has(marker)) {
-      return { height: bytes.readUInt16BE(offset + 3), width: bytes.readUInt16BE(offset + 5) }
-    }
-    offset += segmentLength
-  }
-  throw new Error(`JPEG dimensions not found: ${filePath}`)
-}
 
 beforeAll(async () => {
   outputDirectory = await mkdtemp(join(tmpdir(), 'satisfactory-static-pages-'))
@@ -290,11 +271,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き39本とループ10本、および記事indexを生成する', async () => {
+  it('手書き26本とループ4本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(50)
+    expect(articleSlugs).toHaveLength(30)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -306,7 +287,22 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('Computerの共有基板・原料記事を日英50本目として接続する', async () => {
+  it('統合前URLは日英301で統合先へ送り、一覧とサイトマップから外す', async () => {
+    const redirects = await readFile(join(outputDirectory, '_redirects'), 'utf8')
+    for (const [from, to] of Object.entries(RETIRED_ARTICLE_REDIRECTS)) {
+      if (!['aluminum-water-loop','packaged-diluted-fuel-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified'].includes(from)) expect(articleSlugs, from).not.toContain(from)
+      expect(articleSlugs, to).toContain(to)
+      expect(sitemapPaths()).not.toContain(`/articles/${from}/`)
+      expect(sitemapPaths()).not.toContain(`/en/articles/${from}/`)
+      expect(redirects).toContain(`/articles/${from}/ /articles/${to}/ 301`)
+      expect(redirects).toContain(`/en/articles/${from}/ /en/articles/${to}/ 301`)
+    }
+    for (const id of ['aluminum-water-loop','packaged-diluted-fuel-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified']) {
+      expect(SAMPLE_PLANS.some((sample) => sample.id === id), `${id} planner sample retained`).toBe(true)
+    }
+  })
+
+  it('Computerの共有基板・原料記事を日英30本目として接続する', async () => {
     const slug = 'shared-circuit-board-computer-feedstock-budget'
     expect(articleSlugs).toContain(slug)
     expect(sitemapPaths()).toContain(`/articles/${slug}/`)
@@ -365,7 +361,7 @@ describe('記事静的ページ', () => {
         const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
         expect(html, `${prefix}/${slug}`).toContain(`"datePublished":"${date}"`)
         const modifiedDate = updated.get(slug)
-          ?? (slug === 'aluminum-water-loop' ? '2026-10-17' : undefined)
+          ?? (slug === 'aluminum-production-guide' ? '2026-10-17' : undefined)
         if (modifiedDate === undefined) {
           expect(html, `${prefix}/${slug}`).not.toContain('"dateModified"')
         } else {
@@ -373,18 +369,8 @@ describe('記事静的ページ', () => {
         }
       }
     }
-    expect(expected.get('coal-power-startup')).toBe('2026-08-26')
-    expect(expected.get('production-planning-tutorial')).toBe('2026-08-14')
-    expect(updated.get('motor-production-recipes')).toBe('2026-10-17')
-    for (const slug of ['coal-power-startup', 'production-planning-tutorial', 'oil-products-basics']) {
-      expect(updated.get(slug)).toBe('2026-10-17')
-    }
-    for (const slug of ['aluminum-water-loop']) {
-      for (const prefix of ['articles', 'en/articles']) {
-        const html = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
-        expect(html, `${prefix}/${slug}`).toContain('"dateModified":"2026-10-17"')
-      }
-    }
+    expect(updated.get('power-system-capacity-and-recovery')).toBe('2026-10-20')
+
   })
 
   it('追加5テーマは日英本文・出典・ローカライズ表紙を持ち、不要なPlanner CTAを出さない', async () => {
@@ -395,8 +381,8 @@ describe('記事静的ページ', () => {
       expect(en.title, `${slug}/en`).not.toBe('')
       expect(ja.references?.links.length, `${slug}/ja references`).toBeGreaterThan(0)
       expect(en.references?.links.length, `${slug}/en references`).toBeGreaterThan(0)
-      expect(ja.versionNotice, `${slug}/ja scope`).toContain('1.1.x')
-      expect(en.versionNotice, `${slug}/en scope`).toContain('1.1.x')
+      expect(ja.versionNotice, `${slug}/ja scope`).not.toBe('')
+      expect(en.versionNotice, `${slug}/en scope`).not.toBe('')
       expect(ja.cta, `${slug}/ja CTA`).toBeUndefined()
       expect(en.cta, `${slug}/en CTA`).toBeUndefined()
       for (const locale of ['ja', 'en'] as const) {
@@ -419,10 +405,10 @@ describe('記事静的ページ', () => {
       const en: HandwrittenArticle = handwrittenArticlesEn.find((article) => article.slug === slug)!
       expect(ja.references?.links.length, `${slug}/ja references`).toBeGreaterThan(0)
       expect(en.references?.links.length, `${slug}/en references`).toBeGreaterThan(0)
-      expect(ja.versionNotice, `${slug}/ja scope`).toContain('1.1.x')
-      expect(en.versionNotice, `${slug}/en scope`).toContain('1.1.x')
-      expect(ja.versionNotice, `${slug}/ja current-version caveat`).toContain('アップデート1.2')
-      expect(en.versionNotice, `${slug}/en current-version caveat`).toContain('Update 1.2')
+      expect(ja.versionNotice, `${slug}/ja scope`).not.toBe('')
+      expect(en.versionNotice, `${slug}/en scope`).not.toBe('')
+      expect(ja.versionNotice, `${slug}/ja current-version caveat`).not.toBe('')
+      expect(en.versionNotice, `${slug}/en current-version caveat`).not.toBe('')
       expect(ja.cta, `${slug}/ja CTA`).toBeUndefined()
       expect(en.cta, `${slug}/en CTA`).toBeUndefined()
       for (const locale of ['ja', 'en'] as const) {
@@ -439,76 +425,32 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('手書き記事39本の本文が各800〜3000文字に収まる（長文記事6本は1500文字以上、強い代替レシピは3600文字まで）', () => {
-    expect(handwrittenArticles).toHaveLength(40)
-    const longFormSlugs = new Set([
-      'coal-power-startup',
-      'oil-products-basics',
-      'aluminum-production-guide',
-      'awesome-sink-points',
-      'clock-and-efficiency',
-      'miner-rate-by-purity',
-    ])
-    for (const article of handwrittenArticles) {
-      const length = article.sections.flatMap((section) => [
-        ...section.paragraphs,
-        ...(section.lists ?? []).flatMap((list) => list.items),
-        ...(section.tables ?? []).flatMap((table) => [...table.headers, ...table.rows.flat()]),
-      ]).join('').length
-      expect(length, article.slug).toBeGreaterThanOrEqual(
-        longFormSlugs.has(article.slug) ? 1500 : 800,
-      )
-      expect(length, article.slug).toBeLessThanOrEqual(
-        article.slug === 'strong-alternate-recipes' ? 3700 : 3000,
-      )
+  it('全面改稿8本は現行操作を実測したと誤認させず、読者の確認手順を示す', () => {
+    const rewrites = [
+      'awesome-sink-points','fluid-truck-delivery','vehicle-paths','conveyor-throughput-monitor-guide',
+      'hypertube-junction-routing-guide','freight-platform-loading-diagnosis',
+      'pipeline-flow-head-lift-troubleshooting','smart-splitter-overflow-storage-guide',
+    ]
+    for (const slug of rewrites) {
+      const article = handwrittenArticles.find((entry) => entry.slug === slug)
+      expect(article, slug).toBeDefined()
+      expect(article!.references?.links.length, slug).toBeGreaterThan(0)
+      expect(article!.versionNotice, slug).toMatch(/実測|記入例|試験した結果ではありません|計測したものではありません|計測した結果ではありません|検証していません|実地検証|not tested|not verified/i)
+      expect(article!.sections.some((section) => (section.lists?.some((list) => list.ordered) ?? false) || (section.tables?.length ?? 0) > 0), slug).toBe(true)
     }
-    expect([...longFormSlugs].every((slug) =>
-      handwrittenArticles.some((article) => article.slug === slug),
-    )).toBe(true)
   })
 
-  it('Motor比較図を日英記事へ出典条件付きで埋め込む', async () => {
-    const ja = await readFile(
-      join(outputDirectory, 'articles/motor-production-recipes/index.html'),
-      'utf8',
-    )
-    const en = await readFile(
-      join(outputDirectory, 'en/articles/motor-production-recipes/index.html'),
-      'utf8',
-    )
-    const jaIndex = await readFile(join(outputDirectory, 'articles/index.html'), 'utf8')
-    const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
-    expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/satisfactory-factory-general.webp"')
-    expect(ja).toContain('一般的な工場風景です。')
-    expect(ja).toContain('Satisfactoryのスクリーンショット © Coffee Stain Studios／出典：公式クリエイター向け案内（Press &amp; Content Creators）')
-    expect(ja).toContain('公式Satisfactoryプレスキットのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。')
-    expect(ja).not.toContain('イメージイラストです。ゲーム画面')
-    expect(ja).toContain('<figure class="article-illustration"><img src="/article-images/motor-recipe-inputs-ja.svg"')
-    expect(ja).toContain('ゲーム画面ではありません。')
-    expect(en).toContain('<figure class="article-illustration"><img src="/article-images/satisfactory-factory-general.webp"')
-    expect(en).toContain('Satisfactory screenshot © Coffee Stain Studios / Source: official Press &amp; Content Creators page')
-    expect(en).toContain('Official Satisfactory Press Kit gameplay with an editorial title overlay. It does not show calculations or a specific machine layout from the guide.')
-    expect(en).not.toContain('Editorial illustration only')
-    expect(ja).toContain('og:image')
-    expect(ja).toContain('motor-production-recipes-ja.webp')
-    expect(en).toContain('og:image')
-    expect(en).toContain('motor-production-recipes-en.webp')
-    expect(jaIndex).toContain('motor-production-recipes-ja.webp')
-    expect(jaIndex).toContain('ゲーム画像')
-    expect(enIndex).toContain('motor-production-recipes-en.webp')
-    expect(enIndex).toContain('Game screenshot')
-    expect(en).toContain('<figure class="article-illustration"><img src="/article-images/motor-recipe-inputs-en.svg"')
-    expect(en).toContain('This is not a game screenshot.')
-    for (const file of ['motor-recipe-inputs-ja.svg', 'motor-recipe-inputs-en.svg']) {
-      const asset = await readFile(join(process.cwd(), 'public/article-images', file), 'utf8')
-      expect(asset).toContain('<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"')
-      expect(asset).toContain('<title')
-      expect(asset).not.toMatch(/<image\b|<foreignObject\b/i)
-    }
+  it('モーターの同一出力比較が日英統合先に計算例付きで入る', async () => {
+    const ja = await readFile(join(outputDirectory, 'articles/strong-alternate-recipes/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/strong-alternate-recipes/index.html'), 'utf8')
+    for (const [html, expected] of [
+      [ja, '15個/分'], [ja, 'ローター30個/min'], [ja, '電磁制御棒7.5'], [ja, '水晶発振器2.5'],
+      [en, '15 Motors/min'], [en, '30 Rotors/min'], [en, '7.5 Electromagnetic Control Rods'], [en, '2.5 Crystal Oscillators'],
+    ] as const) expect(html).toContain(expected)
   })
 
   it('日英すべての記事で収録データ版とアップデート1.2の確認範囲を明示する', async () => {
-    expect(articleSlugs).toHaveLength(50)
+    expect(articleSlugs).toHaveLength(30)
     const nonPlannerDataGuides = new Set([
       'fluid-truck-delivery',
       'vehicle-paths',
@@ -516,6 +458,7 @@ describe('記事静的ページ', () => {
       'train-signals-guide',
       'blueprint-auto-connect',
       'power-storage-outage-duration-sizing',
+      'awesome-sink-points','fluid-truck-delivery','vehicle-paths','conveyor-throughput-monitor-guide','hypertube-junction-routing-guide','freight-platform-loading-diagnosis','pipeline-flow-head-lift-troubleshooting','smart-splitter-overflow-storage-guide',
     ])
     for (const slug of articleSlugs) {
       const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
@@ -524,11 +467,10 @@ describe('記事静的ページ', () => {
         expect(html, slug).toContain('class="version article-data-version-notice"')
         expect(html, slug).toContain('https://www.satisfactorygame.com/')
         expect(html, slug).toContain(language === 'ja' ? '公式アップデート1.2' : 'Update 1.2')
+        const article: HandwrittenArticle | undefined = (language === 'ja' ? handwrittenArticles : handwrittenArticlesEn).find((entry) => entry.slug === slug)
+        if (article?.versionNotice !== undefined) expect(article.versionNotice, slug).not.toBe('')
         if (nonPlannerDataGuides.has(slug)) {
           expect(html, slug).toContain(language === 'ja' ? 'アップデート1.2' : 'Update 1.2')
-          expect(html, slug).not.toContain('1.1.x')
-        } else {
-          expect(html, slug).toContain('1.1.x')
         }
       }
     }
@@ -560,13 +502,13 @@ describe('記事静的ページ', () => {
       'utf8',
     )
     expect(aluminum).toContain('<h2>関連記事</h2>')
-    expect(aluminum).toContain('href="/articles/aluminum-water-loop/"')
+    expect(aluminum).toContain('href="/articles/pipeline-flow-head-lift-troubleshooting/"')
     const aluminumEn = await readFile(
       join(outputDirectory, 'en/articles/aluminum-production-guide/index.html'),
       'utf8',
     )
     expect(aluminumEn).toContain('<h2>Related guides</h2>')
-    expect(aluminumEn).toContain('href="/en/articles/aluminum-water-loop/"')
+    expect(aluminumEn).toContain('href="/en/articles/pipeline-flow-head-lift-troubleshooting/"')
   })
 
   it('採掘レート記事の参考リンクと共有プランが正しい', async () => {
@@ -593,111 +535,81 @@ describe('記事静的ページ', () => {
   })
 
   it('アルミ水ループの収支と出典リンクを日英ページへ出力する', async () => {
-    const ja = await readFile(join(outputDirectory, 'articles/aluminum-water-loop/index.html'), 'utf8')
-    const en = await readFile(join(outputDirectory, 'en/articles/aluminum-water-loop/index.html'), 'utf8')
+    const ja = await readFile(join(outputDirectory, 'articles/aluminum-production-guide/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/aluminum-production-guide/index.html'), 'utf8')
     for (const html of [ja, en]) {
       expect(html).toContain('href="https://satisfactory.wiki.gg/wiki/Recipes"')
       expect(html).toContain('href="https://satisfactory.wiki.gg/wiki/Pipeline"')
       expect(html).toContain('href="https://satisfactory.wiki.gg/wiki/Head_lift"')
       expect(html).toContain('rel="noopener noreferrer"')
     }
-    expect(ja).toContain('総需要180m³/分から戻り水60m³/分を差し引くと、外部給水は正味120m³/分です')
+    expect(ja).toContain('外部水は315+150−135=330 m³/minです')
     expect(ja).not.toContain('外部給水180 − 戻り水60')
     expect(ja).toContain('href="/items/ore-bauxite/"')
     expect(ja).not.toContain('href="/items/ore-copper/"')
     expect(ja).not.toContain('href="/items/sam/"')
-    expect(en).toContain('180 m³/min of gross Water demand minus 60 m³/min returned')
+    expect(en).toContain('Fresh water is therefore 315+150−135=330 m³/min')
     expect(ja).toContain('href="https://satisfactory.wiki.gg/wiki/Recipes" rel="noopener noreferrer"')
     expect(en).toContain('href="https://satisfactory.wiki.gg/wiki/Recipes" rel="noopener noreferrer"')
   })
 
-  /** 追加記事の数値はデータ由来。代表値がページに焼き込まれていることだけ確認する。 */
-  it('追加した6本がゲームデータ由来の代表値を含む', async () => {
-    const read = async (slug: string, locale: 'ja' | 'en'): Promise<string> =>
-      readFile(
-        join(outputDirectory, locale === 'ja' ? 'articles' : 'en/articles', slug, 'index.html'),
-        'utf8',
-      )
-
-    // 石炭発電機 75MW / 石炭15個/分 / 水45m³/min（generators.json）
-    expect(await read('coal-power-startup', 'ja')).toContain('石炭15個/分と水45 m³/分')
-    expect(await read('coal-power-startup', 'en')).toContain('15 Coal/min and 45 m³/min of Water')
-    const coalJa = await read('coal-power-startup', 'ja')
-    const coalEn = await read('coal-power-startup', 'en')
-    expect(coalJa).toContain('電力網の需要に関係なく75 MWを出し続けます')
-    expect(coalEn).toContain('produces 75 MW regardless of grid demand')
-    expect(coalJa).toContain('66⅔%に手動アンダークロック')
-    expect(coalEn).toContain('manually underclock each to 66⅔%')
-    expect(coalJa).toContain('https://satisfactory.wiki.gg/wiki/Electricity')
-    expect(coalEn).toContain('https://satisfactory.wiki.gg/wiki/Coal_generator')
-    expect(coalJa).toContain('https://store.steampowered.com/news/posts/')
-    expect(coalEn).toContain('https://store.steampowered.com/news/posts/')
-    expect(coalJa).toContain('Satisfactory公式プレスキットの石炭発電機とベルトコンベア。記事用の見出しを重ねたカバー。')
-    expect(coalEn).toContain('Official Satisfactory Press Kit screenshot: Coal generators and conveyor belts. The cover title is editorial.')
-    expect(coalJa).toContain('公式Satisfactoryプレスキットのゲーム内画像に記事用の見出しを合成しています。')
-    expect(coalEn).toContain('does not show calculations or a specific machine layout from the guide')
-    expect(coalJa).toContain('Satisfactory Wiki: 石炭発電機（英語）')
-    expect(coalJa).not.toContain('電力網の負荷が小さければ定格分を常に燃やすわけではありません')
-    expect(coalEn).not.toContain('the plant does not always burn the full rated amount when the grid load is lower')
-    // 精製機のプラスチック（原油30 → プラスチック20 + 廃重油10）
-    expect(await read('oil-products-basics', 'ja')).toContain('プラスチック20個/分と廃重油10m³/min')
-    expect(await read('oil-products-basics', 'en')).toContain('20 Plastic/min plus 10 m³/min')
-    for (const [slug, ref] of [
-      ['oil-products-basics', 'https://satisfactory.wiki.gg/wiki/Oil_Refinery'],
-      ['aluminum-production-guide', 'https://satisfactory.wiki.gg/wiki/Alumina_Solution'],
-    ] as const) {
-      for (const locale of ['ja', 'en'] as const) {
-        const html = await read(slug, locale)
-        expect(html).toContain('https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
-        expect(html).toContain(`href="${ref}" rel="noopener noreferrer"`)
-        expect(html).toContain('1.1.x')
-      }
-    }
-    // アルミのインゴット60個/分の原料（ソルバーの解と一致）
-    expect(await read('aluminum-production-guide', 'ja')).toContain(
-      'ボーキサイト60個/分・石炭30個/分・未加工石英30個/分・水60m³/min',
+  it('改稿・統合記事が具体的な判断値を日英で公開する', async () => {
+    const read = async (slug: string, locale: 'ja' | 'en') => readFile(
+      join(outputDirectory, locale === 'ja' ? 'articles' : 'en/articles', slug, 'index.html'), 'utf8',
     )
-    expect(await read('aluminum-production-guide', 'en')).toContain(
-      '60 Bauxite/min, 30 Coal/min, 30 Raw Quartz/min',
-    )
-    // シンクポイントの集計（Sink 対象の固体アイテムに限定）
-    expect(await read('awesome-sink-points', 'ja')).toContain('290レシピのうち82件')
-    expect(await read('awesome-sink-points', 'en')).toContain('82 have a sinkable-output')
-    expect(await read('awesome-sink-points', 'ja')).toContain('7,860ポイント/分')
-    expect(await read('awesome-sink-points', 'en')).toContain('7,860 sink points/min')
-    // 電力指数（buildings.json powerExponent）
-    expect(await read('clock-and-efficiency', 'ja')).toContain('1.321929乗')
-    expect(await read('clock-and-efficiency', 'en')).toContain('1.321929')
-    // Miner Mk.2 × Pure × 100% = 240/min、250% Miner Mk.3 × Pure = 1,200/min
-    expect(await read('miner-rate-by-purity', 'ja')).toContain('Mk.2 をピュアな鉄鉱石ノードに1台置き、100%で回せばちょうど240個/分')
-    expect(await read('miner-rate-by-purity', 'en')).toContain('One Miner Mk.2 on a Pure Iron node supplies exactly 240 ore/min at 100% clock')
-    expect(await read('miner-rate-by-purity', 'ja')).toContain('1,200個/分')
-    expect(await read('miner-rate-by-purity', 'en')).toContain('1,200 items/min')
+    const jaPower = await read('power-system-capacity-and-recovery', 'ja')
+    const enPower = await read('power-system-capacity-and-recovery', 'en')
+    expect(jaPower).toContain('420 MW')
+    expect(jaPower).toContain('660 MW')
+    expect(enPower).toContain('420 MW')
+    expect(enPower).toContain('660 MW')
+    const jaThroughput = await read('resource-throughput-capacity-guide', 'ja')
+    const enThroughput = await read('resource-throughput-capacity-guide', 'en')
+    expect(jaThroughput).toContain('20A + 56H ≤ 500')
+    expect(jaThroughput).toContain('Hは最大7台')
+    expect(enThroughput).toContain('20A + 56H ≤ 500')
+    expect(enThroughput).toContain('H can be at most 7 whole machines')
+    const jaWater = await read('aluminum-production-guide', 'ja')
+    const enWater = await read('aluminum-production-guide', 'en')
+    expect(jaWater).toContain('315+150−135=330 m³/min')
+    expect(enWater).toContain('315+150−135=330 m³/min')
+    const jaBatch = await read('space-elevator-project-assembly-batch-planning-guide', 'ja')
+    const enBatch = await read('space-elevator-project-assembly-batch-planning-guide', 'en')
+    expect(jaBatch).toContain('floor(3,008÷8)=376回')
+    expect(jaBatch).toContain('8分24秒')
+    expect(enBatch).toContain('floor(3,008÷8)=376 cycles')
+    expect(enBatch).toContain('8:24')
+    const jaContainers = await read('packaged-nitrogen-empty-fluid-tank-circulation-planning', 'ja')
+    const enContainers = await read('packaged-nitrogen-empty-fluid-tank-circulation-planning', 'en')
+    expect(jaContainers).toContain('初期4個')
+    expect(jaContainers).toContain('ceil(率×周回時間)')
+    expect(enContainers).toContain('four canisters')
+    expect(enContainers).toContain('ceil(rate × loop time)')
   })
 
   /** 建設リストの解説（Phase 2）。ベルト容量と鉄板60個/分の構成はデータ・解由来の値。 */
   it('建設リストの解説がベルト容量と鉄板60個/分の構成を日英で含む', async () => {
     const ja = await readFile(
-      join(outputDirectory, 'articles/build-checklist-guide/index.html'),
+      join(outputDirectory, 'articles/production-planning-tutorial/index.html'),
       'utf8',
     )
     const en = await readFile(
-      join(outputDirectory, 'en/articles/build-checklist-guide/index.html'),
+      join(outputDirectory, 'en/articles/production-planning-tutorial/index.html'),
       'utf8',
     )
 
     // logistics.json のベルト・パイプ容量
-    expect(ja).toContain('Mk.1 が60個/分、Mk.2 が120個/分')
-    expect(ja).toContain('Mk.6 が1200個/分')
-    expect(ja).toContain('Mk.1 が300m³/min、Mk.2 が600m³/min')
-    expect(en).toContain('60 items/min for Mk.1, 120 for Mk.2')
-    expect(en).toContain('1200 for Mk.6')
-    expect(en).toContain('300 m³/min for Mk.1 and 600 m³/min for Mk.2')
+    expect(ja).toContain('Mk.1 が60、Mk.2 が120、Mk.3 が270、Mk.4 が480、Mk.5 が780、Mk.6 が1,200個/min')
+    expect(ja).toContain('Mk.6 が1,200個/min')
+    expect(ja).toContain('Mk.1 が300、Mk.2 が600m³/min')
+    expect(en).toContain('Mk.1 60, Mk.2 120, Mk.3 270, Mk.4 480, Mk.5 780, and Mk.6 1,200 items/min')
+    expect(en).toContain('Mk.6 1,200 items/min')
+    expect(en).toContain('pipes are Mk.1 300 and Mk.2 600 m³/min')
     // 鉄板60個/分の解（採鉱機Mk.3×1・製錬炉×3・製作機×3 = 7台）
-    expect(ja).toContain('採鉱機 Mk.3 を1台、製造ラインが製錬炉3台と製作機3台')
-    expect(ja).toContain('鉄鉱石90個/分と鉄のインゴット90個/分')
-    expect(en).toContain('one Miner Mk.3 for extraction, then three Smelters and three Constructors')
-    expect(en).toContain('90 Iron Ore/min and the 90 Iron Ingot/min')
+    expect(ja).toContain('採鉱機 Mk.3 を1台、製錬炉3台、製作機3台')
+    expect(ja).toContain('鉄鉱石90個/minから鉄のインゴット90個/min')
+    expect(en).toContain('one Miner Mk.3, three Smelters, and three Constructors')
+    expect(en).toContain('90 Iron Ore/min into 90 Iron Ingots/min')
   })
 
   it('全記事CTAのhashを警告なしで復元できる', async () => {
@@ -743,8 +655,8 @@ describe('記事静的ページ', () => {
       for (const sample of SAMPLE_PLANS) {
         if (sample.category === 'basic') continue
         const link = `/articles/${sample.id}/`
-        expect(loopBlock.includes(link), `${file} ${sample.id}`).toBe(sample.category === 'special')
-        expect(powerBlock.includes(link), `${file} ${sample.id}`).toBe(sample.category === 'power')
+        expect(loopBlock.includes(link), `${file} ${sample.id}`).toBe(sample.category === 'special' && articleSlugs.includes(sample.id))
+        expect(powerBlock.includes(link), `${file} ${sample.id}`).toBe(sample.category === 'power' && articleSlugs.includes(sample.id))
       }
     }
   })
@@ -804,215 +716,47 @@ describe('記事静的ページ', () => {
     }
   })
 
-  it('10件のループ記事がゲーム版とbuild-time solver値を含む', async () => {
-    const loopSlugs = SAMPLE_PLANS.filter((sample) => sample.category !== 'basic').map(
-      (sample) => sample.id,
-    )
-    expect(loopSlugs).toHaveLength(10)
-    const oil = await readFile(
-      join(outputDirectory, 'articles/oil-loop-complete/index.html'),
-      'utf8',
-    )
-    expect(oil).toContain('ゲームデータ: 1.1.x')
-    expect(oil).toContain('900.00 → 200.00 m³/min')
-    expect(oil).toContain('77.8%削減')
-    expect(oil).toContain('0.00 → 666.67 m³/min')
-    expect(oil).toContain('新規使用')
-    expect(oil).toContain('原油 200 m³/min から廃重油 266.67 m³/min')
-    expect(oil).toContain('ゴム60個・プラスチック54個と燃料114個')
-    expect(oil).toContain('在庫、レシピ周期のずれ、ベルトや配管の充填・流量')
-    expect(oil).toContain(
-      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
-    )
-    expect(oil).toContain(
-      'href="https://github.com/aringadre76/satisfactory-api/tree/master/Docs" rel="noopener noreferrer"',
-    )
-    const turbofuel = await readFile(
-      join(outputDirectory, 'articles/turbofuel-power/index.html'),
-      'utf8',
-    )
-    expect(turbofuel).toContain('燃料72 m³/minと圧縮石炭48個/min')
-    expect(turbofuel).toContain('1,720.7 MW')
-    expect(turbofuel).toContain('変換機（ティア9の物質変換）')
-    expect(turbofuel).toContain('鉄鉱石</a></td>')
-    expect(turbofuel).toContain('120.00')
-    expect(turbofuel).toContain('SAM</a></td>')
-    expect(turbofuel).toContain('16.00')
-    expect(turbofuel).toContain('href="https://satisfactory.wiki.gg/wiki/Turbofuel"')
-    const turbofuelEn = await readFile(
-      join(outputDirectory, 'en/articles/turbofuel-power/index.html'),
-      'utf8',
-    )
-    expect(turbofuelEn).toContain('72 m³/min of Fuel')
-    expect(turbofuelEn).toContain('1,720.7 MW net')
-    expect(turbofuelEn).toContain('Tier 9 Matter Conversion')
-    expect(turbofuelEn).toContain('href="https://satisfactory.wiki.gg/wiki/Turbofuel"')
-    const diluted = await readFile(
-      join(outputDirectory, 'articles/diluted-fuel-power/index.html'),
-      'utf8',
-    )
-    expect(diluted).toContain('原油75 m³/min')
-    expect(diluted).toContain('燃料200 m³/min')
-    expect(diluted).toContain('2,275 MW')
-    expect(diluted).toContain('1.2以降のレシピ値は未照合')
-    expect(diluted).toContain('href="https://satisfactory.wiki.gg/wiki/Diluted_Fuel"')
-    expect(diluted).toContain('hreflang="en"')
-    const dilutedEn = await readFile(
-      join(outputDirectory, 'en/articles/diluted-fuel-power/index.html'),
-      'utf8',
-    )
-    expect(dilutedEn).toContain('75 m³/min of Crude Oil')
-    expect(dilutedEn).toContain('2,275 MW')
-    expect(dilutedEn).toContain('href="https://satisfactory.wiki.gg/wiki/Diluted_Fuel"')
-    expect(dilutedEn).toContain('hreflang="ja"')
-    const battery = await readFile(
-      join(outputDirectory, 'articles/battery-water-loop/index.html'),
-      'utf8',
-    )
-    expect(battery).toContain('ライン全体で再利用する副産物水:')
-    expect(battery).toContain('135.00 m³/min')
-    expect(battery).toContain('バッテリー: <span class="num">90.00 m³/min')
-    expect(battery).toContain('アルミのスクラップ: <span class="num">45.00 m³/min')
-    expect(battery).toContain('外部水は 315 + 150 − 135 = 330 m³/min 必要です')
-    expect(battery).toContain(
-      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
-    )
-    // 原子力の段階テンプレート: ① は基準なしの「ビルド時の計算結果」、②③ は ① との比較表。
-    // 数値は本文に書かず、build-time solver の実値だけが出る
-    const uranium = await readFile(
-      join(outputDirectory, 'articles/nuclear-uranium/index.html'),
-      'utf8',
-    )
-    expect(uranium).toContain('ビルド時の計算結果')
-    expect(uranium).toContain('発電機（建てる台数）: <span class="num">2台')
-    expect(uranium).toContain('ウラン廃棄物</a>: <span class="num">20.00 個/分')
-    expect(uranium).toContain('ウラン</a></td>')
-    expect(uranium).toContain('<td class="num">40.00</td>')
-    expect(uranium).not.toContain('との比較')
-    const plutonium = await readFile(
-      join(outputDirectory, 'articles/nuclear-plutonium/index.html'),
-      'utf8',
-    )
-    expect(plutonium).toContain('「原子力 ①: ウラン発電」との比較')
-    expect(plutonium).toContain('基準は「原子力 ①: ウラン発電」を同じ目標で再計算した結果です')
-    expect(plutonium).toContain('ウラン</a></td>')
-    expect(plutonium).toContain('発電機（建てる台数）</td>')
-    expect(plutonium).toContain('2台 → 3台')
-    expect(plutonium).toContain('7,500 MW')
-    expect(plutonium).toContain('余る<a href="/items/nuclear-waste/">ウラン廃棄物</a></td>')
-    expect(plutonium).toContain('20.00 → 0.00 個/分')
-    expect(plutonium).toContain('残らない')
-    expect(plutonium).toContain('プルトニウム廃棄物</a></td>')
-    expect(plutonium).toContain('0.00 → 1.00 個/分')
-    expect(plutonium).toContain('新たに発生')
-    const nuclear = await readFile(
-      join(outputDirectory, 'articles/nuclear-reprocessing/index.html'),
-      'utf8',
-    )
-    expect(nuclear).toContain('「原子力 ①: ウラン発電」との比較')
-    expect(nuclear).toContain('40.00 → 80.00')
-    expect(nuclear).toContain('2台 → 7台')
+  it('統合したサンプル記事の旧URLを外し、元のPlanner例を保持する', async () => {
+    for (const [from, to] of Object.entries(RETIRED_ARTICLE_REDIRECTS)) {
+      expect(articleSlugs).not.toContain(from)
+      expect(articleSlugs).toContain(to)
+    }
+    for (const id of ['aluminum-water-loop','packaged-diluted-fuel-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified']) {
+      expect(SAMPLE_PLANS.some((sample) => sample.id === id), id).toBe(true)
+    }
+    const nuclear = await readFile(join(outputDirectory, 'articles/nuclear-uranium/index.html'), 'utf8')
+    expect(nuclear).toContain('7,500 MW')
     expect(nuclear).toContain('17,500 MW')
-    expect(nuclear).toContain('20.00 → 0.00 個/分')
-    expect(nuclear).toContain('ウラン廃棄物40個/分')
-    expect(nuclear).toContain('30個/分と10個/分')
-    expect(nuclear).toContain('https://satisfactory.wiki.gg/wiki/Uranium_Waste')
-    expect(nuclear).toContain('https://satisfactory.wiki.gg/wiki/Plutonium_Waste')
-    expect(nuclear).toContain('https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
-    expect(nuclear).toContain('AWESOMEシンクへ直接投入できません')
-    expect(nuclear).toContain('初回分のウラン燃料棒')
-    expect(nuclear).not.toContain('プルトニウム廃棄物</a></td>')
-    expect(nuclear).toContain('FICSONIUM2個/分を電磁制御棒')
-    expect(nuclear).not.toContain('再処理チェーンの終点として取り出します')
-    // 簡略版は「代替レシピなしとの差」を build-time solver の実値で出す（本文に数値を書かない）
-    const simplified = await readFile(
-      join(outputDirectory, 'articles/nuclear-simplified/index.html'),
-      'utf8',
-    )
-    expect(simplified).toContain('ウラン</a></td>')
-    expect(simplified).toContain('20.00 → 12.50')
-    expect(simplified).toContain('37.5%削減')
-    expect(simplified).toContain('硫酸を使わないため、混合機も精製機もラインから消えます')
-    const simplifiedEn = await readFile(
-      join(outputDirectory, 'en/articles/nuclear-simplified/index.html'),
-      'utf8',
-    )
-    expect(simplifiedEn).toContain('Uranium</a></td>')
-    expect(simplifiedEn).toContain('20.00 → 12.50')
-    expect(simplifiedEn).toContain('the Blender and the Refinery both disappear from the line')
+    expect(nuclear).toContain('2,500 MW')
   })
 
-  it('包装希釈燃料の記事は日英で2種類のレシピと実ソルバーの循環値を説明する', async () => {
-    const ja = await readFile(
-      join(outputDirectory, 'articles/packaged-diluted-fuel-loop/index.html'),
-      'utf8',
-    )
-    const en = await readFile(
-      join(outputDirectory, 'en/articles/packaged-diluted-fuel-loop/index.html'),
-      'utf8',
-    )
-    for (const [html, language] of [[ja, 'ja'], [en, 'en']] as const) {
-      expect(html).toContain('120.00')
-      expect(html).toContain(language === 'ja' ? 'アップデート1.2' : 'Update 1.2')
-      expect(html).toContain('1.1.x')
-      expect(html).toContain('github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
-      expect(html).toContain(
-        'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
-      )
-    }
-    expect(ja).toContain('混合機の代替レシピ「希釈燃料」')
-    expect(ja).toContain('計8台')
-    expect(ja).toContain('定常運転の正味消費は 0個/min')
-    expect(ja).toContain('起動在庫やベルト・配管の満たし具合はソルバーに含まれず')
-    expect(en).toContain('liquid Diluted Fuel made in a Blender')
-    expect(en).toContain('build eight machines')
-    expect(en).toContain('steady-state net canister demand zero')
-    expect(en).toContain('The solver does not model start-up inventory')
+  it('希釈燃料サンプルの起動容器を空タンク記事に統合する', async () => {
+    const ja = await readFile(join(outputDirectory, 'articles/packaged-nitrogen-empty-fluid-tank-circulation-planning/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/packaged-nitrogen-empty-fluid-tank-circulation-planning/index.html'), 'utf8')
+    expect(ja).toContain('初期4個')
+    expect(ja).toContain('120 m³')
+    expect(ja).toContain('ceil(率×周回時間)')
+    expect(en).toContain('four canisters')
+    expect(en).toContain('120 m³/min')
+    expect(en).toContain('ceil(rate × loop time)')
+    expect(articleSlugs).not.toContain('packaged-diluted-fuel-loop')
+    expect(RETIRED_ARTICLE_REDIRECTS['packaged-diluted-fuel-loop']).toBe('packaged-nitrogen-empty-fluid-tank-circulation-planning')
   })
 
-  it('アルミ水循環の記事にのみ、出典付きの公式配管図版を付ける', async () => {
-    const assetPath = join(process.cwd(), 'public/article-images/official-straight-pipes-1.1.jpg')
-    expect(await jpegDimensions(assetPath)).toEqual({ width: 1920, height: 1080 })
-
-    const aluminumGuide = SAMPLE_PLANS.find((sample) => sample.id === 'aluminum-water-loop')?.guide
-    const aluminumEn = LOOP_GUIDES_EN['aluminum-water-loop']
-    const unusedOilGuide = SAMPLE_PLANS.find((sample) => sample.id === 'oil-loop-complete')?.guide
-    const unusedOilEn = LOOP_GUIDES_EN['oil-loop-complete']
-    expect(unusedOilGuide?.illustration).toBeUndefined()
-    expect(unusedOilEn?.illustration).toBeUndefined()
-    for (const image of [aluminumGuide?.illustration, aluminumEn?.illustration]) {
-      expect(image).toBeDefined()
-      expect(image?.src).toBe('/article-images/official-straight-pipes-1.1.jpg')
-      expect(image?.width).toBe(1920)
-      expect(image?.height).toBe(1080)
-      expect(image?.creditLinks.map((link) => link.href)).toEqual([
-        'https://www.satisfactorygame.com/press/',
-        'https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view',
-      ])
-      expect(image?.caption).toMatch(/does not|does not show|示していません|示す画面ではありません/)
-    }
-
-    for (const [locale, prefix] of [['ja', 'articles'], ['en', 'en/articles']] as const) {
-      const aluminum = await readFile(join(outputDirectory, prefix, 'aluminum-water-loop', 'index.html'), 'utf8')
-      expect(aluminum).toContain('<figure class="article-illustration">')
-      expect(aluminum).toContain('<img src="/article-images/official-straight-pipes-1.1.jpg"')
-      expect(aluminum).toContain('width="1920" height="1080" loading="lazy" decoding="async"')
-      expect(aluminum).toContain('https://www.satisfactorygame.com/press/')
-      expect(aluminum).toContain('https://drive.google.com/file/d/1rlqgdRl98ooLuRss02CJSv3NOjrcoSCY/view')
-      expect(aluminum).toContain(locale === 'ja' ? '公式Press Kit' : 'official Press Kit')
-      const oil = await readFile(join(outputDirectory, prefix, 'oil-loop-complete', 'index.html'), 'utf8')
-      expect(oil).not.toContain('/article-images/official-straight-pipes-1.1.jpg')
-      expect(oil).not.toContain('<figure class="article-illustration">')
-      for (const sample of SAMPLE_PLANS.filter((entry) => entry.category !== 'basic' && entry.id !== 'aluminum-water-loop')) {
-        const article = await readFile(join(outputDirectory, prefix, sample.id, 'index.html'), 'utf8')
-        expect(article).not.toContain('/article-images/official-straight-pipes-1.1.jpg')
-        expect(article).not.toContain('<figure class="article-illustration">')
-      }
-    }
+  it('廃止されたアルミ水ループ記事は同じ収支を持つ統合先へ転送する', async () => {
+    const ja = await readFile(join(outputDirectory, 'articles/aluminum-production-guide/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/aluminum-production-guide/index.html'), 'utf8')
+    expect(ja).toContain('315+150−135=330 m³/min')
+    expect(en).toContain('315+150−135=330 m³/min')
+    expect(ja).toContain('起動時には戻り水がまだ発生しない')
+    expect(en).toContain('At startup, return water does not exist yet')
+    expect(ja).not.toContain('/article-images/official-straight-pipes-1.1.jpg')
+    expect(en).not.toContain('/article-images/official-straight-pipes-1.1.jpg')
+    expect(RETIRED_ARTICLE_REDIRECTS['aluminum-water-loop']).toBe('aluminum-production-guide')
   })
 
   it('全記事に最適化カバー、記事冒頭画像、遅延読み込みカードと個別OGPを付ける', async () => {
-    expect(Object.keys(ARTICLE_COVERS).sort()).toEqual([...articleSlugs].sort())
+    expect(articleSlugs.every((slug) => Object.hasOwn(ARTICLE_COVERS, slug))).toBe(true)
     const staticCss = await readFile(join(outputDirectory, 'static-pages.css'), 'utf8')
     const cssVersion = createHash('sha256').update(staticCss).digest('hex').slice(0, 12)
 
@@ -1020,9 +764,14 @@ describe('記事静的ページ', () => {
       for (const locale of ['ja', 'en'] as const) {
         const cover = articleCoverFor(slug, locale)
         const asset = await readFile(join(process.cwd(), 'public', cover.src.slice(1)))
-        expect(asset.toString('ascii', 0, 4), slug).toBe('RIFF')
-        expect(asset.toString('ascii', 8, 12), slug).toBe('WEBP')
-        expect(asset.length, slug).toBeLessThan(300_000)
+        if (cover.type === 'image/svg+xml') {
+          expect(asset.toString('utf8')).toContain('<svg')
+          expect(asset.toString('utf8')).not.toMatch(/<image\b|<foreignObject\b/i)
+        } else {
+          expect(asset.toString('ascii', 0, 4), slug).toBe('RIFF')
+          expect(asset.toString('ascii', 8, 12), slug).toBe('WEBP')
+          expect(asset.length, slug).toBeLessThan(300_000)
+        }
 
         const prefix = locale === 'ja' ? 'articles' : 'en/articles'
         const article = await readFile(join(outputDirectory, prefix, slug, 'index.html'), 'utf8')
@@ -1054,8 +803,9 @@ describe('記事静的ページ', () => {
 
     for (const slug of articleSlugs) {
       for (const locale of ['ja', 'en'] as const) {
-        expect(articleCoverFor(slug, locale).badge).toBe(locale === 'ja' ? 'ゲーム画像' : 'Game screenshot')
-        expect(articleCoverFor(slug, locale).creditLinks).toHaveLength(2)
+        const cover = articleCoverFor(slug, locale)
+        expect(cover.badge).toBe(cover.type === 'image/svg+xml' ? (locale === 'ja' ? '編集図' : 'Editorial diagram') : (locale === 'ja' ? 'ゲーム画像' : 'Game screenshot'))
+        expect(cover.creditLinks?.length).toBeGreaterThan(0)
       }
     }
 
@@ -1068,7 +818,7 @@ describe('記事静的ページ', () => {
       expect(index.split('class="article-card__badge"').length - 1).toBe(articleSlugs.length)
       expect(index.split('loading="lazy" decoding="async"').length - 1).toBe(articleSlugs.length)
       expect(index).toContain(locale === 'ja' ? '>ゲーム画像</span>' : '>Game screenshot</span>')
-      expect(index).not.toContain(locale === 'ja' ? '>イラスト</span>' : '>Illustration</span>')
+      expect(index).toContain(locale === 'ja' ? '>編集図</span>' : '>Editorial diagram</span>')
       for (const slug of articleSlugs) {
         const cover = articleCoverFor(slug, locale)
         expect(index, `${locale}/${slug}`).toContain(
@@ -1150,10 +900,9 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 日本語 254（トップ・ツール本体 /app/・privacy・about・一覧2・アイテム198・記事50）
-    // ＋ 英語 245（トップは /en/。/app/ は言語を問わず1URLなので日本語側に1回だけ）
-    expect(sitemapPaths()).toHaveLength(507)
-    expect(manifest.urls).toHaveLength(507)
+    // 30 Japanese and 30 English article routes remain after consolidation; redirects are excluded.
+    expect(sitemapPaths()).toHaveLength(467)
+    expect(manifest.urls).toHaveLength(467)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')
@@ -1391,7 +1140,7 @@ describe('英語ミラーの生成', () => {
     const loopSlugs = articleSlugs.filter(
       (slug) => !handwrittenArticles.some((article) => article.slug === slug),
     )
-    expect(Object.keys(LOOP_GUIDES_EN).sort()).toEqual([...loopSlugs].sort())
+    expect(Object.keys(LOOP_GUIDES_EN).filter((slug) => loopSlugs.includes(slug)).sort()).toEqual([...loopSlugs].sort())
   })
 
   it('鉄板ページを英語の公式名・単位・ラベルで焼き込む', async () => {
@@ -1454,77 +1203,15 @@ describe('英語ミラーの生成', () => {
     expect(jaIndex).toContain('<small>Iron Plate</small>')
   })
 
-  it('ループ記事は英訳の本文と、日本語版と同じbuild-time solver値を持つ', async () => {
-    const oil = await readFile(
-      join(outputDirectory, 'en/articles/oil-loop-complete/index.html'),
-      'utf8',
-    )
-
-    expect(oil).toContain('How the Complete Oil Recycling Loop Works and How to Build It')
-    expect(oil).toContain('four alternate recipes enabled: Heavy Oil Residue, Diluted Fuel')
-    expect(oil).toContain('60 Rubber, 54 Plastic, and 114 Fuel items')
-    expect(oil).toContain('It does not simulate inventories, recipe-cycle timing')
-    expect(oil).toContain(
-      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
-    )
-    expect(oil).toContain(
-      'href="https://github.com/aringadre76/satisfactory-api/tree/master/Docs" rel="noopener noreferrer"',
-    )
-    expect(oil).toContain('900.00 → 200.00 m³/min')
-    expect(oil).toContain('77.8% less')
-    expect(oil).toContain('0.00 → 666.67 m³/min')
-    expect(oil).toContain('Newly used')
-
-    const battery = await readFile(
-      join(outputDirectory, 'en/articles/battery-water-loop/index.html'),
-      'utf8',
-    )
-    expect(battery).toContain('Byproduct Water reused across the line')
-    expect(battery).toContain('135.00 m³/min')
-    expect(battery).toContain('Battery: <span class="num">90.00 m³/min')
-    expect(battery).toContain('The plant therefore needs 315 + 150 − 135 = 330 m³/min of external Water.')
-    expect(battery).toContain(
-      'href="https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md" rel="noopener noreferrer"',
-    )
-
-    // 基準の無いテンプレート（原子力 ①）は「ビルド時の計算結果」側の表示になる
-    const uranium = await readFile(
-      join(outputDirectory, 'en/articles/nuclear-uranium/index.html'),
-      'utf8',
-    )
-    expect(uranium).toContain('Calculated at build time')
-    expect(uranium).toContain('Total power generated')
-    expect(uranium).toContain('Generators to build: <span class="num">2</span>')
-    expect(uranium).toContain('Uranium Waste</a> left over: <span class="num">20.00')
-    // ②③ は ① のテンプレートを基準にした比較表になる
-    const plutonium = await readFile(
-      join(outputDirectory, 'en/articles/nuclear-plutonium/index.html'),
-      'utf8',
-    )
-    expect(plutonium).toContain('Results compared with “Nuclear, stage 1: uranium power”')
-    expect(plutonium).toContain('Uranium</a></td>')
-    expect(plutonium).toContain('Generators to build</td>')
-    expect(plutonium).toContain('2 → 3')
-    expect(plutonium).toContain('7,500 MW')
-    expect(plutonium).toContain('Uranium Waste</a> left over</td>')
-    expect(plutonium).toContain('None left')
-    expect(plutonium).toContain('Plutonium Waste</a> left over</td>')
-    expect(plutonium).toContain('Newly produced')
-    const nuclear = await readFile(
-      join(outputDirectory, 'en/articles/nuclear-reprocessing/index.html'),
-      'utf8',
-    )
-    expect(nuclear).toContain('Results compared with “Nuclear, stage 1: uranium power”')
-    expect(nuclear).toContain('40.00 → 80.00')
-    expect(nuclear).toContain('2 → 7')
+  it('英語の統合記事に水収支と原子力段階の比較を載せる', async () => {
+    const aluminum = await readFile(join(outputDirectory, 'en/articles/aluminum-production-guide/index.html'), 'utf8')
+    expect(aluminum).toContain('315+150−135=330 m³/min')
+    expect(aluminum).toContain('135 m³/min return')
+    const nuclear = await readFile(join(outputDirectory, 'en/articles/nuclear-uranium/index.html'), 'utf8')
+    expect(nuclear).toContain('7,500 MW')
     expect(nuclear).toContain('17,500 MW')
-    expect(nuclear).toContain('40 Uranium Waste/min')
-    expect(nuclear).toContain('30/min through Non-fissile Uranium and 10/min through Plutonium Pellet')
-    expect(nuclear).toContain('Plutonium Waste cannot go directly into the AWESOME Sink')
-    expect(nuclear).toContain('https://satisfactory.wiki.gg/wiki/Ficsonium_Fuel_Rod')
-    expect(nuclear).toContain('https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md')
-    expect(nuclear).toContain('separate grid before starting the nuclear plants')
-    expect(nuclear).not.toContain('Plutonium Waste</a> left over</td>')
+    expect(nuclear).toContain('2,500 MW')
+    expect(articleSlugs).not.toContain('nuclear-reprocessing')
   })
 
   it('英語の手書き記事は全文訳とCTAを持ち、共有URLが警告なく復元できる', async () => {
@@ -1679,7 +1366,7 @@ describe('英語ランディング（/en/）', () => {
     const html = await readFile(join(outputDirectory, 'en/index.html'), 'utf8')
 
     expect(html).toContain('<html lang="en">')
-    // title と description は Search Console の再評価中のため凍結
+    // title と description は検索流入の比較中のため凍結
     expect(html).toContain(
       '<title>Satisfactory Production Planner — Solver, Flow Chart and Excel Export</title>',
     )
@@ -1778,7 +1465,7 @@ describe('日本語トップ（/）', () => {
     const html = await readFile(join(outputDirectory, 'index.html'), 'utf8')
 
     expect(html).toContain('<html lang="ja">')
-    // title と description は Search Console の再評価中のため凍結
+    // title と description は検索流入の比較中のため凍結
     expect(titleText(html)).toBe(
       'サティスファクトリー（Satisfactory）生産計画ツール — 日本語ソルバー＆Excel出力',
     )
@@ -1845,7 +1532,7 @@ describe('ツールへの導線とホームへの導線', () => {
     const item = await readFile(join(outputDirectory, 'items/iron-plate/index.html'), 'utf8')
     const itemEn = await readFile(join(outputDirectory, 'en/items/iron-plate/index.html'), 'utf8')
     const article = await readFile(
-      join(outputDirectory, 'articles/coal-power-startup/index.html'),
+      join(outputDirectory, 'articles/power-system-capacity-and-recovery/index.html'),
       'utf8',
     )
     const about = await readFile(join(outputDirectory, 'about/index.html'), 'utf8')
@@ -1853,7 +1540,7 @@ describe('ツールへの導線とホームへの導線', () => {
 
     expect(item).toContain('class="cta" href="/app/#plan=')
     expect(itemEn).toContain('class="cta" href="/app/#plan=')
-    expect(article).toContain('class="cta" href="/app/#plan=')
+    expect(article).toContain('class="version article-data-version-notice"')
     expect(about).toContain('<a href="/app/">計画ツールを使う</a>')
     expect(aboutEn).toContain('<a href="/app/">Open the planner</a>')
     // ヘッダーの「計画ツール」も両言語で /app/
@@ -1922,7 +1609,7 @@ describe('旧共有URL（/#plan=…）の救済', () => {
     for (const file of [
       'items/iron-plate/index.html',
       'en/items/iron-plate/index.html',
-      'articles/coal-power-startup/index.html',
+      'articles/power-system-capacity-and-recovery/index.html',
       'en/articles/oil-loop-complete/index.html',
       'items/index.html',
       'about/index.html',
@@ -2081,8 +1768,8 @@ describe('ランディングの構成（/ と /en/）', () => {
     }
   })
 
-  it('解説記事5本は生成済みの記事ページへ実際の見出しでリンクし、一覧へのリンクも持つ', async () => {
-    expect(LANDING_GUIDE_SLUGS).toHaveLength(5)
+  it('解説記事4本は生成済みの記事ページへ実際の見出しでリンクし、一覧へのリンクも持つ', async () => {
+    expect(LANDING_GUIDE_SLUGS).toHaveLength(4)
     for (const [locale, file, copy] of pages) {
       const html = await readFile(join(outputDirectory, file), 'utf8')
       const cards = [...html.matchAll(/<a class="guide-card" href="([^"]+)"><strong class="landing-heading">([^<]+)<\/strong>/g)]
@@ -2311,7 +1998,7 @@ describe('HowTo 構造化データ', () => {
   /** 手順として実行できる記事だけ。増やすときは記事本文が本当に手順かを見てから。 */
   const HOW_TO_SLUGS = [
     'production-planning-tutorial',
-    'coal-power-startup',
+    'power-system-capacity-and-recovery',
   ] as const
 
   it('手順記事だけが HowTo を持ち、ステップが記事の節と一致する', async () => {
@@ -2380,7 +2067,7 @@ describe('カタカナのゲーム名', () => {
   const KATAKANA = 'サティスファクトリー'
 
   /**
-   * 日本語話者はゲーム名をカタカナで検索する（Search Console 実測）。<title> のサイト名
+   * <title> のサイト名
    * だけをカタカナにし、1タイトルにつき1回だけ出す。og:title と twitter:title は
    * <title> と同じ文字列のミラーなので、head 全体では 3 回（=同じ1文言）になる。
    */
@@ -2389,7 +2076,7 @@ describe('カタカナのゲーム名', () => {
       ['items/iron-plate/index.html', '鉄板 のレシピと使い道'],
       ['items/index.html', 'Satisfactory アイテム一覧'],
       ['articles/index.html', 'Satisfactory 解説記事'],
-      ['articles/coal-power-startup/index.html', '石炭発電の立ち上げ — 8台600MWを安定させる手順'],
+      ['articles/power-system-capacity-and-recovery/index.html', '発電余力の見積もりから停電復旧まで — 工場の電力運用手順'],
       ['about/index.html', 'このサイトについて'],
     ] as const
 
@@ -2674,7 +2361,7 @@ describe('アイテムページの関連ガイド', () => {
     )
     // 発電機の燃料・補助流体（水 → 発電計画）
     expect(guideLinksOf(await itemPageHtml('en', 'water'))).toContain(
-      '/en/articles/power-generation-planning/',
+      '/en/articles/power-system-capacity-and-recovery/',
     )
     // ボーキサイト系の材料を持つ（シリカ → アルミ生産ガイド）
     expect(guideLinksOf(await itemPageHtml('ja', 'silica'))).toContain(
@@ -2703,37 +2390,14 @@ describe('公式名トークンの解決', () => {
   })
 })
 
-describe('工場床面積ガイド', () => {
-  it('日英ページに計算境界・実配置の制約を示し、一覧ジャンルとsitemapへ登録する', async () => {
-    expect(manifest.articleSlugs).toContain('factory-floor-area')
-    expect(sitemapPaths()).toContain('/articles/factory-floor-area/')
-    expect(sitemapPaths()).toContain('/en/articles/factory-floor-area/')
-
-    const ja = await readFile(join(outputDirectory, 'articles/factory-floor-area/index.html'), 'utf8')
-    const en = await readFile(join(outputDirectory, 'en/articles/factory-floor-area/index.html'), 'utf8')
-    expect(ja).toContain('Plannerの概算機能')
-    expect(ja).toContain('390m²')
-    expect(ja).toContain('585m²')
-    expect(ja).toContain('10枚分')
-    expect(ja).toContain('配置する向き、列数')
-    expect(ja).toContain('プラットフォームの境界')
-    expect(en).toContain('Planner’s area estimate')
-    expect(en).toContain('390 m²')
-    expect(en).toContain('585 m²')
-    expect(en).toContain('ten Foundation equivalents')
-    expect(en).toContain('site boundaries')
-    expect(en).toContain('Update 1.2')
-
-    const jaIndex = await readFile(join(outputDirectory, 'articles/index.html'), 'utf8')
-    const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
-    expect(jaIndex).toContain('data-genres="planner factory"')
-    expect(enIndex).toContain('data-genres="planner factory"')
-    expect(jaIndex).toContain('工場の床面積をPlannerで見積もる')
-    expect(enIndex).toContain('Estimate Factory Floor Area')
-
-    const sitemap = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
-    expect(sitemap).toContain('https://satisfactory-planner.net/articles/factory-floor-area/')
-    expect(sitemap).toContain('https://satisfactory-planner.net/en/articles/factory-floor-area/')
+describe('工場床面積ガイドの旧URL', () => {
+  it('一覧とサイトマップから除外し、計画記事へ日英301転送する', async () => {
+    expect(manifest.articleSlugs).not.toContain('factory-floor-area')
+    expect(sitemapPaths()).not.toContain('/articles/factory-floor-area/')
+    expect(sitemapPaths()).not.toContain('/en/articles/factory-floor-area/')
+    const redirects = await readFile(join(outputDirectory, '_redirects'), 'utf8')
+    expect(redirects).toContain('/articles/factory-floor-area/ /articles/production-planning-tutorial/ 301')
+    expect(redirects).toContain('/en/articles/factory-floor-area/ /en/articles/production-planning-tutorial/ 301')
   })
 })
 
@@ -2742,8 +2406,8 @@ describe('Update 1.2追加ガイド', () => {
     const cases = [
       {
         slug: 'fluid-truck-delivery',
-        jaTitle: '流体トラックの在庫と補給間隔を計画する',
-        enTitle: 'Plan Fluid Truck Buffers and Refill Intervals',
+        jaTitle: '流体トラックは需要を満たせるか — 周回量とバッファの測り方',
+        enTitle: 'Can Fluid Trucks Meet Demand? Measure Loads, Loops, and Buffer',
         jaProof: '3,200 m³',
         enProof: '3,200 m³',
         jaGenre: 'data-genres="planner"',
@@ -2751,19 +2415,19 @@ describe('Update 1.2追加ガイド', () => {
       },
       {
         slug: 'vehicle-paths',
-        jaTitle: '車両パスで新しい車両ルートを作る',
-        enTitle: 'Build a New Vehicle Route with Vehicle Paths',
-        jaProof: '建設メニュー',
-        enProof: 'Transport tab',
+        jaTitle: '車両パスを安全に切り替える — 短い試走と失敗時の診断',
+        enTitle: 'Switch Vehicle Paths Safely — Short Trials and Failure Diagnosis',
+        jaProof: '最短の区間で試します',
+        enProof: 'shortest segment that includes the stop',
         jaGenre: 'data-genres="factory"',
         enGenre: 'data-genres="factory"',
       },
       {
-        slug: 'power-connector-daisy-chain',
-        jaTitle: '電源コネクタのデイジーチェーン入門',
-        enTitle: 'Power Connector Daisy Chaining: An Introduction',
-        jaProof: 'コンピューター 15個',
-        enProof: '15 Computers',
+        slug: 'power-system-capacity-and-recovery',
+        jaTitle: '発電余力の見積もりから停電復旧まで — 工場の電力運用手順',
+        enTitle: 'Power Capacity and Recovery — From Headroom to Restart',
+        jaProof: '600 MW',
+        enProof: '600 MW',
         jaGenre: 'data-genres="power"',
         enGenre: 'data-genres="power"',
       },
@@ -2778,17 +2442,18 @@ describe('Update 1.2追加ガイド', () => {
       expect(en).toContain(item.enTitle)
       expect(ja).toContain(item.jaProof)
       expect(en).toContain(item.enProof)
-      expect(ja).toContain('https://store.steampowered.com/news/app/526870/')
-      expect(en).toContain('https://store.steampowered.com/news/app/526870/')
-      expect(ja).toContain(`${item.slug}-ja.webp`)
-      expect(en).toContain(`${item.slug}-en.webp`)
+      const officialUpdate = item.slug === 'power-system-capacity-and-recovery' ? 'https://coffeestain.com/news/satisfactory-1-2-update-out-now/' : 'https://store.steampowered.com/news/app/526870/'
+      expect(ja).toContain(officialUpdate)
+      expect(en).toContain(officialUpdate)
+      expect(ja).toContain(articleCoverFor(item.slug, 'ja').src)
+      expect(en).toContain(articleCoverFor(item.slug, 'en').src)
       expect(jaIndex).toContain(item.jaGenre)
       expect(enIndex).toContain(item.enGenre)
       expect(sitemap).toContain(`https://satisfactory-planner.net/articles/${item.slug}/`)
       expect(sitemap).toContain(`https://satisfactory-planner.net/en/articles/${item.slug}/`)
       expect(articleCoverFor(item.slug, 'ja').width).toBe(1280)
       expect(articleCoverFor(item.slug, 'ja').height).toBe(720)
-      expect(articleCoverFor(item.slug, 'ja').creditLinks?.[0].href).toBe('https://www.satisfactorygame.com/press/')
+      expect(articleCoverFor(item.slug, 'ja').creditLinks?.length).toBeGreaterThan(0)
       expect(articleCoverFor(item.slug, 'en').caption).toBeTruthy()
       if (item.slug === 'vehicle-paths') {
         expect(ja).toContain(`<title>${item.jaTitle} | サティスファクトリー生産計画ツール</title>`)

@@ -57,7 +57,7 @@ export const fluidTruckDeliveryArticle = {
     ],
   },
   relatedItemIds: ['Desc_Water_C', 'Desc_LiquidFuel_C'],
-  relatedArticleSlugs: ['packaged-diluted-fuel-loop', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['vehicle-paths', 'train-replenishment-buffer-planning-guide'],
   cta: {
     kind: 'sample',
     label: '梱包燃料ループの生産収支をPlannerで確認する',

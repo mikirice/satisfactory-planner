@@ -83,7 +83,7 @@ export const conveyor_throughput_monitor_guideArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "build-checklist-guide"
+    "production-planning-tutorial"
   ],
   "versionNotice": "Plannerの収録データは1.1.xです。機能の説明は安定版アップデート1.1の公式資料に基づきます。現行1.2.xでの表示更新や細部の挙動は実機確認していません。"
 } as const satisfies HandwrittenArticle

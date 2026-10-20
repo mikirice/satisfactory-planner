@@ -47,7 +47,7 @@ export const vehiclePathsArticle = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['build-checklist-guide', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: '輸送する生産ラインの必要台数をPlannerで確認する',

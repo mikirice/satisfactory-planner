@@ -75,7 +75,7 @@ export const minerRateByPurityArticleEn = {
     ],
   },
   relatedItemIds: ['Desc_OreIron_C', 'Desc_IronIngot_C', 'Desc_IronPlate_C'],
-  relatedArticleSlugs: ['clock-and-efficiency', 'build-checklist-guide', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['somersloop-and-power-shards', 'production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'item',
     label: 'Open the 160 Iron Plate/min plan and check the Mk.2 miner’s 240 Ore/min',

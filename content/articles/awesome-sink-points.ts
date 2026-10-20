@@ -71,7 +71,7 @@ export const awesomeSinkPointsArticle = {
     'Desc_Rubber_C',
   ],
   relatedArticleSlugs: [
-    'alternate-recipe-metrics',
+    'strong-alternate-recipes',
     'production-planning-tutorial',
     'oil-products-basics',
   ],

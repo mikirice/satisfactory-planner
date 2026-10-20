@@ -73,11 +73,11 @@ export const strongAlternateRecipesArticleEn = {
     'Desc_CircuitBoard_C',
   ],
   relatedArticleSlugs: [
-    'alternate-recipe-metrics',
+    'strong-alternate-recipes',
     'oil-products-basics',
     'diluted-fuel-power',
     'oil-loop-complete',
-    'coal-power-startup',
+    'power-system-capacity-and-recovery',
   ],
   references: {
     heading: 'References',

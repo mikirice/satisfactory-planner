@@ -83,7 +83,7 @@ export const conveyor_throughput_monitor_guide_enArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "build-checklist-guide"
+    "production-planning-tutorial"
   ],
   "versionNotice": "Planner's bundled data is 1.1.x. The mechanic summary follows official stable Update 1.1 sources; display updates and details in the current 1.2.x client were not tested."
 } as const satisfies HandwrittenArticle

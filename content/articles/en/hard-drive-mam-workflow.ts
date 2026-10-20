@@ -33,7 +33,7 @@ export const hardDriveMamWorkflowArticleEn = {
     {
       heading: 'Use only unlocked recipes in the Planner',
       paragraphs: [
-        'When planning in Satisfactory Planner, select only alternate recipes available in your save. The Planner’s bundled game data targets 1.1.x; values should be checked separately against later game updates. For comparison criteria, see [How to Compare Alternate Recipes](https://satisfactory-planner.net/en/articles/alternate-recipe-metrics/). For material, building, and power trade-offs, see [Strong Alternate Recipes](https://satisfactory-planner.net/en/articles/strong-alternate-recipes/).',
+        'When planning in Satisfactory Planner, select only alternate recipes available in your save. The Planner’s bundled game data targets 1.1.x; values should be checked separately against later game updates. For comparison criteria, see [How to Compare Alternate Recipes](https://satisfactory-planner.net/en/articles/strong-alternate-recipes/). For material, building, and power trade-offs, see [Strong Alternate Recipes](https://satisfactory-planner.net/en/articles/strong-alternate-recipes/).',
         'This guide covers exploration, recovery, and the MAM workflow. It does not rank recipes, list every crash-site coordinate, or state a current analysis duration or selection effect.',
       ],
     },
@@ -49,7 +49,7 @@ export const hardDriveMamWorkflowArticleEn = {
     ],
   },
   relatedItemIds: ['Desc_HardDrive_C'],
-  relatedArticleSlugs: ['alternate-recipe-metrics', 'strong-alternate-recipes', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['strong-alternate-recipes', 'strong-alternate-recipes', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: 'Plan production using an unlocked recipe',

@@ -74,7 +74,7 @@ export const dimensional_depot_refill_guideArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "build-checklist-guide"
+    "production-planning-tutorial"
   ],
   "versionNotice": "Plannerの収録データは1.1.xです。現行1.2.xの次元デポ補給挙動と画面表示は実機確認していません。記事の手順は自分のゲーム画面で照合してください。"
 } as const satisfies HandwrittenArticle

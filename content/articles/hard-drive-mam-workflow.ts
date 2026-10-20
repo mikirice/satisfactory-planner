@@ -34,7 +34,7 @@ export const hardDriveMamWorkflowArticle = {
     {
       heading: '解放後のレシピをPlannerで使う',
       paragraphs: [
-        'Satisfactory Plannerで計画するときは、自分のセーブで利用できる代替レシピだけを選びます。Plannerのゲームデータは1.1.xを対象としており、アップデート1.2以降の数値が同じかは別途確認が必要です。代替レシピの比較軸は[比較指標ガイド](https://satisfactory-planner.net/articles/alternate-recipe-metrics/)、材料・設備・電力の選び方は[代替レシピガイド](https://satisfactory-planner.net/articles/strong-alternate-recipes/)を参照してください。',
+        'Satisfactory Plannerで計画するときは、自分のセーブで利用できる代替レシピだけを選びます。Plannerのゲームデータは1.1.xを対象としており、アップデート1.2以降の数値が同じかは別途確認が必要です。代替レシピの比較軸は[比較指標ガイド](https://satisfactory-planner.net/articles/strong-alternate-recipes/)、材料・設備・電力の選び方は[代替レシピガイド](https://satisfactory-planner.net/articles/strong-alternate-recipes/)を参照してください。',
         'このガイドは探索・回収とMAMのワークフローを対象にし、レシピのおすすめ順位、全墜落現場の座標一覧、解析時間や選択にかかる現在の効果は扱いません。',
       ],
     },
@@ -50,7 +50,7 @@ export const hardDriveMamWorkflowArticle = {
     ],
   },
   relatedItemIds: ['Desc_HardDrive_C'],
-  relatedArticleSlugs: ['alternate-recipe-metrics', 'strong-alternate-recipes', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['strong-alternate-recipes', 'strong-alternate-recipes', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: '解放済みレシピで生産計画を作る',

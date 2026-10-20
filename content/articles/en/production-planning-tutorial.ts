@@ -59,7 +59,7 @@ export const productionPlanningTutorialArticleEn = {
     ],
   },
   relatedItemIds: ['Desc_IronPlate_C', 'Desc_IronIngot_C'],
-  relatedArticleSlugs: ['build-checklist-guide', 'excel-export-guide'],
+  relatedArticleSlugs: ['production-planning-tutorial', 'excel-export-guide'],
   cta: {
     kind: 'sample',
     label: 'Open the sample plan for 60 Iron Plate/min',

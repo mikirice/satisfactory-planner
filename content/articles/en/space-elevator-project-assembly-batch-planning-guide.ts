@@ -101,7 +101,7 @@ export const space_elevator_project_assembly_batch_planning_guide_enArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "clock-and-efficiency"
+    "somersloop-and-power-shards"
   ],
   "versionNotice": "Planner data scope is 1.1.x. Current Project Assembly quotas and Japanese UI labels were not verified; numeric examples are hypothetical."
 } as const satisfies HandwrittenArticle
