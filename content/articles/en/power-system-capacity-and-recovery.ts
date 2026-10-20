@@ -20,15 +20,16 @@ export const powerSystemCapacityAndRecoveryArticleEn = {
     { heading: 'Start coal power from auxiliaries outward', paragraphs: [
       'In the Planner’s 1.1.x example, eight coal generators at 75 MW each use 120 coal/min and 360 m³/min of water. These are not measurements from an Update 1.2 save. Check in-game recipes and equipment displays before building, and include miners, pumps, and conveyors in the load plan.',
     ], lists: [{ ordered: true, items: [
-      'Separate the generators from the production grid so that factories do not all restart together.',
-      'Power coal miners and water pumps first. Confirm that water and coal reach the generator inputs at the actual pipe and belt endpoints.',
-      'Connect a small group of generators. Add the next group only after fuel reaches them and output remains steady.',
-      'Restore one production area at a time. If connecting an area trips the grid, measure its maximum load and auxiliaries separately.',
-      'Before removing temporary power, confirm the miners, pumps, and conveyors that sustain generation now receive power from the new grid.',
+      'Place a Power Switch where the manufacturing loads branch away from the generation equipment, then switch it off to isolate the factory. Keep only the miners, water extractors, required pumps, and conveyors on the generation-support circuit.',
+      'With the factory-side Power Switch off, build a row of Power Poles for the support circuit. Fuel a temporary Biomass Burner, then connect its power connector through those poles to the miners, water extractors, pumps, and coal conveyors on the same circuit. The independent source must reach the equipment that starts generation during the outage.',
+      'Turn on the support circuit. Run the miner to send coal by belt to the coal-generator inputs and run the water extractors to feed them through pipes. First confirm coal and water reach the actual belt and pipe endpoints for each generator.',
+      'Connect each fueled and watered coal generator’s power connector to the same support-circuit pole line. Start with a small group, then add more after output remains steady. Keep the factory-side switch off until generation exceeds support demand.',
+      'Once generation is stable, disconnect or stop the temporary burner and verify that the coal miners, water extractors, pumps, and conveyors keep running on the coal grid alone. If a support machine stops, restore temporary power and fix the connection from generation to the support circuit.',
+      'Only after support loads remain stable, turn on the Power Switch and restore manufacturing areas one at a time. Split any area that trips the grid, and measure its peak and startup-support load before reconnecting the next one.',
     ]}] },
     { heading: 'Choose recovery order by what each load supports', paragraphs: [
       'After a fuse trips, divide loads into generation support, essential production, and deferrable production. Disconnect deferrable areas and restore only the equipment needed to keep generation alive. Reconnecting everything to one circuit at once can trip it again during startup. Enable one area at a time and record consumption and generator state before and after each connection.',
-      'A daisy chain arranges pole connections in sequence. Treat it as a wiring layout, not a way to increase generation or power capacity. Decide which loads should disconnect together before making branches. This guide does not claim a distance limit or other rule absent from the cited update notes.',
+      'Update 1.2’s daisy-chaining feature is unlocked in the Caterium research tree. It gives the same building two power connections and lets buildings connect to each other so power flows building-to-building. This replaces the usual pole-to-building setup for those connections; it does not increase generation or grid capacity.',
     ] },
     { heading: 'Size storage from the deficit', paragraphs: [
       'For a temporary shortage, required energy is deficit MW × minutes ÷ 60. A 400 MW deficit lasting 10 minutes needs about 66.7 MWh. If you assume one unit can provide 100 MWh under the bundled 1.1.x data, one would be the theoretical minimum; check starting charge, discharge output limits, changing load, and recharge time. This is a calculation example, not a tested in-game recommendation.',
@@ -48,6 +49,7 @@ export const powerSystemCapacityAndRecoveryArticleEn = {
     { label: 'Satisfactory Wiki: Coal Generator', href: 'https://satisfactory.wiki.gg/wiki/Coal_Generator' },
     { label: 'Satisfactory Wiki: Power Storage', href: 'https://satisfactory.wiki.gg/wiki/Power_Storage' },
     { label: 'Coffee Stain Studios: Update 1.2 announcement', href: 'https://coffeestain.com/news/satisfactory-1-2-update-out-now/' },
+    { label: 'Developer: Satisfactory 1.2 Update out now! (Steam)', href: 'https://store.steampowered.com/news/app/526870/view/695387676933621085' },
   ]},
   relatedItemIds: ['Desc_Water_C'],
   relatedArticleSlugs: ['production-planning-tutorial', 'oil-products-basics', 'somersloop-and-power-shards'],
