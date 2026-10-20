@@ -16,6 +16,28 @@ type CoverDefinition = {
 }
 
 export const ARTICLE_COVERS = {
+  "power-system-capacity-and-recovery": {
+    alt: { ja: "発電余力の計算式と区画別の復旧順を示す編集図。", en: "Editorial diagram of the reserve-power equation and staged recovery." },
+    badge: { ja: "編集図", en: "Editorial diagram" },
+    caption: { ja: "記事内の計算例を整理した編集図です。ゲーム画面や実測結果ではありません。", en: "An editorial diagram of the article's calculations, not a game capture or measured result." },
+    creditLinks: {
+      ja: [{ href: "https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md", label: "Planner同梱データの出典と版" }],
+      en: [{ href: "https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md", label: "Planner data sources and version scope" }]
+    },
+    localizedSrc: { ja: "/article-covers/power-system-capacity-and-recovery-ja.svg", en: "/article-covers/power-system-capacity-and-recovery-en.svg" },
+    width: 1280, height: 720, type: "image/svg+xml"
+  },
+  "resource-throughput-capacity-guide": {
+    alt: { ja: "共有供給量を各ラインの消費と比較する計算図。", en: "Editorial diagram comparing shared supply against line consumption." },
+    badge: { ja: "編集図", en: "Editorial diagram" },
+    caption: { ja: "共有供給の計算方法を示す編集図です。ゲーム画面や実測結果ではありません。", en: "An editorial diagram of shared-supply arithmetic, not a game capture or measured result." },
+    creditLinks: {
+      ja: [{ href: "https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md", label: "Planner同梱データの出典と版" }],
+      en: [{ href: "https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md", label: "Planner data sources and version scope" }]
+    },
+    localizedSrc: { ja: "/article-covers/resource-throughput-capacity-guide-ja.svg", en: "/article-covers/resource-throughput-capacity-guide-en.svg" },
+    width: 1280, height: 720, type: "image/svg+xml"
+  },
   "production-planning-tutorial": {
     "alt": {
       "ja": "Satisfactory公式プレスキットの工場と鉄道の広いゲーム内風景。記事用の見出しを重ねたカバー。",

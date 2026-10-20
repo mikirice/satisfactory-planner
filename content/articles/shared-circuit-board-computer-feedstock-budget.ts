@@ -63,6 +63,6 @@ export const sharedCircuitBoardComputerFeedstockBudgetArticle = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['shared-quickwire-allocation-ai-limiters-high-speed-connectors', 'alternate-recipe-metrics', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['resource-throughput-capacity-guide', 'strong-alternate-recipes', 'production-planning-tutorial'],
   cta: { kind: 'item', label: 'Satisfactory Plannerでコンピューターの生産計画を確認する', itemId: 'Desc_Computer_C', ratePerMin: 2 },
 } as const satisfies HandwrittenArticle

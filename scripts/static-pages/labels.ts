@@ -47,9 +47,8 @@ const jaLabels = {
   /**
    * <title> の末尾に付けるサイト名。
    *
-   * 日本語話者はゲーム名をカタカナで検索する（Search Console 実測: 「サティスファクトリー
-   * ガスフィルター」は CTR 25%、同順位のラテン表記クエリは 0 クリック）。ページ内の
-   * どこにもカタカナが無いと、この需要をまるごと取り逃がす。
+   * 日本語ページではゲーム名のカタカナ表記も示す。ラテン表記のブランド名は
+   * og:site_name・構造化データ・ヘッダーに残し、両方の表記を保つ。
    *
    * そこで **<title> のサイト名だけ**カタカナにする。ラテン表記の "Satisfactory" は
    * og:site_name・構造化データ・ヘッダーのブランド（siteName）と、アイテムページの
@@ -860,14 +859,13 @@ export type LandingCopy = {
 /**
  * ランディングの「解説記事」節に出す4本（順番どおり）。slug は content/articles と一致させる
  * （存在しない slug は build-pages の articleHeadline が投げて生成が止まる）。
- * チュートリアル → 代替レシピ → 石炭発電 → 建設リスト。
+ * チュートリアル → 代替レシピ → 電力計画 → 搬送量。
  */
 export const LANDING_GUIDE_SLUGS = [
   'production-planning-tutorial',
-  'alternate-recipe-metrics',
   'strong-alternate-recipes',
-  'coal-power-startup',
-  'build-checklist-guide',
+  'power-system-capacity-and-recovery',
+  'resource-throughput-capacity-guide',
 ] as const
 
 /**
@@ -876,7 +874,7 @@ export const LANDING_GUIDE_SLUGS = [
  * 計画ツール本体は /app/ にあり、トップは静的なランディング。日本語として自然に読める文を
  * 書き、英語版の訳にはしない（節の構成だけ EN_LANDING と同じ）。
  * 事実（シート数・言語数・保存先・実行不能メッセージの内容・発電機の副産物の扱い）はリポジトリで裏を取ってから書く。
- * title と description は Search Console の再評価中のため凍結（変更しない）。
+ * title と description は検索流入の比較中のため凍結（変更しない）。
  * 見出し・本文の主張は /about/ と食い違わないようにする。
  */
 export const JA_LANDING = {
@@ -963,7 +961,7 @@ export const JA_LANDING = {
  * トップ（/）は日本語なので、英語圏の入口として同じ構成の静的ページを1枚置く
  * （ミラーではなく英語の玄関。文は英語で書き、日本語の訳にはしない）。
  * ゲーム用語は `{{Desc_…}}` トークンで書き、公式の英語名に置き換えて出す。
- * title と description は凍結（Search Console の再評価中）。
+ * title と description は凍結（検索流入の比較中）。
  */
 export const EN_LANDING = {
   /** サイト名を後置しない（見出し自体がサイト名を含むため）。凍結。 */

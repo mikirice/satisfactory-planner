@@ -44,7 +44,7 @@ export const blueprintDesignerWorkflowArticleEn = {
       heading: 'Keep editing separate from Auto Connect',
       paragraphs: [
         'The Wiki says a Blueprint made in a Mk.1 Designer cannot be individually edited in a Mk.2 or Mk.3 Designer. Begin edits in the same Mark that created the design, and verify whether saving overwrites the original or allows a separate name. The Wiki does not establish every overwrite, copy, or migration condition.',
-        'Auto Connect is a separate placement feature for candidate links between transport endpoints. For that workflow, see the [Blueprint Auto Connect guide](https://satisfactory-planner.net/en/articles/blueprint-auto-connect/).',
+        'Auto Connect is a separate placement feature for candidate links between transport endpoints. For that workflow, see the [Blueprint Auto Connect guide](https://satisfactory-planner.net/en/articles/blueprint-designer-workflow/).',
       ],
     },
   ],
@@ -59,7 +59,7 @@ export const blueprintDesignerWorkflowArticleEn = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['blueprint-auto-connect', 'factory-floor-area', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['blueprint-designer-workflow', 'production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: 'Plan a product for your reusable factory module',

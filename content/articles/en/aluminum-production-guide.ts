@@ -50,7 +50,7 @@ export const aluminumProductionGuideArticleEn = {
     {
       heading: 'Reuse the byproduct Water once the line is running',
       paragraphs: [
-        'In the 60 Ingots/min example, the Alumina Solution step uses 90 m³/min of Water, while the Scrap step returns 30 m³/min. Feed that return upstream in steady operation and the outside supply only has to cover a net 60 m³/min. The [Aluminum Water Loop guide](/en/articles/aluminum-water-loop/) covers the return-pipe layout, priming and overflow route. When adding batteries to the same site, use the separate [Battery Water Loop guide](/en/articles/battery-water-loop/) for the additional return stream.',
+        'In the 60 Ingots/min example, the Alumina Solution step uses 90 m³/min of Water, while the Scrap step returns 30 m³/min. Feed that return upstream in steady operation and the outside supply only has to cover a net 60 m³/min. The [Aluminum Water Loop guide](/en/articles/aluminum-production-guide/) covers the return-pipe layout, priming and overflow route. When adding batteries to the same site, use the separate [Battery Water Loop guide](/en/articles/aluminum-production-guide/) for the additional return stream.',
         'This is a steady-state material balance. When you first build the line, supply outside Water to fill the pipes and solution step; check the return path after Scrap production begins. Even if the Planner shows a balanced plan, a high return pipe, insufficient head lift or a backed-up receiving pipe can prevent flow in game. If you add an emergency outlet, confirm that it will not drain inputs or product during normal operation.',
       ],
     },
@@ -64,7 +64,7 @@ export const aluminumProductionGuideArticleEn = {
     {
       heading: 'Match the Planner result to your site and trace a stoppage',
       paragraphs: [
-        'Set Aluminum Ingot to 60/min in the Planner and review the recipes, buildings and resource limits. Under the default “minimise raw resources” objective, the solver may make Bauxite in a Converter instead of mining it because Bauxite is scarcer across the whole map. Enter limits for the nodes you can actually use, or compare objectives that prioritize power or building count to find a plan closer to your site. See [How to Compare Alternate Recipes](/en/articles/alternate-recipe-metrics/) for choosing among recipe trade-offs.',
+        'Set Aluminum Ingot to 60/min in the Planner and review the recipes, buildings and resource limits. Under the default “minimise raw resources” objective, the solver may make Bauxite in a Converter instead of mining it because Bauxite is scarcer across the whole map. Enter limits for the nodes you can actually use, or compare objectives that prioritize power or building count to find a plan closer to your site. See [How to Compare Alternate Recipes](/en/articles/strong-alternate-recipes/) for choosing among recipe trade-offs.',
         'If production stops, check in this order: (1) whether Alumina Solution reaches the Scrap Refineries, (2) whether Silica reaches the Foundries in the needed amount, (3) whether the return Water pipe and receiving point are clear, and (4) whether Bauxite, Coal and Quartz mining and belts meet the required rates. The Planner solves selected recipes and steady-state balances; it does not lay out pipe height, head lift or start-up filling for you.',
       ],
     },
@@ -80,6 +80,9 @@ export const aluminumProductionGuideArticleEn = {
       { label: 'Aluminum Scrap — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Aluminum_Scrap' },
       { label: 'Aluminum Ingot — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Aluminum_Ingot' },
       { label: 'Silica — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Silica' },
+      { label: 'Recipes — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Recipes' },
+      { label: 'Pipelines — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Pipeline' },
+      { label: 'Head lift — Satisfactory Wiki', href: 'https://satisfactory.wiki.gg/wiki/Head_lift' },
     ],
   },
   relatedItemIds: [
@@ -92,9 +95,9 @@ export const aluminumProductionGuideArticleEn = {
     'Desc_Water_C',
   ],
   relatedArticleSlugs: [
-    'aluminum-water-loop',
-    'battery-water-loop',
-    'alternate-recipe-metrics',
+    'aluminum-production-guide',
+    'aluminum-production-guide',
+    'strong-alternate-recipes',
     'awesome-sink-points',
   ],
   cta: {

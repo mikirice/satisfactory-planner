@@ -78,7 +78,7 @@ export const priority_merger_use_cases_guideArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "build-checklist-guide"
+    "production-planning-tutorial"
   ],
   "versionNotice": "Plannerの収録データは1.1.xです。機能の説明は安定版アップデート1.1の公式資料に基づきます。現行1.2.xでの挙動と日本語UI名は実機確認していません。"
 } as const satisfies HandwrittenArticle

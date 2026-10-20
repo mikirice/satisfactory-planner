@@ -76,7 +76,7 @@ export const minerRateByPurityArticle = {
     ],
   },
   relatedItemIds: ['Desc_OreIron_C', 'Desc_IronIngot_C', 'Desc_IronPlate_C'],
-  relatedArticleSlugs: ['clock-and-efficiency', 'build-checklist-guide', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['somersloop-and-power-shards', 'production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'item',
     label: '鉄板160個/分の計画を開き、採鉱機Mk.2の240鉱石/分を確認する',

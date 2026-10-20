@@ -43,7 +43,7 @@ export const pipeline_flow_head_lift_troubleshootingArticle = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['oil-products-basics', 'aluminum-water-loop'],
+  relatedArticleSlugs: ['oil-products-basics', 'aluminum-production-guide'],
   publishedDate: '2026-10-18',
   updatedDate: '2026-10-18',
   versionNotice: 'Plannerの収録データは1.1.xです。配管の仕組みの説明はコミュニティWikiに基づきます。現行アップデート1.2の表示、揚程、診断手順は実機で確認していません。記事内の100・40・50単位/分は説明用の仮定で、ゲームデータではありません。',

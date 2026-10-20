@@ -42,7 +42,7 @@ export const pipeline_flow_head_lift_troubleshooting_enArticle = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['oil-products-basics', 'aluminum-water-loop'],
+  relatedArticleSlugs: ['oil-products-basics', 'aluminum-production-guide'],
   publishedDate: '2026-10-18',
   updatedDate: '2026-10-18',
   versionNotice: 'Planner data is 1.1.x. Pipeline mechanics are summarized from community-wiki documentation. Current Update 1.2 indicators, head lift, and the proposed diagnostics were not tested in game. Example values of 100, 40, and 50 units/min are hypothetical, not game data.',

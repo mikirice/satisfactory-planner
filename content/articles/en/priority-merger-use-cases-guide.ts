@@ -78,7 +78,7 @@ export const priority_merger_use_cases_guide_enArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "build-checklist-guide"
+    "production-planning-tutorial"
   ],
   "versionNotice": "Planner's bundled data is 1.1.x. The mechanic summary follows official stable Update 1.1 sources; current 1.2.x behavior and Japanese UI labels were not tested."
 } as const satisfies HandwrittenArticle

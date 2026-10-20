@@ -101,7 +101,7 @@ export const space_elevator_project_assembly_batch_planning_guideArticle = {
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
     "production-planning-tutorial",
-    "clock-and-efficiency"
+    "somersloop-and-power-shards"
   ],
   "versionNotice": "Plannerデータの対象は1.1.xです。現行ゲームのProject Assembly必要数と日本語UI名は確認していません。数値例は説明用の仮定です。"
 } as const satisfies HandwrittenArticle

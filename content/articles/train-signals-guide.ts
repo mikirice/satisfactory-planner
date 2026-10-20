@@ -48,7 +48,7 @@ export const trainSignalsGuideArticle = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['vehicle-paths', 'build-checklist-guide'],
+  relatedArticleSlugs: ['vehicle-paths', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: '線路で運ぶ生産ラインの設備数を確認する',

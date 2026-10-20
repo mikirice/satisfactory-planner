@@ -80,7 +80,7 @@ export const hypertube_junction_routing_guideArticle = {
   "relatedItemIds": [],
   "publishedDate": "2026-10-18",
   "relatedArticleSlugs": [
-    "power-generation-planning",
+    "power-system-capacity-and-recovery",
     "vehicle-paths"
   ],
   "versionNotice": "Plannerの収録データは1.1.xです。挙動の説明は安定版アップデート1.1の公式資料に基づきます。現行1.2.xの進路表示と入力機器別操作は実機確認していません。"

@@ -569,7 +569,7 @@ export function relatedGuideSlugs(item: Item, source: GuideSource): readonly str
     if (!bySlug.has(slug)) return
     ranked.push({ slug, rank })
   }
-  if (POWER_ITEM_IDS.has(item.id)) derive('power-generation-planning', 60)
+  if (POWER_ITEM_IDS.has(item.id)) derive('power-system-capacity-and-recovery', 60)
   if (producedFromAny(item.id, ALUMINUM_CHAIN_IDS)) derive('aluminum-production-guide', 61)
   if (producedFromAny(item.id, OIL_FEEDSTOCK_IDS)) derive('oil-products-basics', 62)
 

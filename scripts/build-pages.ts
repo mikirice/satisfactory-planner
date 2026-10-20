@@ -57,6 +57,7 @@ import {
 import { LAST_OPENED_STORAGE_KEY } from '../src/plan/storage.ts'
 import type { Solution, SolveResult } from '../src/solver/index.ts'
 import { faqPageSchema, renderFaqHtml, resolveOfficialNames } from './static-pages/faq.ts'
+import { renderCloudflareArticleRedirects } from './static-pages/article-redirects.ts'
 import { itemInsight, relatedGuideSlugs } from './static-pages/item-insights.ts'
 import type { GuideSource } from './static-pages/item-insights.ts'
 import {
@@ -115,11 +116,20 @@ export type StaticPagesManifest = {
   locales: readonly StaticLocale[]
 }
 
-// ループ記事 = 基本ライン以外（循環構成 special ＋ 発電チェーン power）。URL は分類に依らず /articles/<id>/
-const loopSamples = SAMPLE_PLANS.filter(
+// Retired sample URLs redirect to their merged article destinations; the sample plans still appear on landing pages.
+const retiredSampleArticleIds = new Set([
+  'aluminum-water-loop',
+  'packaged-diluted-fuel-loop',
+  'battery-water-loop',
+  'nuclear-plutonium',
+  'nuclear-reprocessing',
+  'nuclear-simplified',
+])
+const allLoopSamples = SAMPLE_PLANS.filter(
   (sample): sample is SamplePlan & { guide: NonNullable<SamplePlan['guide']> } =>
     sample.category !== 'basic' && sample.guide !== undefined,
 )
+const loopSamples = allLoopSamples.filter((sample) => !retiredSampleArticleIds.has(sample.id))
 /** 記事一覧・ランディングでループ記事を分けて並べるときの順（循環 → 発電）と見出し。 */
 const LOOP_ARTICLE_GROUPS = [
   { category: 'special', heading: (L: StaticPageLabels): string => L.articlesIndexLoopSection },
@@ -1065,7 +1075,7 @@ function renderLandingFeature(ctx: Ctx, feature: LandingFeature, index: number):
  */
 function renderLandingTemplates(ctx: Ctx, copy: LandingCopy): string {
   return LOOP_ARTICLE_GROUPS.map((group) => {
-    const cards = loopSamples
+    const cards = allLoopSamples
       .filter((sample) => sample.category === group.category)
       .map((sample) => {
         const content = loopContent(ctx, sample)
@@ -1324,7 +1334,7 @@ const HOW_TO_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
   // 目標入力 → 結果タブを読む → 条件を調整 → 発電・保存へ、の順に実行するチュートリアル
   'production-planning-tutorial',
   // 台数・燃料選択 → 搬送量 → 仮設電源で始動 → 停止診断 → Planner結果、の順に確認する
-  'coal-power-startup',
+  'power-system-capacity-and-recovery',
 ])
 
 /**
@@ -2254,6 +2264,7 @@ export async function generateStaticPages(outputDirectory: string): Promise<Stat
   await Promise.all([
     writeFile(resolve(output, 'static-pages.css'), STATIC_PAGE_CSS, 'utf8'),
     writeFile(resolve(output, 'sitemap.xml'), renderSitemap(paths), 'utf8'),
+    writeFile(resolve(output, '_redirects'), renderCloudflareArticleRedirects(), 'utf8'),
   ])
 
   return {

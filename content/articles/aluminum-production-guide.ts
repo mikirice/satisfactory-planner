@@ -50,7 +50,7 @@ export const aluminumProductionGuideArticle = {
     {
       heading: '副産物の水は定常運転で戻す',
       paragraphs: [
-        '60個/分の例では、アルミナ溶液工程が水90m³/minを使い、スクラップ工程から30m³/minが戻ります。定常時に戻り水を上流へ使えば外部から補う分は正味60m³/minです。戻り水を配管で返す循環の組み方、初期充填と逃がし先は[アルミ水循環ガイド](/articles/aluminum-water-loop/)で扱います。バッテリーも同じ水の返却を含むため、[バッテリー水循環ガイド](/articles/battery-water-loop/)は別工程まで広げるときに参照してください。',
+        '60個/分の例では、アルミナ溶液工程が水90m³/minを使い、スクラップ工程から30m³/minが戻ります。定常時に戻り水を上流へ使えば外部から補う分は正味60m³/minです。戻り水を配管で返す循環の組み方、初期充填と逃がし先は[アルミの水収支と循環例は本稿の「バッテリー60個/min」節で扱いますで扱います。バッテリーも同じ水の返却を含むため、同じ節では戻り水の起動条件も確認できますは別工程まで広げるときに参照してください。',
         'この計算は定常時の物質収支です。建設後は外部水をまず流して溶液と配管を満たし、スクラップ工程が水を返し始めてから循環側の流れを確認してください。Plannerの収支が合っていても、戻り管が高すぎる、流路が細い、または水の受け先が止まっているとゲーム内では流れません。水を捨てる非常用の出口を設ける場合も、通常時に原料や製品が漏れない経路かを実機で確かめます。',
       ],
     },
@@ -64,7 +64,7 @@ export const aluminumProductionGuideArticle = {
     {
       heading: 'Plannerの解を拠点条件に合わせ、停止箇所を切り分ける',
       paragraphs: [
-        'Plannerでアルミのインゴット60個/分を目標に置き、レシピ・設備・原料上限を確認します。既定の「原料を最小化」では、マップ総量が少ないボーキサイトの代わりに、変換機で作ったボーキサイトを選ぶ場合があります。自分が採掘できるノードの上限を入力するか、電力・設備数を優先する目的関数でも解き、実際の拠点条件に近い案を選んでください。代替レシピの比較方法は[代替レシピの比較指標](/articles/alternate-recipe-metrics/)を参照してください。',
+        'Plannerでアルミのインゴット60個/分を目標に置き、レシピ・設備・原料上限を確認します。既定の「原料を最小化」では、マップ総量が少ないボーキサイトの代わりに、変換機で作ったボーキサイトを選ぶ場合があります。自分が採掘できるノードの上限を入力するか、電力・設備数を優先する目的関数でも解き、実際の拠点条件に近い案を選んでください。代替レシピの比較方法は[代替レシピの比較指標](/articles/strong-alternate-recipes/)を参照してください。',
         '生産が止まったら、(1) アルミナ溶液がスクラップ精製機へ届いているか、(2) シリカが鋳造炉へ届き、過不足がないか、(3) スクラップから戻る水の管と受け先が空いているか、(4) ボーキサイト・石炭・石英の採掘とベルトが必要量を満たすか、の順に確認します。Plannerは選んだレシピと定常収支を解きますが、配管の高さ・揚程・初動の充填は自動配置しません。',
       ],
     },
@@ -80,6 +80,9 @@ export const aluminumProductionGuideArticle = {
       { label: 'Aluminum Scrap — Satisfactory Wiki (English)', href: 'https://satisfactory.wiki.gg/wiki/Aluminum_Scrap' },
       { label: 'Aluminum Ingot — Satisfactory Wiki (English)', href: 'https://satisfactory.wiki.gg/wiki/Aluminum_Ingot' },
       { label: 'Silica — Satisfactory Wiki (English)', href: 'https://satisfactory.wiki.gg/wiki/Silica' },
+      { label: 'Recipes — Satisfactory Wiki (English)', href: 'https://satisfactory.wiki.gg/wiki/Recipes' },
+      { label: 'Pipelines — Satisfactory Wiki (English)', href: 'https://satisfactory.wiki.gg/wiki/Pipeline' },
+      { label: 'Head lift — Satisfactory Wiki (English)', href: 'https://satisfactory.wiki.gg/wiki/Head_lift' },
     ],
   },
   relatedItemIds: [
@@ -92,9 +95,9 @@ export const aluminumProductionGuideArticle = {
     'Desc_Water_C',
   ],
   relatedArticleSlugs: [
-    'aluminum-water-loop',
-    'battery-water-loop',
-    'alternate-recipe-metrics',
+    'aluminum-production-guide',
+    'aluminum-production-guide',
+    'strong-alternate-recipes',
     'awesome-sink-points',
   ],
   cta: {

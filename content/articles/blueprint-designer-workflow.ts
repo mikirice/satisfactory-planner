@@ -45,7 +45,7 @@ export const blueprintDesignerWorkflowArticle = {
       heading: '既存ブループリントの編集と自動接続を分ける',
       paragraphs: [
         'Wikiは、Mk.1で作ったブループリントをMk.2またはMk.3 設計機内で個別編集できないと説明しています。編集する場合は作成元と同じ機種から始め、元データを上書きするか別名で保存できるかを先に確かめてください。Wikiだけでは、すべての上書き・複製・移行条件までは確定できません。',
-        '自動接続は配置時に搬送設備の接続候補を扱う別機能です。設計機で設計・保存する流れと混同しないでください。モジュール間の接続条件は[ブループリント自動接続ガイド](https://satisfactory-planner.net/articles/blueprint-auto-connect/)で扱います。',
+        '自動接続は配置時に搬送設備の接続候補を扱う別機能です。設計機で設計・保存する流れと混同しないでください。モジュール間の接続条件は[ブループリント自動接続ガイド](https://satisfactory-planner.net/articles/blueprint-designer-workflow/)で扱います。',
       ],
     },
   ],
@@ -60,7 +60,7 @@ export const blueprintDesignerWorkflowArticle = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['blueprint-auto-connect', 'factory-floor-area', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['blueprint-designer-workflow', 'production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: '再利用モジュール用の生産計画を開く',

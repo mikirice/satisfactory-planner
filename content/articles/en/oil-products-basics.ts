@@ -101,10 +101,10 @@ export const oilProductsBasicsArticleEn = {
   ],
   relatedArticleSlugs: [
     'oil-loop-complete',
-    'packaged-diluted-fuel-loop',
+    'packaged-nitrogen-empty-fluid-tank-circulation-planning',
     'diluted-fuel-power',
-    'coal-power-startup',
-    'power-generation-planning',
+    'power-system-capacity-and-recovery',
+    'power-system-capacity-and-recovery',
     'strong-alternate-recipes',
   ],
   cta: {

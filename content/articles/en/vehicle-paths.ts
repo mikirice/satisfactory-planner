@@ -47,7 +47,7 @@ export const vehiclePathsArticleEn = {
     ],
   },
   relatedItemIds: [],
-  relatedArticleSlugs: ['build-checklist-guide', 'production-planning-tutorial'],
+  relatedArticleSlugs: ['production-planning-tutorial', 'production-planning-tutorial'],
   cta: {
     kind: 'sample',
     label: 'Check the machine count for the line you plan to transport',
