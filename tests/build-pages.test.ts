@@ -425,6 +425,24 @@ describe('記事静的ページ', () => {
     }
   })
 
+  it('スループットモニター記事は1.2.4.1のクラッシュ修正を表示・出典付きで説明する', async () => {
+    const ja = await readFile(join(outputDirectory, 'articles/conveyor-throughput-monitor-guide/index.html'), 'utf8')
+    const en = await readFile(join(outputDirectory, 'en/articles/conveyor-throughput-monitor-guide/index.html'), 'utf8')
+    for (const html of [ja, en]) {
+      expect(html).toContain('1.2.4.1')
+      expect(html).toContain('513885')
+      expect(html).toContain('670630562731396159')
+      expect(html).toContain('dateModified')
+      expect(html).toContain('2026-10-22')
+    }
+    expect(ja).toContain('流量表示の精度や更新間隔が変わったという告知ではありません')
+    expect(en).toContain('does not say that throughput-reading accuracy or refresh timing changed')
+    expect(ja).toContain('最近解体した後にベルトを見るとクラッシュ')
+    expect(en).toContain('after one was recently dismantled')
+    expect(ja).toContain('Dedicated Server上でモニターを設置')
+    expect(en).toContain('placing a monitor on a Dedicated Server')
+  })
+
   it('全面改稿8本は現行操作を実測したと誤認させず、読者の確認手順を示す', () => {
     const rewrites = [
       'awesome-sink-points','fluid-truck-delivery','vehicle-paths','conveyor-throughput-monitor-guide',

@@ -70,6 +70,10 @@ export const conveyor_throughput_monitor_guideArticle = {
         "href": "https://steamcommunity.com/games/526870/announcements/detail/520838945346422709"
       },
       {
+        "label": "Coffee Stain Studios — Update 1.2.4.1 (Build 513885, 2026-10-12)",
+        "href": "https://store.steampowered.com/news/app/526870/view/670630562731396159?l=english"
+      },
+      {
         "label": "Official Satisfactory Press Kit — Throughput display.png",
         "href": "https://drive.google.com/file/d/1j9VPoDbXLCnWZfcN3yEY_uJVa-Slvy7v/view"
       },

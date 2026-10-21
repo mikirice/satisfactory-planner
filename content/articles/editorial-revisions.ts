@@ -15,7 +15,8 @@ const revised = (
   versionNotice: string,
   sections: HandwrittenArticle['sections'],
   relatedArticleSlugs: readonly string[],
-): HandwrittenArticle => ({ ...base, title, description, updatedDate: '2026-10-20', versionNotice, sections, relatedArticleSlugs })
+  updatedDate = '2026-10-20',
+): HandwrittenArticle => ({ ...base, title, description, updatedDate, versionNotice, sections, relatedArticleSlugs })
 
 const DATA_SCOPE = 'Plannerに収録された数値は1.1.xデータの計算例です。現在のゲーム内操作・流量を著者が実測したという意味ではありません。'
 
@@ -125,7 +126,7 @@ export const conveyorThroughputMonitorArticleRevision = revised(
   conveyor_throughput_monitor_guideArticle,
   'コンベア・スループット・モニターを使う — 計画値と実測値の比較手順',
   '観測区間を固定し、表示値の単位・待機時間・上流在庫を記録して、供給不足とモニター表示の問題を切り分けます。',
-  'モニターの表示・配置・既知修正は参照資料に基づきます。この記事の測定手順と数値は再現用の提案で、著者が現行ゲームで計測した結果ではありません。',
+  'Plannerの収録データは1.1.xです。モニターの説明はアップデート1.1および1.2.4.1の公式記録に基づきます。1.2.4.1は特定条件のクラッシュ修正を記録していますが、流量表示の精度や更新間隔の変更を示していません。本文の測定手順は提案で、著者は現行ゲームで検証していません。',
   [
     { heading: '最初に計画値と観測値の単位をそろえる', paragraphs: [
       'Plannerの目標は通常「個/min」、現地の観測は決めた時間にモニターが示す流量です。観測値が毎分換算か、一定期間の通過数か、表示が更新された時点の値かをUI上で確認します。単位が不明なまま、表示値を生産レートと比較しないでください。',
@@ -138,6 +139,10 @@ export const conveyorThroughputMonitorArticleRevision = revised(
     { heading: '0や低い値をすぐ故障と判断しない', paragraphs: [
       '0表示なら、観測期間中に品目が実際に流れたか、表示が更新されたか、接続向きや対象ベルトが正しいかを順に確認します。流れがない時間を含む平均は、稼働時の最大能力とは異なります。一方、空の時間も需要を満たせない実運用の一部なら、除外せず欠品時間として計上してください。',
       'Plannerはレシピと設備の計算で、画面の流量表示を予測するものではありません。比較値が違う時はまず設備レート、クロック、稼働比率、上流供給のどれが異なるかを一項目ずつ確認します。',
+    ]},
+    { heading: 'Update 1.2.4.1に記録されたクラッシュ条件を切り分ける', paragraphs: [
+      'Coffee StainのUpdate 1.2.4.1（Build 513885、2026年10月12日公開）の修正記録には、複数のスループット・モニターがあるベルトで、そのうち一つを最近解体した後にベルトを見るとクラッシュする問題と、Dedicated Server上でモニターを設置するとクラッシュする問題が記載されています。これは特定条件のクラッシュ修正です。流量表示の精度や更新間隔が変わったという告知ではありません。',
+      '同じ種類のクラッシュを調べる場合は、ゲームのビルド番号、モニター数、解体からベルトを見るまでの順序、Dedicated Serverで設置したかを記録し、公式修正記録の条件と照合します。1.2.4.1より後のビルドでも起きるかは、記録だけからは判断できません。流量表示が低いだけで、このクラッシュ修正が関係すると決めつけないでください。著者は現行ビルドで再現試験をしていません。',
     ]},
     { heading: '一つの仮説だけを試す', paragraphs: [
       '計画より少ない時にベルトを大型化する前に、観測区間の直前で上流在庫が減っているか、共有分岐の前後で流れが変わるかを確かめます。上流バッファが空になるなら供給不足の仮説が強まり、分岐前後だけ差があるなら共有配分や経路が候補です。機械・ベルト・モニターを同時に変えないでください。',
@@ -152,6 +157,7 @@ export const conveyorThroughputMonitorArticleRevision = revised(
     ]},
   ],
   ['resource-throughput-capacity-guide', 'priority-merger-use-cases-guide'],
+  '2026-10-22',
 )
 
 export const hypertubeJunctionArticleRevision = revised(
