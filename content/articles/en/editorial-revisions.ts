@@ -8,7 +8,7 @@ import { freight_platform_loading_diagnosis_enArticle } from './freight-platform
 import { pipeline_flow_head_lift_troubleshooting_enArticle } from './pipeline-flow-head-lift-troubleshooting.ts'
 import { smart_splitter_overflow_storage_guide_enArticle } from './smart-splitter-overflow-storage-guide.ts'
 
-const revised = (base: HandwrittenArticle, title: string, description: string, versionNotice: string, sections: HandwrittenArticle['sections'], relatedArticleSlugs: readonly string[]): HandwrittenArticle => ({ ...base, title, description, updatedDate: '2026-10-20', versionNotice, sections, relatedArticleSlugs })
+const revised = (base: HandwrittenArticle, title: string, description: string, versionNotice: string, sections: HandwrittenArticle['sections'], relatedArticleSlugs: readonly string[], updatedDate = '2026-10-20'): HandwrittenArticle => ({ ...base, title, description, updatedDate, versionNotice, sections, relatedArticleSlugs })
 const DATA_SCOPE = 'Planner values are calculations from its bundled 1.1.x data, not current in-game measurements by the author.'
 
 export const awesomeSinkPointsArticleRevisionEn = revised(awesomeSinkPointsArticleEn,
@@ -103,7 +103,7 @@ export const vehiclePathsArticleRevisionEn = revised(vehiclePathsArticleEn,
 export const conveyorThroughputMonitorArticleRevisionEn = revised(conveyor_throughput_monitor_guide_enArticle,
   'Use the Conveyor Throughput Monitor — Compare a Plan with a Measured Window',
   'Fix the observation interval, record display units and idle time, and separate an upstream shortage from a meter or setup issue.',
-  'Monitor behavior and fixes refer to the cited materials. This measurement protocol and its numbers are examples, not a current-game measurement by the author.', [
+  'Planner data is 1.1.x. Monitor descriptions refer to official Update 1.1 and 1.2.4.1 records. Update 1.2.4.1 records specific crash fixes; it does not announce a change to throughput-reading accuracy or refresh timing. The measurement protocol is a proposal, not a current-game test by the author.', [
     { heading: 'First put the plan and observation in matching units', paragraphs: [
       'Planner targets are usually items/min; a field display may show a rate or a count over a window. Check the current UI to learn whether the reading is a per-minute conversion, a period count, or a value refreshed at a particular time. Do not compare an unknown unit to a production rate.',
       'Fix one segment from start to end. Record plan input, game version, item, clock, upstream stock, and running consumers. If the observation window is 60 seconds, 108 items in that window converts to 108/min. Record time with an empty belt separately.',
@@ -116,6 +116,10 @@ export const conveyorThroughputMonitorArticleRevisionEn = revised(conveyor_throu
       'If the display reads zero, check whether items actually moved during the window, whether the display refreshed, and whether the correct belt and direction are selected. A window that includes idle time is not the same as peak throughput. But if idle time causes real shortages, keep it in the operational average instead of excluding it.',
       'Planner calculates recipes and equipment; it does not predict a live meter reading. When values differ, compare recipe, clock, duty cycle, and upstream supply one item at a time.',
     ]},
+    { heading: 'Isolate the crash conditions recorded for Update 1.2.4.1', paragraphs: [
+      'Coffee Stain’s Update 1.2.4.1 fix list (Build 513885, published October 12, 2026) records a crash when looking at a belt with multiple throughput monitors after one was recently dismantled, and a crash when placing a monitor on a Dedicated Server. These are specific crash fixes. The notice does not say that throughput-reading accuracy or refresh timing changed.',
+      'For a similar crash, record the game build, number of monitors, the sequence from dismantling one to looking at the belt, and whether placement happened on a Dedicated Server. Compare those conditions with the fix note. The note alone cannot establish whether the issue occurs in builds later than 1.2.4.1. Do not treat a zero or low reading by itself as one of these crash cases. The author has not reproduced this on the current build.',
+    ]},
     { heading: 'Test one hypothesis at a time', paragraphs: [
       'Before upgrading a belt, check whether stock immediately upstream falls, and compare flow on both sides of the first shared split. An empty upstream buffer supports a supply-shortage hypothesis; a difference appearing only across a split points to allocation or route conditions. Do not change machine, belt, and meter together.',
     ], lists: [{ ordered: true, items: [
@@ -127,7 +131,7 @@ export const conveyorThroughputMonitorArticleRevisionEn = revised(conveyor_throu
     { heading: 'Keep a reusable reproduction log', paragraphs: [
       'Include build, location, item, window length, count, units, plan target, upstream stock, downstream demand, empty time, belt type, and each change. A screenshot alone does not establish elapsed time or operating state. Check your build number against the official fix record before applying a known issue.',
     ]},
-  ], ['resource-throughput-capacity-guide','priority-merger-use-cases-guide'])
+  ], ['resource-throughput-capacity-guide','priority-merger-use-cases-guide'], '2026-10-22')
 
 export const hypertubeJunctionArticleRevisionEn = revised(hypertube_junction_routing_guide_enArticle,
   'Troubleshoot a Hypertube Junction — Test One Branch at a Time',
