@@ -713,6 +713,7 @@ p { margin: 0 0 14px; }
   .lang-switch { margin-left: 0; }
   main { margin-top: 20px; }
   .hero, .article-body { padding: 22px 20px; }
+  .article-body { overflow-x: clip; }
   .grid, .facts, .flow-columns, .metrics { grid-template-columns: 1fr; }
   .article-list--cards { grid-template-columns: 1fr; gap: 14px; }
   .comparison-table { min-width: 640px; }

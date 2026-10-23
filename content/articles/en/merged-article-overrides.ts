@@ -75,4 +75,4 @@ export const packagedCirculationArticleMergedEn = addSections(packagedNitrogenEm
     ['Circulating containers', 'Packaging → transport → unpackaging → return', 'Return route, cycle time, blockage, loss'],
     ['Reserve', 'Buffer for delays', 'Base it on the longest measured delay'],
   ]}] },
-], ['fluid-truck-delivery','oil-loop-complete'])
+], ['fluid-truck-delivery','oil-loop-complete','packaged-diluted-fuel-loop'])

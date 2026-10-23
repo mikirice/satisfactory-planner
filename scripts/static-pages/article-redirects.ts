@@ -17,7 +17,6 @@ export const RETIRED_ARTICLE_REDIRECTS = {
   'heavy-modular-frame-screw-belt-capacity-guide': 'resource-throughput-capacity-guide',
   'shared-quickwire-allocation-ai-limiters-high-speed-connectors': 'resource-throughput-capacity-guide',
   'aluminum-water-loop': 'aluminum-production-guide',
-  'packaged-diluted-fuel-loop': 'packaged-nitrogen-empty-fluid-tank-circulation-planning',
   'battery-water-loop': 'aluminum-production-guide',
   'nuclear-plutonium': 'nuclear-uranium',
   'nuclear-reprocessing': 'nuclear-uranium',
