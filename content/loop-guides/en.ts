@@ -162,24 +162,30 @@ export const LOOP_GUIDES_EN: Readonly<Record<string, LoopGuideEn>> = {
 
   'packaged-diluted-fuel-loop': {
     title: 'Packaged Diluted Fuel Canister Loop',
-    headline: 'Packaged Diluted Fuel: Canister Loop, Rates, and Start-up',
+    headline: 'Build and Start a Packaged Diluted Fuel Canister Loop',
     description:
-      '120 m³/min of Fuel from 120 m³/min of Water and 60 m³/min of Heavy Oil Residue, with 120 Empty Canisters per minute circulating.',
+      'A fixed 1.1.x-data example makes 120 m³/min of liquid Fuel from 45 m³/min of Crude Oil and 120 m³/min of Water, returning 120 Empty Canisters/min.',
     highlight:
-      'Follow the Empty Canisters back to Packager. This is Diluted Packaged Fuel made in a Refinery; it is a different recipe from the liquid Diluted Fuel made in a Blender.',
+      'Trace Empty Canisters from Unpackage Fuel back to the Water Packagers. Diluted Packaged Fuel in a Refinery is a different recipe from liquid Diluted Fuel in a Blender.',
     mechanism: [
-      'With Alternate: Heavy Oil Residue, 45 m³/min of Crude Oil yields 60 m³/min of Heavy Oil Residue and 30 Polymer Resin per minute.',
-      'Two Packagers turn 120 m³/min of Water and 120 Empty Canisters per minute into 120 Packaged Water per minute.',
-      'Two Refineries running Alternate: Diluted Packaged Fuel turn 60 m³/min of Heavy Oil Residue and 120 Packaged Water per minute into 120 Packaged Fuel per minute.',
-      'Two Packagers unpackage that Fuel into 120 m³/min of liquid Fuel and return 120 Empty Canisters per minute. Returning them to water packaging makes the loop’s steady-state net canister demand zero.',
-      'Alternate: Diluted Fuel in a Blender makes 10 m³ of liquid Fuel from 5 m³ of Heavy Oil Residue and 10 m³ of Water every six seconds. At 120 m³/min, its Water and Heavy Oil Residue needs match this example; it skips the packaging and unpackaging steps.',
-      'At 100% clock with no overclock, build eight machines for the canister loop: two Refineries for Heavy Oil Residue (one at 50%), two for Diluted Packaged Fuel, and four Packagers. The Blender route needs four total: two Refineries and two Blenders.',
+      'This is a steady-rate example from the Planner’s bundled Satisfactory 1.1.x recipe data. It uses Alternate: Heavy Oil Residue and Alternate: Diluted Packaged Fuel. The latter is not Alternate: Diluted Fuel, which runs in a Blender; the two chains have different recipes and machine layouts. Update 1.2+ recipe values have not been checked in game.',
+      'Alternate: Heavy Oil Residue turns 3 m³ of Crude Oil into 4 m³ of Heavy Oil Residue and 2 Polymer Resin every 6 seconds. At 45 m³/min of Crude Oil, that is 15 cycles/min: 60 m³/min of Heavy Oil Residue and 30 Polymer Resin/min, or 1.5 Refinery-equivalents.',
+      'The Packaged Water recipe turns 2 m³ of Water and 2 Empty Canisters into 2 Packaged Water every 2 seconds. Two Packagers make 120 Packaged Water/min and consume 120 m³/min of Water plus 120 Empty Canisters/min.',
+      'Alternate: Diluted Packaged Fuel in a Refinery consumes 1 m³ of Heavy Oil Residue and 2 Packaged Water per 2-second cycle, producing 2 Packaged Fuel items (Desc_Fuel_C) per cycle. Two Refineries run 60 cycles/min total: 120 Packaged Fuel items/min from 60 m³/min of Heavy Oil Residue and 120 Packaged Water/min.',
+      'Unpackage Fuel turns 2 Packaged Fuel items into 2 m³ of liquid Fuel and 2 Empty Canisters every 2 seconds. Two Packagers make 120 m³/min of liquid Fuel and return 120 Empty Canisters/min. Feeding those canisters back to the two Water Packagers makes the steady-state net canister balance zero.',
+      'For this target, the recipe-equivalent layout is 1.5 Refineries for Heavy Oil Residue (build two and run one at 50%), two Refineries for Diluted Packaged Fuel, and four Packagers: eight buildings total. Keep an outlet for the 30 Polymer Resin/min. The alternate liquid Diluted Fuel recipe in a Blender bypasses the canister steps and needs a separate plan. Reproduce the sample in the Planner by enabling both alternate recipes and setting liquid Fuel to 120 m³/min. Check the solved input rates, then build the oil/resin, Water-packaging, Diluted Packaged Fuel, and Unpackage Fuel stages in that order. If either alternate recipe is unavailable in your save, select a recipe you have and solve again; these rates and counts will change.',
     ],
     tips: [
-      'For the first recipe batch, put two Empty Canisters in each of the two Water Packagers (four total). Add more as buffer for belts and machine inventories in the actual game.',
-      'Return the Empty Canisters to the Water Packagers, and make the temporary start-up feed easy to disconnect once the loop is circulating.',
-      'If production stalls, first check whether Unpackage Fuel is returning Empty Canisters and whether Packaged Water reaches the dilution Refineries. Also give the 30 Polymer Resin per minute a clear route out.',
-      'This steady-state calculation uses the Planner’s 1.1.x game data. Its source and version check are recorded at https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md. The solver does not model start-up inventory or belt/pipe fill, and Update 1.2 recipe values have not been verified here.',
+      'To start the first Packaged Water batch, place two Empty Canisters in each Water Packager (four total). That is the recipe input for one batch per machine, not a verified in-game startup stock for belts, machine inventories, or waiting for the return. Add a separate reserve if the loop would otherwise run dry before its first canisters return.',
+      'Use a temporary canister feed if needed, then connect the Unpackage Fuel output belt to both Water Packager inputs. Keep the temporary feed easy to isolate. Do not remove the return belt just because the first Packaged Fuel appears; confirm that empty canisters are coming back.',
+      'If a Water Packager stops, check both Water and Empty Canisters at its inputs, then trace the return belt from Unpackage Fuel. For a stopped Diluted Packaged Fuel Refinery, check Heavy Oil Residue and Packaged Water separately; if liquid Fuel is missing, check Packaged Fuel delivery and the Unpackage Fuel recipe/output. If the Heavy Oil Residue Refineries stop, check Crude Oil and the Polymer Resin outlet. After clearing an outlet, verify power, selected recipe, and input inventory one at a time before changing the whole line.',
+      'The Planner solves steady per-minute recipe balances; it does not simulate starting canister inventory, belt or pipe filling, machine start order, or in-game blockages. Recipe figures use fixed Satisfactory 1.1.x game-bundled Docs and have not been checked against Update 1.2 or later in game. Coffee Stain’s official Update 1.2 overview and 1.2.4.1 patch notice document update highlights and fixes, not these individual recipe values. Data provenance/version record: https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md. Official Update 1.2 overview: https://coffeestain.com/news/satisfactory-1-2-update-out-now/. Official 1.2.4.1 patch notice: https://steamcommunity.com/games/526870/announcements/detail/1846018067941164.',
+    ],
+    sources: [
+      { label: 'Planner game-data source and 1.1.x version record', href: 'https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md' },
+      { label: 'Mirror of game-bundled CommunityResources/Docs (provenance is described in the data-source record)', href: 'https://github.com/aringadre76/satisfactory-api/tree/master/Docs' },
+      { label: 'Coffee Stain: Satisfactory 1.2 Update Out Now (update scope, not recipe values)', href: 'https://coffeestain.com/news/satisfactory-1-2-update-out-now/' },
+      { label: 'Coffee Stain / Steam: Satisfactory 1.2.4.1 patch notice (fixes, not recipe values)', href: 'https://steamcommunity.com/games/526870/announcements/detail/1846018067941164' },
     ],
   },
 

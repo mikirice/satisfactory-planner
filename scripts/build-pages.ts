@@ -119,7 +119,6 @@ export type StaticPagesManifest = {
 // Retired sample URLs redirect to their merged article destinations; the sample plans still appear on landing pages.
 const retiredSampleArticleIds = new Set([
   'aluminum-water-loop',
-  'packaged-diluted-fuel-loop',
   'battery-water-loop',
   'nuclear-plutonium',
   'nuclear-reprocessing',

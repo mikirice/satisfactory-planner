@@ -271,11 +271,11 @@ describe('アイテム静的ページ', () => {
 })
 
 describe('記事静的ページ', () => {
-  it('手書き26本とループ4本、および記事indexを生成する', async () => {
+  it('手書き26本とループ5本、および記事indexを生成する', async () => {
     const entries = await readdir(join(outputDirectory, 'articles'), { withFileTypes: true })
     const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
-    expect(articleSlugs).toHaveLength(30)
+    expect(articleSlugs).toHaveLength(31)
     expect(directories.sort()).toEqual([...articleSlugs].sort())
     expect(entries.some((entry) => entry.isFile() && entry.name === 'index.html')).toBe(true)
     for (const slug of articleSlugs) {
@@ -297,12 +297,12 @@ describe('記事静的ページ', () => {
       expect(redirects).toContain(`/articles/${from}/ /articles/${to}/ 301`)
       expect(redirects).toContain(`/en/articles/${from}/ /en/articles/${to}/ 301`)
     }
-    for (const id of ['aluminum-water-loop','packaged-diluted-fuel-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified']) {
+    for (const id of ['aluminum-water-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified']) {
       expect(SAMPLE_PLANS.some((sample) => sample.id === id), `${id} planner sample retained`).toBe(true)
     }
   })
 
-  it('Computerの共有基板・原料記事を日英30本目として接続する', async () => {
+  it('Computerの共有基板・原料記事を日英記事として接続する', async () => {
     const slug = 'shared-circuit-board-computer-feedstock-budget'
     expect(articleSlugs).toContain(slug)
     expect(sitemapPaths()).toContain(`/articles/${slug}/`)
@@ -468,7 +468,7 @@ describe('記事静的ページ', () => {
   })
 
   it('日英すべての記事で収録データ版とアップデート1.2の確認範囲を明示する', async () => {
-    expect(articleSlugs).toHaveLength(30)
+    expect(articleSlugs).toHaveLength(31)
     const nonPlannerDataGuides = new Set([
       'fluid-truck-delivery',
       'vehicle-paths',
@@ -739,7 +739,7 @@ describe('記事静的ページ', () => {
       expect(articleSlugs).not.toContain(from)
       expect(articleSlugs).toContain(to)
     }
-    for (const id of ['aluminum-water-loop','packaged-diluted-fuel-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified']) {
+    for (const id of ['aluminum-water-loop','battery-water-loop','nuclear-plutonium','nuclear-reprocessing','nuclear-simplified']) {
       expect(SAMPLE_PLANS.some((sample) => sample.id === id), id).toBe(true)
     }
     const nuclear = await readFile(join(outputDirectory, 'articles/nuclear-uranium/index.html'), 'utf8')
@@ -748,17 +748,35 @@ describe('記事静的ページ', () => {
     expect(nuclear).toContain('2,500 MW')
   })
 
-  it('希釈燃料サンプルの起動容器を空タンク記事に統合する', async () => {
-    const ja = await readFile(join(outputDirectory, 'articles/packaged-nitrogen-empty-fluid-tank-circulation-planning/index.html'), 'utf8')
-    const en = await readFile(join(outputDirectory, 'en/articles/packaged-nitrogen-empty-fluid-tank-circulation-planning/index.html'), 'utf8')
-    expect(ja).toContain('初期4個')
-    expect(ja).toContain('120 m³')
-    expect(ja).toContain('ceil(率×周回時間)')
-    expect(en).toContain('four canisters')
-    expect(en).toContain('120 m³/min')
-    expect(en).toContain('ceil(rate × loop time)')
-    expect(articleSlugs).not.toContain('packaged-diluted-fuel-loop')
-    expect(RETIRED_ARTICLE_REDIRECTS['packaged-diluted-fuel-loop']).toBe('packaged-nitrogen-empty-fluid-tank-circulation-planning')
+  it('希釈燃料ループ記事を元URLへ日英で復元し、窒素の循環計画は分離して保つ', async () => {
+    const slug = 'packaged-diluted-fuel-loop'
+    expect(articleSlugs).toContain(slug)
+    expect(sitemapPaths()).toContain(`/articles/${slug}/`)
+    expect(sitemapPaths()).toContain(`/en/articles/${slug}/`)
+    expect(RETIRED_ARTICLE_REDIRECTS).not.toHaveProperty(slug)
+    const redirects = await readFile(join(outputDirectory, '_redirects'), 'utf8')
+    expect(redirects).not.toContain(`/articles/${slug}/`)
+    expect(redirects).not.toContain(`/en/articles/${slug}/`)
+    const ja = await readFile(join(outputDirectory, `articles/${slug}/index.html`), 'utf8')
+    const en = await readFile(join(outputDirectory, `en/articles/${slug}/index.html`), 'utf8')
+    for (const [html, terms] of [
+      [ja, ['原油 45 m³/min', '廃重油 60 m³/min', '水120 m³/min', '空の容器を2個ずつ', '包装済み燃料', '合成樹脂の出口', '1.1.x', 'アップデート1.2']],
+      [en, ['45 m³/min of Crude Oil', '60 m³/min of Heavy Oil Residue', '120 m³/min of Water', 'two Empty Canisters in each', 'Packaged Fuel items', 'Polymer Resin outlet', '1.1.x', 'Update 1.2']],
+    ] as const) for (const term of terms) expect(html).toContain(term)
+    const jaNitrogen = await readFile(join(outputDirectory, 'articles/packaged-nitrogen-empty-fluid-tank-circulation-planning/index.html'), 'utf8')
+    const enNitrogen = await readFile(join(outputDirectory, 'en/articles/packaged-nitrogen-empty-fluid-tank-circulation-planning/index.html'), 'utf8')
+    expect(jaNitrogen).toContain('/articles/packaged-diluted-fuel-loop/')
+    expect(enNitrogen).toContain('/en/articles/packaged-diluted-fuel-loop/')
+    expect(jaNitrogen).toContain('ceil(率×周回時間)')
+    expect(enNitrogen).toContain('ceil(rate × loop time)')
+    const jaIndex = await readFile(join(outputDirectory, 'articles/index.html'), 'utf8')
+    const enIndex = await readFile(join(outputDirectory, 'en/articles/index.html'), 'utf8')
+    expect(jaIndex).toContain(`/articles/${slug}/`)
+    expect(enIndex).toContain(`/en/articles/${slug}/`)
+    expect(ja).toContain('href="/en/articles/packaged-diluted-fuel-loop/"')
+    expect(en).toContain('href="/articles/packaged-diluted-fuel-loop/"')
+    const staticPageCss = await readFile(join(outputDirectory, 'static-pages.css'), 'utf8')
+    expect(staticPageCss).toContain('.article-body { overflow-x: clip; }')
   })
 
   it('廃止されたアルミ水ループ記事は同じ収支を持つ統合先へ転送する', async () => {
@@ -918,9 +936,9 @@ describe('sitemap', () => {
     const xml = await readFile(join(outputDirectory, 'sitemap.xml'), 'utf8')
     const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 
-    // 30 Japanese and 30 English article routes remain after consolidation; redirects are excluded.
-    expect(sitemapPaths()).toHaveLength(467)
-    expect(manifest.urls).toHaveLength(467)
+    // 31 Japanese and 31 English article routes include the locally restored fuel guide; redirects are excluded.
+    expect(sitemapPaths()).toHaveLength(469)
+    expect(manifest.urls).toHaveLength(469)
     expect(locations).toEqual(manifest.urls)
     expect(new Set(locations).size).toBe(locations.length)
     expect(locations).toContain('https://satisfactory-planner.net/')

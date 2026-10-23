@@ -109,4 +109,4 @@ export const packagedCirculationArticleMerged = addSections(packagedNitrogenEmpt
       ['予備', '停止時の変動に備える追加在庫', '根拠となる最長遅延を記録'],
     ]}],
   },
-], ['fluid-truck-delivery','oil-loop-complete'])
+], ['fluid-truck-delivery','oil-loop-complete','packaged-diluted-fuel-loop'])

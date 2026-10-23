@@ -771,46 +771,43 @@ export const ARTICLE_COVERS = {
   },
   "packaged-diluted-fuel-loop": {
     "alt": {
-      "ja": "Satisfactory公式プレスキットの流体ステーションを結ぶトラックの経路。記事用の見出しを重ねたカバー。",
-      "en": "Official Satisfactory Press Kit screenshot: A truck route serving fluid stations. The cover title is editorial."
+      "ja": "原油から希釈燃料を作り、空の容器を水の包装工程へ戻す収支図。Satisfactoryのゲーム画面ではない。",
+      "en": "Editorial flow diagram of the packaged diluted-fuel balance and empty-canister return; not a Satisfactory game screenshot."
     },
     "caption": {
-      "ja": "公式Satisfactoryプレスキットのゲーム内画像に記事用の見出しを合成しています。記事内の計算値や具体的な設備構成を示す画面ではありません。",
-      "en": "Official Satisfactory Press Kit gameplay with an editorial title overlay. It does not show calculations or a specific machine layout from the guide."
+      "ja": "固定した1.1.xレシピデータの収支を示す編集図です。実際のゲーム画面、配置図、実測結果ではありません。",
+      "en": "Editorial diagram of the fixed 1.1.x recipe balance, not a game screen, machine-placement plan, or measured result."
     },
+    "badge": { "ja": "編集図", "en": "Editorial diagram" },
     "creditLinks": {
       "ja": [
         {
-          "href": "https://www.satisfactorygame.com/press/",
-          "label": "公式クリエイター向け案内（Press & Content Creators）"
+          "href": "https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md",
+          "label": "Planner同梱データの出典と1.1.x版範囲"
         },
         {
-          "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view",
-          "label": "元画像"
+          "href": "https://coffeestain.com/news/satisfactory-1-2-update-out-now/",
+          "label": "公式Update 1.2告知（版の説明）"
         }
       ],
       "en": [
         {
-          "href": "https://www.satisfactorygame.com/press/",
-          "label": "Official Press & Content Creators"
+          "href": "https://github.com/mikirice/satisfactory-planner/blob/main/data-source/DATA_SOURCES.md",
+          "label": "Planner data provenance and 1.1.x scope"
         },
         {
-          "href": "https://drive.google.com/file/d/1BG_wbhrpPi7vRmyredrdhAOTUR2ocYy0/view",
-          "label": "Original screenshot"
+          "href": "https://coffeestain.com/news/satisfactory-1-2-update-out-now/",
+          "label": "Official Update 1.2 announcement (version context)"
         }
       ]
     },
-    "badge": {
-      "ja": "ゲーム画像",
-      "en": "Game screenshot"
-    },
     "localizedSrc": {
-      "ja": "/article-covers/packaged-diluted-fuel-loop-ja.webp",
-      "en": "/article-covers/packaged-diluted-fuel-loop-en.webp"
+      "ja": "/article-covers/packaged-diluted-fuel-loop-ja.svg",
+      "en": "/article-covers/packaged-diluted-fuel-loop-en.svg"
     },
     "width": 1280,
     "height": 720,
-    "type": "image/webp"
+    "type": "image/svg+xml"
   },
   "aluminum-water-loop": {
     "alt": {
